@@ -1,12 +1,17 @@
 #
-# Geometry test module on "generic" LArTPC detector geometry
+# File:    dump_lartpcdetector_channelmap.fcl
+# Purpose: dumps the full channel mapping of the "standard" LArTPC detector
+# Author:  Gianluca Petrillo (petrillo@fnal.gov)
+# Date:    October 27th, 2015
+# Version: 1.0
 # 
-# Version: 1.1
+# Dependencies:
+# - geometry service
 #
 
 #include "geometry.fcl"
 
-process_name: testGeo
+process_name: DumpChannelMap
 
 services: {
   
@@ -15,14 +20,14 @@ services: {
   
   message: {
     destinations: {
-      LogDebugFile: { 
+      LogChannelMap: { 
         type:       "file"
-        filename:   "geometry_lartpcdetector.txt"
+        filename:   "lartpcdetector_channelmap.txt"
         append:     false
         threshold:  "INFO"
         categories:{
-          default:      { limit: 0 }
-          GeometryTest: { limit: -1 }
+          default:        { limit:  0 }
+          DumpChannelMap: { limit: -1 }
         }
       }
       LogStandardOut: {
@@ -42,9 +47,9 @@ services: {
           default:{ }
         }
       }
-    }
-  }
-}
+    } # destinations
+  } # message
+} # services
 
 source: {
   module_type: EmptyEvent
@@ -54,25 +59,23 @@ source: {
 outputs: { }
 
 physics: {
-
+  
   analyzers: {
-    geotest: {
-      module_type: "GeometryTest"
-      RunTests: [
-        # run the default test suite (actually unnecessary):
-        "@default",
-        # in addition (overriding the default): print wires
-        "+PrintWires"
-      ]
-    } # geotest
-  }
-
-  ana:           [ geotest ]
-
+    dumpchannelmap: {
+      module_type:  "DumpChannelMap"
+      module_label: "dumpchannelmapgeotest"
+      
+      ChannelToWires: true
+      WireToChannel:  true
+      
+      OutputCategory: DumpChannelMap
+      
+    } # dumpchannelmap
+  } # analyzers
+  
+  ana:           [ dumpchannelmap ]
+  
   trigger_paths: [ ]
   end_paths:     [ ana ]
-}
-
-# Uncomment if you want to check for overlaps
-# physics.analyzers.geotest.CheckForOverlaps: true 
-
+  
+} # physics
