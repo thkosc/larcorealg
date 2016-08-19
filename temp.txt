@@ -1,5 +1,0 @@
-#export SETUP_LARCOREOBJ=larcorealg v1_00_00 -f Linux64bit+2.6-2.12 -z /products -q e9:prof
-export LARCOREOBJ_LIB=$(LARLITE_LIBDIR)/
-export LARCOREOBJ_INC=$(LARLITE_USERDEVDIR)/larcorealg
-export LARCOREOBJ_DIR=$(LARLITE_USERDEVDIR)/larcorealg 
-#export LARSIMOBJ_FQ_DIR=/products/larsimobj/v1_00_00/slf6.x86_64.e9.prof
