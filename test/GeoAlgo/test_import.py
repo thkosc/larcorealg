@@ -5,7 +5,7 @@ def test_import():
     try:
         debug('Attempting to import geoalgo')
         import ROOT
-        ROOT.gSystem.Load("liblarcoreobj_GeoAlgo.so")
+        ROOT.gSystem.Load("liblarcorealg_GeoAlgo.so")
         from ROOT import geoalgo
     except Exception:
         error('Import geoalgo unit test failed.')
