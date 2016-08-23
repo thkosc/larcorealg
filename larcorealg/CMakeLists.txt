@@ -1,4 +1,2 @@
-
-#add_subdirectory(Geometry)
-add_subdirectory(SummaryData)
-
+add_subdirectory(GeoAlgo)
+add_subdirectory(Geometry)
