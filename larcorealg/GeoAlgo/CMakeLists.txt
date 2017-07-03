@@ -4,8 +4,7 @@ set( ROOTLIB -L$ENV{ROOTSYS}/lib -lCore -lRIO -lNet -lHist -lGraf -lGraf3d -lGpa
 
 link_libraries( ${LIB_NAME} -L$ENV{BOOST_LIB} ${ROOTLIB} )
 
-cet_make( LIBRARIES canvas_Persistency_Common
-                    NO_DICTIONARY )
+cet_make( LIBRARIES NO_DICTIONARY )
 
 art_dictionary( DICTIONARY_LIBRARIES larcorealg_GeoAlgo )
 
