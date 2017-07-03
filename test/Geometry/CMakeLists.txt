@@ -10,7 +10,6 @@ cet_make_library( LIBRARY_NAME GeometryTestLib
                     ChannelMapStandardTestAlg.cxx
                   LIBRARIES larcorealg_Geometry
                         larcorealg_TestUtils
-                        art_Utilities
                         canvas
                         ${MF_MESSAGELOGGER}
                         ${MF_UTILITIES}
@@ -65,7 +64,7 @@ cet_test(geometry_test
             cetlib cetlib_except
 )
 
-# unit test (use the hard-coded channel mapping for "standard" LArTPCdetector)
+# test of standalone geometry loading (use the hard-coded channel mapping for "standard" LArTPCdetector)
 cet_test(geometry_loader_test
   SOURCES geometry_loader_test.cxx
   DATAFILES test_geometry.fcl
@@ -78,7 +77,7 @@ cet_test(geometry_loader_test
             cetlib cetlib_except
 )
 
-# unit test (use the hard-coded channel mapping for "standard" LArTPCdetector)
+# test to verify loops on geometry elements by geometry iterators (hard-coded channel mapping for "standard" LArTPCdetector)
 cet_test(geometry_iterator_loop_test
   SOURCES geometry_iterator_loop_test.cxx
   DATAFILES test_geometry_iterator_loop.fcl
