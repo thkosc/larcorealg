@@ -1,7 +1,7 @@
 cet_enable_asserts()
 
 # test libraries
-art_make_library( LIBRARY_NAME GeometryTestLib
+cet_make_library( LIBRARY_NAME GeometryTestLib
                   SOURCE
                     GeometryTestAlg.cxx
                     GeometryGeoIDTestAlg.cxx
@@ -11,7 +11,7 @@ art_make_library( LIBRARY_NAME GeometryTestLib
                   LIBRARIES larcorealg_Geometry
                         larcorealg_TestUtils
                         art_Utilities
-			canvas
+                        canvas
                         ${MF_MESSAGELOGGER}
                         ${MF_UTILITIES}
                         ${FHICLCPP}
@@ -19,28 +19,6 @@ art_make_library( LIBRARY_NAME GeometryTestLib
                         ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
           )
 
-
-# test modules
-simple_plugin ( GeometryIteratorLoopTest "module"
-                    larcorealg_Geometry
-                    GeometryTestLib
-                    larcore_Geometry_Geometry_service
-                    ${MF_MESSAGELOGGER}
-                    ${MF_UTILITIES}
-                    ${FHICLCPP}
-                    cetlib cetlib_except
-             )
-
-simple_plugin ( GeometryTest "module"
-                    larcorealg_Geometry
-                    GeometryTestLib
-                    larcore_Geometry_Geometry_service
-                    ${MF_MESSAGELOGGER}
-                    ${MF_UTILITIES}
-                    ${FHICLCPP}
-                    cetlib cetlib_except
-                    ${ROOT_BASIC_LIB_LIST}
-              )
 
 # geometry test on "standard" geometry
 
@@ -77,6 +55,19 @@ cet_test(geometry_geoid_test
 # unit test (use the hard-coded channel mapping for "standard" LArTPCdetector)
 cet_test(geometry_test
   SOURCES geometry_test.cxx
+  DATAFILES test_geometry.fcl
+  TEST_ARGS ./test_geometry.fcl
+  LIBRARIES larcorealg_Geometry
+            GeometryTestLib
+            ${MF_MESSAGELOGGER}
+            ${MF_UTILITIES}
+            ${FHICLCPP}
+            cetlib cetlib_except
+)
+
+# unit test (use the hard-coded channel mapping for "standard" LArTPCdetector)
+cet_test(geometry_loader_test
+  SOURCES geometry_loader_test.cxx
   DATAFILES test_geometry.fcl
   TEST_ARGS ./test_geometry.fcl
   LIBRARIES larcorealg_Geometry
@@ -131,28 +122,6 @@ cet_test(geometry_thirdplaneslope_test
 )
 
 
-# these tests run a FCL file and fail only if lar exits with a bad exit code;
-# they are fast and always run.
-# FCL files need to be copied to the test area (DATAFILES directive) since they
-# are not installed.
-# 
-# This test is equivalent to geometry_test, but run in art environment
-cet_test(geometry HANDBUILT
-  DATAFILES test_geometry.fcl
-  TEST_EXEC lar
-  TEST_ARGS --rethrow-all --config ./test_geometry.fcl
-)
-
-# FCL files need to be copied to the test area (DATAFILES directive) since they
-# are not installed.
-# 
-# This test is equivalent to geometry_iterator_loop_test, but run in art environment
-cet_test(geometry_iterator_loop HANDBUILT
-  DATAFILES test_geometry_iterator_loop.fcl
-  TEST_EXEC lar
-  TEST_ARGS --rethrow-all --config ./test_geometry_iterator_loop.fcl
-)
-
 # decomposition engine tests
 cet_test(Decomposer_test
   SOURCES Decomposer_test.cxx
@@ -178,15 +147,6 @@ if( NOT mrb_build_dir )
                         PROPERTIES ENVIRONMENT 
                         "FHICL_FILE_PATH=.:${CMAKE_BINARY_DIR}/job;FW_SEARCH_PATH=${CMAKE_BINARY_DIR}/gdml" )
 endif()
-
-
-# FCL files need to be copied to the test area (DATAFILES directive) since they
-# are not installed.
-cet_test(dump_channel_map_test HANDBUILT
-  DATAFILES dump_lartpcdetector_channelmap.fcl
-  TEST_EXEC lar
-  TEST_ARGS --rethrow-all --config ./dump_lartpcdetector_channelmap.fcl
-)
 
 
 install_headers()

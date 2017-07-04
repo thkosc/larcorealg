@@ -9,16 +9,6 @@ cet_test( printBacktrace_test
     larcorealg_CoreUtils
   )
 
-cet_test(ServiceUtil_test
-  LIBRARIES
-    art_Utilities canvas
-    ${MF_MESSAGELOGGER}
-    ${MF_UTILITIES}
-    ${FHICLCPP}
-    cetlib cetlib_except
-  USE_BOOST_UNIT
-  )
-
 cet_test(UncopiableAndUnmovableClass_test
   USE_BOOST_UNIT
   )
