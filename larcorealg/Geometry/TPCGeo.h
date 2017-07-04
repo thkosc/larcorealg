@@ -13,15 +13,15 @@
 #include "TVector3.h"
 
 
-#include "larcore/Geometry/WireGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
 
 
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larcore/Geometry/BoxBoundedGeo.h"
-#include "larcore/Geometry/GeoObjectSorter.h"
-#include "larcore/Geometry/LocalTransformation.h"
-#include "larcore/CoreUtils/DumpUtils.h" // lar::dump::vector3D()
+#include "larcorealg/Geometry/BoxBoundedGeo.h"
+#include "larcorealg/Geometry/GeoObjectSorter.h"
+#include "larcorealg/Geometry/LocalTransformation.h"
+#include "larcorealg/CoreUtils/DumpUtils.h" // lar::dump::vector3D()
 
 class TGeoNode;
 

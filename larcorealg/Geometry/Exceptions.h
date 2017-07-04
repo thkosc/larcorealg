@@ -12,8 +12,8 @@
  * 
  */
 
-#ifndef LARCORE_GEOMETRY_EXCEPTIONS_H
-#define LARCORE_GEOMETRY_EXCEPTIONS_H
+#ifndef LARCOREALG_GEOMETRY_EXCEPTIONS_H
+#define LARCOREALG_GEOMETRY_EXCEPTIONS_H
 
 
 // LArSoft libraries
@@ -171,4 +171,4 @@ namespace geo {
  
 } // namespace geo
 
-#endif // LARCORE_GEOMETRY_EXCEPTIONS_H
+#endif // LARCOREALG_GEOMETRY_EXCEPTIONS_H

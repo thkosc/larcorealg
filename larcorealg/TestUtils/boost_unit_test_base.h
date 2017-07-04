@@ -23,7 +23,7 @@
 #define TEST_BOOST_UNIT_TEST_BASE_H
 
 // LArSoft libraries
-#include "larcore/TestUtils/unit_test_base.h"
+#include "larcorealg/TestUtils/unit_test_base.h"
 
 // Boost libraries
 #include <cetlib/quiet_unit_test.hpp> // framework::master_test_suite()

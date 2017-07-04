@@ -10,7 +10,7 @@
 // LArSoft libraries
 #include "test/Geometry/GeometryGeoIDTestAlg.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larcore/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/GeometryCore.h"
 
 // Boost libraries
 #include <cetlib/quiet_unit_test.hpp>

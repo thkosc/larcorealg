@@ -7,14 +7,14 @@
  */
 
 // class header
-#include "larcore/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/GeometryCore.h"
 
 // lar includes
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi<>
-#include "larcore/CoreUtils/DereferenceIterator.h" // lar::util::dereferenceIteratorLoop()
-#include "larcore/Geometry/OpDetGeo.h"
-#include "larcore/Geometry/AuxDetGeo.h"
-#include "larcore/Geometry/AuxDetSensitiveGeo.h"
+#include "larcorealg/CoreUtils/DereferenceIterator.h" // lar::util::dereferenceIteratorLoop()
+#include "larcorealg/Geometry/OpDetGeo.h"
+#include "larcorealg/Geometry/AuxDetGeo.h"
+#include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 
 // Framework includes
 #include "cetlib/exception.h"

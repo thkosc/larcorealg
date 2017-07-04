@@ -7,8 +7,8 @@
  * 
  */
 
-#ifndef LARCORE_GEOMETRY_SIMPLEGEO_H
-#define LARCORE_GEOMETRY_SIMPLEGEO_H
+#ifndef LARCOREALG_GEOMETRY_SIMPLEGEO_H
+#define LARCOREALG_GEOMETRY_SIMPLEGEO_H
 
 
 // C/C++ standard library
@@ -290,4 +290,4 @@ namespace lar {
 } // namespace lar
 
 
-#endif // LARCORE_GEOMETRY_SIMPLEGEO_H
+#endif // LARCOREALG_GEOMETRY_SIMPLEGEO_H

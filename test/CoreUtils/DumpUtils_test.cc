@@ -13,7 +13,7 @@
 #include <boost/test/test_tools.hpp> // BOOST_CHECK_EQUAL()
 
 // LArSoft libraries
-#include "larcore/CoreUtils/DumpUtils.h"
+#include "larcorealg/CoreUtils/DumpUtils.h"
 
 // ROOT libraries
 #include <TVector3.h>

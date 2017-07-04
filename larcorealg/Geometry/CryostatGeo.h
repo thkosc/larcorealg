@@ -12,8 +12,8 @@
 #include "TVector3.h"
 #include "TGeoVolume.h"
 
-#include "larcore/Geometry/BoxBoundedGeo.h"
-#include "larcore/Geometry/GeoObjectSorter.h"
+#include "larcorealg/Geometry/BoxBoundedGeo.h"
+#include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 
 class TGeoNode;

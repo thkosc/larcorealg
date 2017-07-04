@@ -11,7 +11,7 @@
 #include "test/Geometry/ChannelMapStandardTestAlg.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
-#include "larcore/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/GeometryCore.h"
 
 // framework
 #include "cetlib/exception.h"

@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-#include "larcore/Geometry/AuxDetSensitiveGeo.h"
+#include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 
 #include "TGeoManager.h"
 #include "TGeoTube.h"

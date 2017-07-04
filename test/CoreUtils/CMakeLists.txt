@@ -6,7 +6,7 @@
 
 cet_test( printBacktrace_test
   LIBRARIES
-    larcore_CoreUtils
+    larcorealg_CoreUtils
   )
 
 cet_test(ServiceUtil_test

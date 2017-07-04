@@ -32,9 +32,9 @@
 #define TEST_GEOMETRY_UNIT_TEST_BASE_H
 
 // LArSoft libraries
-#include "larcore/TestUtils/unit_test_base.h"
-#include "larcore/Geometry/GeometryCore.h"
-#include "larcore/Geometry/ChannelMapAlg.h"
+#include "larcorealg/TestUtils/unit_test_base.h"
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/ChannelMapAlg.h"
 
 // utility libraries
 #include "fhiclcpp/ParameterSet.h"

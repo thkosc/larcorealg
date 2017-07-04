@@ -12,7 +12,7 @@
 #define BOOST_TEST_MODULE SimpleGeoTest
 
 // LArSoft libraries
-#include "larcore/Geometry/SimpleGeo.h"
+#include "larcorealg/Geometry/SimpleGeo.h"
 
 // Boost libraries
 #include <cetlib/quiet_unit_test.hpp> // BOOST_AUTO_TEST_CASE()

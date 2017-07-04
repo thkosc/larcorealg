@@ -9,13 +9,13 @@
 
 // LArSoft libraries
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larcore/CoreUtils/DereferenceIterator.h"
-#include "larcore/Geometry/GeoObjectSorter.h"
-#include "larcore/Geometry/SimpleGeo.h"
-#include "larcore/Geometry/LocalTransformation.h" // geo::LocalTransformationFromPath
-#include "larcore/Geometry/BoxBoundedGeo.h"
-#include "larcore/Geometry/Decomposer.h"
-#include "larcore/Geometry/WireGeo.h"
+#include "larcorealg/CoreUtils/DereferenceIterator.h"
+#include "larcorealg/Geometry/GeoObjectSorter.h"
+#include "larcorealg/Geometry/SimpleGeo.h"
+#include "larcorealg/Geometry/LocalTransformation.h" // geo::LocalTransformationFromPath
+#include "larcorealg/Geometry/BoxBoundedGeo.h"
+#include "larcorealg/Geometry/Decomposer.h"
+#include "larcorealg/Geometry/WireGeo.h"
 
 // ROOT libraries
 #include "Math/GenVector/Cartesian2D.h"

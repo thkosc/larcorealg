@@ -1,5 +1,5 @@
 
-#include "larcore/CoreUtils/DebugUtils.h"
+#include "larcorealg/CoreUtils/DebugUtils.h"
 
 // C/C++ standard libraries
 #include <sstream>

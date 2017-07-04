@@ -7,7 +7,7 @@
  */
 
 // our library
-#include "larcore/TestUtils/NameSelector.h"
+#include "larcorealg/TestUtils/NameSelector.h"
 
 // framework libraries
 #include "canvas/Utilities/Exception.h"

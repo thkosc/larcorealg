@@ -11,8 +11,8 @@
 #include "TGeoVolume.h"
 
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larcore/Geometry/AuxDetSensitiveGeo.h"
-#include "larcore/Geometry/GeoObjectSorter.h"
+#include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
+#include "larcorealg/Geometry/GeoObjectSorter.h"
 
 class TGeoNode;
 class TGeoHMatrix;

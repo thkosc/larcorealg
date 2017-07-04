@@ -5,7 +5,7 @@
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
-#include "larcore/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 
 // C/C++ libraries
 #include <cmath>

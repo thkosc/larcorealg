@@ -12,7 +12,7 @@
 #include <boost/test/test_tools.hpp> // BOOST_CHECK(), BOOST_CHECK_EQUAL()
 
 // LArSoft libraries
-#include "larcore/CoreUtils/RealComparisons.h"
+#include "larcorealg/CoreUtils/RealComparisons.h"
 
 // C/C++ standard libraries
 #include <string>

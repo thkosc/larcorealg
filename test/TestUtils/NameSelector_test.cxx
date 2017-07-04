@@ -6,7 +6,7 @@
  */
 
 // LArSoft libraries
-#include "larcore/TestUtils/NameSelector.h"
+#include "larcorealg/TestUtils/NameSelector.h"
 
 // Boost libraries
 #include "canvas/Utilities/Exception.h"

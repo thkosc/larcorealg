@@ -21,7 +21,7 @@
 #include <vector>
 #include <memory> // std::shared_ptr<>
 
-#include "larcore/Geometry/AuxDetChannelMapAlg.h"
+#include "larcorealg/Geometry/AuxDetChannelMapAlg.h"
 
 // ROOT class prototypes
 class TGeoManager;

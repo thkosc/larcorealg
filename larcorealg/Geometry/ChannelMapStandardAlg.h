@@ -4,16 +4,16 @@
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
-#ifndef LARCORE_GEOMETRY_CHANNELSTANDARDMAPALG_H
-#define LARCORE_GEOMETRY_CHANNELSTANDARDMAPALG_H
+#ifndef LARCOREALG_GEOMETRY_CHANNELSTANDARDMAPALG_H
+#define LARCOREALG_GEOMETRY_CHANNELSTANDARDMAPALG_H
 
 #include <vector>
 #include <set>
 
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h" // readout::TPCsetID, ...
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
-#include "larcore/Geometry/ChannelMapAlg.h"
-#include "larcore/Geometry/GeoObjectSorterStandard.h"
+#include "larcorealg/Geometry/ChannelMapAlg.h"
+#include "larcorealg/Geometry/GeoObjectSorterStandard.h"
 #include "fhiclcpp/ParameterSet.h"
 
 namespace geo{
@@ -280,5 +280,5 @@ namespace geo{
 
 
 }
-#endif // LARCORE_GEOMETRY_CHANNELSTANDARDMAPALG_H
+#endif // LARCOREALG_GEOMETRY_CHANNELSTANDARDMAPALG_H
 

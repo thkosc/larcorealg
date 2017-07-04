@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef LARCORE_GEOMETRY_LOCALTRANSFORMATION_H
-#define LARCORE_GEOMETRY_LOCALTRANSFORMATION_H
+#ifndef LARCOREALG_GEOMETRY_LOCALTRANSFORMATION_H
+#define LARCOREALG_GEOMETRY_LOCALTRANSFORMATION_H
 
 
 // ROOT libraries
@@ -204,4 +204,4 @@ namespace geo {
 //------------------------------------------------------------------------------
 
 
-#endif // LARCORE_GEOMETRY_LOCALTRANSFORMATION_H
+#endif // LARCOREALG_GEOMETRY_LOCALTRANSFORMATION_H

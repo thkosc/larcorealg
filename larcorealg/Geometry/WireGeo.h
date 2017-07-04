@@ -14,7 +14,7 @@
 
 // CLHEP
 #include "CLHEP/Geometry/Transform3D.h"
-#include "larcore/Geometry/LocalTransformation.h"
+#include "larcorealg/Geometry/LocalTransformation.h"
 
 // ROOT
 #include "TVector3.h"

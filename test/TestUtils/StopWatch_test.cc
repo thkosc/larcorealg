@@ -14,7 +14,7 @@
  */
 
 // our libraries
-#include "larcore/TestUtils/StopWatch.h"
+#include "larcorealg/TestUtils/StopWatch.h"
 
 // C/C++ standard libraries
 #include <chrono>

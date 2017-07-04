@@ -10,18 +10,18 @@
 #include "test/Geometry/GeometryTestAlg.h"
 
 // LArSoft includes
-#include "larcore/Geometry/SimpleGeo.h"
-#include "larcore/Geometry/GeometryCore.h"
-#include "larcore/Geometry/CryostatGeo.h"
-#include "larcore/Geometry/TPCGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
-#include "larcore/Geometry/OpDetGeo.h"
-#include "larcore/Geometry/AuxDetGeo.h"
-#include "larcore/Geometry/AuxDetSensitiveGeo.h"
-#include "larcore/Geometry/geo.h"
-#include "larcore/CoreUtils/RealComparisons.h"
-#include "larcore/CoreUtils/DumpUtils.h" // lar::dump::vector3D(), ...
+#include "larcorealg/Geometry/SimpleGeo.h"
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/OpDetGeo.h"
+#include "larcorealg/Geometry/AuxDetGeo.h"
+#include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
+#include "larcorealg/Geometry/geo.h"
+#include "larcorealg/CoreUtils/RealComparisons.h"
+#include "larcorealg/CoreUtils/DumpUtils.h" // lar::dump::vector3D(), ...
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi<>

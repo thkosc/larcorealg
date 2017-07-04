@@ -19,7 +19,7 @@
 #define BOOST_TEST_MODULE ( UncopiableAndUnmovableClass_test )
 
 // LArSoft libraries
-#include "larcore/CoreUtils/UncopiableAndUnmovableClass.h"
+#include "larcorealg/CoreUtils/UncopiableAndUnmovableClass.h"
 
 // Boost libraries
 #include <cetlib/quiet_unit_test.hpp> // BOOST_AUTO_TEST_CASE()

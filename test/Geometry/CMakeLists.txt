@@ -8,8 +8,8 @@ art_make_library( LIBRARY_NAME GeometryTestLib
                     GeometryIteratorTestAlg.cxx
                     GeometryIteratorLoopTestAlg.cxx
                     ChannelMapStandardTestAlg.cxx
-                  LIBRARIES larcore_Geometry
-                        larcore_TestUtils
+                  LIBRARIES larcorealg_Geometry
+                        larcorealg_TestUtils
                         art_Utilities
 			canvas
                         ${MF_MESSAGELOGGER}
@@ -22,7 +22,7 @@ art_make_library( LIBRARY_NAME GeometryTestLib
 
 # test modules
 simple_plugin ( GeometryIteratorLoopTest "module"
-                    larcore_Geometry
+                    larcorealg_Geometry
                     GeometryTestLib
                     larcore_Geometry_Geometry_service
                     ${MF_MESSAGELOGGER}
@@ -32,7 +32,7 @@ simple_plugin ( GeometryIteratorLoopTest "module"
              )
 
 simple_plugin ( GeometryTest "module"
-                    larcore_Geometry
+                    larcorealg_Geometry
                     GeometryTestLib
                     larcore_Geometry_Geometry_service
                     ${MF_MESSAGELOGGER}
@@ -48,7 +48,7 @@ simple_plugin ( GeometryTest "module"
 # this uses BOOST for the test
 cet_test(geometry_iterator_test
   SOURCES geometry_iterator_test.cxx
-  LIBRARIES larcore_Geometry
+  LIBRARIES larcorealg_Geometry
             GeometryTestLib
             ${MF_MESSAGELOGGER}
             ${MF_UTILITIES}
@@ -63,7 +63,7 @@ cet_test(geometry_iterator_test
 # this uses BOOST for the test
 cet_test(geometry_geoid_test
   SOURCES geometry_geoid_test.cxx
-  LIBRARIES larcore_Geometry
+  LIBRARIES larcorealg_Geometry
             GeometryTestLib
             ${MF_MESSAGELOGGER}
             ${MF_UTILITIES}
@@ -79,7 +79,7 @@ cet_test(geometry_test
   SOURCES geometry_test.cxx
   DATAFILES test_geometry.fcl
   TEST_ARGS ./test_geometry.fcl
-  LIBRARIES larcore_Geometry
+  LIBRARIES larcorealg_Geometry
             GeometryTestLib
             ${MF_MESSAGELOGGER}
             ${MF_UTILITIES}
@@ -92,7 +92,7 @@ cet_test(geometry_iterator_loop_test
   SOURCES geometry_iterator_loop_test.cxx
   DATAFILES test_geometry_iterator_loop.fcl
   TEST_ARGS ./test_geometry_iterator_loop.fcl
-  LIBRARIES larcore_Geometry
+  LIBRARIES larcorealg_Geometry
             GeometryTestLib
             ${MF_MESSAGELOGGER}
             ${MF_UTILITIES}
@@ -104,7 +104,7 @@ cet_test(geometry_iterator_loop_test
 # test for standard channel mapping (BOOST unit test)
 cet_test(geometry_standardchannelmapping_test
   SOURCES geometry_standardchannelmapping_test.cxx
-  LIBRARIES larcore_Geometry
+  LIBRARIES larcorealg_Geometry
             GeometryTestLib
             ${MF_MESSAGELOGGER}
             ${MF_UTILITIES}
@@ -120,7 +120,7 @@ cet_test(geometry_standardchannelmapping_test
 # this uses BOOST for the test
 cet_test(geometry_thirdplaneslope_test
   SOURCES geometry_thirdplaneslope_test.cxx
-  LIBRARIES larcore_Geometry
+  LIBRARIES larcorealg_Geometry
             ${MF_MESSAGELOGGER}
             ${MF_UTILITIES}
             ${FHICLCPP}

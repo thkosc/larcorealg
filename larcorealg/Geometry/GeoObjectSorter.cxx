@@ -5,7 +5,7 @@
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
-#include "larcore/Geometry/GeoObjectSorter.h"
+#include "larcorealg/Geometry/GeoObjectSorter.h"
 
 namespace geo{
 

@@ -5,7 +5,7 @@
  * @date   July 27th, 2015
  */
 
-#include "larcore/Geometry/BoxBoundedGeo.h"
+#include "larcorealg/Geometry/BoxBoundedGeo.h"
 
 namespace geo
 {

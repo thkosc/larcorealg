@@ -7,11 +7,11 @@
  */
 
 // class header
-#include "larcore/Geometry/AuxDetGeometryCore.h"
+#include "larcorealg/Geometry/AuxDetGeometryCore.h"
 
 // lar includes
-#include "larcore/Geometry/AuxDetGeo.h"
-#include "larcore/Geometry/AuxDetSensitiveGeo.h"
+#include "larcorealg/Geometry/AuxDetGeo.h"
+#include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 
 // Framework includes
 #include "cetlib/exception.h"

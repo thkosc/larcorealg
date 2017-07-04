@@ -18,7 +18,7 @@
 #include <boost/test/test_tools.hpp> // BOOST_CHECK_CLOSE(), BOOST_CHECK_EQUAL()
 
 // LArSoft libraries
-#include "larcore/Geometry/Decomposer.h"
+#include "larcorealg/Geometry/Decomposer.h"
 
 // ROOT libraries
 #include "TVector3.h"

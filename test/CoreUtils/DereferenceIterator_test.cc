@@ -12,7 +12,7 @@
 #include <boost/test/test_tools.hpp> // BOOST_CHECK(), BOOST_CHECK_EQUAL()
 
 // LArSoft libraries
-#include "larcore/CoreUtils/DereferenceIterator.h"
+#include "larcorealg/CoreUtils/DereferenceIterator.h"
 
 // C/C++ standard libraries
 #include <iterator> // std::back_inserter()

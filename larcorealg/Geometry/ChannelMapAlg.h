@@ -8,8 +8,8 @@
 #define GEO_CHANNELMAPALG_H
 
 // LArSoft  libraries
-#include "larcore/Geometry/Exceptions.h" // geo::InvalidWireIDError
-#include "larcore/Geometry/GeoObjectSorter.h"
+#include "larcorealg/Geometry/Exceptions.h" // geo::InvalidWireIDError
+#include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t

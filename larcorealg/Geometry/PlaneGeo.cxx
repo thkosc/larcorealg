@@ -7,10 +7,10 @@
 
 
 // LArSoft includes
-#include "larcore/Geometry/Exceptions.h" // geo::InvalidWireError
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
-#include "larcore/CoreUtils/RealComparisons.h"
+#include "larcorealg/Geometry/Exceptions.h" // geo::InvalidWireError
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
+#include "larcorealg/CoreUtils/RealComparisons.h"
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi()
 
 // Framework includes

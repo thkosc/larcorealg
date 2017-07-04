@@ -47,13 +47,13 @@
 
 
 // LArSoft libraries
-#include "larcore/Geometry/GeoObjectSorter.h"
-#include "larcore/Geometry/ChannelMapAlg.h"
-#include "larcore/Geometry/CryostatGeo.h"
-#include "larcore/Geometry/TPCGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
-#include "larcore/CoreUtils/RealComparisons.h"
+#include "larcorealg/Geometry/GeoObjectSorter.h"
+#include "larcorealg/Geometry/ChannelMapAlg.h"
+#include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
+#include "larcorealg/CoreUtils/RealComparisons.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t

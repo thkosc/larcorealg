@@ -2,7 +2,7 @@
 cet_test(NameSelector_test
   SOURCES NameSelector_test.cxx
   LIBRARIES
-    larcore_TestUtils
+    larcorealg_TestUtils
     art_Utilities
     canvas
   USE_BOOST_UNIT

@@ -28,9 +28,9 @@
 #define TEST_UNIT_TEST_BASE_H
 
 // LArSoft libraries
-#include "larcore/TestUtils/ProviderTestHelpers.h"
-#include "larcore/TestUtils/ProviderList.h"
-#include "larcore/CoreUtils/ProviderPack.h"
+#include "larcorealg/TestUtils/ProviderTestHelpers.h"
+#include "larcorealg/TestUtils/ProviderList.h"
+#include "larcorealg/CoreUtils/ProviderPack.h"
 
 // utility libraries
 #include "fhiclcpp/ParameterSet.h"

@@ -28,7 +28,7 @@
 #include <boost/test/test_tools.hpp> // BOOST_CHECK(), BOOST_CHECK_EQUAL()
 
 // LArSoft libraries
-#include "larcore/CoreUtils/ProviderPack.h"
+#include "larcorealg/CoreUtils/ProviderPack.h"
 
 // C/C++ standard libraries
 #include <string>

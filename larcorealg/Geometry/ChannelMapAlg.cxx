@@ -5,8 +5,8 @@
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
-#include "larcore/Geometry/ChannelMapAlg.h"
-#include "larcore/Geometry/AuxDetGeo.h"
+#include "larcorealg/Geometry/ChannelMapAlg.h"
+#include "larcorealg/Geometry/AuxDetGeo.h"
 
 namespace geo{
 

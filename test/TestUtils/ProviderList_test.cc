@@ -11,7 +11,7 @@
 
 
 // LArSoft libraries
-#include "larcore/TestUtils/ProviderList.h"
+#include "larcorealg/TestUtils/ProviderList.h"
 
 // Boots libraries 
 #define BOOST_TEST_MODULE ProviderList_test

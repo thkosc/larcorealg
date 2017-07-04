@@ -7,7 +7,7 @@
 
 #include <cmath>
 
-#include "larcore/Geometry/OpDetGeo.h"
+#include "larcorealg/Geometry/OpDetGeo.h"
 
 #include "TGeoManager.h"
 #include "TGeoTube.h"

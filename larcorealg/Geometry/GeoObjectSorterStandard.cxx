@@ -5,13 +5,13 @@
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
-#include "larcore/Geometry/GeoObjectSorterStandard.h"
-#include "larcore/Geometry/AuxDetGeo.h"
-#include "larcore/Geometry/AuxDetSensitiveGeo.h"
-#include "larcore/Geometry/CryostatGeo.h"
-#include "larcore/Geometry/TPCGeo.h"
-#include "larcore/Geometry/PlaneGeo.h"
-#include "larcore/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/GeoObjectSorterStandard.h"
+#include "larcorealg/Geometry/AuxDetGeo.h"
+#include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
+#include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
 
 namespace {
   

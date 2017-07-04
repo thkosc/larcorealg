@@ -19,7 +19,7 @@
 #define LARCORE_TESTUTILS_PROVIDERLIST_H 1
 
 // LArSoft libraries
-#include "larcore/TestUtils/ProviderTestHelpers.h"
+#include "larcorealg/TestUtils/ProviderTestHelpers.h"
 
 // C/C++ standard libraries
 #include <unordered_map>

@@ -12,7 +12,7 @@
 #define GEO_GEOMETRYTESTALG_H
 
 // LArSoft includes
-#include "larcore/TestUtils/NameSelector.h"
+#include "larcorealg/TestUtils/NameSelector.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 
 // ROOT

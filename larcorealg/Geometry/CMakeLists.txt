@@ -12,14 +12,14 @@ art_make(
                         ${ROOT_GDML}
                         ${ROOT_EG}
                         ${ROOT_GENVECTOR}
-          SERVICE_LIBRARIES larcore_Geometry
+          SERVICE_LIBRARIES larcorealg_Geometry
                             art_Framework_Principal
                             art_Framework_Services_Registry
                             cetlib cetlib_except
                             ${MF_MESSAGELOGGER}
                             ${MF_UTILITIES}
                             ${FHICLCPP}
-          MODULE_LIBRARIES larcore_Geometry
+          MODULE_LIBRARIES larcorealg_Geometry
                            art_Framework_Core
                            art_Framework_Services_Registry
                            canvas
