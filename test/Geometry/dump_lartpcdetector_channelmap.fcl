@@ -9,14 +9,13 @@
 # - geometry service
 #
 
-#include "geometry.fcl"
+#include "geometry_lartpcdetector.fcl"
 
 process_name: DumpChannelMap
 
 services: {
   
-  Geometry:               @local::standard_geo
-  ExptGeoHelperInterface: @local::standard_geometry_helper
+  @table::lartpcdetector_geometry_bundle
   
   message: {
     destinations: {

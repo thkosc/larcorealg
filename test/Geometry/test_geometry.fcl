@@ -4,14 +4,13 @@
 # Version: 1.1
 #
 
-#include "geometry.fcl"
+#include "geometry_lartpcdetector.fcl"
 
 process_name: testGeo
 
 services: {
   
-  Geometry:               @local::standard_geo
-  ExptGeoHelperInterface: @local::standard_geometry_helper
+  @table::lartpcdetector_geometry_bundle
   
   message: {
     destinations: {
