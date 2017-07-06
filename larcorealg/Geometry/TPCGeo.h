@@ -624,7 +624,7 @@ void geo::TPCGeo::PrintTPCInfo(
   
   //----------------------------------------------------------------------------
   // print also the containing box
-  decltype(auto) const box = BoundingBox();
+  geo::BoxBoundedGeo const& box = BoundingBox();
   out << "\n" << indent
     << "bounding box: ( "
       << box.MinX() << ", " << box.MinY() << ", " << box.MinZ()
