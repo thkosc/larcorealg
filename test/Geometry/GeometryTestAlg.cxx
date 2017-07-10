@@ -2458,6 +2458,7 @@ namespace geo{
     // test all the combinations
     
     lar::util::RealComparisons<double> coordIs(1e-3);
+    auto vectorIs = lar::util::makeVector3DComparison(coordIs);
     for (unsigned int iPlane1 = 0; iPlane1 < NPlanes; ++iPlane1) {
       
       const geo::WireID& w1 = WireIDs[iPlane1];
@@ -2471,6 +2472,24 @@ namespace geo{
           LOG_ERROR("GeometryTest") << "Wires " << w1 << " and " << w2
             << " should intersect around " << point << " of TPC " << TPC.ID()
             << ", but they seem not to intersect at all!";
+          ++nErrors;
+          continue;
+        }
+        GeometryCore::Point3D_t xingPointInv;
+        if (!geom->WireIDsIntersect(w2, w1, xingPointInv)) {
+          LOG_ERROR("GeometryTest") << "Wires " << w2 << " and " << w1
+            << " (reversed test) should intersect around " << point
+            << " of TPC " << TPC.ID()
+            << ", but they seem not to intersect at all!";
+          ++nErrors;
+          continue;
+        }
+        if (vectorIs.nonEqual(xingPoint, xingPointInv)) {
+          LOG_ERROR("GeometryTest")
+            << "WireIDsIntersect() gives different intersections for "
+            << w1 << " and " << w2
+            << ": " << xingPoint << " (direct) and " << xingPointInv
+            << " (reversed)";
           ++nErrors;
           continue;
         }
@@ -2493,9 +2512,9 @@ namespace geo{
         
         // precision of the test is an issue; the 10^-3 x pitch threshold
         // is roughly tuned so that we don't get errors
-        lar::util::RealComparisons<double> coordIs
+        lar::util::RealComparisons<double> wireCoordIs
           (std::max(WirePitch[iPlane1], WirePitch[iPlane2]) * 1e-3); // cm
-        if (coordIs.nonEqual(d, expected_d)) {
+        if (wireCoordIs.nonEqual(d, expected_d)) {
           LOG_ERROR("GeometryTest")
             << "wires " << w1 << " and " << w2 << " intersect at " << xingPoint
             << ", "
