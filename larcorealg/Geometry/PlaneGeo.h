@@ -449,6 +449,19 @@ namespace geo {
       { position -= distance * GetNormalDirection(); }
     
     
+    /**
+     * @brief Shifts the position along drift direction to fall on the plane.
+     * @param position _(modified)_ the position to be shifted
+     * 
+     * This is a pure geometry computation: the position is shifted by the drift
+     * distance in the direction opposite to the normal to the plane (as
+     * returned by `GetNormalDirection()`), no matter where the position is
+     * relative to the plane.
+     */
+    void DriftPoint(TVector3& position) const
+      { DriftPoint(position, DistanceFromPlane(position)); }
+    
+    
     /// Returns a volume including all the wires in the plane.
     lar::util::simple_geo::Volume<> Coverage() const;
     
