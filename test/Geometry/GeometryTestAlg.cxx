@@ -1170,6 +1170,7 @@ namespace geo{
       decltype(auto) const wirePitch = plane.WirePitch();
       decltype(auto) const refPoint = plane.ProjectionReferencePoint();
       
+      unsigned int const lastWire = plane.Nwires() - 1;
       geo::WireID::WireID_t wireNo = 0;
       for (geo::WireGeo const& wire: plane.IterateWires()) {
         
@@ -1315,7 +1316,11 @@ namespace geo{
           //
           // containment
           //
-          if (!plane.isProjectionOnPlane(expectedPoint)) {
+          // skip this test for the first and last wire, since the containment
+          // area might well exclude the whole wire if it's short enough
+          bool const isExtremeWire
+            = (wireID.Wire == 0) || (wireID.Wire == lastWire);
+          if (!isExtremeWire && !plane.isProjectionOnPlane(expectedPoint)) {
             ++nErrors;
             mf::LogProblem("GeometryTestAlg")
               << "[testPlanePointDecomposition] isProjectionOnPlane(): "
