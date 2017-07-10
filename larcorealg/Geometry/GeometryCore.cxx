@@ -15,6 +15,7 @@
 #include "larcorealg/Geometry/OpDetGeo.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
+#include "larcorealg/Geometry/Decomposer.h" // geo::vect::Dot()
 
 // Framework includes
 #include "cetlib/exception.h"
@@ -1325,11 +1326,9 @@ namespace geo {
     // This is not a real 3D intersection: the wires do not cross, since they
     // are required to belong to two different planes.
     // 
-    // Therefore, the wires are projected on the same plane and the intersection
-    // is found there, and then we are brought back to the 3D world.
+    // After Christopher Backhaus suggestion, we take the point on the first
+    // wire which is closest to the other one.
     // 
-    // The coordinate of the intersection that is from the component orthogonal
-    // to the plane is arbitrarily set to 0.
     //
     static_assert(
       std::numeric_limits<decltype(intersection.X())>::has_infinity,
@@ -1343,39 +1342,47 @@ namespace geo {
       return false;
     }
     
-    // get the endpoints to see if wires intersect
-    Segment_t const w1 = WireEndPoints(wid1);
-    Segment_t const w2 = WireEndPoints(wid2);
+    /*
+     * the point on the first wire:
+     *     
+     *     p1(t) = c1 + t w1 (c1 the center of the wire, w1 its direction[1])
+     *     
+     * has the minimal distance from the other wire (c2 + u w2, with the same
+     * notation) at
+     *     
+     *     t = [(dc,w1) - (dc,w2)(w1,w2)] / [ 1 - (w1,w2)^2 ]
+     *     u = [-(dc,w2) + (dc,w1)(w1,w2)] / [ 1 - (w1,w2)^2 ]
+     *     
+     * (where (a,b) is a scalar product and dc = (c2 - c1) ).
+     * If w1 and w2 are unit vectors, t and u are in fact the distance of the
+     * point from the center of the respective wires in "standard" geometry
+     * units.
+     * 
+     */
     
-    // we need a consistent representation of the projections;
-    // so we pick the first plane
-    // (when issue #14365 will be solved, we'll be able to talk to the TPC instead)
-    auto const& plane1 = Plane(wid1);
-    auto w1startProj = plane1.PointWidthDepthProjection(w1.start());
-    auto w1endProj   = plane1.PointWidthDepthProjection(w1.end());
-    auto w2startProj = plane1.PointWidthDepthProjection(w2.start());
-    auto w2endProj   = plane1.PointWidthDepthProjection(w2.end());
+    geo::WireGeo const& wire1 = Wire(wid1);
+    decltype(auto) c1 = wire1.GetCenter();
+    decltype(auto) w1 = wire1.Direction();
     
-    double x, y; // "width" and "depth"
-    bool const cross = IntersectLines(
-      w1startProj.X(), w1startProj.Y(), w1endProj.X(), w1endProj.Y(),
-      w2startProj.X(), w2startProj.Y(), w2endProj.X(), w2endProj.Y(),
-      x, y
-      );
+    geo::WireGeo const& wire2 = Wire(wid2);
+    decltype(auto) c2 = wire2.GetCenter();
+    decltype(auto) w2 = wire2.Direction();
     
-    if (!cross) {
-      intersection = { infinity, infinity, infinity };
-      return false;
-    }
+    auto const dc = c2 - c1;
     
-    bool const within = PointWithinSegments(
-      w1startProj.X(), w1startProj.Y(), w1endProj.X(), w1endProj.Y(),
-      w2startProj.X(), w2startProj.Y(), w2endProj.X(), w2endProj.Y(),
-      x, y
-      );
+    // note: we are not checking that w1 and w2 are not parallel.
+    using geo::vect::Dot;
+    double const w1w2 = Dot(w1, w2); // this is cos(angle), angle between wires
+    double const cscAngle2 = 1.0 / (1.0 - sqr(w1w2)); // this is 1/sin^2(angle)
+    double const dcw1 = Dot(dc, w1);
+    double const dcw2 = Dot(dc, w2);
+    double const t = (dcw1 - (dcw2 * w1w2)) * cscAngle2;
+    double const u = (-dcw2 + (dcw1 * w1w2)) * cscAngle2;
     
-    intersection
-      = plane1.ComposePoint(0., geo::PlaneGeo::WireCoordProjection_t(x, y));
+    intersection = c1 + t * w1;
+    
+    bool const within
+      = (std::abs(t) <= wire1.HalfL()) && (std::abs(u) <= wire2.HalfL());
     
     // return whether the intersection is within the length of both wires
     return within;

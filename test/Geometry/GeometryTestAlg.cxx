@@ -2395,7 +2395,7 @@ namespace geo{
         
         auto const widthOffset = (iW * stepW) * refPlane.WidthDir();
         
-        for (unsigned int iD = -stepsD; iD < +stepsD; ++iD) {
+        for (int iD = -stepsD; iD < +stepsD; ++iD) {
           
           auto const depthOffset = (iD * stepD) * refPlane.DepthDir();
           
@@ -2433,6 +2433,9 @@ namespace geo{
     unsigned int nErrors = 0;
     
     const unsigned int NPlanes = TPC.Nplanes();
+    
+    bool const bDriftOnX = (TPC.DriftDir() == geo::vect::Xaxis())
+      || (TPC.DriftDir() == -geo::vect::Xaxis());
     
     // collect information per plane:
     std::vector<double> ThetaZ(NPlanes), WirePitch(NPlanes); // for convenience
@@ -2475,6 +2478,30 @@ namespace geo{
           ++nErrors;
           continue;
         }
+        
+        if (bDriftOnX) { // legacy check
+          
+          geo::WireIDIntersection widIntersect;
+          if (!geom->WireIDsIntersect(w1, w2, widIntersect)) {
+            LOG_ERROR("GeometryTest") << "Legacy check: wires " << w1 << " and "
+              << w2 << " should intersect around " << point << " of TPC "
+              << TPC.ID() << ", but they seem not to intersect at all!";
+            ++nErrors;
+          }
+          
+          if (coordIs.nonEqual(widIntersect.y, xingPoint.Y())
+            || coordIs.nonEqual(widIntersect.z, xingPoint.Z()))
+          {
+            LOG_ERROR("GeometryTest") << "Legacy check: wires " << w1 << " and "
+              << w2 << " should intersect around " << point << " of TPC "
+              << TPC.ID() << ", but legacy code says (?, "
+              << widIntersect.y << ", " << widIntersect.z << ")!";
+            ++nErrors;
+          }
+          
+        } // bDriftOnX
+        
+        
         GeometryCore::Point3D_t xingPointInv;
         if (!geom->WireIDsIntersect(w2, w1, xingPointInv)) {
           LOG_ERROR("GeometryTest") << "Wires " << w2 << " and " << w1
@@ -2484,6 +2511,7 @@ namespace geo{
           ++nErrors;
           continue;
         }
+        plane1.DriftPoint(xingPointInv); // bring the point on plane 1
         if (vectorIs.nonEqual(xingPoint, xingPointInv)) {
           LOG_ERROR("GeometryTest")
             << "WireIDsIntersect() gives different intersections for "
@@ -2877,13 +2905,15 @@ namespace geo{
             << "  " << input2.first << " slope:" << input2.second
             << "  => " << output.first << " slope:" << output_slope;
           if (((output.second == 0.) && (output_slope > 1e-3))
-            || std::abs(output_slope/output.second - 1.) > 1e-3) {
+            || std::abs(output_slope/output.second - 1.) > 1e-3)
+          {
             LOG_ERROR("testThirdPlane_dTdW_at")
               << "GeometryCore::ThirdPlane_dTdW(): "
               << input1.first << " slope:" << input1.second
               << "  " << input2.first << " slope:" << input2.second
               << "  => " << output.first << " slope:" << output_slope
               << "  (expected: " << output.second << ")";
+            ++nErrors;
           } // if too far
           
           // now test the automatic detection of the other plane
