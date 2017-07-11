@@ -2385,8 +2385,9 @@ namespace geo{
       auto const driftOffset = -TPC.DriftDistance() / 2.0 * TPC.DriftDir();
       auto const refPoint = TPC.GetCenter() + driftOffset;
       
-      const double stepW = refPlane.Width() / SplitW;
-      const double stepD = refPlane.Depth() / SplitD;
+      decltype(auto) coverage = refPlane.ActiveArea();
+      const double stepW = coverage.width.length() / SplitW;
+      const double stepD = coverage.depth.length() / SplitD;
       const int stepsW = SplitW / 2;
       const int stepsD = SplitD / 2;
       
