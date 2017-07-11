@@ -972,11 +972,11 @@ namespace geo{
     
     if (nErrors > 0) {
       throw cet::exception("GeometryTestAlg")
-        << "testWireOrientations() accumulated " << nErrors
+        << "testPlaneDirections() accumulated " << nErrors
         << " errors (see messages above)\n";
     }
     
-  } // GeometryTestAlg::testWireOrientations()
+  } // GeometryTestAlg::testPlaneDirections()
   
   
   //......................................................................
@@ -2431,6 +2431,8 @@ namespace geo{
      * This function returns the number of accumulated failures.
      */
     
+    using geo::vect::Dot;
+    
     unsigned int nErrors = 0;
     
     const unsigned int NPlanes = TPC.Nplanes();
@@ -2439,13 +2441,16 @@ namespace geo{
       || (TPC.DriftDir() == -geo::vect::Xaxis());
     
     // collect information per plane:
-    std::vector<double> ThetaZ(NPlanes), WirePitch(NPlanes); // for convenience
+    std::vector<double> WirePitch(NPlanes); // for convenience
+    std::vector
+      <decltype(&(std::declval<geo::PlaneGeo>().GetIncreasingWireDirection()))>
+      WireCoordDirs(NPlanes);
     std::vector<geo::WireID> WireIDs; // ID of the closest wire
     WireIDs.reserve(NPlanes);
     std::vector<double> WireDistances(NPlanes); // distance from the closest wire
     for (unsigned int iPlane = 0; iPlane < NPlanes; ++iPlane) {
       const geo::PlaneGeo& plane = TPC.Plane(iPlane);
-      ThetaZ[iPlane] = plane.FirstWire().ThetaZ();
+      WireCoordDirs[iPlane] = &(plane.GetIncreasingWireDirection());
       WirePitch[iPlane] = plane.WirePitch();
       
       const double WireDistance = geom->WireCoordinate(point, plane.ID());
@@ -2455,7 +2460,8 @@ namespace geo{
       
       LOG_DEBUG("GeometryTest") << "Nearest wire to " << point
         << " on plane " << std::string(plane.ID())
-        << " (pitch: " << WirePitch[iPlane] << ", thetaZ=" << ThetaZ[iPlane]
+        << " (pitch: " << WirePitch[iPlane]
+        << ", coord.dir.=" << WireCoordDirs[iPlane]
         << ") is " << WireIDs[iPlane] << " (position: " << WireDistance << ")";
     } // for planes
     
@@ -2527,11 +2533,14 @@ namespace geo{
         // intersection point is geometrically determined, given the distances
         // of the probe point from the two wires and the angle between the wires
         // the formula is a mix between the Carnot theorem and sine definition;
-        const double dTheta = ThetaZ[iPlane1] - ThetaZ[iPlane2],
-          d1 = WireDistances[iPlane1], d2 = WireDistances[iPlane2];
-        const double expected_d = 
-          std::sqrt(sqr(d1) + sqr(d2) - 2. * d1 * d2 * std::cos(dTheta))
-          / std::abs(std::sin(dTheta));
+        // the definition of the angles is tricky though, and we rely on the
+        // strong vector definition enforced in the geometry to get the proper
+        // "cosine" and corresponding sine
+        const double d1 = WireDistances[iPlane1], d2 = WireDistances[iPlane2],
+          cosAlpha = Dot(*(WireCoordDirs[iPlane1]), *(WireCoordDirs[iPlane2]));
+        const double expected_d = std::sqrt(
+          (sqr(d1) + sqr(d2) - 2.0 * d1 * d2 * cosAlpha) / (1 - sqr(cosAlpha))
+          );
         // the actual distance we have found:
         double const d = plane1.VectorProjection(xingPoint - point).R();
         LOG_DEBUG("GeometryTest")
