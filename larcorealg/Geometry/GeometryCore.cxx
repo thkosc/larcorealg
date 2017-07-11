@@ -1326,7 +1326,7 @@ namespace geo {
     // This is not a real 3D intersection: the wires do not cross, since they
     // are required to belong to two different planes.
     // 
-    // After Christopher Backhaus suggestion, we take the point on the first
+    // After Christopher Backhouse suggestion, we take the point on the first
     // wire which is closest to the other one.
     // 
     //
