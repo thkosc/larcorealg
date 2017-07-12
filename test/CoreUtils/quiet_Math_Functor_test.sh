@@ -38,7 +38,7 @@ CMD> ${Cmd[@]}
 EOH
 Cmd=( g++ -std='c++14' -Wall -Werror=deprecated-declarations -pedantic "${IncludeDirectives[@]}" -x'c++' -c )
 "${Cmd[@]}" - <<EOC
-#include "larcore/CoreUtils/quiet_Math_Functor.h"
+#include "larcorealg/CoreUtils/quiet_Math_Functor.h"
 EOC
 res=$?
 cat <<EOM
