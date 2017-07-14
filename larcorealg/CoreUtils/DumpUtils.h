@@ -11,6 +11,10 @@
 #ifndef LARCORE_COREUTILS_DUMPUTILS_H
 #define LARCORE_COREUTILS_DUMPUTILS_H
 
+// C++ libraries
+#include <string>
+#include <sstream>
+
 
 namespace lar {
   
@@ -64,6 +68,10 @@ namespace lar {
       void operator() (Stream&& out) const
         { details::dumpArray(std::forward<Stream>(out), a, n); }
       
+      /// Converts the content of the stored vector into a string.
+      explicit operator std::string() const
+        { std::ostringstream sstr; this->operator()(sstr); return sstr.str(); }
+      
     }; // struct ArrayDumper
     
     
@@ -81,6 +89,10 @@ namespace lar {
       template <typename Stream>
       void operator() (Stream&& out) const
         { details::dumpArray(std::forward<Stream>(out), a, n); }
+      
+      /// Converts the content of the stored vector into a string.
+      explicit operator std::string() const
+        { std::ostringstream sstr; this->operator()(sstr); return sstr.str(); }
       
     }; // struct ArrayDumper<T*>
     
@@ -149,6 +161,10 @@ namespace lar {
       template <typename Stream>
       void operator() (Stream&& out) const
         { out << "{ " << v.X() << "; " << v.Y() << "; " << v.Z() << " }"; }
+      
+      /// Converts the content of the stored vector into a string.
+      explicit operator std::string() const
+        { std::ostringstream sstr; this->operator()(sstr); return sstr.str(); }
       
     }; // struct VectorDumper<>
     
@@ -267,7 +283,7 @@ namespace lar {
      * * the type `Vector3D` is required to provide constant accessor methods
      *   returning the vector components, called `X()`, `Y()` and `Z()`
      * * the values returned by the aforementioned `Vector3D` methods must have
-     *   their insertion operator into Stream defined
+     *   their insertion operator into `Stream` defined
      * 
      */
     template <typename Stream, typename Array>
@@ -307,6 +323,60 @@ namespace lar {
     template <typename Stream, typename Vector>
     Stream& operator<< (Stream&& out, VectorDumper<Vector>&& manip)
       { manip(std::forward<Stream>(out)); return out; }
+    
+    /**
+     * @brief Concatenates a vector to the specified string.
+     * @tparam String a string type that can handle "addition" to `std::string`
+     * @tparam Vector3D the type of 3D vector to be printed
+     * @param s the string
+     * @param manip the manipulator containing the vector to be printed
+     * @return a new string with s concatenated to a rendering of the vector
+     * @see VectorDumper
+     * 
+     * Example of usage:
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+     * TVector3 pos;
+     * std::runtime_error e("Position: " + lar::dump::vector3D(pos));
+     * std::cout << e.what() << std::endl;
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * will produce an output like:
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * Position: { 0; 0; 0 }
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * 
+     * 
+     * Requirements
+     * -------------
+     * 
+     * * the type `Vector3D` is required to provide constant accessor methods
+     *   returning the vector components, called `X()`, `Y()` and `Z()`
+     * * the values returned by the aforementioned `Vector3D` methods must have
+     *   their insertion operator into Stream defined
+     * 
+     */
+    template <typename String, typename Vector>
+    String operator+ (String const& s, VectorDumper<Vector> const& manip)
+      { return s + std::string(manip);}
+    
+    /// Creates a string with s concatenated to the rendered vector.
+    template <typename Vector>
+    std::string operator+ (const char* s, VectorDumper<Vector> const& manip)
+      { return std::string(s) + manip;}
+    
+    /// @see documentation of function with arguments swapped.
+    template <typename String, typename Vector>
+    String operator+ (VectorDumper<Vector> const& manip, String const& s)
+      { return std::string(manip) + s;}
+    
+    /// Creates a string with the rendered vector concatenated to s.
+    template <typename Vector>
+    std::string operator+ (VectorDumper<Vector> const& manip, const char* s)
+      { return manip + std::string(s);}
+    
+    /// Appends a string rendering of a vector to the specified string.
+    template <typename String, typename Vector>
+    String& operator+= (String& s, VectorDumper<Vector> const& manip)
+      { return s += std::string(manip); }
     
   } // namespace dump
   
