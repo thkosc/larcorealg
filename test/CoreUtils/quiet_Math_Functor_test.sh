@@ -6,6 +6,19 @@
 #
 #
 
+### BEGIN POSIX COMPLIANT ####
+# Ubuntu 16 insists in using a non-bash default shell, and ctest insists to use the default shell;
+# this horrible hack saves the day while issue #17234 is being addressed.
+if [ -z "$BASH_VERSION" ] && [ "$1" != 'shellSwitch' ]
+then
+	echo "Attempting to switch to bash."
+	bash -- "$0" 'shellSwitch' "$@"
+	exit
+fi
+[ "$1" = 'shellSwitch' ] && shift # here bash would be ok...
+### END POSIX COMPILANT ######
+
+
 declare -a IncludeDirectives
 for Dir in "$@" ; do
 	IncludeDirectives=( "${IncludeDirectives[@]}" "-I${Dir}" )
