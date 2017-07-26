@@ -137,6 +137,29 @@ cet_test(SimpleGeo_test
 )
 
 
+cet_test(driftvolumes_test
+  SOURCES driftvolumes_test.cxx
+  DATAFILES test_geometry.fcl
+  TEST_ARGS ./test_geometry.fcl
+  LIBRARIES larcorealg_Geometry
+            ${MF_MESSAGELOGGER}
+            ${MF_UTILITIES}
+            ${FHICLCPP}
+            cetlib cetlib_except
+  USE_BOOST_UNIT
+  )
+
+cet_test(topology_test
+  SOURCES topology_test.cxx
+  LIBRARIES larcorealg_Geometry
+#             ${MF_MESSAGELOGGER}
+#             ${MF_UTILITIES}
+#             ${FHICLCPP}
+#             cetlib cetlib_except
+  USE_BOOST_UNIT
+  )
+
+
 # set FHICL_FILE_PATH and FW_SEARCH_PATH for the case where building without mrb
 # this is not generic, we take advantage of knowing the subdirectories for the fcl and gdml files
 set( mrb_build_dir $ENV{MRB_BUILDDIR} )
