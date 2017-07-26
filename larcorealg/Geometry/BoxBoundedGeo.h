@@ -82,6 +82,12 @@ namespace geo {
     /// Returns the world x coordinate of the center of the box
     double CenterX() const { return (MinX() + MaxX()) / 2.; }
     
+    /// Returns the full size in the X dimension.
+    double SizeX() const { return MaxX() - MinX(); }
+    
+    /// Returns the size from the center to the border on X dimension.
+    double HalfSizeX() const { return SizeX() / 2.0; }
+    
     /// Returns the world y coordinate of the start of the box
     double MinY() const { return c_min[1]; }
     
@@ -90,6 +96,12 @@ namespace geo {
     
     /// Returns the world y coordinate of the center of the box
     double CenterY() const { return (MinY() + MaxY()) / 2.; }
+    
+    /// Returns the full size in the Y dimension.
+    double SizeY() const { return MaxY() - MinY(); }
+    
+    /// Returns the size from the center to the border on Y dimension.
+    double HalfSizeY() const { return SizeY() / 2.0; }
     
     /// Returns the world z coordinate of the start of the box
     double MinZ() const { return c_min[2]; }
@@ -100,10 +112,17 @@ namespace geo {
     /// Returns the world z coordinate of the center of the box
     double CenterZ() const { return (MinZ() + MaxZ()) / 2.; }
     
+    /// Returns the full size in the Z dimension.
+    double SizeZ() const { return MaxZ() - MinZ(); }
+    
+    /// Returns the size from the center to the border on Z dimension.
+    double HalfSizeZ() const { return SizeZ() / 2.0; }
+    
     /// Returns the center point of the box
     Coords_t Center() const
       { return { CenterX(), CenterY(), CenterZ() }; }
-      
+    
+    
     
     /// @}
     
