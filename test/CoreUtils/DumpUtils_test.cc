@@ -32,6 +32,8 @@ void ArrayTest_STLarray() {
   std::array<float, 5> const array = { 1., 2., 3., 4., 6. };
   sstr << lar::dump::array<5>(array);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 3; 4; 6 }");
+  BOOST_CHECK_EQUAL
+    (std::string(lar::dump::array<5>(array)), "{ 1; 2; 3; 4; 6 }");
 }
 
 void ArrayTest_STLvector() {
@@ -39,6 +41,8 @@ void ArrayTest_STLvector() {
   std::vector<float> const array = { 1., 2., 3., 4., 6. };
   sstr << lar::dump::array<5>(array);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 3; 4; 6 }");
+  BOOST_CHECK_EQUAL
+    (std::string(lar::dump::array<5>(array)), "{ 1; 2; 3; 4; 6 }");
 }
 
 void ArrayTest_carray() {
@@ -46,6 +50,8 @@ void ArrayTest_carray() {
   float const array[5] = { 1., 2., 3., 4., 6. };
   sstr << lar::dump::array<5>(array);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 3; 4; 6 }");
+  BOOST_CHECK_EQUAL
+    (std::string(lar::dump::array<5>(array)), "{ 1; 2; 3; 4; 6 }");
 }
 
 void ArrayTest_cptr() {
@@ -54,6 +60,7 @@ void ArrayTest_cptr() {
   float const* ptr = array;
   sstr << lar::dump::array<5>(ptr);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 3; 4; 6 }");
+  BOOST_CHECK_EQUAL(std::string(lar::dump::array<5>(ptr)), "{ 1; 2; 3; 4; 6 }");
 }
 
 void ArrayTest_array() {
@@ -61,6 +68,8 @@ void ArrayTest_array() {
   double array[5] = { 1., 2., 3., 4., 6. };
   sstr << lar::dump::array<5>(array);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 3; 4; 6 }");
+  BOOST_CHECK_EQUAL
+    (std::string(lar::dump::array<5>(array)), "{ 1; 2; 3; 4; 6 }");
 }
 
 void ArrayTest_ptr() {
@@ -69,6 +78,7 @@ void ArrayTest_ptr() {
   double* ptr = array;
   sstr << lar::dump::array<5>(ptr);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 3; 4; 6 }");
+  BOOST_CHECK_EQUAL(std::string(lar::dump::array<5>(ptr)), "{ 1; 2; 3; 4; 6 }");
 }
 
 void ArrayTest() {
@@ -114,6 +124,7 @@ void Vector3Dtest_TVector3() {
   TVector3 pos( 1., 2., 4. );
   sstr << lar::dump::vector3D(pos);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 4 }");
+  BOOST_CHECK_EQUAL(std::string(lar::dump::vector3D(pos)), "{ 1; 2; 4 }");
 }
 
 void Vector3Dtest_carray() {
@@ -121,6 +132,7 @@ void Vector3Dtest_carray() {
   float const array[3] = { 1., 2., 4. };
   sstr << lar::dump::vector3D(array);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 4 }");
+  BOOST_CHECK_EQUAL(std::string(lar::dump::vector3D(array)), "{ 1; 2; 4 }");
 }
 
 void Vector3Dtest_cptr() {
@@ -129,6 +141,7 @@ void Vector3Dtest_cptr() {
   float const* ptr = array;
   sstr << lar::dump::vector3D(ptr);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 4 }");
+  BOOST_CHECK_EQUAL(std::string(lar::dump::vector3D(ptr)), "{ 1; 2; 4 }");
 }
 
 void Vector3Dtest_array() {
@@ -136,6 +149,7 @@ void Vector3Dtest_array() {
   double array[3] = { 1., 2., 4. };
   sstr << lar::dump::vector3D(array);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 4 }");
+  BOOST_CHECK_EQUAL(std::string(lar::dump::vector3D(array)), "{ 1; 2; 4 }");
 }
 
 void Vector3Dtest_ptr() {
@@ -144,6 +158,7 @@ void Vector3Dtest_ptr() {
   double* ptr = array;
   sstr << lar::dump::vector3D(ptr);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 4 }");
+  BOOST_CHECK_EQUAL(std::string(lar::dump::vector3D(ptr)), "{ 1; 2; 4 }");
 }
 
 
@@ -159,7 +174,7 @@ void Vector3Dtest() {
 
 
 //------------------------------------------------------------------------------
-void Vector3DdocumentationTest() {
+void Vector3DstreamOutputDocumentationTest() {
   
   std::ostringstream sstr;
   
@@ -180,6 +195,65 @@ void Vector3DdocumentationTest() {
   sstr << lar::dump::vector3D(pos);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 0; 0; 0 }");
   
+} // Vector3DstreamOutputDocumentationTest()
+
+
+void Vector3DstringConcatDocumentationTest() {
+  
+  std::ostringstream sstr;
+  
+  /* This is the code as in the documentation:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * TVector3 pos;
+   * std::runtime_error e("Position: " + lar::dump::vector3D(pos));
+   * std::cout << e.what() << std::endl;
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * which is promised to return:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * Position: { 0, 0, 0 }
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   */
+
+  TVector3 pos;
+  std::runtime_error e("Position: " + lar::dump::vector3D(pos));
+  std::cout << e.what() << std::endl;
+  
+  BOOST_CHECK_EQUAL(std::string(e.what()), "Position: { 0; 0; 0 }");
+  
+} // Vector3DstringConcatDocumentationTest()
+
+
+void Vector3DstringAppendDocumentationTest() {
+  
+  std::ostringstream sstr;
+  
+  /* This is the code that should have been in the documentation:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * TVector3 pos;
+   * std::string s = "Position: ";
+   * s += lar::dump::vector3D(pos);
+   * std::cout << s << std::endl;
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * which is promised to return:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * Position: { 0, 0, 0 }
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   */
+
+  TVector3 pos;
+  std::string s = "Position: ";
+  s += lar::dump::vector3D(pos);
+  std::cout << s << std::endl;
+  
+  BOOST_CHECK_EQUAL(s, "Position: { 0; 0; 0 }");
+  
+} // Vector3DstringAppendDocumentationTest()
+
+
+void Vector3DdocumentationTest() {
+  Vector3DstreamOutputDocumentationTest();
+  Vector3DstringConcatDocumentationTest();
+  Vector3DstringAppendDocumentationTest();
 } // Vector3DdocumentationTest()
 
 

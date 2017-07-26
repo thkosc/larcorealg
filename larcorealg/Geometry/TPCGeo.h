@@ -183,8 +183,11 @@ namespace geo {
     /// Returns the wire plane with the smallest surface
     geo::PlaneGeo const& SmallestPlane() const;
     
-    /// Returns the first wire plane
+    /// Returns the first wire plane (the closest to TPC center).
     geo::PlaneGeo const& FirstPlane() const { return *(fPlanes[0]); }
+    
+    /// Returns the last wire plane (the farther from TPC center).
+    geo::PlaneGeo const& LastPlane() const { return *(fPlanes[Nplanes() - 1]); }
     
     /// @brief Returns the largest number of wires among the planes in this TPC
     unsigned int MaxWires() const;

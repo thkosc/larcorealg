@@ -109,8 +109,9 @@ namespace geo {
     /// with plane frame base (width and depth).
     using WDDecomposedVector_t = WidthDepthDecomposer_t::DecomposedVector_t;
     
+    /// Type for description of rectangles.
+    using Rect = lar::util::simple_geo::Rectangle<double>;
     
-    struct Rect; // forward declaration
     
     /// Construct a representation of a single plane of the detector
     PlaneGeo(GeoNodePath_t& path, size_t depth);
@@ -998,51 +999,6 @@ namespace geo {
     static TVector3 roundedVector(TVector3 const& v, double tol)
       { return geo::vect::Rounded01(v, tol); }
     
-    
-    /// Definition of a rectangle.
-    struct Rect {
-      
-      /// Definition of one side of the rectangle.
-      struct Range {
-        double lower = 1.0;  ///< Starting coordinate.
-        double upper = 0.0; ///< Ending coordinate.
-        
-        /// Default constructor: empty range.
-        Range() = default;
-        
-        /// Constructor from lower and upper bounds.
-        Range(double lower, double upper): lower(lower), upper(upper) {}
-        
-        /// Returns whether the range is empty.
-        bool isNull() const { return lower >= upper; }
-        
-        /// Returns the distance between upper and lower bounds.
-        double length() const { return std::max(upper - lower, 0.0); }
-        
-        /// Returns a value that, added to v, makes it fall within a margin in
-        /// the range.
-        double delta(double v, double margin = 0.0) const;
-        
-        /// Extends the range to include the specified point.
-        void extendToInclude(double);
-        
-      }; // struct Range
-      
-      Range width; ///< Range along width direction.
-      Range depth; ///< Range along depth direction.
-      
-      /// Default constructor: an empty rectangle.
-      Rect() = default;
-      
-      /// Constructor from width and depth ranges.
-      Rect(Range const& width, Range const& depth)
-        : width(width), depth(depth)
-        {}
-      
-      /// Returns whether the rectangle has null area.
-      bool isNull() const { return width.isNull() || depth.isNull(); }
-      
-    }; // Rect
     
   private:
     

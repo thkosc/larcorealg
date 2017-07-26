@@ -430,27 +430,6 @@ namespace geo{
     //......................................................................
     
   } // namespace details
-
-  //----------------------------------------------------------------------------
-  //---  geo::PlaneGeo::Rect::Range
-  //---  
-  double PlaneGeo::Rect::Range::delta(double v, double margin /* = 0 */) const {
-    
-    if (v < (lower + margin)) return lower + margin - v; // always positive
-    if (v > (upper - margin)) return upper - margin - v; // always negative
-    return 0.0;                                          // always zero
-    
-  } // PlaneGeo::Rect::Range::delta()
-  
-  
-  //......................................................................
-  void PlaneGeo::Rect::Range::extendToInclude(double v) {
-    
-    if (lower > upper) lower = upper = v;
-    else if (lower > v) lower = v;
-    else if (upper < v) upper = v;
-    
-  } // PlaneGeo::Rect::Range::extendToInclude()
   
   
   //----------------------------------------------------------------------------

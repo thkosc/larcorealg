@@ -98,7 +98,7 @@ namespace testing {
     }; // class CommandLineArguments
     
     
-    void CommandLineArguments::ParseArguments(int argc, char** argv) {
+    inline void CommandLineArguments::ParseArguments(int argc, char** argv) {
       Clear();
       if (argc == 0) return;
       
@@ -1025,7 +1025,7 @@ namespace testing {
     }; // class FirstAbsoluteOrLookupWithDotPolicy
   
   
-    std::string FirstAbsoluteOrLookupWithDotPolicy::operator()
+    inline std::string FirstAbsoluteOrLookupWithDotPolicy::operator()
       (std::string const &filename)
     {
       if (first) {
