@@ -283,11 +283,232 @@ namespace lar {
         
       }; // class Volume<>
       
+      /// @}
       
+      /// @{
+      /// @name Dimension-bounded volumes
+      
+      /// Definition of a range along one dimension.
+      template <typename Data = double>
+      struct Range {
+        using Data_t = Data; ///< Numeric type for boundaries.
+        using Range_t = Range<Data>; ///< This range type.
+        
+        Data_t lower = 1.0;  ///< Starting coordinate.
+        Data_t upper = 0.0; ///< Ending coordinate.
+        
+        /// Default constructor: empty range.
+        Range() = default;
+        
+        /// Constructor from lower and upper bounds.
+        Range(Data_t lower, Data_t upper, bool doSort = false)
+          : lower(lower), upper(upper)
+          { if (doSort) sort(); }
+        
+        /// Returns whether the range is empty.
+        bool isNull() const { return lower >= upper; }
+        
+        /// Returns the distance between upper and lower bounds.
+        Data_t length() const { return std::max(upper - lower, Data_t(0.0)); }
+        
+        /// Returns whether the specified value is within the range.
+        bool contains(Data_t v) const { return (v >= lower) && (v <= upper); }
+        
+        /// Returns whether the specified range overlaps this range.
+        bool overlaps(Range_t const& r) const;
+        
+        /// Returns a value that, added to v, makes it fall within a margin in
+        /// the range.
+        Data_t delta(Data_t v, Data_t margin = 0.0) const;
+        
+        /// Extends the range to include the specified point.
+        void extendToInclude(Data_t);
+        
+        /// Extends the range to include the specified point.
+        void extendToInclude(Range_t const& r);
+        
+        /// Shortens this range to include only points also in `r`.
+        void intersect(Range_t const& r);
+        
+          private:
+        /// Ensures order of boundaries. Corrupts invalid ranges.
+        void sort() { if (lower > upper) std::swap(lower, upper); }
+        
+        /// Resets this range to be empty (that is, like default-constructed).
+        void makeNull() { *this = Range_t{}; }
+        
+      }; // struct Range<>
+      
+      /// Prints the specified range to a stream: "( lower -- upper )".
+      template <typename Stream, typename Data>
+      Stream& operator<< (Stream&& out, Range<Data> const& range);
+      
+      /**
+       * @brief Definition of a rectangle from dimension ranges.
+       * @tparam Data numerical type for boundary coordinates
+       * @see Range, Area
+       * 
+       * This object defines a 2D area (rectangle) as a list of one range for
+       * each dimension. Dimensions are called "width" and "depth".
+       * 
+       * If the use case asks for point-driven area rather than a
+       * dimension-driven area, use `Area` instead.
+       * 
+       */
+      template <typename Data = double>
+      struct Rectangle {
+        using Data_t = Data; ///< Numerical type for boundaries.
+        using Rectangle_t = Rectangle<Data>; ///< This type.
+        using Range_t = Range<Data_t>; ///< Type for dimension boundaries.
+        
+        Range_t width; ///< Range along width direction.
+        Range_t depth; ///< Range along depth direction.
+        
+        /// Default constructor: an empty rectangle.
+        Rectangle() = default;
+        
+        /// Constructor from width and depth ranges.
+        Rectangle(Range_t const& width, Range_t const& depth)
+          : width(width), depth(depth)
+          {}
+        
+        /// Returns whether the rectangle has null area.
+        bool isNull() const { return width.isNull() || depth.isNull(); }
+        
+        /// Returns whether the specified point is in the area.
+        bool contains(Data_t w, Data_t d) const
+          { return width.contains(w) && depth.contains(d); }
+        
+        /// Returns whether this and the specified rectangle overlap.
+        bool overlaps(Rectangle_t const& r) const;
+        
+        /// Extends the range to include the specified point.
+        void extendToInclude(Rectangle_t const& r);
+        
+      }; // Rectangle<>
+      
+      /// Prints the specified rectangle to a stream: "w=Wrange d=Drange".
+      template <typename Stream, typename Data>
+      Stream& operator<< (Stream&& out, Rectangle<Data> const& rect);
+      
+      
+      /// @}
       
     } // namespace simple_geo
   } // namespace util
 } // namespace lar
+
+
+//==============================================================================
+//--- Template implementation
+//--- 
+//------------------------------------------------------------------------------
+//---  geo::PlaneGeo::Range<>
+//---  
+template <typename Data>
+auto lar::util::simple_geo::Range<Data>::delta
+  (Data_t v, Data_t margin /* = 0 */) const
+  -> Data_t
+{
+  
+  if (v < (lower + margin)) return lower + margin - v; // always positive
+  if (v > (upper - margin)) return upper - margin - v; // always negative
+  return 0.0;                                          // always zero
+  
+} // lar::util::simple_geo::Range<Data>::delta()
+
+
+//------------------------------------------------------------------------------
+template <typename Data>
+void lar::util::simple_geo::Range<Data>::extendToInclude(Data_t v) {
+  
+  if (lower > upper) lower = upper = v;
+  else if (lower > v) lower = v;
+  else if (upper < v) upper = v;
+  
+} // lar::util::simple_geo::Range<Data>::extendToInclude()
+
+
+//------------------------------------------------------------------------------
+template <typename Data>
+void lar::util::simple_geo::Range<Data>::extendToInclude(Range_t const& r) {
+  
+  if (r.isNull()) return;
+  if (isNull()) {
+    *this = r;
+    return;
+  }
+  extendToInclude(r.lower);
+  extendToInclude(r.upper);
+  
+} // lar::util::simple_geo::Range<Data>::extendToInclude()
+
+
+//------------------------------------------------------------------------------
+template <typename Data>
+void lar::util::simple_geo::Range<Data>::intersect(Range_t const& r) {
+  // this implementation explicitly makes the range default-constructed-null
+  // if the intersection results empty
+  if (isNull()) return;
+  if (r.isNull()) {
+    makeNull();
+    return;
+  }
+  if (lower < r.lower) lower = r.lower;
+  if (upper > r.upper) upper = r.upper;
+  if (lower > upper) makeNull();
+} // lar::util::simple_geo::Range<Data>::intersect()
+
+
+//------------------------------------------------------------------------------
+template <typename Data>
+bool lar::util::simple_geo::Range<Data>::overlaps(Range_t const& r) const {
+  if (isNull() || r.isNull()) return false;
+  return (r.lower < upper) && (lower < r.upper);
+} // lar::util::simple_geo::Range<Data>::overlaps()
+
+
+//------------------------------------------------------------------------------
+template <typename Stream, typename Data>
+Stream& lar::util::simple_geo::operator<<
+  (Stream&& out, Range<Data> const& range)
+{
+  out << "( " << range.lower << " -- " << range.upper << " )";
+  return out;
+} // operator<< (Range)
+
+
+//------------------------------------------------------------------------------
+template <typename Data>
+void lar::util::simple_geo::Rectangle<Data>::extendToInclude
+  (Rectangle_t const& r)
+{
+  width.extendToInclude(r.width);
+  depth.extendToInclude(r.depth);
+} // lar::util::simple_geo::Rectangle<Data>::extendToInclude()
+
+
+//------------------------------------------------------------------------------
+template <typename Data>
+bool lar::util::simple_geo::Rectangle<Data>::overlaps
+  (Rectangle_t const& r) const
+{
+  if (isNull() || r.isNull()) return false;
+  return width.overlap(r.width) && depth.overlap(r.depth);
+} // lar::util::simple_geo::Rectangle<Data>::overlaps()
+
+
+//------------------------------------------------------------------------------
+template <typename Stream, typename Data>
+Stream& lar::util::simple_geo::operator<<
+  (Stream&& out, Rectangle<Data> const& rect)
+{
+  out << "w=" << rect.width << " d=" << rect.depth;
+  return out;
+} // operator<< (Rectangle)
+
+
+//------------------------------------------------------------------------------
 
 
 #endif // LARCOREALG_GEOMETRY_SIMPLEGEO_H
