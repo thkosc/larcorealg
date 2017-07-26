@@ -20,7 +20,27 @@
 namespace lar {
   namespace util {
 
+    /**
+     * @brief Simple class definitions for geometry concepts.
+     * 
+     * This namespace provides data structures for "points" and extended
+     * structures.
+     * 
+     * Points are either 2D (`Point2D`) or 3D (`Point3D`).
+     * 
+     * The extended structures are offered in two flavours:
+     * * point-based (area, volume): definitions of the boundaries are
+     *   provided as two points of proper dimensionality: `Point2D` for `Area`,
+     *   `pOint3D` for `Volume`
+     * * dimension-based (area only so far): definitions of the boundaries are
+     *   provided as one range (`Range`) per dimension
+     * 
+     * 
+     */
     namespace simple_geo {
+      
+      /// @{
+      /// @name Dimensionless objects (points)
       
       /// 2D point (x, y) (by default, with double precision)
       template <typename Data = double>
@@ -90,6 +110,10 @@ namespace lar {
           return out;
         }
       
+      /// @}
+      
+      /// @{
+      /// @name Point-bounded volumes
       
       /// Area/volume delimited by points: base/1D implementation
       template <typename Point>
