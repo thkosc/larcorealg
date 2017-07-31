@@ -28,7 +28,7 @@ cet_test( DumpUtils_test
 get_property(IncludeDirectories DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 
 cet_test(MathFunctor_workaround HANDBUILT
-  TEST_EXEC sh
-  TEST_ARGS quiet_Math_Functor_test.sh ${IncludeDirectories}
+  TEST_EXEC ./quiet_Math_Functor_test.sh
+  TEST_ARGS ${IncludeDirectories}
   DATAFILES quiet_Math_Functor_test.sh
   )
