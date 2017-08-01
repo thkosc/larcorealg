@@ -337,8 +337,10 @@ namespace testing {
     
     // we really don't care of GDML file, since we are not going to run Geant4
     std::string GDMLfile;
-    if (!sp.find_file(GDMLFileName, GDMLfile))
-      mf::LogWarning("CreateNewGeometry") << "GDML file not found.";
+    if (!sp.find_file(GDMLFileName, GDMLfile)) {
+      mf::LogWarning("CreateNewGeometry") << "GDML file '"
+        << GDMLfile << "' not found.";
+    }
     
     // initialize the geometry with the files we have found
     new_geom->LoadGeometryFile(GDMLfile, ROOTfile);
