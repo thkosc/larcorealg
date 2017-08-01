@@ -65,8 +65,7 @@ using StandardGeometryTestEnvironment
 //------------------------------------------------------------------------------
 int main(int argc, char const** argv) {
   
-  StandardGeometryConfiguration config("geometry_test");
-  config.SetMainTesterParameterSetName("geotest");
+  StandardGeometryConfiguration config("driftvolumes_test");
   
   //
   // parameter parsing
