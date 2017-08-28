@@ -306,8 +306,8 @@ namespace testing {
                  }
                } // categories
              } // stdout
+             statistics: {type:cout}
            } // destinations
-           statistics: cout
          )");
       } // DefaultInit()
     
