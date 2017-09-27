@@ -11,6 +11,7 @@
 #include "larcorealg/Geometry/Exceptions.h" // geo::InvalidWireError
 #include "larcorealg/Geometry/WireGeo.h"
 #include "larcorealg/CoreUtils/RealComparisons.h"
+#include "larcorealg/CoreUtils/SortByPointers.h" // util::makePointerVector()
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi()
 
 // Framework includes
@@ -28,7 +29,8 @@
 
 // C/C++ standard library
 #include <array>
-#include <functional> // std::less<>, std::greater<>
+#include <functional> // std::less<>, std::greater<>, std::transform()
+#include <iterator> // std::back_inserter()
 #include <type_traits> // std::is_same<>, std::decay_t<>
 #include <cassert>
 
@@ -469,16 +471,6 @@ namespace geo{
 
   //......................................................................
 
-  PlaneGeo::~PlaneGeo()
-  {
-    for(unsigned int i = 0; i < fWire.size(); ++i)
-      if(fWire[i]) delete fWire[i];
-  
-    fWire.clear();
-
-  }
-
-  //......................................................................
   geo::BoxBoundedGeo PlaneGeo::BoundingBox() const {
     
     //
@@ -554,7 +546,7 @@ namespace geo{
 
   void PlaneGeo::MakeWire(GeoNodePath_t& path, size_t depth) 
   {
-    fWire.push_back(new WireGeo(path, depth));
+    fWire.emplace_back(path, depth);
   }
 
   //......................................................................
@@ -562,7 +554,10 @@ namespace geo{
   // sort the WireGeo objects
   void PlaneGeo::SortWires(geo::GeoObjectSorter const& sorter )
   {
-    sorter.SortWires(fWire);
+    // the sorter interface requires a vector of pointers;
+    // sorting is faster, but some gymnastics is required:
+    util::SortByPointers
+      (fWire, [&sorter](auto& coll){ sorter.SortWires(coll); });
   }
   
   
@@ -725,9 +720,9 @@ namespace geo{
     
     // update wires
     geo::WireID::WireID_t wireNo = 0;
-    for (geo::WireGeo* wire: fWire) {
+    for (auto& wire: fWire) {
       
-      wire->UpdateAfterSorting(geo::WireID(fID, wireNo), shouldFlipWire(*wire));
+      wire.UpdateAfterSorting(geo::WireID(fID, wireNo), shouldFlipWire(wire));
       
       ++wireNo;
     } // for wires
@@ -1123,10 +1118,10 @@ namespace geo{
     // wire ordering (which UpdateWirePitch() does).
     // 
     auto firstWire = fWire.cbegin(), wire = firstWire, wend = fWire.cend();
-    fWirePitch = geo::WireGeo::WirePitch(**firstWire, **(++wire));
+    fWirePitch = geo::WireGeo::WirePitch(*firstWire, *(++wire));
     
     while (++wire != wend) {
-      auto wirePitch = geo::WireGeo::WirePitch(**firstWire, **wire);
+      auto wirePitch = geo::WireGeo::WirePitch(*firstWire, *wire);
       if (wirePitch < 1e-4) continue; // it's 0!
       if (wirePitch < fWirePitch) fWirePitch = wirePitch;
     } // while

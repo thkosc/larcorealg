@@ -115,7 +115,6 @@ namespace geo {
     
     /// Construct a representation of a single plane of the detector
     PlaneGeo(GeoNodePath_t& path, size_t depth);
-    ~PlaneGeo();
     
     
     /// @{
@@ -252,7 +251,7 @@ namespace geo {
      * @return a constant pointer to the wire, or nullptr if it does not exist
      */
     WireGeo const* WirePtr(unsigned int iwire) const
-      { return HasWire(iwire)? fWire[iwire]: nullptr; }
+      { return HasWire(iwire)? &(fWire[iwire]): nullptr; }
     
     //@{
     /**
@@ -304,7 +303,7 @@ namespace geo {
      * 
      */
     auto IterateWires() const
-      { return lar::util::dereferenceConstIteratorLoop(fWire); }
+      { return fWire; }
     
     /// @}
     
@@ -1051,6 +1050,8 @@ namespace geo {
     bool shouldFlipWire(geo::WireGeo const& wire) const;
     
   private:
+    using WireCollection_t = std::vector<geo::WireGeo>;
+    
     using LocalTransformation_t = geo::LocalTransformation<TGeoHMatrix>;
     
     struct RectSpecs {
@@ -1067,7 +1068,7 @@ namespace geo {
     TGeoVolume const*     fVolume;      ///< Plane volume description.
     View_t                fView;        ///< Does this plane measure U, V, or W?
     Orient_t              fOrientation; ///< Is the plane vertical or horizontal?
-    std::vector<WireGeo*> fWire;        ///< List of wires in this plane.
+    WireCollection_t      fWire;        ///< List of wires in this plane.
     double                fWirePitch;   ///< Pitch of wires in this plane.
     double                fSinPhiZ;     ///< Sine of @f$ \phi_{z} @f$.
     double                fCosPhiZ;     ///< Cosine of @f$ \phi_{z} @f$.
