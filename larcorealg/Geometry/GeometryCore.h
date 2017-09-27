@@ -42,8 +42,8 @@
  * Revised <petrillo@fnal.gov> 28-Jun-2015
  *         Added interface for readout mapping
  */
-#ifndef GEO_GEOMETRYCORE_H
-#define GEO_GEOMETRYCORE_H
+#ifndef LARCOREALG_GEOMETRY_GEOMETRYCORE_H
+#define LARCOREALG_GEOMETRY_GEOMETRYCORE_H
 
 
 // LArSoft libraries
@@ -5343,4 +5343,4 @@ inline void geo::details::ROP_id_iterator_base<GEOID>::next() {
 
 //******************************************************************************
 
-#endif // GEO_GEOMETRYCORE_H
+#endif // LARCOREALG_GEOMETRY_GEOMETRYCORE_H

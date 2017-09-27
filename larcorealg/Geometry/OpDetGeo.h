@@ -5,8 +5,13 @@
 /// \author  bjpjones@mit.gov
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef GEO_OPDETGEO_H
-#define GEO_OPDETGEO_H
+#ifndef LARCOREALG_GEOMETRY_OPDETGEO_H
+#define LARCOREALG_GEOMETRY_OPDETGEO_H
+
+// ROOT libraries
+#include "TGeoMatrix.h" // TGeoHMatrix
+
+// C/C++ standard libraries
 #include <vector>
 class TGeoNode;
 class TGeoHMatrix;
@@ -46,4 +51,4 @@ namespace geo {
 }
 
 
-#endif
+#endif // LARCOREALG_GEOMETRY_OPDETGEO_H

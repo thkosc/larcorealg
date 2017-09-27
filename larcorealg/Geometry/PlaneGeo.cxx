@@ -4,11 +4,11 @@
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
-
+// class header
+#include "larcorealg/Geometry/PlaneGeo.h"
 
 // LArSoft includes
 #include "larcorealg/Geometry/Exceptions.h" // geo::InvalidWireError
-#include "larcorealg/Geometry/PlaneGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"
 #include "larcorealg/CoreUtils/RealComparisons.h"
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi()

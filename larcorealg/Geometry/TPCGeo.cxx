@@ -4,6 +4,8 @@
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
+// class header
+#include "larcorealg/Geometry/TPCGeo.h"
 
 // ROOT includes
 #include "TMath.h"
@@ -18,7 +20,6 @@
 #include "cetlib/exception.h"
 
 // LArSoft includes
-#include "larcorealg/Geometry/TPCGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"
 #include "larcorealg/CoreUtils/RealComparisons.h"

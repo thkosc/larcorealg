@@ -5,8 +5,8 @@
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef GEO_WIREGEO_H
-#define GEO_WIREGEO_H
+#ifndef LARCOREALG_GEOMETRY_WIREGEO_H
+#define LARCOREALG_GEOMETRY_WIREGEO_H
 
 // C/C++ libraries
 #include <vector>
@@ -211,4 +211,4 @@ namespace geo {
   };
 }
 
-#endif
+#endif // LARCOREALG_GEOMETRY_WIREGEO_H

@@ -4,6 +4,9 @@
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
+// class header
+#include "larcorealg/Geometry/CryostatGeo.h"
+
 #include <iostream>
 #include <cmath>
 #include <limits> // std::numeric_limits<>
@@ -23,7 +26,6 @@
 #include "cetlib/exception.h"
 
 // LArSoft includes
-#include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/TPCGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"

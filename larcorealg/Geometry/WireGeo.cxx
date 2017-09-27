@@ -5,6 +5,7 @@
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
+// class header
 #include "larcorealg/Geometry/WireGeo.h"
 
 // C/C++ libraries

@@ -4,8 +4,8 @@
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
-#ifndef GEO_TPCGEO_H
-#define GEO_TPCGEO_H
+#ifndef LARCOREALG_GEOMETRY_TPCGEO_H
+#define LARCOREALG_GEOMETRY_TPCGEO_H
 #include <vector>
 #include <array>
 
@@ -640,5 +640,5 @@ void geo::TPCGeo::PrintTPCInfo(
   //----------------------------------------------------------------------------
 } // geo::TPCGeo::PrintTPCInfo()
 
-#endif
+#endif // LARCOREALG_GEOMETRY_TPCGEO_H
 ////////////////////////////////////////////////////////////////////////

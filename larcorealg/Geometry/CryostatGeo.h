@@ -4,8 +4,9 @@
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
-#ifndef GEO_CRYOSTATGEO_H
-#define GEO_CRYOSTATGEO_H
+#ifndef LARCOREALG_GEOMETRY_CRYOSTATGEO_H
+#define LARCOREALG_GEOMETRY_CRYOSTATGEO_H
+
 #include <vector>
 #include <algorithm>
 
@@ -243,5 +244,5 @@ namespace geo {
   };
 }
 
-#endif
+#endif // LARCOREALG_GEOMETRY_CRYOSTATGEO_H
 ////////////////////////////////////////////////////////////////////////

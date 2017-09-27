@@ -4,8 +4,8 @@
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
-#ifndef GEO_PLANEGEO_H
-#define GEO_PLANEGEO_H
+#ifndef LARCOREALG_GEOMETRY_PLANEGEO_H
+#define LARCOREALG_GEOMETRY_PLANEGEO_H
 
 // LArSoft libraries
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
@@ -1193,5 +1193,5 @@ void geo::PlaneGeo::PrintPlaneInfo(
 } // geo::PlaneGeo::PrintPlaneInfo()
 
 
-#endif
+#endif // LARCOREALG_GEOMETRY_PLANEGEO_H
 ////////////////////////////////////////////////////////////////////////
