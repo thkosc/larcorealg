@@ -48,7 +48,6 @@ namespace geo {
     
     // Construct a representation of a single plane of the detector
     TPCGeo(GeoNodePath_t& path, size_t depth);
-    ~TPCGeo();
     
     
     /// @{
@@ -163,7 +162,7 @@ namespace geo {
      * @return a constant pointer to the plane, or nullptr if it does not exist
      */
     PlaneGeo const*     PlanePtr(unsigned int iplane)                const
-      { return HasPlane(iplane)? fPlanes[iplane]: nullptr; }
+      { return HasPlane(iplane)? &(fPlanes[iplane]): nullptr; }
     
     //@{
     /**
@@ -184,10 +183,10 @@ namespace geo {
     geo::PlaneGeo const& SmallestPlane() const;
     
     /// Returns the first wire plane (the closest to TPC center).
-    geo::PlaneGeo const& FirstPlane() const { return *(fPlanes[0]); }
+    geo::PlaneGeo const& FirstPlane() const { return fPlanes[0]; }
     
     /// Returns the last wire plane (the farther from TPC center).
-    geo::PlaneGeo const& LastPlane() const { return *(fPlanes[Nplanes() - 1]); }
+    geo::PlaneGeo const& LastPlane() const { return fPlanes[Nplanes() - 1]; }
     
     /// @brief Returns the largest number of wires among the planes in this TPC
     unsigned int MaxWires() const;
@@ -526,7 +525,7 @@ namespace geo {
     
     LocalTransformation_t              fTrans;          ///< TPC-to-world transformation
     
-    std::vector<PlaneGeo*>             fPlanes;         ///< List of planes in this plane
+    std::vector<PlaneGeo>              fPlanes;         ///< List of planes in this plane
     TGeoVolume*                        fActiveVolume;   ///< Active volume of LAr, called volTPCActive in GDML file 
     TGeoVolume*                        fTotalVolume;    ///< Total volume of TPC, called volTPC in GDML file
     DriftDirection_t                   fDriftDirection; ///< Direction of the electron drift in the TPC
@@ -564,9 +563,8 @@ namespace geo {
     /// Recomputes the TPC boundary
     void InitTPCBoundaries();
     
-    /// Sort the PlaneGeo objects by drift distance.
-    std::vector<geo::PlaneGeo*> SortPlanes
-      (std::vector<geo::PlaneGeo*> const&) const;
+    /// Sorts (in place) the specified `PlaneGeo` objects by drift distance.
+    void SortPlanes(std::vector<geo::PlaneGeo>&) const;
 
   
   };

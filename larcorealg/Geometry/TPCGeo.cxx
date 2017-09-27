@@ -148,16 +148,6 @@ namespace geo{
   } // TPCGeo::TPCGeo()
 
   //......................................................................
-  TPCGeo::~TPCGeo()
-  {
-    for(unsigned int i = 0; i < fPlanes.size(); ++i)
-      if(fPlanes[i]) delete fPlanes[i];
-  
-    fPlanes.clear();
-
-  }
-
-  //......................................................................
   void TPCGeo::FindPlane(GeoNodePath_t& path, size_t depth) 
   {
 
@@ -186,7 +176,7 @@ namespace geo{
   //......................................................................
   void TPCGeo::MakePlane(GeoNodePath_t& path, size_t depth) 
   {
-    fPlanes.push_back(new PlaneGeo(path, depth));
+    fPlanes.emplace_back(path, depth);
   }
 
 
@@ -237,13 +227,13 @@ namespace geo{
   // sort the PlaneGeo objects and the WireGeo objects inside 
   void TPCGeo::SortSubVolumes(geo::GeoObjectSorter const& sorter)
   {
-    fPlanes = SortPlanes(fPlanes);
+    SortPlanes(fPlanes);
     
     double origin[3] = {0.};
  
     // set the plane pitch for this TPC
     double xyz[3]  = {0.};
-    fPlanes[0]->LocalToWorld(origin,xyz);
+    fPlanes[0].LocalToWorld(origin,xyz);
     double xyz1[3] = {0.};
     fPlaneLocation.clear();
     fPlaneLocation.resize(fPlanes.size());
@@ -251,7 +241,7 @@ namespace geo{
     fPlane0Pitch.clear();
     fPlane0Pitch.resize(this->Nplanes(), 0.);
     for(size_t p = 0; p < this->Nplanes(); ++p){
-      fPlanes[p]->LocalToWorld(origin,xyz1);
+      fPlanes[p].LocalToWorld(origin,xyz1);
       if(p > 0) fPlane0Pitch[p] = fPlane0Pitch[p-1] + std::abs(xyz1[0]-xyz[0]);
       else      fPlane0Pitch[p] = 0.;
       xyz[0] = xyz1[0];
@@ -267,9 +257,9 @@ namespace geo{
     fViewToPlaneNumber.resize
       (1U + (size_t) geo::kUnknown, (geo::PlaneID::PlaneID_t) geo::PlaneID::InvalidID);
     for(size_t p = 0; p < this->Nplanes(); ++p)
-      fViewToPlaneNumber[(size_t) fPlanes[p]->View()] = p;
+      fViewToPlaneNumber[(size_t) fPlanes[p].View()] = p;
 
-    for(size_t p = 0; p < fPlanes.size(); ++p) fPlanes[p]->SortWires(sorter);
+    for(size_t p = 0; p < fPlanes.size(); ++p) fPlanes[p].SortWires(sorter);
     
   }
 
@@ -283,11 +273,11 @@ namespace geo{
     // ask the planes to update; also check
     
     for (unsigned int plane = 0; plane < Nplanes(); ++plane) {
-      fPlanes[plane]->UpdateAfterSorting(geo::PlaneID(fID, plane), *this);
+      fPlanes[plane].UpdateAfterSorting(geo::PlaneID(fID, plane), *this);
       
       // check that the plane normal is opposite to the TPC drift direction
       assert(lar::util::makeVector3DComparison(1e-5)
-        .equal(-(fPlanes[plane]->GetNormalDirection()), DriftDir()));
+        .equal(-(fPlanes[plane].GetNormalDirection()), DriftDir()));
       
     } // for
     
@@ -316,7 +306,7 @@ namespace geo{
         << "TPCGeo[" << ((void*) this) << "]::Plane(): no plane for view #"
         << (size_t) view << "\n";
     }
-    return *fPlanes[p];
+    return fPlanes[p];
   } // TPCGeo::Plane(geo::View_t)
 
   
@@ -328,13 +318,13 @@ namespace geo{
     //
     
     auto iPlane = fPlanes.begin(), pend = fPlanes.end();
-    geo::PlaneGeo const* smallestPlane = *iPlane;
+    auto smallestPlane = iPlane;
     double smallestSurface = smallestPlane->Width() * smallestPlane->Depth();
     while (++iPlane != pend) {
-      double const surface = (*iPlane)->Width() * (*iPlane)->Depth();
+      double const surface = iPlane->Width() * iPlane->Depth();
       if (surface > smallestSurface) continue;
       smallestSurface = surface;
-      smallestPlane = *iPlane;
+      smallestPlane = iPlane;
     } // while
     return *smallestPlane;
     
@@ -344,9 +334,8 @@ namespace geo{
   //......................................................................
   unsigned int TPCGeo::MaxWires() const {
     unsigned int maxWires = 0;
-    for (geo::PlaneGeo const* pPlane: fPlanes) {
-      if (!pPlane) continue;
-      unsigned int maxWiresInPlane = pPlane->Nwires();
+    for (geo::PlaneGeo const& plane: fPlanes) {
+      unsigned int maxWiresInPlane = plane.Nwires();
       if (maxWiresInPlane > maxWires) maxWires = maxWiresInPlane;
     } // for
     return maxWires;
@@ -493,7 +482,7 @@ namespace geo{
     // 2. compute the distance of it from the last wire plane
     //
     
-    geo::PlaneGeo const& plane = *(fPlanes.back());
+    geo::PlaneGeo const& plane = fPlanes.back();
     return std::abs(plane.DistanceFromPlane(GetCathodeCenter()));
     
   } // TPCGeo::ComputeDriftDistance()
@@ -533,15 +522,13 @@ namespace geo{
     fViewToPlaneNumber.resize
       (1U + (size_t) geo::kUnknown, (geo::PlaneID::PlaneID_t) geo::PlaneID::InvalidID);
     for(size_t p = 0; p < Nplanes(); ++p)
-      fViewToPlaneNumber[(size_t) fPlanes[p]->View()] = p;
+      fViewToPlaneNumber[(size_t) fPlanes[p].View()] = p;
     
   } // TPCGeo::UpdatePlaneViewCache()
   
 
   //......................................................................
-  std::vector<geo::PlaneGeo*> TPCGeo::SortPlanes
-    (std::vector<geo::PlaneGeo*> const& planes) const
-  {
+  void TPCGeo::SortPlanes(std::vector<geo::PlaneGeo>& planes) const {
     //
     // Sort planes by increasing drift distance.
     // 
@@ -559,7 +546,7 @@ namespace geo{
     // We use the first plane -- it does not make any difference.
     decltype(auto) TPCcenter = GetCenter();
     auto driftAxis
-      = geo::vect::Normalize(planes[0]->GetBoxCenter() - TPCcenter);
+      = geo::vect::Normalize(planes[0].GetBoxCenter() - TPCcenter);
     
     //
     // associate each plane with its distance from the center of TPC
@@ -568,10 +555,10 @@ namespace geo{
     // pair: <plane pointer,drift distance>
     std::vector<std::pair<geo::PlaneGeo*, double>> planesWithDistance;
     planesWithDistance.reserve(planes.size());
-    for (geo::PlaneGeo* plane: planes) {
+    for (geo::PlaneGeo& plane: planes) {
       double const driftDistance
-        = geo::vect::Dot(plane->GetBoxCenter() - TPCcenter, driftAxis);
-      planesWithDistance.emplace_back(plane, driftDistance);
+        = geo::vect::Dot(plane.GetBoxCenter() - TPCcenter, driftAxis);
+      planesWithDistance.emplace_back(&plane, driftDistance);
     } // for
     
     //
@@ -584,12 +571,13 @@ namespace geo{
     //
     // extract the result
     //
-    std::vector<geo::PlaneGeo*> sortedPlanes;
+    std::vector<geo::PlaneGeo> sortedPlanes;
     sortedPlanes.reserve(planesWithDistance.size());
     for (auto const& pair: planesWithDistance)
-      sortedPlanes.push_back(pair.first);
+      sortedPlanes.push_back(std::move(*(pair.first)));
     
-    return sortedPlanes;
+    planes = std::move(sortedPlanes);
+    
   } // TPCGeo::SortPlanes()
   
   //......................................................................
