@@ -8,7 +8,7 @@
 #define LARCOREALG_GEOMETRY_CRYOSTATGEO_H
 
 #include <vector>
-#include <algorithm>
+#include <string>
 
 #include "TVector3.h"
 #include "TGeoVolume.h"
@@ -129,7 +129,7 @@ namespace geo {
      * @return a constant pointer to the TPC, or nullptr if it does not exist
      */
     TPCGeo const*     TPCPtr(unsigned int itpc)                    const
-      { return HasTPC(itpc)? fTPCs[itpc]: nullptr; }
+      { return HasTPC(itpc)? &(fTPCs[itpc]): nullptr; }
     
     //@{
     /**
@@ -235,7 +235,7 @@ namespace geo {
   private:
 
     TGeoHMatrix*           fGeoMatrix;      ///< TPC to world transform
-    std::vector<TPCGeo*>   fTPCs;           ///< List of tpcs in this cryostat
+    std::vector<TPCGeo>    fTPCs;           ///< List of tpcs in this cryostat
     std::vector<OpDetGeo*> fOpDets;         ///< List of opdets in this cryostat
     TGeoVolume*            fVolume;         ///< Total volume of cryostat, called volCryostat in GDML file
     std::string            fOpDetGeoName;   ///< Name of opdet geometry elements in gdml

@@ -12,6 +12,7 @@
 #include <limits> // std::numeric_limits<>
 #include <algorithm> // std::for_each()
 #include <memory> // std::default_delete<>
+#include <iterator> // std::back_inserter<>
 
 // ROOT includes
 #include "TMath.h"
@@ -30,6 +31,7 @@
 #include "larcorealg/Geometry/PlaneGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"
 #include "larcorealg/Geometry/OpDetGeo.h"
+#include "larcorealg/CoreUtils/SortByPointers.h"
 
 namespace geo{
 
@@ -117,9 +119,6 @@ namespace geo{
   //......................................................................
   CryostatGeo::~CryostatGeo()
   {
-    for(size_t i = 0; i < fTPCs.size(); ++i)
-      if(fTPCs[i]) delete fTPCs[i];
-    fTPCs.clear();
     
     std::for_each
       (fOpDets.begin(), fOpDets.end(), std::default_delete<OpDetGeo>());
@@ -158,7 +157,7 @@ namespace geo{
   //......................................................................
   void CryostatGeo::MakeTPC(std::vector<const TGeoNode*>& path, int depth) 
   {
-    fTPCs.push_back(new TPCGeo(path, depth));
+    fTPCs.emplace_back(path, depth);
   }
 
   
@@ -166,12 +165,23 @@ namespace geo{
   // sort the TPCGeo objects, and the PlaneGeo objects inside
   void CryostatGeo::SortSubVolumes(geo::GeoObjectSorter const& sorter)
   {
-    sorter.SortTPCs(fTPCs);
-    for (geo::TPCGeo* TPC: fTPCs) { 
-      TPC->SortSubVolumes(sorter);
+    //
+    // TPCs
+    //
+    util::SortByPointers
+      (fTPCs, [&sorter](auto& coll){ sorter.SortTPCs(coll); });
+    
+    for (geo::TPCGeo& TPC: fTPCs) { 
+      TPC.SortSubVolumes(sorter);
     } // for TPCs
-
-  }
+    
+    //
+    // optical detectors
+    //
+    
+    // sorting of optical detectors happens elsewhere
+    
+  } // CryostatGeo::SortSubVolumes()
 
 
   //......................................................................
@@ -182,7 +192,7 @@ namespace geo{
     
     // trigger all the TPCs to update as well
     for (unsigned int tpc = 0; tpc < NTPC(); ++tpc)
-      fTPCs[tpc]->UpdateAfterSorting(geo::TPCID(fID, tpc));
+      fTPCs[tpc].UpdateAfterSorting(geo::TPCID(fID, tpc));
     
   } // CryostatGeo::UpdateAfterSorting()
   
@@ -280,9 +290,8 @@ namespace geo{
   //......................................................................
   unsigned int CryostatGeo::MaxPlanes() const {
     unsigned int maxPlanes = 0;
-    for (geo::TPCGeo const* pTPC: fTPCs) {
-      if (!pTPC) continue;
-      unsigned int maxPlanesInTPC = pTPC->Nplanes();
+    for (geo::TPCGeo const& TPC: fTPCs) {
+      unsigned int maxPlanesInTPC = TPC.Nplanes();
       if (maxPlanesInTPC > maxPlanes) maxPlanes = maxPlanesInTPC;
     } // for
     return maxPlanes;
@@ -291,9 +300,8 @@ namespace geo{
   //......................................................................
   unsigned int CryostatGeo::MaxWires() const {
     unsigned int maxWires = 0;
-    for (geo::TPCGeo const* pTPC: fTPCs) {
-      if (!pTPC) continue;
-      unsigned int maxWiresInTPC = pTPC->MaxWires();
+    for (geo::TPCGeo const& TPC: fTPCs) {
+      unsigned int maxWiresInTPC = TPC.MaxWires();
       if (maxWiresInTPC > maxWires) maxWires = maxWiresInTPC;
     } // for
     return maxWires;
