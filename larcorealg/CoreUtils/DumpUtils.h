@@ -14,6 +14,7 @@
 // C++ libraries
 #include <string>
 #include <sstream>
+#include <type_traits>
 
 
 namespace lar {
@@ -24,13 +25,22 @@ namespace lar {
     
     namespace details {
       
+      template <typename Coll>
+      auto ptr_cbegin(Coll const& v) { using std::cbegin; return cbegin(v); }
+      
+      template <typename T>
+      std::add_const_t<T>* ptr_cbegin(T* ptr) { return ptr; }
+      
+      
       /// Inserts `n` of elements of `a` in the specified stream.
       template <typename Stream, typename Array>
       void dumpArray(Stream&& out, Array&& a, size_t n) {
         out << "{";
         if (n == 0) { out << "}"; return; }
-        out << " " << a[0];
-        for (size_t i = 1; i < n; ++i) out << "; " << a[i];
+        auto it = ptr_cbegin(a);
+        out << " " << *it;
+        std::size_t i = 0;
+        while (++i < n) out << "; " << (*++it);
         out << " }";
       } // dumpArray()
       
@@ -39,7 +49,6 @@ namespace lar {
     /**
      * @brief Dumps the first N elements of an array.
      * @tparam Array the array type (supporting indexing operator)
-     * @tparam NPrint the number of elements to be printed
      * 
      * The dump is producer by the call operator, in the form
      *     
@@ -185,19 +194,19 @@ namespace lar {
     
     /**
      * @brief Returns a manipulator which will print the specified array.
-     * @tparam NPrint the number of entries to be printed
-     * @tparam Array the type of 3D vector to be printed
+     * @tparam N the number of entries to be printed
+     * @tparam Array the type of array to be printed
      * @param a the array to be printed
      * @return a manipulator
      * 
      * Example of usage:
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
      * double const data[5] = { 1., 2., 3., 4., 6. };
-     * std::cout << "Position: " << lar::dump::array<5>(data) << std::endl;
+     * std::cout << "Data: " << lar::dump::array<5>(data) << std::endl;
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * will produce an output like:
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * Position: { 1; 2; 3; 4; 6 }
+     * Data: { 1; 2; 3; 4; 6 }
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * 
      * Addition of specific classes can be achieved via specialization of
@@ -207,16 +216,53 @@ namespace lar {
      * Requirements
      * -------------
      * 
-     * * the type `Array` is required to provide constant index operator
-     *   returning the array element at the specified index
-     * * the value type returned by the aforementioned `Array` method must have
-     *   its insertion operator into a stream defined
+     * * the type `Array` is required to respond to a global function `cbegin()`
+     *   (like `std::cbegin()`) with a forward iterator
+     * * the value type of the iterator returned by the aforementioned `Array`
+     *   method must have its insertion operator into a stream defined
      * * the array `a` must not fall out of scope until the insertion into
      *   the stream happens
      * 
      */
     template <size_t N, typename Array>
     auto array(Array const& a) { return ArrayDumper<Array>(a, N); }
+    
+    
+    /**
+     * @brief Returns a manipulator which will print the specified array.
+     * @tparam Vector type of vector to be printed
+     * @param v the vector to be printed
+     * @return a manipulator
+     * 
+     * Example of usage:
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+     * std::vector<double> data = { 1., 2., 3., 4., 6. };
+     * std::cout << "Data: " << lar::dump::vector(data) << std::endl;
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * will produce an output like:
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * Data: { 1; 2; 3; 4; 6 }
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * 
+     * Addition of specific classes can be achieved via specialization of
+     * the class `ArrayDumper`.
+     * 
+     * 
+     * Requirements
+     * -------------
+     * 
+     * * a method `Vector::size() const` must be available returning the number
+     *   of elements in the vector
+     * * the type `Vector` is required to respond to a global function
+     *   `cbegin()` (like `std::cbegin()`) with a forward iterator
+     * * the value type returned by the aforementioned `Vector` method must have
+     *   its insertion operator into a stream defined
+     * * the vector `v` must not fall out of scope until the insertion into
+     *   the stream happens
+     * 
+     */
+    template <typename Vector>
+    auto vector(Vector const& v) { return ArrayDumper<Vector>(v, v.size()); }
     
     
     

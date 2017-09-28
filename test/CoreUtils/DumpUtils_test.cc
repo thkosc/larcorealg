@@ -22,6 +22,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <list>
 #include <array>
 #include <sstream>
 
@@ -90,7 +91,7 @@ void ArrayTest() {
   ArrayTest_ptr();
   ArrayTest_cptr();
   
-} // Vector3Dtest()
+} // ArrayTest()
 
 
 //------------------------------------------------------------------------------
@@ -101,21 +102,74 @@ void ArrayDocumentationTest() {
   /* This is the code as in the documentation:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * double const data[5] = { 1., 2., 3., 4., 6. };
-   * std::cout << "Position: " << lar::dump::array<5>(data) << std::endl;
+   * std::cout << "Data: " << lar::dump::array<5>(data) << std::endl;
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * which is promised to return:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   * Position: { 1; 2; 3; 4; 6 }
+   * Data: { 1; 2; 3; 4; 6 }
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */
 
   double const data[5] = { 1., 2., 3., 4., 6. };
-  std::cout << "Position: " << lar::dump::array<5>(data) << std::endl;
+  std::cout << "Data: " << lar::dump::array<5>(data) << std::endl;
 
   sstr << lar::dump::array<5>(data);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 3; 4; 6 }");
   
 } // ArrayDocumentationTest()
+
+
+//------------------------------------------------------------------------------
+void VectorTest_STLvector() {
+  std::ostringstream sstr;
+  std::vector<float> const v = { 1., 2., 3., 4., 6. };
+  sstr << lar::dump::vector(v);
+  BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 3; 4; 6 }");
+  BOOST_CHECK_EQUAL
+    (std::string(lar::dump::vector(v)), "{ 1; 2; 3; 4; 6 }");
+} // VectorTest_STLvector()
+
+void VectorTest_STLlist() {
+  std::ostringstream sstr;
+  std::list<float> const v = { 1., 2., 3., 4., 6. };
+  sstr << lar::dump::vector(v);
+  BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 3; 4; 6 }");
+  BOOST_CHECK_EQUAL
+    (std::string(lar::dump::vector(v)), "{ 1; 2; 3; 4; 6 }");
+} // VectorTest_STLlist()
+
+void VectorTest() {
+  
+  VectorTest_STLvector();
+  VectorTest_STLlist();
+  
+} // VectorTest()
+
+
+//------------------------------------------------------------------------------
+void VectorDocumentationTest() {
+  
+  std::ostringstream sstr;
+  
+  /* This is the code as in the documentation:
+   * 
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * std::vector<double> data = { 1., 2., 3., 4., 6. };
+   * std::cout << "Data: " << lar::dump::vector(data) << std::endl;
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * which is promised to return:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * Data: { 1; 2; 3; 4; 6 }
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   */
+  
+  std::vector<double> data = { 1., 2., 3., 4., 6. };
+  std::cout << "Data: " << lar::dump::vector(data) << std::endl;
+  
+  sstr << lar::dump::array<5>(data);
+  BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 3; 4; 6 }");
+  
+} // VectorDocumentationTest()
 
 
 //------------------------------------------------------------------------------
@@ -299,16 +353,25 @@ void Vector3DspecializationTest() {
 
 
 //------------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(test_DumpArrays) {
+BOOST_AUTO_TEST_CASE(DumpArrays_testcase) {
   
   ArrayTest();
   
   ArrayDocumentationTest();
   
-} // BOOST_AUTO_TEST_CASE(test_DumpVectors)
+} // BOOST_AUTO_TEST_CASE(DumpArrays_testcase)
 
 
-BOOST_AUTO_TEST_CASE(test_DumpVectors) {
+BOOST_AUTO_TEST_CASE(DumpVectors_testcase) {
+  
+  VectorTest();
+  
+  VectorDocumentationTest();
+  
+} // BOOST_AUTO_TEST_CASE(DumpVectors_testcase)
+
+
+BOOST_AUTO_TEST_CASE(Dump3Dvectors_testcase) {
   
   Vector3Dtest();
   
@@ -316,5 +379,5 @@ BOOST_AUTO_TEST_CASE(test_DumpVectors) {
   
   Vector3DspecializationTest();
   
-} // BOOST_AUTO_TEST_CASE(test_DumpVectors)
+} // BOOST_AUTO_TEST_CASE(Dump3Dvectors_testcase)
 
