@@ -1662,7 +1662,9 @@ namespace geo {
     /// Destructor
     ~GeometryCore();
    
-    // You shall not copy or move or assign me!
+    // this object is not copiable nor moveable (see also issue #14384);
+    // currently, auxiliary detectors are stored as bare pointers,
+    // which prevents trivial copy or move.
     GeometryCore(GeometryCore const&) = delete;
     GeometryCore(GeometryCore&&) = delete;
     GeometryCore& operator= (GeometryCore const&) = delete;
