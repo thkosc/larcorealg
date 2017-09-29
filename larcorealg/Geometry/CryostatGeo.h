@@ -7,21 +7,24 @@
 #ifndef LARCOREALG_GEOMETRY_CRYOSTATGEO_H
 #define LARCOREALG_GEOMETRY_CRYOSTATGEO_H
 
-#include <vector>
-#include <string>
-
-#include "TVector3.h"
-#include "TGeoVolume.h"
-#include "TGeoMatrix.h" // TGeoHMatrix
-
+// LArSoft libraries
 #include "larcorealg/Geometry/TPCGeo.h"
 #include "larcorealg/Geometry/OpDetGeo.h"
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 
+// ROOT libraries
+#include "TVector3.h"
+#include "TGeoVolume.h"
+#include "TGeoMatrix.h" // TGeoHMatrix
+
+// C/C++ standard libraries
+#include <vector>
+#include <string>
+
+// forward declarations
 class TGeoNode;
-class TGeoHMatrix;
 
 namespace geo {
 

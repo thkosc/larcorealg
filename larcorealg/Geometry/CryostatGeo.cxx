@@ -7,31 +7,23 @@
 // class header
 #include "larcorealg/Geometry/CryostatGeo.h"
 
-#include <iostream>
-#include <cmath>
-#include <limits> // std::numeric_limits<>
-#include <algorithm> // std::for_each()
-#include <memory> // std::default_delete<>
-#include <iterator> // std::back_inserter<>
-
-// ROOT includes
-#include "TMath.h"
-#include "TGeoManager.h"
-#include "TGeoNode.h"
-#include "TGeoMatrix.h"
-#include "TClass.h"
-#include "TGeoBBox.h"
+// LArSoft includes
+#include "larcorealg/CoreUtils/SortByPointers.h"
 
 // Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib/exception.h"
 
-// LArSoft includes
-#include "larcorealg/Geometry/TPCGeo.h"
-#include "larcorealg/Geometry/PlaneGeo.h"
-#include "larcorealg/Geometry/WireGeo.h"
-#include "larcorealg/Geometry/OpDetGeo.h"
-#include "larcorealg/CoreUtils/SortByPointers.h"
+// ROOT includes
+#include "TGeoNode.h"
+#include "TGeoBBox.h"
+#include "TClass.h"
+
+// C++ standard libraries
+#include <array>
+#include <limits> // std::numeric_limits<>
+#include <algorithm> // std::sort()
+
 
 namespace geo{
 
