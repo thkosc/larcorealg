@@ -12,6 +12,7 @@
 // lar includes
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi<>
 #include "larcorealg/CoreUtils/DereferenceIterator.h" // lar::util::dereferenceIteratorLoop()
+#include "larcorealg/CoreUtils/SortByPointers.h"
 #include "larcorealg/Geometry/OpDetGeo.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
@@ -36,9 +37,9 @@
 #include <cmath> // std::abs() ...
 #include <vector>
 #include <algorithm> // std::for_each(), std::transform()
+#include <iterator> // std::back_inserter()
 #include <utility> // std::swap()
 #include <limits> // std::numeric_limits<>
-#include <memory> // std::default_deleter<>
 #include <numeric> // std::accumulate
 
 
@@ -130,9 +131,6 @@ namespace geo {
   //......................................................................
   void GeometryCore::ClearGeometry() {
     
-    // cryostats
-    std::for_each(Cryostats().begin(), Cryostats().end(),
-      std::default_delete<CryostatGeo>());
     Cryostats().clear();
     
     // auxiliary detectors
@@ -149,10 +147,15 @@ namespace geo {
     mf::LogInfo("GeometryCore") << "Sorting volumes...";
     
     sorter.SortAuxDets(AuxDets());
-    sorter.SortCryostats(Cryostats());
+    
+    //
+    // cryostats
+    //
+    util::SortByPointers(Cryostats(),
+      [&sorter](auto& coll){ sorter.SortCryostats(coll); });
     
     geo::CryostatID::CryostatID_t c = 0;
-    for (geo::CryostatGeo& cryo: lar::util::dereferenceIteratorLoop(Cryostats()))
+    for (geo::CryostatGeo& cryo: Cryostats())
     {
       cryo.SortSubVolumes(sorter);
       cryo.UpdateAfterSorting(geo::CryostatID(c));
@@ -166,7 +169,7 @@ namespace geo {
   void GeometryCore::UpdateAfterSorting() {
     
     for (size_t c = 0; c < Ncryostats(); ++c)
-      Cryostats()[c]->UpdateAfterSorting(geo::CryostatID(c));
+      Cryostats()[c].UpdateAfterSorting(geo::CryostatID(c));
     
   } // GeometryCore::UpdateAfterSorting()
   
@@ -733,9 +736,8 @@ namespace geo {
   //......................................................................
   unsigned int GeometryCore::MaxTPCs() const {
     unsigned int maxTPCs = 0;
-    for (geo::CryostatGeo const* pCryo: Cryostats()) {
-      if (!pCryo) continue;
-      unsigned int maxTPCsInCryo = pCryo->NTPC();
+    for (geo::CryostatGeo const& cryo: Cryostats()) {
+      unsigned int maxTPCsInCryo = cryo.NTPC();
       if (maxTPCsInCryo > maxTPCs) maxTPCs = maxTPCsInCryo;
     } // for
     return maxTPCs;
@@ -746,17 +748,16 @@ namespace geo {
     // it looks like C++11 lambdas have made STL algorithms easier to use,
     // but only so much:
     return std::accumulate(Cryostats().begin(), Cryostats().end(), 0U,
-      [](unsigned int sum, geo::CryostatGeo const* pCryo)
-        { return sum + (pCryo? pCryo->NTPC(): 0U); }
+      [](unsigned int sum, geo::CryostatGeo const& cryo)
+        { return sum + cryo.NTPC(); }
       );
   } // GeometryCore::TotalNTPC()
   
   //......................................................................
   unsigned int GeometryCore::MaxPlanes() const {
     unsigned int maxPlanes = 0;
-    for (geo::CryostatGeo const* pCryo: Cryostats()) {
-      if (!pCryo) continue;
-      unsigned int maxPlanesInCryo = pCryo->MaxPlanes();
+    for (geo::CryostatGeo const& cryo: Cryostats()) {
+      unsigned int maxPlanesInCryo = cryo.MaxPlanes();
       if (maxPlanesInCryo > maxPlanes) maxPlanes = maxPlanesInCryo;
     } // for
     return maxPlanes;
@@ -765,9 +766,8 @@ namespace geo {
   //......................................................................
   unsigned int GeometryCore::MaxWires() const {
     unsigned int maxWires = 0;
-    for (geo::CryostatGeo const* pCryo: Cryostats()) {
-      if (!pCryo) continue;
-      unsigned int maxWiresInCryo = pCryo->MaxWires();
+    for (geo::CryostatGeo const& cryo: Cryostats()) {
+      unsigned int maxWiresInCryo = cryo.MaxWires();
       if (maxWiresInCryo > maxWires) maxWires = maxWiresInCryo;
     } // for
     return maxWires;
@@ -898,7 +898,7 @@ namespace geo {
   //......................................................................
   void GeometryCore::MakeCryostat(std::vector<const TGeoNode*>& path, int depth) 
   {
-    Cryostats().push_back(new CryostatGeo(path, depth));
+    Cryostats().emplace_back(path, depth);
   }
 
   //......................................................................

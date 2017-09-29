@@ -1375,8 +1375,8 @@ namespace geo {
   /// Data in the geometry description
   struct GeometryData_t {
     
-    /// Type of list of cryostats
-    using CryostatList_t = std::vector<CryostatGeo*>;
+    /// Type of list of cryostats.
+    using CryostatList_t = std::vector<geo::CryostatGeo>;
     /// Type of list of auxiliary detectors
     using AuxDetList_t = std::vector<AuxDetGeo*>;
     
@@ -1962,7 +1962,7 @@ namespace geo {
      * type of ID.
      */
     CryostatGeo const* CryostatPtr(geo::CryostatID const& cryoid) const
-      { return HasCryostat(cryoid)? Cryostats()[cryoid.Cryostat]: nullptr; }
+      { return HasCryostat(cryoid)? &(Cryostats()[cryoid.Cryostat]): nullptr; }
     CryostatGeo const* GetElementPtr(geo::CryostatID const& cryoid) const
       { return CryostatPtr(cryoid); }
     //@}

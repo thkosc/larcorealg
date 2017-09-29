@@ -29,7 +29,7 @@ namespace geo{
     // start over:
     Uninitialize();
     
-    std::vector<geo::CryostatGeo*> const& cgeo = geodata.cryostats;
+    std::vector<geo::CryostatGeo> const& cgeo = geodata.cryostats;
     
     fNcryostat = cgeo.size();
     
@@ -52,8 +52,8 @@ namespace geo{
     int RunningTotal = 0;
 
     for(unsigned int cs = 0; cs != fNcryostat; ++cs){
-      
-      fNTPC[cs] = cgeo[cs]->NTPC();
+      geo::CryostatGeo const& cryo = cgeo[cs];
+      fNTPC[cs] = cryo.NTPC();
       
       // Size up all the vectors 
       fWireCounts[cs]             .resize(fNTPC[cs]);
@@ -67,27 +67,29 @@ namespace geo{
       fFirstChannelInNextPlane[cs].resize(fNTPC[cs]);
 
       for(unsigned int TPCCount = 0; TPCCount != fNTPC[cs]; ++TPCCount){
-        unsigned int PlanesThisTPC = cgeo[cs]->TPC(TPCCount).Nplanes();
+        geo::TPCGeo const& TPC = cryo.TPC(TPCCount);
+        unsigned int PlanesThisTPC = TPC.Nplanes();
         fWireCounts[cs][TPCCount]   .resize(PlanesThisTPC);
         fFirstWireProj[cs][TPCCount].resize(PlanesThisTPC);
         fOrthVectorsY[cs][TPCCount] .resize(PlanesThisTPC);
         fOrthVectorsZ[cs][TPCCount] .resize(PlanesThisTPC);
         fNPlanes[cs][TPCCount]=PlanesThisTPC;
         for(unsigned int PlaneCount = 0; PlaneCount != PlanesThisTPC; ++PlaneCount){
+          geo::PlaneGeo const& plane = TPC.Plane(PlaneCount);
 
-          fViews.emplace(cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).View());
+          fViews.emplace(plane.View());
           fPlaneIDs.emplace(PlaneID(cs, TPCCount, PlaneCount));
-          double ThisWirePitch = cgeo[cs]->TPC(TPCCount).WirePitch(0, 1, PlaneCount);
-          fWireCounts[cs][TPCCount][PlaneCount] = cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).Nwires();
+          double ThisWirePitch = TPC.WirePitch(0, 1, PlaneCount);
+          fWireCounts[cs][TPCCount][PlaneCount] = plane.Nwires();
           
           double  WireCentre1[3] = {0.,0.,0.};
           double  WireCentre2[3] = {0.,0.,0.};
           
-          const geo::WireGeo& firstWire = cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).Wire(0);
+          const geo::WireGeo& firstWire = plane.Wire(0);
           const double sth = firstWire.SinThetaZ(), cth = firstWire.CosThetaZ();
           
           firstWire.GetCenter(WireCentre1,0);
-          cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).Wire(1).GetCenter(WireCentre2,0);
+          plane.Wire(1).GetCenter(WireCentre2,0);
           
           // figure out if we need to flip the orthogonal vector 
           // (should point from wire n -> n+1)
@@ -111,7 +113,7 @@ namespace geo{
           fFirstWireProj[cs][TPCCount][PlaneCount] /= ThisWirePitch;
           
           // now to count up wires in each plane and get first channel in each plane
-          int WiresThisPlane = cgeo[cs]->TPC(TPCCount).Plane(PlaneCount).Nwires();        
+          int WiresThisPlane = plane.Nwires();        
           fWiresPerPlane[cs] .at(TPCCount).push_back(WiresThisPlane);
           fPlaneBaselines[cs].at(TPCCount).push_back(RunningTotal);
           
