@@ -4082,9 +4082,6 @@ namespace geo {
     // access
     //
     
-    /// Returns the full list of pointer to the auxiliary detectors
-    std::vector<AuxDetGeo*> const& AuxDetGeoVec() const { return AuxDets(); }
-    
     /**
      * @brief Returns the specified auxiliary detector
      * @param ad the auxiliary detector index
