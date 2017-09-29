@@ -13,9 +13,10 @@
 
 // C/C++ standard libraries
 #include <vector>
+
+
+// forward declarations
 class TGeoNode;
-class TGeoHMatrix;
-class TGeoMatrix;
 
 namespace geo {
 
@@ -23,7 +24,6 @@ namespace geo {
   public:
     OpDetGeo(std::vector<const TGeoNode*>& path, 
 	    int depth);
-    ~OpDetGeo();
 
     void   GetCenter(double* xyz, double localz=0.0) const;
     double RMax() const;
@@ -46,7 +46,7 @@ namespace geo {
 
   private:
     const TGeoNode* fOpDetNode;  ///< Pointer to theopdet node
-    TGeoHMatrix*    fGeoMatrix; ///< Transformation matrix to world frame
+    TGeoHMatrix     fGeoMatrix; ///< Transformation matrix to world frame
   };
 }
 

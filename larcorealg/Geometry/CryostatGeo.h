@@ -12,7 +12,10 @@
 
 #include "TVector3.h"
 #include "TGeoVolume.h"
+#include "TGeoMatrix.h" // TGeoHMatrix
 
+#include "larcorealg/Geometry/TPCGeo.h"
+#include "larcorealg/Geometry/OpDetGeo.h"
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
@@ -21,10 +24,6 @@ class TGeoNode;
 class TGeoHMatrix;
 
 namespace geo {
-  class WireGeo;
-  class PlaneGeo;
-  class TPCGeo;
-  class OpDetGeo;
 
   //......................................................................
   /// Geometry information for a single cryostat
@@ -34,9 +33,6 @@ namespace geo {
     /// Construct a representation of a single cryostat of the detector
     CryostatGeo(std::vector<const TGeoNode*>& path, int depth);
     
-    /// Destructor: destructs
-    ~CryostatGeo();
-
     
     /// @{
     /// @name Cryostat geometry information
@@ -234,9 +230,9 @@ namespace geo {
 
   private:
 
-    TGeoHMatrix*           fGeoMatrix;      ///< TPC to world transform
+    TGeoHMatrix            fGeoMatrix;      ///< Cryostat to world transform.
     std::vector<TPCGeo>    fTPCs;           ///< List of tpcs in this cryostat
-    std::vector<OpDetGeo*> fOpDets;         ///< List of opdets in this cryostat
+    std::vector<OpDetGeo>  fOpDets;         ///< List of opdets in this cryostat
     TGeoVolume*            fVolume;         ///< Total volume of cryostat, called volCryostat in GDML file
     std::string            fOpDetGeoName;   ///< Name of opdet geometry elements in gdml
     geo::CryostatID        fID;             ///< ID of this cryostat

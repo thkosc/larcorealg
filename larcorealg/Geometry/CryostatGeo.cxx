@@ -90,9 +90,9 @@ namespace geo{
 
     // build a matrix to take us from the local to the world coordinates
     // in one step
-    fGeoMatrix = new TGeoHMatrix(*path[0]->GetMatrix());
+    fGeoMatrix = *path[0]->GetMatrix();
     for(int i = 1; i <= depth; ++i){
-      fGeoMatrix->Multiply(path[i]->GetMatrix());
+      fGeoMatrix.Multiply(path[i]->GetMatrix());
     }
   
     // set the bounding box
@@ -111,20 +111,12 @@ namespace geo{
     // sort the OpDets according to xyz position
     // 600 intended to separate dune10kt geometry from others when sorting
     ///\todo: remove the hard-coded 600 in favor of selecting sorting the same way as in ChannelMapAlgs
-    if(fOpDets.size() != 600 ) std::sort(fOpDets.begin(), fOpDets.end(), opdet_sort);
-    else std::sort(fOpDets.begin(), fOpDets.end(), DUNE_opdet_sort);
-    return;
-  }
-
-  //......................................................................
-  CryostatGeo::~CryostatGeo()
-  {
+    /// (LArSoft issue #16812)
+    auto sorter = (fOpDets.size() != 600)? opdet_sort: DUNE_opdet_sort;
+    util::SortByPointers(fOpDets,
+      [&sorter](auto& coll){ std::sort(coll.begin(), coll.end(), sorter); }
+      );
     
-    std::for_each
-      (fOpDets.begin(), fOpDets.end(), std::default_delete<OpDetGeo>());
-    fOpDets.clear();
-
-    if(fGeoMatrix)    delete fGeoMatrix;
   }
 
 
@@ -240,7 +232,7 @@ namespace geo{
   //......................................................................
   void CryostatGeo::MakeOpDet(std::vector<const TGeoNode*>& path, int depth) 
   {
-    fOpDets.push_back(new OpDetGeo(path, depth));
+    fOpDets.emplace_back(path, depth);
   }
 
   //......................................................................
@@ -251,7 +243,7 @@ namespace geo{
 					      << iopdet;
     }
 
-    return *fOpDets[iopdet];
+    return fOpDets[iopdet];
   }
   
   
@@ -339,20 +331,20 @@ namespace geo{
   //......................................................................
   void CryostatGeo::LocalToWorld(const double* tpc, double* world) const
   {
-    fGeoMatrix->LocalToMaster(tpc, world);
+    fGeoMatrix.LocalToMaster(tpc, world);
   }
 
   //......................................................................
   void CryostatGeo::LocalToWorldVect(const double* tpc, double* world) const
   {
-    fGeoMatrix->LocalToMasterVect(tpc, world);
+    fGeoMatrix.LocalToMasterVect(tpc, world);
   }
 
   //......................................................................
 
   void CryostatGeo::WorldToLocal(const double* world, double* tpc) const
   {
-    fGeoMatrix->MasterToLocal(world, tpc);
+    fGeoMatrix.MasterToLocal(world, tpc);
   }
 
   //......................................................................
@@ -365,7 +357,7 @@ namespace geo{
     worldArray[1] = world.Y();
     worldArray[2] = world.Z();
     worldArray[3] = 1.; 
-    fGeoMatrix->MasterToLocal(worldArray,localArray);
+    fGeoMatrix.MasterToLocal(worldArray,localArray);
     return TVector3(localArray);
   }
 
@@ -379,7 +371,7 @@ namespace geo{
     localArray[1] = local.Y();
     localArray[2] = local.Z();
     localArray[3] = 1.;
-    fGeoMatrix->LocalToMaster(localArray,worldArray);
+    fGeoMatrix.LocalToMaster(localArray,worldArray);
     return TVector3(worldArray);
   }
 
@@ -390,7 +382,7 @@ namespace geo{
   // \param plane : 3-D array. Vector in plane coordinates; plane.
   void CryostatGeo::WorldToLocalVect(const double* world, double* plane) const
   {
-    fGeoMatrix->MasterToLocalVect(world,plane);
+    fGeoMatrix.MasterToLocalVect(world,plane);
   }
 
 

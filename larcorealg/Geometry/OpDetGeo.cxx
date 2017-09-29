@@ -31,19 +31,11 @@ namespace geo{
     // Build the matrix that takes us to the top world frame
     // build a matrix to take us from the local to the world coordinates
     // in one step
-    fGeoMatrix = new TGeoHMatrix(*path[0]->GetMatrix());
+    fGeoMatrix = *path[0]->GetMatrix();
     for(int i = 1; i <= depth; ++i){
-      fGeoMatrix->Multiply(path[i]->GetMatrix());
+      fGeoMatrix.Multiply(path[i]->GetMatrix());
     }
   }
-
-  //......................................................................
-  OpDetGeo::~OpDetGeo()
-  {
-    //if(fGeoMatrix) delete fGeoMatrix;
-  
-    return;
-  }  
 
   //......................................................................
 
@@ -52,7 +44,7 @@ namespace geo{
   /// \param world : 3D array. Position in the world frame. Returned.
   void OpDetGeo::LocalToWorld(const double* local, double* world) const
   {
-    fGeoMatrix->LocalToMaster(local,world);
+    fGeoMatrix.LocalToMaster(local,world);
   }
 
   //......................................................................    
@@ -62,7 +54,7 @@ namespace geo{
   /// \param world : 3D array. Position in the world frame. Returned.
   void OpDetGeo::LocalToWorldVect(const double* local, double* world) const
   {
-    fGeoMatrix->LocalToMasterVect(local,world);
+    fGeoMatrix.LocalToMasterVect(local,world);
   }
     
   //......................................................................
@@ -72,7 +64,7 @@ namespace geo{
   /// \param local : 3D array. Position in the local frame  Returned.
   void OpDetGeo::WorldToLocal(const double* world, double* local) const
   {
-    fGeoMatrix->MasterToLocal(world,local);
+    fGeoMatrix.MasterToLocal(world,local);
   }
 
   //......................................................................
@@ -82,7 +74,7 @@ namespace geo{
   /// \param local : 3D array. Position in the local frame  Returned.
   void OpDetGeo::WorldToLocalVect(const double* world, double* local) const
   {
-    fGeoMatrix->MasterToLocalVect(world,local);
+    fGeoMatrix.MasterToLocalVect(world,local);
   }
 
   //......................................................................
