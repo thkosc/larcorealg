@@ -8,11 +8,14 @@
 #ifndef LARCOREALG_GEOMETRY_OPDETGEO_H
 #define LARCOREALG_GEOMETRY_OPDETGEO_H
 
+#include "larcorealg/CoreUtils/DumpUtils.h" // lar::dump::array(), ...
+
 // ROOT libraries
 #include "TGeoMatrix.h" // TGeoHMatrix
 
 // C/C++ standard libraries
 #include <vector>
+#include <array>
 
 
 // forward declarations
@@ -44,11 +47,71 @@ namespace geo {
 
     const TGeoNode*     Node() const { return fOpDetNode; }
 
+    /**
+     * @brief Prints information about this optical detector.
+     * @tparam Stream type of output stream to use
+     * @param out stream to send the information to
+     * @param indent prepend each line with this string
+     * @param verbosity amount of information printed
+     * 
+     * Note that the first line out the output is _not_ indented.
+     * 
+     * Verbosity levels
+     * -----------------
+     * 
+     * * 0 _(default)_: only center
+     * * 1: also size
+     * * 2: also angle from z axis
+     * 
+     * The constant `MaxVerbosity` is set to the highest supported verbosity
+     * level.
+     */
+    template <typename Stream>
+    void PrintOpDetInfo
+      (Stream&& out, std::string indent = "", unsigned int verbosity = 0) const;
+    
+    /// Maximum verbosity supported by `PrintOpDetInfo()`.
+    static constexpr unsigned int MaxVerbosity = 2;
+    
   private:
     const TGeoNode* fOpDetNode;  ///< Pointer to theopdet node
     TGeoHMatrix     fGeoMatrix; ///< Transformation matrix to world frame
   };
 }
+
+
+//------------------------------------------------------------------------------
+//--- template implementation
+//---
+template <typename Stream>
+void geo::OpDetGeo::PrintOpDetInfo(
+  Stream&& out,
+  std::string indent /* = "" */,
+  unsigned int verbosity /* = 0 */
+) const {
+  
+  //----------------------------------------------------------------------------
+  std::array<double, 3U> center;
+  GetCenter(center.data());
+  out << "centered at " << lar::dump::array<3U>(center) << " cm";
+  
+  if (verbosity-- <= 0) return; // 0
+  
+  //----------------------------------------------------------------------------
+  out << ", radius: " << RMax() << " cm";
+  if (RMin() != 0.0) out << " (inner: " << RMin() << " cm)";
+  out << ", length: " << (2.0*HalfL()) << " cm";
+  
+  if (verbosity-- <= 0) return; // 1
+  
+  //----------------------------------------------------------------------------
+  out << ", theta(z): " << ThetaZ() << " rad";
+  
+//  if (verbosity-- <= 0) return; // 2
+  
+  //----------------------------------------------------------------------------
+  
+} // geo::OpDetGeo::PrintOpDetInfo()
 
 
 #endif // LARCOREALG_GEOMETRY_OPDETGEO_H

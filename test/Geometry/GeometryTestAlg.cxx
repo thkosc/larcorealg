@@ -510,9 +510,6 @@ namespace geo{
     (const geo::TPCGeo& tpc, std::string indent /* = "" */) const
   {
     const unsigned int nPlanes = tpc.Nplanes();
-    const double Origin[3] = { 0., 0., 0. };
-    double TPCpos[3];
-    tpc.LocalToWorld(Origin, TPCpos);
     
     tpc.PrintTPCInfo(
       mf::LogVerbatim("GeometryTest") << indent,
@@ -549,17 +546,14 @@ namespace geo{
   
   void GeometryTestAlg::printAllGeometry() const {
     const unsigned int nCryostats = geom->Ncryostats();
-    const double Origin[3] = { 0., 0., 0. };
     mf::LogVerbatim("GeometryTest") << "Detector " << geom->DetectorName()
       << " has " << nCryostats << " cryostats:";
     for(unsigned int c = 0; c < nCryostats; ++c) {
       const geo::CryostatGeo& cryostat = geom->Cryostat(c);
       const unsigned int nTPCs = cryostat.NTPC();
-      double CryoPos[3];
-      cryostat.LocalToWorld(Origin, CryoPos);
       mf::LogVerbatim("GeometryTest") << "  cryostat #" << c << " at "
-                                      << lar::dump::array<3>(CryoPos) << " cm has "
-                                      << nTPCs << " TPC(s):";
+        << lar::dump::vector3D(cryostat.GetCenter()) << " cm has "
+        << nTPCs << " TPC(s):";
       for(unsigned int t = 0;  t < nTPCs; ++t) {
         const geo::TPCGeo& tpc = cryostat.TPC(t);
         printWiresInTPC(tpc, "    ");

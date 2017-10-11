@@ -8,16 +8,19 @@
 #ifndef LARCOREALG_GEOMETRY_WIREGEO_H
 #define LARCOREALG_GEOMETRY_WIREGEO_H
 
-// C/C++ libraries
-#include <vector>
-#include <cmath> // std::sin(), ...
+// LArSoft
+#include "larcorealg/Geometry/LocalTransformation.h"
+#include "larcorealg/CoreUtils/DumpUtils.h" // lar::dump::vector3D()
 
 // CLHEP
 #include "CLHEP/Geometry/Transform3D.h"
-#include "larcorealg/Geometry/LocalTransformation.h"
 
 // ROOT
 #include "TVector3.h"
+
+// C/C++ libraries
+#include <vector>
+#include <cmath> // std::sin(), ...
 
 
 class TGeoNode;
@@ -149,6 +152,34 @@ namespace geo {
     /// Returns the wire direction as a norm-one vector
     TVector3 Direction() const;
     
+    /**
+     * @brief Prints information about this wire.
+     * @tparam Stream type of output stream to use
+     * @param out stream to send the information to
+     * @param indent prepend each line with this string
+     * @param verbosity amount of information printed
+     * 
+     * Note that the first line out the output is _not_ indented.
+     * 
+     * Verbosity levels
+     * -----------------
+     * 
+     * * 0: only start and end
+     * * 1 _(default)_: also length
+     * * 2: also angle with z axis
+     * * 3: also center
+     * * 4: also direction
+     * 
+     * The constant `MaxVerbosity` is set to the highest supported verbosity
+     * level.
+     */
+    template <typename Stream>
+    void PrintWireInfo
+      (Stream&& out, std::string indent = "", unsigned int verbosity = 1) const;
+    
+    /// Maximum verbosity supported by `PrintWireInfo()`.
+    static constexpr unsigned int MaxVerbosity = 4;
+    
     /// @}
     
     
@@ -210,5 +241,51 @@ namespace geo {
     
   };
 }
+
+
+//------------------------------------------------------------------------------
+//--- template implementation
+//---
+template <typename Stream>
+void geo::WireGeo::PrintWireInfo(
+  Stream&& out,
+  std::string indent /* = "" */,
+  unsigned int verbosity /* = 1 */
+) const {
+
+  //----------------------------------------------------------------------------
+  out << "wire from " << lar::dump::vector3D(GetStart())
+    << " to " << lar::dump::vector3D(GetEnd());
+  
+  if (verbosity-- <= 0) return; // 0
+  
+  //----------------------------------------------------------------------------
+  out << " (" << Length() << " cm long)";
+  
+  if (verbosity-- <= 0) return; // 1
+  
+  //----------------------------------------------------------------------------
+  out << ", theta(z)=" << ThetaZ() << " rad";
+  
+  if (verbosity-- <= 0) return; // 2
+  
+  //----------------------------------------------------------------------------
+  out << "\n" << indent
+    << "  center at " << lar::dump::vector3D(GetCenter()) << " cm";
+    
+  if (verbosity-- <= 0) return; // 3
+  
+  //----------------------------------------------------------------------------
+  out << ", direction: " << lar::dump::vector3D(Direction());
+  if (isHorizontal()) out << " (horizontal)";
+  if (isVertical()) out << " (vertical)";
+    
+//  if (verbosity-- <= 0) return; // 4
+  
+  //----------------------------------------------------------------------------
+} // geo::WireGeo::PrintWireInfo()
+
+
+//------------------------------------------------------------------------------
 
 #endif // LARCOREALG_GEOMETRY_WIREGEO_H

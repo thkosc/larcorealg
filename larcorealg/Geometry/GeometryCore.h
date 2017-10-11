@@ -53,6 +53,9 @@
 #include "larcorealg/Geometry/TPCGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/OpDetGeo.h"
+#include "larcorealg/Geometry/AuxDetGeo.h"
+#include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 #include "larcorealg/CoreUtils/RealComparisons.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
@@ -1704,6 +1707,7 @@ namespace geo {
     
     
     
+    // BEGIN Detector information
     /// @name Detector information
     /// @{
     
@@ -1842,7 +1846,13 @@ namespace geo {
     /// Returns the mass between two coordinates
     double MassBetweenPoints(double *p1, double *p2) const;
     
+    
+    /// Prints geometry information with maximum verbosity.
+    template <typename Stream>
+    void Print(Stream&& out, std::string indent = "  ") const;
+    
     /// @}
+    // END Detector information
     
     
     /**
@@ -5068,6 +5078,95 @@ inline bool geo::GeometryCore::IncrementID(readout::ROPID& id) const {
 //******************************************************************************
 //***  template implementation
 //***
+template <typename Stream>
+void geo::GeometryCore::Print
+  (Stream&& out, std::string indent /* = "  " */) const
+{
+  
+  out << "Detector " << DetectorName() << " has "
+    << Ncryostats() << " cryostats and "
+    << NAuxDets() << " auxiliary detectors:";
+  
+  for (geo::CryostatGeo const& cryostat: IterateCryostats()) {
+    out << "\n" << indent;
+    cryostat.PrintCryostatInfo
+      (std::forward<Stream>(out), indent + "  ", cryostat.MaxVerbosity);
+    
+    const unsigned int nTPCs = cryostat.NTPC();
+    for(unsigned int t = 0;  t < nTPCs; ++t) {
+      const geo::TPCGeo& tpc = cryostat.TPC(t);
+      
+      out << "\n" << indent << "  ";
+      tpc.PrintTPCInfo
+        (std::forward<Stream>(out), indent + "    ", tpc.MaxVerbosity);
+      
+      const unsigned int nPlanes = tpc.Nplanes();
+      for(unsigned int p = 0; p < nPlanes; ++p) {
+        const geo::PlaneGeo& plane = tpc.Plane(p);
+        const unsigned int nWires = plane.Nwires();
+        
+        out << "\n" << indent << "    ";
+        plane.PrintPlaneInfo
+          (std::forward<Stream>(out), indent + "      ", plane.MaxVerbosity);
+        
+        for(unsigned int w = 0;  w < nWires; ++w) {
+          const geo::WireGeo& wire = plane.Wire(w);
+          geo::WireID wireID(plane.ID(), w);
+          
+          // the wire should be aligned on z axis, half on each side of 0,
+          // in its local frame
+          out << "\n" << indent << "      " << wireID << " ";
+          wire.PrintWireInfo
+            (std::forward<Stream>(out), indent + "      ", wire.MaxVerbosity);
+        } // for wire
+      } // for plane
+    } // for TPC
+    
+    unsigned int nOpDets = cryostat.NOpDet();
+    for (unsigned int iOpDet = 0; iOpDet < nOpDets; ++iOpDet) {
+      geo::OpDetGeo const& opDet = cryostat.OpDet(iOpDet);
+      out << "\n" << indent << "  [OpDet #" << iOpDet << "] ";
+      opDet.PrintOpDetInfo
+        (std::forward<Stream>(out), indent + "  ", opDet.MaxVerbosity);
+    } // for
+  } // for cryostat
+  
+  unsigned int const nAuxDets = NAuxDets();
+  for (unsigned int iDet = 0; iDet < nAuxDets; ++iDet) {
+    geo::AuxDetGeo const& auxDet = AuxDet(iDet);
+    
+    out << "\n" << indent << "[#" << iDet << "] ";
+    auxDet.PrintAuxDetInfo
+      (std::forward<Stream>(out), indent + "  ", auxDet.MaxVerbosity);
+    
+    unsigned int const nSensitive = auxDet.NSensitiveVolume();
+    switch (nSensitive) {
+      case 0: break;
+      case 1: {
+        geo::AuxDetSensitiveGeo const& auxDetS = auxDet.SensitiveVolume(0U);
+        out << "\n" << indent << "  ";
+        auxDetS.PrintAuxDetInfo
+          (std::forward<Stream>(out), indent + "    ", auxDetS.MaxVerbosity);
+        break;
+      }
+      default:
+        for (unsigned int iSens = 0; iSens < nSensitive; ++iSens) {
+          out << "\n" << indent << "[#" << iSens << "] ";
+          geo::AuxDetSensitiveGeo const& auxDetS
+            = auxDet.SensitiveVolume(iSens);
+          auxDetS.PrintAuxDetInfo
+            (std::forward<Stream>(out), indent + "    ", auxDetS.MaxVerbosity);
+        } // for
+        break;
+    } // if sensitive detectors
+  
+  } // for auxiliary detector
+  
+  out << '\n';
+  
+} // geo::GeometryCore::Print()
+
+
 template <typename Point3D>
 bool geo::GeometryCore::isfinite(Point3D const& point) {
   return std::isfinite(point.X()) && std::isfinite(point.Y())

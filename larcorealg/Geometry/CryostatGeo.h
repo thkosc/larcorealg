@@ -12,7 +12,9 @@
 #include "larcorealg/Geometry/OpDetGeo.h"
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
+#include "larcorealg/CoreUtils/DumpUtils.h" // lar::dump::vector3D()
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h" // geo::Point_t
 
 // ROOT libraries
 #include "TVector3.h"
@@ -64,8 +66,45 @@ namespace geo {
     void Boundaries(double* boundaries) const;
     
     
+    /// Returns the geometrical center of the cryostat.
+    geo::Point_t GetCenter() const
+      { return { CenterX(), CenterY(), CenterZ() }; }
+    
+    /// Returns the bounding box of this cryostat.
+    geo::BoxBoundedGeo const& BoundingBox() const
+      { return *this; }
+    
     /// Returns the identifier of this cryostat
     geo::CryostatID const& ID() const { return fID; }
+    
+    
+    /**
+     * @brief Prints information about this cryostat.
+     * @tparam Stream type of output stream to use
+     * @param out stream to send the information to
+     * @param indent prepend each line with this string
+     * @param verbosity amount of information printed
+     * 
+     * Note that the first line out the output is _not_ indented.
+     * 
+     * Verbosity levels
+     * -----------------
+     * 
+     * * 0: only cryostat ID
+     * * 1 _(default)_: also center and size
+     * * 2: also number of TPCs, optical detectors, and maximum wires per plane
+     * *    and of planes for TPC
+     * * 3: also information on bounding box
+     * 
+     * The constant `MaxVerbosity` is set to the highest supported verbosity
+     * level.
+     */
+    template <typename Stream>
+    void PrintCryostatInfo
+      (Stream&& out, std::string indent = "", unsigned int verbosity = 1) const;
+    
+    /// Maximum verbosity supported by `PrintCryostatInfo()`.
+    static constexpr unsigned int MaxVerbosity = 3;
     
     /// @}
     
@@ -242,6 +281,59 @@ namespace geo {
     
   };
 }
+
+
+//------------------------------------------------------------------------------
+//--- template implementation
+//---
+template <typename Stream>
+void geo::CryostatGeo::PrintCryostatInfo(
+  Stream&& out,
+  std::string indent /* = "" */,
+  unsigned int verbosity /* = 1 */
+) const {
+  
+  //----------------------------------------------------------------------------
+  out << "Cryostat " << std::string(ID());
+  
+  if (verbosity-- <= 0) return; // 0
+  
+  //----------------------------------------------------------------------------
+  auto const& center = GetCenter();
+  
+  out
+    << " (" << Width() << " x " << Height() << " x " << Length() << ") cm^3 at "
+      << lar::dump::vector3D(center);
+  
+  if (verbosity-- <= 0) return; // 1
+  
+  //----------------------------------------------------------------------------
+  
+  out << "\n" << indent
+    << "hosts " << NTPC() << " TPCs (largest number of planes: " << MaxPlanes()
+      << ", of wires: " << MaxWires() << ") and "
+      << NOpDet() << " optical detectors"
+    ;
+  
+  if (verbosity-- <= 0) return; // 2
+  
+  //----------------------------------------------------------------------------
+  // print also the containing box
+  geo::BoxBoundedGeo const& box = BoundingBox();
+  out << "\n" << indent
+    << "bounding box: ( "
+      << box.MinX() << ", " << box.MinY() << ", " << box.MinZ()
+    << " ) -- ( "
+      << box.MaxX() << ", " << box.MaxY() << ", " << box.MaxZ()
+    << " )";
+  
+//  if (verbosity-- <= 0) return; // 3
+  
+  //----------------------------------------------------------------------------
+} // geo::CryostatGeo::PrintCryostatInfo()
+
+
+//------------------------------------------------------------------------------
 
 #endif // LARCOREALG_GEOMETRY_CRYOSTATGEO_H
 ////////////////////////////////////////////////////////////////////////
