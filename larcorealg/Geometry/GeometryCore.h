@@ -2980,8 +2980,6 @@ namespace geo {
      * @brief Returns the view (wire orientation) on the channels of specified TPC plane
      * @param plane TPC plane ID
      * @return the type of signal on the specified plane, or geo::kUnknown
-     * 
-     * @todo verify that kUnknown is returned on invalid plane
      */
     View_t View(geo::PlaneID const& pid) const;
     
@@ -3463,7 +3461,6 @@ namespace geo {
      * This method assumes all wires in the view have the same angle (it queries
      * for the first).
      *
-     * @todo Use a TPCID
      * @deprecated This does not feel APA-ready
      */
     double WireAngleToVertical(geo::View_t view, geo::TPCID const& tpcid) const;
@@ -4173,12 +4170,10 @@ namespace geo {
     unsigned int Nchannels(readout::ROPID const& ropid) const;
     
     /**
-     * @brief Returns a list of possible views in the detector
-     * @return a constant reference to the set of views
-     * 
-     * @todo Verify the implementation
+     * @brief Returns a list of possible views in the detector.
+     * @return the set of views
      */
-    std::set<View_t> const& Views() const;
+    std::set<geo::View_t> const& Views() const { return allViews; }
     
     
     //
@@ -4235,8 +4230,8 @@ namespace geo {
      * @param channel TPC channel ID
      * @return the type of signal on the specified channel, or geo::kUnknown
      * 
-     * @todo verify that kUnknown is returned on invalid channel
-     * @todo what does this mean for APAs? is it at least well defined?
+     * The view of the readout plane `channel` belongs to is returned, as in
+     * `View(readout::ROPID const&) const`.
      */
     View_t View(raw::ChannelID_t const channel) const;
     
@@ -4953,6 +4948,9 @@ namespace geo {
     double         fPositionWiggle; ///< accounting for rounding errors when testing positions
     std::shared_ptr<const geo::ChannelMapAlg> fChannelMapAlg;
                                     ///< Object containing the channel to wire mapping
+    
+    // cached values
+    std::set<geo::View_t> allViews; ///< All views in the detector.
     
   }; // class GeometryCore
   

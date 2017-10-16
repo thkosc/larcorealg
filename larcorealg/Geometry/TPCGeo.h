@@ -23,6 +23,9 @@
 #include "larcorealg/Geometry/LocalTransformation.h"
 #include "larcorealg/CoreUtils/DumpUtils.h" // lar::dump::vector3D()
 
+// C/C++ standard library
+#include <set>
+
 class TGeoNode;
 
 namespace geo {
@@ -190,6 +193,9 @@ namespace geo {
     
     /// @brief Returns the largest number of wires among the planes in this TPC
     unsigned int MaxWires() const;
+    
+    /// Returns a set of all views covered in this TPC.
+    std::set<geo::View_t> Views() const;
     
     /// @}
     

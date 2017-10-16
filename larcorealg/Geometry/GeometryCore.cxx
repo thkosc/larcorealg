@@ -171,6 +171,12 @@ namespace geo {
     for (size_t c = 0; c < Ncryostats(); ++c)
       Cryostats()[c].UpdateAfterSorting(geo::CryostatID(c));
     
+    allViews.clear();
+    for (geo::TPCGeo const& tpc: IterateTPCs()) {
+      auto const& TPCviews = tpc.Views();
+      allViews.insert(TPCviews.cbegin(), TPCviews.cend());
+    }
+    
   } // GeometryCore::UpdateAfterSorting()
   
   
@@ -495,21 +501,15 @@ namespace geo {
 
 
   //......................................................................
-  View_t GeometryCore::View(raw::ChannelID_t const channel) const
-  {
-    return fChannelMapAlg->View(channel);
-  }
+  View_t GeometryCore::View(raw::ChannelID_t const channel) const {
+    return (channel == raw::InvalidChannelID)
+      ? geo::kUnknown: View(ChannelToROP(channel));
+  } // GeometryCore::View()
 
   //......................................................................
   View_t GeometryCore::View(geo::PlaneID const& pid) const
   {
-    return Plane(pid.Plane).View();
-  }
-
-  //......................................................................
-  std::set<View_t> const& GeometryCore::Views() const
-  {
-    return fChannelMapAlg->Views();
+    return pid? Plane(pid).View(): geo::kUnknown;
   }
 
   //--------------------------------------------------------------------
@@ -729,8 +729,9 @@ namespace geo {
       geo::PlaneGeo const& plane = TPC.Plane(p);
       if (plane.View() == view) return plane.ThetaZ();
     } // for
-    throw cet::exception("GeometryCore") << "WireAngleToVertical(): no view #"
-      << ((int) view) << " in " << std::string(tpcid);
+    throw cet::exception("GeometryCore") << "WireAngleToVertical(): no view \""
+      << geo::PlaneGeo::ViewName(view) << "\" (#" << ((int) view)
+      << ") in " << std::string(tpcid);
   } // GeometryCore::WireAngleToVertical()
 
   //......................................................................

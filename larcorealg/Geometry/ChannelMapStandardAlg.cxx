@@ -310,26 +310,9 @@ namespace geo{
   //----------------------------------------------------------------------------
   View_t ChannelMapStandardAlg::View(raw::ChannelID_t const channel) const
   {
-
-    // still assume one cryostat for now -- faster
-    unsigned int nChanPerTPC = fNchannels/fNTPC[0];
-    // casting wil trunc towards 0 -- faster than floor
-    unsigned int tpc = channel / nChanPerTPC; 
-
-
-    View_t view = geo::kUnknown; 
-
-    if(      (channel >= fFirstChannelInThisPlane[0][tpc][0]) &&
-             (channel <  fFirstChannelInNextPlane[0][tpc][0])    ){ view = geo::kU; }
-    else if( (channel >= fFirstChannelInThisPlane[0][tpc][1]) &&
-             (channel <  fFirstChannelInNextPlane[0][tpc][1])    ){ view = geo::kV; }
-    else if( (channel >= fFirstChannelInThisPlane[0][tpc][2]) &&
-             (channel <  fFirstChannelInNextPlane[0][tpc][2])    ){ view = geo::kZ; }
-    else
-      mf::LogWarning("BadChannelSignalType") << "Channel " << channel
-                                             << " not given view type.";
-
-    return view;
+    throw cet::exception("ChannelMapStandardAlg")
+      << "ChannelMapStandardAlg::View() should not be called."
+      " Use geo::GeometryCore::View() instead.\n";
   }  
 
   //----------------------------------------------------------------------------

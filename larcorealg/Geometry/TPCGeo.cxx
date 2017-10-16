@@ -28,7 +28,9 @@
 #include <cmath>
 #include <cassert>
 #include <map>
-#include <algorithm> // std::max()
+#include <algorithm> // std::max(), std::copy()
+#include <iterator> // std::inserter()
+#include <functional> // std::mem_fn()
 
 
 namespace geo{
@@ -340,6 +342,15 @@ namespace geo{
     } // for
     return maxWires;
   } // TPCGeo::MaxWires()
+  
+  
+  //......................................................................
+  std::set<geo::View_t> TPCGeo::Views() const {
+    std::set<geo::View_t> views;
+    std::transform(fPlanes.cbegin(), fPlanes.cend(),
+      std::inserter(views, views.begin()), std::mem_fn(&geo::PlaneGeo::View));
+    return views;
+  } // TPCGeo::Views()
   
   
   //......................................................................
