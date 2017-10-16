@@ -92,10 +92,6 @@ namespace geo{
     virtual std::vector<WireID> ChannelToWire
       (raw::ChannelID_t channel) const = 0;
     
-    /// Returns the view associated to the specified channel
-    /// @return the view, or geo::kUnknown if unknown
-    virtual geo::View_t View(raw::ChannelID_t const channel) const = 0;
-    
     /**
      * @brief Return the signal type of the specified channel
      * @param channel ID of the channel
@@ -120,9 +116,6 @@ namespace geo{
      */
     virtual geo::SigType_t SignalType(readout::ROPID const& ropid) const
       { return SignalType(FirstChannelInROP(ropid)); }
-    
-    /// Returns a list of the views in the whole detector
-    virtual std::set<geo::View_t> const& Views() const = 0;
     
     /// Returns a list of the plane IDs in the whole detector
     virtual std::set<geo::PlaneID> const& PlaneIDs() const = 0;

@@ -45,7 +45,6 @@ namespace geo{
     fWiresPerPlane.resize(fNcryostat);
     fFirstChannelInNextPlane.resize(fNcryostat);
     fFirstChannelInThisPlane.resize(fNcryostat);
-    fViews.clear();
     fPlaneIDs.clear();
     fTopChannel = 0;
 
@@ -77,7 +76,6 @@ namespace geo{
         for(unsigned int PlaneCount = 0; PlaneCount != PlanesThisTPC; ++PlaneCount){
           geo::PlaneGeo const& plane = TPC.Plane(PlaneCount);
 
-          fViews.emplace(plane.View());
           fPlaneIDs.emplace(PlaneID(cs, TPCCount, PlaneCount));
           double ThisWirePitch = TPC.WirePitch(0, 1, PlaneCount);
           fWireCounts[cs][TPCCount][PlaneCount] = plane.Nwires();
@@ -306,20 +304,6 @@ namespace geo{
     return sigt;
   }
 
-
-  //----------------------------------------------------------------------------
-  View_t ChannelMapStandardAlg::View(raw::ChannelID_t const channel) const
-  {
-    throw cet::exception("ChannelMapStandardAlg")
-      << "ChannelMapStandardAlg::View() should not be called."
-      " Use geo::GeometryCore::View() instead.\n";
-  }  
-
-  //----------------------------------------------------------------------------
-  std::set<View_t> const& ChannelMapStandardAlg::Views() const
-  {
-    return fViews;
-  }
 
   //----------------------------------------------------------------------------
   std::set<PlaneID> const& ChannelMapStandardAlg::PlaneIDs() const
