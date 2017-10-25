@@ -114,7 +114,7 @@ namespace geo {
       gGeoManager->LockGeometry();
     }
 
-    std::vector<const TGeoNode*> path(8);
+    std::vector<const TGeoNode*> path(MaxWireDepthInGDML);
     path[0] = gGeoManager->GetTopNode();
     FindCryostat(path, 0);
     FindAuxDet(path, 0);

@@ -1466,6 +1466,10 @@ namespace geo {
     using AuxDetList_t = GeometryData_t::AuxDetList_t;
     
     
+    /// Wires must be found in GDML description within this number of nested
+    /// volumes.
+    static constexpr std::size_t MaxWireDepthInGDML = 20U;
+    
     /// Value of tolerance for equality comparisons
     static lar::util::RealComparisons<Coord_t> coordIs;
     
