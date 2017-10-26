@@ -56,25 +56,25 @@ namespace geo {
     /// @{
     /// @name TPC properties
     
-    /// Half width (associated with x coordinate) of active TPC volume [cm]
+    /// Half width (associated with x coordinate) of active TPC volume [cm].
     double            ActiveHalfWidth()                         const { return fActiveHalfWidth;        }
-    /// Width (associated with x coordinate) of active TPC volume [cm]
+    /// Width (associated with x coordinate) of active TPC volume [cm].
     double            ActiveWidth()                             const { return 2.0 * ActiveHalfWidth(); }
-    /// Half height (associated with y coordinate) of active TPC volume [cm]
+    /// Half height (associated with y coordinate) of active TPC volume [cm].
     double            ActiveHalfHeight()                        const { return fActiveHalfHeight;       }
-    /// Height (associated with y coordinate) of active TPC volume [cm]
+    /// Height (associated with y coordinate) of active TPC volume [cm].
     double            ActiveHeight()                            const { return 2.0 * ActiveHalfHeight(); }
-    /// Length (associated with z coordinate) of active TPC volume [cm]
+    /// Length (associated with z coordinate) of active TPC volume [cm].
     double            ActiveLength()                            const { return fActiveLength;           }
-    /// Width is associated with x coordinate [cm]
+    /// Width is associated with x coordinate [cm].
     double            HalfWidth()                               const { return fHalfWidth;              }
-    /// Width is associated with x coordinate [cm]
+    /// Width is associated with x coordinate [cm].
     double            Width()                                   const { return 2.0 * HalfWidth();       }
-    /// Height is associated with y coordinate [cm]
+    /// Height is associated with y coordinate [cm].
     double            HalfHeight()                              const { return fHalfHeight;             }
-    /// Height is associated with y coordinate [cm]
+    /// Height is associated with y coordinate [cm].
     double            Height()                                  const { return 2.0 * HalfHeight();      }
-    /// Length is associated with z coordinate [cm]
+    /// Length is associated with z coordinate [cm].
     double            Length()                                  const { return fLength;                 }
     double            ActiveMass()                              const { return fActiveVolume->Weight(); }
     const TGeoVolume* ActiveVolume()                            const { return fActiveVolume;           }
@@ -529,44 +529,44 @@ namespace geo {
   private:
     using LocalTransformation_t = geo::LocalTransformation<TGeoHMatrix>;
     
-    LocalTransformation_t              fTrans;          ///< TPC-to-world transformation
+    LocalTransformation_t              fTrans;          ///< TPC-to-world transformation.
     
-    std::vector<PlaneGeo>              fPlanes;         ///< List of planes in this plane
-    TGeoVolume*                        fActiveVolume;   ///< Active volume of LAr, called volTPCActive in GDML file 
-    TGeoVolume*                        fTotalVolume;    ///< Total volume of TPC, called volTPC in GDML file
-    DriftDirection_t                   fDriftDirection; ///< Direction of the electron drift in the TPC
-    std::vector<double>                fPlane0Pitch;    ///< Pitch between planes
-    std::vector< std::vector<double> > fPlaneLocation;  ///< xyz locations of planes in the TPC
-    TVector3                           fActiveCenter;   ///< center of the active volume, in world coordinates [cm]
+    std::vector<PlaneGeo>              fPlanes;         ///< List of planes in this plane.
+    TGeoVolume*                        fActiveVolume;   ///< Active volume of LAr, called volTPCActive in GDML file.
+    TGeoVolume*                        fTotalVolume;    ///< Total volume of TPC, called volTPC in GDML file.
+    DriftDirection_t                   fDriftDirection; ///< Direction of the electron drift in the TPC.
+    std::vector<double>                fPlane0Pitch;    ///< Pitch between planes.
+    std::vector< std::vector<double> > fPlaneLocation;  ///< xyz locations of planes in the TPC.
+    TVector3                           fActiveCenter;   ///< Center of the active volume, in world coordinates [cm].
 
-    double                             fActiveHalfWidth;  ///< half width of active volume
-    double                             fActiveHalfHeight; ///< half height of active volume
-    double                             fActiveLength;     ///< length of active volume
-    double                             fHalfWidth;        ///< half width of total volume
-    double                             fHalfHeight;       ///< half height of total volume
-    double                             fLength;           ///< length of total volume
+    double                             fActiveHalfWidth;  ///< Half width of active volume.
+    double                             fActiveHalfHeight; ///< Half height of active volume.
+    double                             fActiveLength;     ///< Length of active volume.
+    double                             fHalfWidth;        ///< Half width of total volume.
+    double                             fHalfHeight;       ///< Half height of total volume.
+    double                             fLength;           ///< Length of total volume.
 
-    TVector3 fWidthDir; ///< direction width refers to
-    TVector3 fHeightDir; ///< direction height refers to
-    TVector3 fLengthDir; ///< direction length refers to
-    TVector3 fDriftDir; ///< direction electrons drift along
+    TVector3 fWidthDir; ///< Direction width refers to.
+    TVector3 fHeightDir; ///< Direction height refers to.
+    TVector3 fLengthDir; ///< Direction length refers to.
+    TVector3 fDriftDir; ///< Direction electrons drift along.
     
-    geo::TPCID                         fID;             ///< ID of this TPC
+    geo::TPCID                         fID;             ///< ID of this TPC.
     
-    /// Index of the plane for each view (InvalidID if none)
+    /// Index of the plane for each view (InvalidID if none).
     std::vector<geo::PlaneID::PlaneID_t> fViewToPlaneNumber;
   
-    /// Recomputes the drift direction; needs planes to have been initialised
+    /// Recomputes the drift direction; needs planes to have been initialised.
     void ResetDriftDirection();
     
     /// Computes the distance between the cathode and the last wire plane
-    /// (last respect to the sorting order)
+    /// (last respect to the sorting order).
     double ComputeDriftDistance() const;
     
     /// Refills the plane vs. view cache of the TPC.
     void UpdatePlaneViewCache();
     
-    /// Recomputes the TPC boundary
+    /// Recomputes the TPC boundary.
     void InitTPCBoundaries();
     
     /// Sorts (in place) the specified `PlaneGeo` objects by drift distance.

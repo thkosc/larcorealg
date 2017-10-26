@@ -1683,7 +1683,7 @@ namespace geo {
      * @return the tolerance value
      * 
      * This parameter is used as tolerance ("wiggle") for methods that require
-     * it (e.g. CryostatGeo::FindTPCAtPosition()).
+     * it (e.g. `geo::CryostatGeo::FindTPCAtPosition()`).
      * Typically, it's a additional fraction of tolerance: 0 means no tolerance,
      * 0.1 means 10% tolerance.
      * 
