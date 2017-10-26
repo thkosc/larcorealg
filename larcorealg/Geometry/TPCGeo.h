@@ -66,6 +66,8 @@ namespace geo {
     double            ActiveHeight()                            const { return 2.0 * ActiveHalfHeight(); }
     /// Length (associated with z coordinate) of active TPC volume [cm].
     double            ActiveLength()                            const { return fActiveLength;           }
+    /// Length (associated with z coordinate) of active TPC volume [cm].
+    double            ActiveHalfLength()                        const { return fActiveLength / 2.0;     }
     /// Width is associated with x coordinate [cm].
     double            HalfWidth()                               const { return fHalfWidth;              }
     /// Width is associated with x coordinate [cm].
@@ -76,6 +78,8 @@ namespace geo {
     double            Height()                                  const { return 2.0 * HalfHeight();      }
     /// Length is associated with z coordinate [cm].
     double            Length()                                  const { return fLength;                 }
+    /// Length is associated with z coordinate [cm].
+    double            HalfLength()                              const { return fLength / 2.0;           }
     double            ActiveMass()                              const { return fActiveVolume->Weight(); }
     const TGeoVolume* ActiveVolume()                            const { return fActiveVolume;           }
     const TGeoVolume* TotalVolume()                             const { return fTotalVolume;            }
