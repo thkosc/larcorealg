@@ -105,7 +105,10 @@ namespace geo{
     fLength     = 2.0*((TGeoBBox*)fTotalVolume->GetShape())->GetDZ();
 
     // check that the rotation matrix to the world is the identity, if not
-    // we need to change the width, height and length values
+    // we need to change the width, height and length values;
+    // the correspondence of these to x, y and z are not guaranteed to be
+    // trivial, so we store the two independently (cartesian dimensions in the
+    // bounding boxes, the sizes in data members directly)
     double const* rotMatrix = fTrans.Matrix().GetRotationMatrix();
     if(rotMatrix[0] != 1){
       if(std::abs(rotMatrix[2]) == 1){
@@ -518,6 +521,14 @@ namespace geo{
       world[1] - HalfHeight(), world[1] + HalfHeight(),
       world[2] - 0.5*Length(), world[2] + 0.5*Length()
       );
+    
+    auto const& activeCenter = GetActiveVolumeCenter();
+    fActiveBox.SetBoundaries(
+      activeCenter.X() - ActiveHalfWidth(),  activeCenter.X() + ActiveHalfWidth(),
+      activeCenter.Y() - ActiveHalfHeight(), activeCenter.Y() + ActiveHalfHeight(),
+      activeCenter.Z() - ActiveHalfLength(), activeCenter.Z() + ActiveHalfLength()
+      );
+
     
   } // CryostatGeo::InitTPCBoundaries()
 

@@ -221,6 +221,10 @@ namespace geo {
     geo::BoxBoundedGeo const& BoundingBox() const
       { return *this; }
     
+    /// Returns the box of the active volume of this TPC.
+    geo::BoxBoundedGeo const& ActiveBoundingBox() const
+      { return fActiveBox; }
+    
     
     /// Returns the coordinates of the center of the specified plane [cm]
     const double*     PlaneLocation(unsigned int p)             const; 
@@ -499,7 +503,7 @@ namespace geo {
       (Stream&& out, std::string indent = "", unsigned int verbosity = 1) const;
     
     /// Maximum verbosity supported by `PrintTPCInfo()`.
-    static constexpr unsigned int MaxVerbosity = 5;
+    static constexpr unsigned int MaxVerbosity = 6;
     
     
     /**
@@ -554,6 +558,8 @@ namespace geo {
     TVector3 fHeightDir; ///< Direction height refers to.
     TVector3 fLengthDir; ///< Direction length refers to.
     TVector3 fDriftDir; ///< Direction electrons drift along.
+    
+    geo::BoxBoundedGeo                 fActiveBox;      ///< Box of the active volume.
     
     geo::TPCID                         fID;             ///< ID of this TPC.
     
@@ -644,6 +650,18 @@ void geo::TPCGeo::PrintTPCInfo(
     << " )";
   
 //  if (verbosity-- <= 0) return; // 5
+  
+  //----------------------------------------------------------------------------
+  // print also the active box
+  geo::BoxBoundedGeo const& activeBox = ActiveBoundingBox();
+  out << "\n" << indent
+    << "active volume box: ( "
+    << activeBox.MinX() << ", " << activeBox.MinY() << ", " << activeBox.MinZ()
+    << " ) -- ( "
+    << activeBox.MaxX() << ", " << activeBox.MaxY() << ", " << activeBox.MaxZ()
+    << " )";
+  
+//  if (verbosity-- <= 0) return; // 6
   
   //----------------------------------------------------------------------------
 } // geo::TPCGeo::PrintTPCInfo()
