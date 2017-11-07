@@ -29,7 +29,7 @@ void wait(std::chrono::milliseconds dur) {
 } // wait()
 
 
-int main(int argc, char** argv) {
+int main(int /* argc */, char** /* argv */) {
 
   std::chrono::milliseconds WaitFor { 250 };
 

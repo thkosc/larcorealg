@@ -84,12 +84,14 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  size_t AuxDetChannelMapAlg::ChannelToAuxDet(std::vector<geo::AuxDetGeo*> const& auxDets,
+  size_t AuxDetChannelMapAlg::ChannelToAuxDet(std::vector<geo::AuxDetGeo*> const& /* auxDets */,
                                               std::string                  const& detName,
                                               uint32_t                     const& /*channel*/) const
   {
     // loop over the map of AuxDet names to Geo object numbers to determine which auxdet 
-    // we have.  If no name in the map matches the provided string, throw an exception
+    // we have.  If no name in the map matches the provided string, throw an exception;
+    // the list of AuxDetGeo passed as argument is ignored!
+    // Note that fADGeoToName must have been updated by a derived class.
     for(auto itr : fADGeoToName)
       if( itr.second.compare(detName) == 0 ) return itr.first;
 

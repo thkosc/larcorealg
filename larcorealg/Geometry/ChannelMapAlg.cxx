@@ -42,7 +42,7 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMapAlg::OpChannel(unsigned int detNum, unsigned int channel) const
+  unsigned int ChannelMapAlg::OpChannel(unsigned int detNum, unsigned int /* channel */) const
   {
     return detNum;
   }
@@ -54,7 +54,7 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMapAlg::HardwareChannelFromOpChannel(unsigned int opChannel) const
+  unsigned int ChannelMapAlg::HardwareChannelFromOpChannel(unsigned int /* opChannel */) const
   {
     return 0;
   }
@@ -148,7 +148,7 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  size_t ChannelMapAlg::ChannelToAuxDet(std::vector<geo::AuxDetGeo*> const& auxDets,
+  size_t ChannelMapAlg::ChannelToAuxDet(std::vector<geo::AuxDetGeo*> const& /* auxDets */,
 					std::string                  const& detName,
 					uint32_t                     const& /*channel*/) const
   {

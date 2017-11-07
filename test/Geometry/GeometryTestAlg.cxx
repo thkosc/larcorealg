@@ -630,7 +630,7 @@ namespace geo{
   template <typename Stream>
   void GeometryTestAlg::printAuxDetSensitiveGeo(
     Stream&& out, geo::AuxDetSensitiveGeo const& auxDetSens,
-    std::string indent, std::string firstIndent
+    std::string /* indent */, std::string firstIndent
     ) const
   {
     

@@ -22,8 +22,7 @@ namespace geo{
 
   public:
 
-    AuxDetGeoObjectSorter();
-    ~AuxDetGeoObjectSorter();
+    virtual ~AuxDetGeoObjectSorter() = default;
 
     virtual void SortAuxDets        (std::vector<geo::AuxDetGeo*>          & adgeo)   const = 0;
     virtual void SortAuxDetSensitive(std::vector<geo::AuxDetSensitiveGeo*> & adsgeo)  const = 0;

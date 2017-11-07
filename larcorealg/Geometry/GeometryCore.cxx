@@ -699,7 +699,7 @@ namespace geo {
   // w1 < w2.  The wires are assumed to be on the same plane
   double GeometryCore::WirePitch(
     geo::PlaneID const& planeid,
-    unsigned int w1 /* = 0 */, unsigned int w2 /* = 1 */
+    unsigned int /* w1 */ /* = 0 */, unsigned int /* w2 */ /* = 1 */
     )
     const
   {

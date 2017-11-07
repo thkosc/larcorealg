@@ -217,12 +217,12 @@ namespace geo {
       virtual Data_t* atPoint(double w, double d) const = 0;
       
       /// Returns a description of the partition.
-      virtual std::string describe
+      std::string describe
         (std::string indent, std::string firstIndent) const
-        { return PartitionBase::describeArea(indent, firstIndent); }
+        { return doDescribe(indent, firstIndent); }
       
       /// Returns a description of the partition.
-      virtual std::string describe(std::string indent = "") const
+      std::string describe(std::string indent = "") const
         { return describe(indent, indent); }
       
       /**
@@ -254,6 +254,11 @@ namespace geo {
       
       /// Returns a list of all subpartitions.
       virtual Subpartitions_t const& parts() const { return NoSubparts; }
+      
+      /// Returns a description of the partition.
+      virtual std::string doDescribe
+        (std::string indent, std::string firstIndent) const
+        { return PartitionBase::describeArea(indent, firstIndent); }
       
       /// Applies `pred` to start partition first, and then to all
       /// subpartitions.
@@ -287,12 +292,12 @@ namespace geo {
       virtual Data_t* atPoint(double w, double d) const override
         { return Base_t::contains(w, d)? myData: nullptr; }
       
-      /// Returns a description of the partition.
-      virtual std::string describe
-        (std::string indent, std::string firstIndent) const override;
-      
         private:
       Data_t* myData; ///< The contained datum.
+      
+      /// Returns a description of the partition.
+      virtual std::string doDescribe
+        (std::string indent, std::string firstIndent) const override;
       
     }; // class PartitionWithData
 
@@ -328,10 +333,6 @@ namespace geo {
       /// Returns stored datum only if point is covered, `nullptr` otherwise.
       virtual Data_t* atPoint(double w, double d) const override;
       
-      /// Describes this and each of the subpartitions.
-      virtual std::string describe
-        (std::string indent, std::string firstIndent) const override;
-      
         protected:
       Subpartitions_t myParts; ///< List of subpartitions.
       
@@ -364,6 +365,10 @@ namespace geo {
       
       /// Returns the only partition which could contain the specified width.
       virtual Partition_t const* findPart(double w, double d) const = 0;
+      
+      /// Describes this and each of the subpartitions.
+      virtual std::string doDescribe
+        (std::string indent, std::string firstIndent) const override;
       
       /// Introduction to the description of the subpartitions.
       virtual std::string describeIntro() const;
@@ -545,10 +550,6 @@ namespace geo {
         unsigned int nDepthPartitions, Data_t* defData = nullptr
         );
       
-      /// Prints the information about the partition grid.
-      virtual std::string describe
-        (std::string indent, std::string firstIndent) const override;
-      
       
         private:
       std::vector<double> widthSeps; ///< Separators for width dimension.
@@ -573,6 +574,10 @@ namespace geo {
       /// Computes and returns width separation levels proper for `depthSeps`.
       std::vector<double> computeDepthSeps
         (unsigned int nD, unsigned int nW) const;
+      
+      /// Prints the information about the partition grid.
+      virtual std::string doDescribe
+        (std::string indent, std::string firstIndent) const override;
       
       template<
         PartitionBase::AreaRangeMember_t Range,
@@ -811,10 +816,10 @@ void geo::part::Partition<Data>::walk(Partition_t const* start, Pred&& pred) {
 //---  geo::part::PartitionWithData
 //---
 template <typename Data>
-std::string geo::part::PartitionWithData<Data>::describe
+std::string geo::part::PartitionWithData<Data>::doDescribe
   (std::string indent, std::string firstIndent) const
 {
-  std::string msg = Base_t::describe(indent, firstIndent);
+  std::string msg = Base_t::doDescribe(indent, firstIndent);
   if (data()) {
     std::ostringstream sstr; 
     sstr << ": ";
@@ -825,7 +830,7 @@ std::string geo::part::PartitionWithData<Data>::describe
     msg += " (no data)";
   }
   return msg;
-} // geo::part::PartitionWithData<Data>::describe()
+} // geo::part::PartitionWithData<Data>::doDescribe()
 
 
 //------------------------------------------------------------------------------
@@ -845,7 +850,7 @@ auto geo::part::PartitionContainer<Data>::atPoint(double w, double d) const
 
 //------------------------------------------------------------------------------
 template <typename Data>
-std::string geo::part::PartitionContainer<Data>::describe
+std::string geo::part::PartitionContainer<Data>::doDescribe
   (std::string indent, std::string firstIndent) const
 {
   std::string msg = firstIndent + describeIntro();
@@ -862,7 +867,7 @@ std::string geo::part::PartitionContainer<Data>::describe
   }
   
   return msg;
-} // geo::part::PartitionContainer<Data>::describe()
+} // geo::part::PartitionContainer<Data>::doDescribe()
 
 
 //------------------------------------------------------------------------------
@@ -956,7 +961,7 @@ geo::part::GridPartition<Data>::GridPartition(
 
 //------------------------------------------------------------------------------
 template <typename Data>
-std::string geo::part::GridPartition<Data>::describe
+std::string geo::part::GridPartition<Data>::doDescribe
   (std::string indent, std::string firstIndent) const
 {
   std::ostringstream sstr; 
@@ -974,7 +979,7 @@ std::string geo::part::GridPartition<Data>::describe
   } // for depth
   
   return sstr.str();
-} // geo::part::GridPartition<Data>::describe()
+} // geo::part::GridPartition<Data>::doDescribe()
 
 
 //------------------------------------------------------------------------------

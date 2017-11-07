@@ -3406,7 +3406,7 @@ namespace geo {
     
     //@{
     /**
-     * @brief Returns the distance between two wires
+     * @brief Returns the distance between two consecutive wires.
      * @param w1 index of the first wire (unused!)
      * @param w2 index of the second wire (unused!)
      * @param p plane number within the TPC
@@ -3415,12 +3415,16 @@ namespace geo {
      * @return the distance between the two wires
      * 
      * The wires must belong to the same plane. They are assumed parallel.
+     * If the wires are not consecutive, the result is undefined.
+     * 
+     * @note The current geometry assumptions imply that wire pitch is constant
+     *       between all wires on the same wire plane. This is an assumption
+     *       non-trivial to remove. This method also relies on that by reporting
+     *       the wire pitch between the first two wires rather than the two
+     *       specified ones.
      * 
      * @todo add a version with wire IDs
      * @todo deprecate this function
-     * @todo add a default version for a given PlaneID
-     * @todo add a version with two wire indices for a given PlaneID
-     * @todo return the absolute value of the distance (makes the order unimportant)
      * @todo document what will happen (in the future methods) with wires on different planes
      * 
      */

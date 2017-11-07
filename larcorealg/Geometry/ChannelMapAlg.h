@@ -408,6 +408,10 @@ namespace geo{
      * @param detName name of the auxiliary detector being investigated
      * @param number of the channel within that auxiliary detector
      * @return index of the sought auxiliary detector within auxDets
+     * 
+     * @bug This function is somehow broken in that it ignores the `auxDets`
+     *      in the arguments and instead relies on a cache that is never filled
+     *      by this class (derived classes can fill it though).
      */
     virtual size_t ChannelToAuxDet(std::vector<geo::AuxDetGeo*> const& auxDets,
                                    std::string                  const& detName,

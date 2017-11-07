@@ -175,7 +175,7 @@ namespace geo {
   }
 
   //......................................................................
-  const uint32_t AuxDetGeometryCore::PositionToAuxDetChannel(double const worldLoc[3],
+  uint32_t AuxDetGeometryCore::PositionToAuxDetChannel(double const worldLoc[3],
 							     size_t      &ad,
 							     size_t      &sv) const
   {    
@@ -183,7 +183,7 @@ namespace geo {
   }
 
   //......................................................................
-  const TVector3 AuxDetGeometryCore::AuxDetChannelToPosition(uint32_t    const& channel,
+  TVector3 AuxDetGeometryCore::AuxDetChannelToPosition(uint32_t    const& channel,
 							     std::string const& auxDetName) const
   {    
     return fChannelMapAlg->AuxDetChannelToPosition(channel, auxDetName, AuxDets());

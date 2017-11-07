@@ -63,6 +63,11 @@ namespace geo{
       { return PlaneWireToChannel(geo::WireID(cstat, tpc, plane, wire)); }
     //@}
     
+    // FIXME: temporary (?) workaroud not to have SignalType(readout::ROPID) hidden by the following;
+    // the correct solution is an interface change where the interface is not virtual any more,
+    // but relies on implementation methods which are virtual.
+    // This requires adapting all derived classes which override these methods (DUNE's?).
+    using ChannelMapAlg::SignalType;
     virtual SigType_t                SignalType( raw::ChannelID_t const channel ) const override;
     virtual std::set<PlaneID> const& PlaneIDs()                                   const override;
     
