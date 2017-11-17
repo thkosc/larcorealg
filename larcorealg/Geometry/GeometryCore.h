@@ -1954,7 +1954,7 @@ namespace geo {
      * @param cstat number of cryostat
      * @param cryoid cryostat ID
      * @return a constant reference to the specified cryostat
-     * @throws cet::exception ("GeometryCore" category) if not present
+     * @throw cet::exception (`GeometryCore` category) if cryostat not present
      * 
      * The GetElement() method is overloaded and its return depends on the type
      * of ID.
@@ -2250,19 +2250,20 @@ namespace geo {
     bool HasElement(geo::TPCID const& tpcid) const { return HasTPC(tpcid); }
     
     
-    ///@{
+    //@{
     /**
      * @brief Returns the specified TPC
      * @param tpcid ID of the tpc
      * @param tpc tpc number within the cryostat
      * @param cstat number of cryostat
      * @return a constant reference to the specified TPC
+     * @throw cet::exception (`GeometryCore` category) if cryostat not present
+     * @throw cet::exception (`TPCOutOfRange` category) if no such TPC
      * 
      * The GetElement() method is overloaded and its return depends on the type
      * of ID.
      * 
      * @todo remove the version with integers
-     * @todo what happens if it does not exist?
      */
     TPCGeo const& TPC
       (unsigned int const tpc   = 0, unsigned int const cstat = 0) const
@@ -2271,7 +2272,7 @@ namespace geo {
       { return Cryostat(tpcid).TPC(tpcid); }
     TPCGeo const& GetElement(geo::TPCID const& tpcid) const
       { return TPC(tpcid); }
-    ///@}
+    //@}
     
     //@{
     /**
@@ -2481,15 +2482,15 @@ namespace geo {
     
     //@{
     /**
-     * @brief Returns the half width of the specified TPC (x direction)
+     * @brief Returns the half width of the active volume of the specified TPC.
      * @param tpcid ID of the TPC
-     * @param tpc tpc number within the cryostat
+     * @param tpc TPC number within the cryostat
      * @param cstat number of cryostat
      * @return the value of the half width of the specified TPC
+     * @throw cet::exception (`GeometryCore` category) if cryostat not present
+     * @throw cet::exception (`TPCOutOfRange` category) if no such TPC
+     * @see geo::TPCGeo::ActiveHalfWidth()
      * 
-     * 
-     * @todo what happens if it does not exist?
-     * @todo add a version with TPCID
      * @todo deprecate this function
      * @todo rename the function
      */
@@ -2500,15 +2501,17 @@ namespace geo {
     
     //@{
     /**
-     * @brief Returns the half height of the specified TPC (y direction)
+     * @brief Returns the half height of the active volume of the specified TPC.
      * @param tpcid ID of the TPC
-     * @param tpc tpc number within the cryostat
+     * @param tpc TPC number within the cryostat
      * @param cstat number of cryostat
      * @return the value of the half height of the specified TPC
+     * @throw cet::exception (`GeometryCore` category) if cryostat not present
+     * @throw cet::exception (`TPCOutOfRange` category) if no such TPC
+     * @see geo::TPCGeo::ActiveHalfHeight()
      * 
+     * See `geo::TPCGeo::ActiveHalfHeight()` for more details.
      * 
-     * @todo what happens if it does not exist?
-     * @todo add a version with TPCID
      * @todo deprecate this function
      * @todo rename the function
      */
@@ -2519,15 +2522,17 @@ namespace geo {
     
     //@{
     /**
-     * @brief Returns the length of the specified TPC (z direction)
+     * @brief Returns the length of the active volume of the specified TPC.
      * @param tpcid ID of the TPC
-     * @param tpc tpc number within the cryostat
+     * @param tpc TPC number within the cryostat
      * @param cstat number of cryostat
      * @return the value of the length of the specified TPC
+     * @throw cet::exception (`GeometryCore` category) if cryostat not present
+     * @throw cet::exception (`TPCOutOfRange` category) if no such TPC
+     * @see geo::TPCGeo::ActiveLength()
      * 
+     * See `geo::TPCGeo::ActiveLength()` for more details.
      * 
-     * @todo what happens if it does not exist?
-     * @todo add a version with TPCID
      * @todo deprecate this function
      * @todo rename the function
      */
@@ -2690,12 +2695,14 @@ namespace geo {
      * @param tpc TPC number within the cryostat
      * @param cstat number of cryostat
      * @return a constant reference to the specified plane
+     * @throw cet::exception (`GeometryCore` category) if cryostat not present
+     * @throw cet::exception (`TPCOutOfRange` category) if no such TPC
+     * @throw cet::exception (`PlaneOutOfRange` category) if no such plane
      * 
      * The GetElement() method is overloaded and its return depends on the type
      * of ID.
      * 
      * @todo remove the version with integers
-     * @todo what happens if it does not exist?
      */
     PlaneGeo const& Plane
       (unsigned int const p, unsigned int const tpc   = 0, unsigned int const cstat = 0)
