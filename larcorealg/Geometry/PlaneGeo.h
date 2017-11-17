@@ -142,6 +142,7 @@ namespace geo {
     /// Returns the identifier of this plane
     geo::PlaneID const& ID() const { return fID; }
     
+    /// @}
     
     /// @{
     /// @name Plane size and coordinates
