@@ -107,7 +107,7 @@ namespace geo {
         public:
       
       //@{
-      /// Structures to distinguish the constructors
+      /// Structures to distinguish the constructors.
       struct BeginPos_t {};
       struct EndPos_t {};
       struct UndefinedPos_t {};
@@ -1949,6 +1949,7 @@ namespace geo {
       { return HasCryostat(cryoid); }
     //@}
     
+    //@{
     /**
      * @brief Returns the specified cryostat
      * @param cstat number of cryostat
@@ -2214,6 +2215,8 @@ namespace geo {
     /// Returns the total number of TPCs in the detector
     unsigned int TotalNTPC() const;
     
+    
+    //@{
     /**
      * @brief Returns the total number of TPCs in the specified cryostat
      * @param cryoid cryostat number
@@ -2687,7 +2690,7 @@ namespace geo {
       { return HasPlane(planeid); }
     //@}
     
-    ///@{
+    //@{
     /**
      * @brief Returns the specified wire
      * @param planeid ID of the plane
@@ -2712,7 +2715,7 @@ namespace geo {
       { return TPC(planeid).Plane(planeid); }
     PlaneGeo const& GetElement(geo::PlaneID const& planeid) const
       { return Plane(planeid); }
-    ///@}
+    //@}
     
     //@{
     /**
@@ -4334,6 +4337,7 @@ namespace geo {
     // group features
     //
     
+    //@{
     /**
      * @brief Returns the total number of TPC sets in the specified cryostat
      * @param cryoid cryostat ID
@@ -4533,6 +4537,7 @@ namespace geo {
     // group features
     //
     
+    //@{
     /**
      * @brief Returns the total number of ROP in the specified TPC set
      * @param tpcsetid TPC set ID
