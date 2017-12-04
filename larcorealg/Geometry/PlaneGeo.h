@@ -15,7 +15,7 @@
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
 #include "larcorealg/Geometry/Decomposer.h"
 #include "larcorealg/Geometry/WireGeo.h"
-#include "larcorealg/Geometry/geo_vectors_utils_TVector.h" // geo::vect
+#include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 
 // ROOT libraries
@@ -97,11 +97,11 @@ namespace geo {
     
     /// Type used for plane decompositions on wire base.
     using WireDecomposer_t = geo::Decomposer
-      <geo::vect::Vector_t, geo::vect::Point_t, WireCoordProjection_t>;
+      <geo::Vector_t, geo::Point_t, WireCoordProjection_t>;
     
     /// Type used for plane decompositions on plane frame (width/depth).
     using WidthDepthDecomposer_t = geo::Decomposer
-      <geo::vect::Vector_t, geo::vect::Point_t, WidthDepthProjection_t>;
+      <geo::Vector_t, geo::Point_t, WidthDepthProjection_t>;
     
     /// Type describing a 3D point or vector decomposed on a plane on wire base.
     using WireDecomposedVector_t = WireDecomposer_t::DecomposedVector_t;

@@ -14,6 +14,7 @@
 #include "larcorealg/CoreUtils/RealComparisons.h"
 #include "larcorealg/CoreUtils/SortByPointers.h" // util::makePointerVector()
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi()
+#include "larcorealg/Geometry/geo_vectors_utils_TVector.h" // geo::vect::dump
 
 // Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"

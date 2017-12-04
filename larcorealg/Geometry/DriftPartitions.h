@@ -112,10 +112,10 @@ namespace geo {
     
     
     /// Type representing a position in 3D space.
-    using Position_t = geo::vect::Point_t;
+    using Position_t = geo::Point_t;
     
     /// Type representing a direction in 3D space (norm is not constrained).
-    using Direction_t = geo::vect::Vector_t;
+    using Direction_t = geo::Vector_t;
     
     /// Type representing a position in the 2D space.
     using Projection_t

@@ -16,7 +16,7 @@
 #include "larcorealg/Geometry/OpDetGeo.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
-#include "larcorealg/Geometry/Decomposer.h" // geo::vect::Dot()
+#include "larcorealg/Geometry/Decomposer.h" // geo::vect::dot()
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect
 
 // Framework includes
