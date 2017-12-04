@@ -365,16 +365,7 @@ namespace geo{
   }
 
   //......................................................................
-  TVector3 TPCGeo::GetCenter() const {
-    
-    // convert the origin (default constructed TVector)
-    return LocalToWorld({});
-    
-  } // TPCGeo::GetCenter()
-  
-  
-  //......................................................................
-  TVector3 TPCGeo::GetCathodeCenter() const {
+  geo::Point_t TPCGeo::GetCathodeCenterImpl() const {
     
     //
     // 1. find the center of the face of the TPC opposite to the anode
@@ -384,10 +375,11 @@ namespace geo{
     //
     // find the cathode center
     //
-    TVector3 cathodeCenter = GetActiveVolumeCenter();
+    geo::Point_t cathodeCenter = GetActiveVolumeCenter<geo::Point_t>();
     switch (DetectDriftDirection()) {
       case -1:
-        cathodeCenter.SetX(cathodeCenter.X() + ActiveHalfWidth());
+        geo::vect::Xcoord(cathodeCenter) += ActiveHalfWidth();
+      //  cathodeCenter.SetX(cathodeCenter.X() + ActiveHalfWidth());
         break;
       case +1:
         cathodeCenter.SetX(cathodeCenter.X() - ActiveHalfWidth());
@@ -413,7 +405,14 @@ namespace geo{
     } // switch
     return cathodeCenter;
     
-  } // TPCGeo::GetCathodeCenter()
+  } // TPCGeo::GetCathodeCenterImpl()
+  
+  
+  //......................................................................
+  geo::Point_t TPCGeo::GetFrontFaceCenterImpl() const {
+    auto const& activeBox = ActiveBoundingBox();
+    return { activeBox.CenterX(), activeBox.CenterY(), activeBox.MinZ() };
+  } // TPCGeo::GetFrontFaceCenterImpl()
   
   
   //......................................................................
@@ -483,7 +482,7 @@ namespace geo{
         break;
     } // switch
     
-    geo::PlaneGeo::roundVector(fDriftDir, 1e-4);
+    geo::vect::round01(fDriftDir, 1e-4);
     
   } // TPCGeo::ResetDriftDirection()
   
@@ -568,7 +567,7 @@ namespace geo{
     // We use the first plane -- it does not make any difference.
     decltype(auto) TPCcenter = GetCenter();
     auto driftAxis
-      = geo::vect::Normalize(planes[0].GetBoxCenter() - TPCcenter);
+      = geo::vect::normalize(planes[0].GetBoxCenter() - TPCcenter);
     
     //
     // associate each plane with its distance from the center of TPC
@@ -579,7 +578,7 @@ namespace geo{
     planesWithDistance.reserve(planes.size());
     for (geo::PlaneGeo& plane: planes) {
       double const driftDistance
-        = geo::vect::Dot(plane.GetBoxCenter() - TPCcenter, driftAxis);
+        = geo::vect::dot(plane.GetBoxCenter() - TPCcenter, driftAxis);
       planesWithDistance.emplace_back(&plane, driftDistance);
     } // for
     

@@ -341,34 +341,6 @@ namespace geo{
 
   //......................................................................
 
-  TVector3 CryostatGeo::WorldToLocal( const TVector3& world ) const
-  {
-    double worldArray[4];
-    double localArray[4];
-    worldArray[0] = world.X();
-    worldArray[1] = world.Y();
-    worldArray[2] = world.Z();
-    worldArray[3] = 1.; 
-    fGeoMatrix.MasterToLocal(worldArray,localArray);
-    return TVector3(localArray);
-  }
-
-  //......................................................................
-
-  TVector3 CryostatGeo::LocalToWorld( const TVector3& local ) const
-  {
-    double worldArray[4];
-    double localArray[4];
-    localArray[0] = local.X();
-    localArray[1] = local.Y();
-    localArray[2] = local.Z();
-    localArray[3] = 1.;
-    fGeoMatrix.LocalToMaster(localArray,worldArray);
-    return TVector3(worldArray);
-  }
-
-  //......................................................................
-
   // Convert a vector from world frame to the local plane frame
   // \param world : 3-D array. Vector in world coordinates; input.
   // \param plane : 3-D array. Vector in plane coordinates; plane.
@@ -415,14 +387,10 @@ namespace geo{
     const double halfwidth  = HalfWidth();
     const double halfheight = HalfHeight();
     
-    std::array<double, 3> const pos = { halfwidth,  halfheight,  halflength};
-    std::array<double, 3> const neg = {-halfwidth, -halfheight, -halflength};
-    std::array<double, 3> posW, negW;
+    geo::Point_t const pos = { halfwidth,  halfheight,  halflength};
+    geo::Point_t const neg = {-halfwidth, -halfheight, -halflength};
     
-    LocalToWorld(neg.data(), negW.data());
-    LocalToWorld(pos.data(), posW.data());
-    
-    SetBoundaries(negW, posW);
+    SetBoundaries(LocalToWorld(neg), LocalToWorld(pos));
     
   } // CryostatGeo::InitCryoBoundaries()
   

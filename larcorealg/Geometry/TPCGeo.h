@@ -93,10 +93,12 @@ namespace geo {
     /// Returns the direction Length() is measured on
     TVector3 const&   LengthDir()                               const { return fLengthDir;              }
     
+    /// Returns an enumerator value describing the drift direction.
     DriftDirection_t  DriftDirection()                          const { return fDriftDirection;         }
     
     /// Returns the direction of the drift (vector pointing toward the planes)
-    TVector3 const&   DriftDir()                                const { return fDriftDir;               }
+    template <typename Vector = TVector3>
+    Vector DriftDir()                                           const;
     
     /// Drift distance is defined as the distance between the last anode plane
     /// and the opposite face of the TPC, in centimeters.
@@ -207,15 +209,24 @@ namespace geo {
     /// @name TPC geometry properties
     
     /// Returns the center of the TPC volume in world coordinates [cm]
-    TVector3 GetCenter() const;
+    template <typename Point = TVector3>
+    Point GetCenter() const;
     
     /// Returns the center of the TPC active volume in world coordinates [cm]
-    TVector3 const& GetActiveVolumeCenter() const { return fActiveCenter; }
+    template <typename Point = TVector3>
+    Point GetActiveVolumeCenter() const
+      { return geo::vect::convertTo<Point>(fActiveCenter); }
     
     /// Returns the center of the active volume face opposite to the wire planes
     /// [cm]
-    TVector3 GetCathodeCenter() const;
+    template <typename Point = TVector3>
+    Point GetCathodeCenter() const
+      { return geo::vect::convertTo<Point>(GetCathodeCenterImpl()); }
     
+    /// Returns the center of the active TPC volume side facing negative _z_.
+    template <typename Point = geo::Point_t>
+    Point GetFrontFaceCenter() const
+      { return geo::vect::convertTo<Point>(GetFrontFaceCenterImpl()); }
     
     /// Returns the bounding box of this TPC.
     geo::BoxBoundedGeo const& BoundingBox() const
@@ -265,6 +276,7 @@ namespace geo {
     
     /**
      * @brief Return the direction of reference plane width.
+     * @tparam Vector type of vector to return (current default: `TVector3`)
      * @see RefDepthDir(), DriftDir()
      * 
      * The precise definition of the vector is arbitrary, but it is defined
@@ -272,10 +284,12 @@ namespace geo {
      * a vector opposite to DriftDir() make a orthonormal base.
      * That base (width, depth, normal) is guaranteed to be positive defined.
      */
-    TVector3 const& RefWidthDir() const { return ReferencePlane().WidthDir(); }
+    template <typename Vector = TVector3>
+    Vector RefWidthDir() const { return ReferencePlane().WidthDir<Vector>(); }
     
     /**
      * @brief Return the direction of reference plane depth.
+     * @tparam Vector type of vector to return (current default: `TVector3`)
      * @see RefWidthDir(), DriftDir()
      * 
      * The precise definition of the vector is arbitrary, but it is defined
@@ -283,7 +297,8 @@ namespace geo {
      * a vector opposite to DriftDir() make a orthonormal base.
      * That base (width, depth, normal) is guaranteed to be positive defined.
      */
-    TVector3 const& RefDepthDir() const { return ReferencePlane().DepthDir(); }
+    template <typename Vector = TVector3>
+    Vector RefDepthDir() const { return ReferencePlane().DepthDir<Vector>(); }
     
     
     /**
@@ -582,6 +597,8 @@ namespace geo {
     /// Sorts (in place) the specified `PlaneGeo` objects by drift distance.
     void SortPlanes(std::vector<geo::PlaneGeo>&) const;
 
+    geo::Point_t GetFrontFaceCenterImpl() const;
+    geo::Point_t GetCathodeCenterImpl() const;
   
   };
 }
@@ -590,6 +607,23 @@ namespace geo {
 //------------------------------------------------------------------------------
 //--- template implementation
 //---
+//------------------------------------------------------------------------------
+template <typename Vector = TVector3>
+Vector geo::TPCGeo::DriftDir() const
+  { return geo::vect::convertTo<Vector>(fDriftDir); }
+
+
+//------------------------------------------------------------------------------
+template <typename Point = TVector3>
+Point geo::TPCGeo::GetCenter() const {
+  
+  // convert the origin (default constructed TVector)
+  return geo::vect::convertTo<Point>(LocalToWorld({}));
+  
+} // geo::TPCGeo::GetCenter()
+
+
+//------------------------------------------------------------------------------
 template <typename Stream>
 void geo::TPCGeo::PrintTPCInfo(
   Stream&& out,
@@ -632,7 +666,8 @@ void geo::TPCGeo::PrintTPCInfo(
   out << "\n" << indent
     << "active volume ("
       << ActiveWidth() << " x " << ActiveHeight() << " x " << ActiveLength()
-      << ") cm^3, main directions: width " << lar::dump::vector3D(WidthDir())
+      << ") cm^3, front face at " << lar::dump::vector3D(GetFrontFaceCenter())
+      << " cm; main directions: width " << lar::dump::vector3D(WidthDir())
       << " height " << lar::dump::vector3D(HeightDir())
       << " length " << lar::dump::vector3D(LengthDir())
     ;

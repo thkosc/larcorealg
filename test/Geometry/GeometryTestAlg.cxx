@@ -2425,26 +2425,26 @@ namespace geo{
      * This function returns the number of accumulated failures.
      */
     
-    using geo::vect::Dot;
+    using geo::vect::dot;
     
     unsigned int nErrors = 0;
     
     const unsigned int NPlanes = TPC.Nplanes();
     
-    bool const bDriftOnX = (TPC.DriftDir() == geo::vect::Xaxis())
-      || (TPC.DriftDir() == -geo::vect::Xaxis());
+    bool const bDriftOnX = (TPC.DriftDir<geo::Vector_t>() == geo::Xaxis())
+      || (TPC.DriftDir<geo::Vector_t>() == -geo::Xaxis());
     
     // collect information per plane:
     std::vector<double> WirePitch(NPlanes); // for convenience
     std::vector
-      <decltype(&(std::declval<geo::PlaneGeo>().GetIncreasingWireDirection()))>
+      <decltype(std::declval<geo::PlaneGeo>().GetIncreasingWireDirection())>
       WireCoordDirs(NPlanes);
     std::vector<geo::WireID> WireIDs; // ID of the closest wire
     WireIDs.reserve(NPlanes);
     std::vector<double> WireDistances(NPlanes); // distance from the closest wire
     for (unsigned int iPlane = 0; iPlane < NPlanes; ++iPlane) {
       const geo::PlaneGeo& plane = TPC.Plane(iPlane);
-      WireCoordDirs[iPlane] = &(plane.GetIncreasingWireDirection());
+      WireCoordDirs[iPlane] = plane.GetIncreasingWireDirection();
       WirePitch[iPlane] = plane.WirePitch();
       
       const double WireDistance = geom->WireCoordinate(point, plane.ID());
@@ -2531,7 +2531,7 @@ namespace geo{
         // strong vector definition enforced in the geometry to get the proper
         // "cosine" and corresponding sine
         const double d1 = WireDistances[iPlane1], d2 = WireDistances[iPlane2],
-          cosAlpha = Dot(*(WireCoordDirs[iPlane1]), *(WireCoordDirs[iPlane2]));
+          cosAlpha = dot(WireCoordDirs[iPlane1], WireCoordDirs[iPlane2]);
         const double expected_d = std::sqrt(
           (sqr(d1) + sqr(d2) - 2.0 * d1 * d2 * cosAlpha) / (1 - sqr(cosAlpha))
           );

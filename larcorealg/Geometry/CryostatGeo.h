@@ -12,6 +12,7 @@
 #include "larcorealg/Geometry/OpDetGeo.h"
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
+#include "larcorealg/Geometry/geo_vectors_utils.h" // geo::Xcoord()
 #include "larcorealg/CoreUtils/DumpUtils.h" // lar::dump::vector3D()
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h" // geo::Point_t
@@ -231,7 +232,8 @@ namespace geo {
     //@{
     /// Transform point from local plane frame to world frame
     void LocalToWorld(const double* tpc, double* world)         const;
-    TVector3 LocalToWorld( const TVector3& local )              const;
+    template <typename Point>
+    Point LocalToWorld( Point const& local )                    const;
     //@}
     
     /// Transform direction vector from local to world
@@ -240,7 +242,8 @@ namespace geo {
     //@{
     /// Transform point from world frame to local tpc frame
     void WorldToLocal(const double* world, double* tpc)         const;
-    TVector3 WorldToLocal( const TVector3& world )              const;
+    template <typename Point>
+    Point WorldToLocal( Point const& world )                    const;
     //@}
     
     // Transform direction vector from world to local
@@ -332,6 +335,28 @@ void geo::CryostatGeo::PrintCryostatInfo(
   //----------------------------------------------------------------------------
 } // geo::CryostatGeo::PrintCryostatInfo()
 
+
+//------------------------------------------------------------------------------
+template <typename Point>
+Point geo::CryostatGeo::WorldToLocal(Point const& world) const {
+  using namespace geo::vect;
+  std::array<double, 4U> const worldArray
+    { Xcoord(world), Ycoord(world), Zcoord(world), 1.0 };
+  std::array<double, 4U> localArray;
+  fGeoMatrix.MasterToLocal(worldArray.data(), localArray.data());
+  return { localArray[0], localArray[1], localArray[2] };
+} // geo::CryostatGeo::WorldToLocal()
+
+//------------------------------------------------------------------------------
+template <typename Point>
+Point geo::CryostatGeo::LocalToWorld(Point const& local) const {
+  using namespace geo::vect;
+  std::array<double, 4U> const localArray
+    { Xcoord(local), Ycoord(local), Zcoord(local), 1.0 };
+  std::array<double, 4U> worldArray;
+  fGeoMatrix.LocalToMaster(localArray.data(), worldArray.data());
+  return { worldArray[0], worldArray[1], worldArray[2] };
+} // geo::CryostatGeo::LocalToWorld()
 
 //------------------------------------------------------------------------------
 

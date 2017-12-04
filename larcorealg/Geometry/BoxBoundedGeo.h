@@ -1,20 +1,24 @@
 /**
- * @file   BoxBoundedGeo.h
+ * @file   larcorealg/Geometry/BoxBoundedGeo.h
  * @brief  Provides a base class aware of world box coordinates
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   April 9th, 2015
+ * @see    larcorealg/Geometry/BoxBoundedGeo.cpp
  */
 
-#ifndef GEO_BOXBOUNDEDGEO_H
-#define GEO_BOXBOUNDEDGEO_H
+#ifndef LARCOREALG_GEOMETRY_BOXBOUNDEDGEO_H
+#define LARCOREALG_GEOMETRY_BOXBOUNDEDGEO_H
 
-/// C/C++ standard library
+// LArSoft libraries
+#include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h" // geo::vect
+
+// ROOT library
+#include "TVector3.h"
+
+// C/C++ standard library
 #include <algorithm>
 #include <array>
 #include <vector>
-
-/// Root library
-#include "TVector3.h"
 
 
 namespace geo {
@@ -28,8 +32,8 @@ namespace geo {
    */
   class BoxBoundedGeo {
       public:
-    using Coord_t = double; ///< type of the coordinate
-    using Coords_t = std::array<Coord_t, 3>; ///< type of the coordinate triplet
+    using Coords_t = geo::Point_t; ///< Type of the coordinate triplet.
+    using Coord_t = Coords_t::Scalar; ///< Type of the coordinate.
     
     /**
      * @brief Default constructor: sets an empty volume
@@ -39,8 +43,7 @@ namespace geo {
      * some specific action before being aware of its boundaries.
      * In that case, SetBoundaries() will set the boundaries.
      */
-    BoxBoundedGeo()
-      { c_min.fill(0); c_max.fill(0); }
+    BoxBoundedGeo() = default;
     
     //@{
     /**
@@ -73,13 +76,13 @@ namespace geo {
     
     /// @name Dimension queries
     /// @{
-    /// Returns the world x coordinate of the start of the box
-    double MinX() const { return c_min[0]; }
+    /// Returns the world x coordinate of the start of the box.
+    double MinX() const { return c_min.X(); }
     
-    /// Returns the world x coordinate of the end of the box
-    double MaxX() const { return c_max[0]; }
+    /// Returns the world x coordinate of the end of the box.
+    double MaxX() const { return c_max.X(); }
     
-    /// Returns the world x coordinate of the center of the box
+    /// Returns the world x coordinate of the center of the box.
     double CenterX() const { return (MinX() + MaxX()) / 2.; }
     
     /// Returns the full size in the X dimension.
@@ -88,13 +91,13 @@ namespace geo {
     /// Returns the size from the center to the border on X dimension.
     double HalfSizeX() const { return SizeX() / 2.0; }
     
-    /// Returns the world y coordinate of the start of the box
-    double MinY() const { return c_min[1]; }
+    /// Returns the world y coordinate of the start of the box.
+    double MinY() const { return c_min.Y(); }
     
-    /// Returns the world y coordinate of the end of the box
-    double MaxY() const { return c_max[1]; }
+    /// Returns the world y coordinate of the end of the box.
+    double MaxY() const { return c_max.Y(); }
     
-    /// Returns the world y coordinate of the center of the box
+    /// Returns the world y coordinate of the center of the box.
     double CenterY() const { return (MinY() + MaxY()) / 2.; }
     
     /// Returns the full size in the Y dimension.
@@ -103,13 +106,13 @@ namespace geo {
     /// Returns the size from the center to the border on Y dimension.
     double HalfSizeY() const { return SizeY() / 2.0; }
     
-    /// Returns the world z coordinate of the start of the box
-    double MinZ() const { return c_min[2]; }
+    /// Returns the world z coordinate of the start of the box.
+    double MinZ() const { return c_min.Z(); }
     
-    /// Returns the world z coordinate of the end of the box
-    double MaxZ() const { return c_max[2]; }
+    /// Returns the world z coordinate of the end of the box.
+    double MaxZ() const { return c_max.Z(); }
     
-    /// Returns the world z coordinate of the center of the box
+    /// Returns the world z coordinate of the center of the box.
     double CenterZ() const { return (MinZ() + MaxZ()) / 2.; }
     
     /// Returns the full size in the Z dimension.
@@ -118,11 +121,15 @@ namespace geo {
     /// Returns the size from the center to the border on Z dimension.
     double HalfSizeZ() const { return SizeZ() / 2.0; }
     
-    /// Returns the center point of the box
-    Coords_t Center() const
+    /// Returns the corner point with the smallest coordinates.
+    geo::Point_t Min() const { return c_min; }
+    
+    /// Returns the corner point with the largest coordinates.
+    geo::Point_t Max() const { return c_max; }
+    
+    /// Returns the center point of the box.
+    geo::Point_t Center() const
       { return { CenterX(), CenterY(), CenterZ() }; }
-    
-    
     
     /// @}
     
@@ -322,8 +329,8 @@ namespace geo {
       Coord_t z_min, Coord_t z_max
       )
       {
-        c_min = { x_min, y_min, z_min };
-        c_max = { x_max, y_max, z_max };
+        c_min.SetXYZ(x_min, y_min, z_min);
+        c_max.SetXYZ(x_max, y_max, z_max);
       }
 
     /**
@@ -341,17 +348,17 @@ namespace geo {
      * @param z z coordinate of the point to include
      */
     void ExtendToInclude(Coord_t x, Coord_t y, Coord_t z)
-      {
-        set_min(c_min[0], x); set_min(c_min[1], y); set_min(c_min[2], z);
-        set_max(c_max[0], x); set_max(c_max[1], y); set_max(c_max[2], z);
-      } // ExtendToInclude()
+      { ExtendToInclude(geo::Point_t(x, y, z)); }
     
     /**
      * @brief Extends the current box to also include the specified point.
      * @param point coordinates of the point to include
      */
-    void ExtendToInclude(Coords_t point)
-      { ExtendToInclude(point[0], point[1], point[2]); }
+    void ExtendToInclude(geo::Point_t const& point)
+      { 
+        set_min(c_min, point);
+        set_max(c_max, point);
+      }
     
     /**
      * @brief Extends the current box to also include the specified one
@@ -361,34 +368,13 @@ namespace geo {
      */
     void ExtendToInclude(BoxBoundedGeo const& box)
       {
-        set_min(c_min[0], box.MinX());
-        set_min(c_min[1], box.MinY());
-        set_min(c_min[2], box.MinZ());
-        set_max(c_max[0], box.MaxX());
-        set_max(c_max[1], box.MaxY());
-        set_max(c_max[2], box.MaxZ());
+        set_min(c_min, box.Min());
+        set_max(c_max, box.Max());
       } // ExtendToInclude()
     
     /// @}
     
     
-    /// Sets var to value if value is smaller than the current var value
-    static void set_min(Coord_t& var, Coord_t value)
-      { if (value < var) var = value; }
-    
-    /// Sets var to value if value is larger than the current var value
-    static void set_max(Coord_t& var, Coord_t value)
-      { if (value > var) var = value; }
-    
-    
-      private:
-    // we don't allow the derived classes to mess with the boundaries
-    Coords_t c_min; ///< minimum coordinates (x, y, z)
-    Coords_t c_max; ///< maximum coordinates (x, y, z)
-    
-    
-    
-      public:
     //@{
     /**
      * @brief Calculates the entry and exit points of a trajectory on the box surface
@@ -400,10 +386,45 @@ namespace geo {
      * This member is public since it just gives an output and does not change any member.
      * The algorithm works only for a box shaped active volume with facing walls parallel to axis.
      * If the return std::vector is empty the trajectory does not intersect with the box.
-     * Normaly the return value should have one (if the trajectory originates in the box) or two (else) entries.
+     * Normally the return value should have one (if the trajectory originates in the box) or two (else) entries.
      * If the return value has two entries the first represents the entry point and the second the exit point
      */
-    std::vector<TVector3> GetIntersections(TVector3 const& TrajectoryStart, TVector3 const& TrajectoryDirect) const;
+    std::vector<TVector3> GetIntersections
+      (TVector3 const& TrajectoryStart, TVector3 const& TrajectoryDirect) const;
+    std::vector<geo::Point_t> GetIntersections
+      (geo::Point_t const& TrajectoryStart, geo::Vector_t const& TrajectoryDirect) const;
+    //@}
+    
+    
+    /// Sets var to value if value is smaller than the current var value.
+    static void set_min(Coord_t& var, Coord_t value)
+      { if (value < var) var = value; }
+    
+    /// Sets var to value if value is larger than the current var value.
+    static void set_max(Coord_t& var, Coord_t value)
+      { if (value > var) var = value; }
+    
+    /// Sets each coordinate of var to the one in value if the latter is smaller.
+    static void set_min(Coords_t& var, geo::Point_t const& value)
+      {
+        if (value.X() < var.X()) var.SetX(value.X());
+        if (value.Y() < var.Y()) var.SetY(value.Y());
+        if (value.Z() < var.Z()) var.SetZ(value.Z());
+      }
+    
+    /// Sets each coordinate of var to the one in value if the latter is larger.
+    static void set_max(Coords_t& var, geo::Point_t const& value)
+      {
+        if (value.X() > var.X()) var.SetX(value.X());
+        if (value.Y() > var.Y()) var.SetY(value.Y());
+        if (value.Z() > var.Z()) var.SetZ(value.Z());
+      }
+    
+    
+      private:
+    // we don't allow the derived classes to mess with the boundaries
+    Coords_t c_min; ///< minimum coordinates (x, y, z)
+    Coords_t c_max; ///< maximum coordinates (x, y, z)
     
   }; // class BoxBoundedGeo
   
@@ -411,4 +432,4 @@ namespace geo {
 
 
 
-#endif // GEO_BOXBOUNDEDGEO_H
+#endif // LARCOREALG_GEOMETRY_BOXBOUNDEDGEO_H

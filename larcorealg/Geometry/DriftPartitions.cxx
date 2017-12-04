@@ -131,8 +131,8 @@ auto geo::DriftPartitions::computeCoverage
       {
         geo::TPCGeo const* TPC = TPCpart.data();
         if (!TPC) return;
-        includePoint(TPC->GetCathodeCenter());
-        includePoint(TPC->LastPlane().GetCenter());
+        includePoint(TPC->GetCathodeCenter<Position_t>());
+        includePoint(TPC->LastPlane().GetCenter<Position_t>());
       }
     
       private:
@@ -214,7 +214,7 @@ groupTPCsByDriftDir(geo::CryostatGeo const& cryo)
     // if we did not find a group yet, make a new one
     if (iGroup == result.size()) {
       result.emplace_back(
-        geo::vect::Rounded01(driftDir, coordIs.threshold),
+        geo::vect::rounded01(driftDir, coordIs.threshold),
         std::vector<geo::TPCGeo const*>{ &TPC }
         );
     } // if
@@ -243,7 +243,7 @@ std::vector<TPCandPos_t> sortTPCsByDriftCoord(
    * The result preserves that coordinate for further processing (grouping).
    */
   auto const driftCoord = [&decomp](geo::TPCGeo const& TPC)
-    { return decomp.PointNormalComponent(TPC.FirstPlane().GetCenter()); };
+    { return decomp.PointNormalComponent(geo::vect::convertTo<geo::DriftPartitions::Position_t>(TPC.FirstPlane().GetCenter())); };
   
   std::vector<TPCandPos_t> result;
   result.reserve(TPCs.size());
@@ -323,7 +323,7 @@ unsigned int checkTPCcoords(std::vector<geo::TPCGeo const*> const& TPCs) {
   decltype(auto) refDriftDir = refTPC.DriftDir();
   
   auto driftCoord = [&refDriftDir](geo::TPCGeo const& TPC)
-    { return geo::vect::Dot(TPC.FirstPlane().GetCenter(), refDriftDir); };
+    { return geo::vect::dot(TPC.FirstPlane().GetCenter(), refDriftDir); };
   
   auto const refDriftPos = driftCoord(refTPC);
   
@@ -372,7 +372,7 @@ geo::DriftPartitions::DriftDir_t detectGlobalDriftDir(Range&& directions) {
   
   lar::util::RealComparisons<double> comp(1e-5);
   auto compatibleDir = [comp](auto const& a, auto const& b)
-    { return comp.equal(std::abs(geo::vect::Dot(a, b)), +1.0); };
+    { return comp.equal(std::abs(geo::vect::dot(a, b)), +1.0); };
   
   auto const dir = *(iDir++);
   for (; iDir != dend; ++iDir) {
@@ -1115,11 +1115,10 @@ geo::DriftPartitions geo::buildDriftVolumes(geo::CryostatGeo const& cryo) {
   // we still check that all drift directions are compatible,
   // but the result of detection is ignored.
   /* auto globalDriftDir = */ detectGlobalDriftDir(keys(TPCsByDriftDir));
-  geo::DriftPartitions::Position_t cryoCenter
-    { cryo.CenterX(), cryo.CenterY(), cryo.CenterZ() };
+  using Direction_t = geo::DriftPartitions::Direction_t;
   geo::TPCGeo const& firstTPC = cryo.TPC(0);
   geo::DriftPartitions::Decomposer_t decomposer
-    ({ cryoCenter, firstTPC.RefWidthDir(), firstTPC.RefDepthDir() });
+    ({ cryo.Center(), firstTPC.RefWidthDir<Direction_t>(), firstTPC.RefDepthDir<Direction_t>() });
   
   //
   // further group TPCs by plane position in drift direction

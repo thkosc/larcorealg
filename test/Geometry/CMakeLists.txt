@@ -1,5 +1,13 @@
 cet_enable_asserts()
 
+cet_test( geo_vectors_utils_test
+  LIBRARIES
+    ${ROOT_CORE}
+    ${ROOT_PHYSICS}
+    ${ROOT_GENVECTOR}
+  USE_BOOST_UNIT
+  )
+
 # test libraries
 cet_make_library( LIBRARY_NAME GeometryTestLib
                   SOURCE

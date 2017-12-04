@@ -101,7 +101,7 @@ int main(int argc, char const** argv) {
     //
     for (geo::TPCGeo const& TPC: geom.IterateTPCs(cryo.ID())) {
       
-      decltype(auto) center = TPC.GetCenter();
+      auto const& center = TPC.GetCenter<geo::Point_t>();
       
       auto where = partition.TPCat(center);
       if (!where) {

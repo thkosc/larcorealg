@@ -19,6 +19,7 @@
 
 // LArSoft libraries
 #include "larcorealg/Geometry/Decomposer.h"
+#include "larcorealg/Geometry/geo_vectors_utils_TVector.h"
 
 // ROOT libraries
 #include "TVector3.h"

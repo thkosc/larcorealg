@@ -1,8 +1,8 @@
 /**
- * @file   GeometryCore.h
+ * @file   larcorealg/Geometry/GeometryCore.h
  * @brief  Access the description of detector geometry
  * @author brebel@fnal.gov
- * @see    GeometryCore.cxx
+ * @see    larcorealg/Geometry/GeometryCore.cxx
  *
  * Structure of the header:
  *     

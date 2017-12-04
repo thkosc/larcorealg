@@ -115,8 +115,7 @@ namespace geo {
     using Position_t = geo::vect::Point_t;
     
     /// Type representing a direction in 3D space (norm is not constrained).
-    using Direction_t
-      = std::decay_t<decltype(std::declval<geo::TPCGeo>().DriftDir())>;
+    using Direction_t = geo::vect::Vector_t;
     
     /// Type representing a position in the 2D space.
     using Projection_t

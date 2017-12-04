@@ -9,10 +9,8 @@
 #ifndef LARCOREALG_GEOMETRY_DECOMPOSER_H
 #define LARCOREALG_GEOMETRY_DECOMPOSER_H
 
-
-// ROOT libraries
-#include "TVector3.h"
-#include "TVector2.h"
+// LArSoft libraries
+#include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect
 
 // C/C++ standard libraries
 #include <cmath> // std::abs()
@@ -21,109 +19,6 @@
 
 
 namespace geo {
-  
-  /**
-   * @brief Functions for common vector operations
-   * 
-   * The namespace contains template functions to be used with vectors in a
-   * generic way. 
-   * The default implementation is for TVector3. Specialisations can be easily
-   * written for other vector types.
-   * 
-   * In addition, two "standard" representations for vectors and points are
-   * provided.
-   * 
-   * @note The representations for vector and point objects are currently the
-   *       same; this prevents relying on overload resolution to decide which
-   *       function to use. For example, defining two functions with signature:
-   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   * Vector_t Project(Vector_t const& v);
-   * Point_t Project(Point_t const& v);
-   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   *       will not compile since these two are exactly the same.
-   *       A solution might be to derive two different classes from the common
-   *       one:
-   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   * struct Vector_t: public VectorBase_t { using VectorBase_t::VectorBase_t; };
-   * struct Point_t: public VectorBase_t { using VectorBase_t::VectorBase_t; };
-   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   *       This will likely have consequences though (for example, the sum of
-   *       two `Vector_t` or `Point_t` will become a `VectorBase_t`).
-   *       
-   */
-  namespace vect {
-    
-    using Vector_t = TVector3; ///< Type representing a 3D vector
-    using Point_t  = TVector3; ///< Type representing a 3D point
-    
-    /// Returns value, but rounds it to 0, -1 or +1 if value is closer than tol
-    template <typename T>
-    T RoundValue01(T value, T tol) {
-      if (std::abs(value) < tol) return 0.;
-      if (std::abs(std::abs(value) - 1.) < tol) return (value > 0.)? 1.: -1.;
-      return value;
-    } // RoundValue01()
-    
-    
-    /// Returns a vector with all components rounded if close to 0, -1 or +1.
-    template <typename Vector>
-    void Round01(Vector& v, double tol) {
-      v.SetX(RoundValue01(v.X(), tol)); 
-      v.SetY(RoundValue01(v.Y(), tol));
-      v.SetZ(RoundValue01(v.Z(), tol));
-    } // Round01()
-    
-    /// Returns a vector with all components rounded if close to 0, -1 or +1.
-    template <typename Vector>
-    auto Rounded01(Vector const& v, double tol)
-      { auto rounded = v; Round01(rounded, tol); return rounded; }
-    
-    
-    /// Returns a vector parallel to v and with norm 1
-    template <typename Vector>
-    Vector Normalize(Vector const& v) { return v.Unit(); }
-    
-    /// Return cross product of two vectors
-    template <typename Vector>
-    Vector Cross(Vector const& a, Vector const& b) { return a.Cross(b); }
-    
-    /// Return cross product of two vectors
-    template <typename Vector>
-    auto Dot(Vector const& a, Vector const& b) { return a.Dot(b); }
-    
-    /// Return norm of the specified vector
-    template <typename Vector>
-    auto Mag2(Vector const& v) { return v.Mag2(); }
-    
-    /// Return "mixed" product of three vectors:
-    /// @f$ \vec{a} \times \vec{b} \cdot \vec{c} @f$
-    template <typename Vector>
-    auto MixedProduct(Vector const& a, Vector const& b, Vector const& c)
-      { return Dot(Cross(a, b), c); }
-    
-    //--------------------------------------------------------------------------
-    // Specialisations for: TVector2
-    template <>
-    inline auto Mag2<TVector2>(TVector2 const& v) { return v.Mod2(); }
-    
-    //--------------------------------------------------------------------------
-    
-    /// Returns a x axis vector of the specified type.
-    template <typename Vector = Vector_t>
-    Vector Xaxis() { return { 1.0, 0.0, 0.0 }; }
-    
-    /// Returns a y axis vector of the specified type.
-    template <typename Vector = Vector_t>
-    Vector Yaxis() { return { 0.0, 1.0, 0.0 }; }
-    
-    /// Returns a z axis vector of the specified type.
-    template <typename Vector = Vector_t>
-    Vector Zaxis() { return { 0.0, 0.0, 1.0 }; }
-    
-    //--------------------------------------------------------------------------
-    
-  } // namespace vect
-  
   
   /** **************************************************************************
    * @brief A base for a plane in space
@@ -168,7 +63,7 @@ namespace geo {
     
     /// Normalizes and rounds a direction vector
     static Vector_t PastorizeUnitVector(Vector_t dir)
-      { return geo::vect::Rounded01(geo::vect::Normalize(dir), RoundingTol); }
+      { return geo::vect::rounded01(geo::vect::normalize(dir), RoundingTol); }
     
       private:
     Vector_t fMain;      ///< Main axis on the plane
@@ -244,7 +139,7 @@ namespace geo {
     using Projection_t = ProjVector; ///< Type for 2D projection
     
     /// Type for distance from plane
-    using Distance_t = decltype(vect::Mag2(std::declval<Projection_t>()));
+    using Distance_t = decltype(geo::vect::mag2(std::declval<Projection_t>()));
     
     
     Projection_t projection; ///< Projection of the vector on the plane
@@ -394,11 +289,11 @@ namespace geo {
     
     /// Returns the main component of a projection vector
     auto VectorMainComponent(Vector_t const& v) const
-      { return geo::vect::Dot(v, MainDir()); }
+      { return geo::vect::dot(v, MainDir()); }
     
     /// Returns the secondary component of a projection vector
     auto VectorSecondaryComponent(Vector_t const& v) const
-      { return geo::vect::Dot(v, SecondaryDir()); }
+      { return geo::vect::dot(v, SecondaryDir()); }
     
     /**
      * @brief Returns the projection of the specified vector on the plane
@@ -632,7 +527,7 @@ namespace geo {
     
     /// Returns the secondary component of a vector
     auto VectorNormalComponent(Vector_t const& v) const
-      { return geo::vect::Dot(v, NormalDir()); }
+      { return geo::vect::dot(v, NormalDir()); }
     
     /**
      * @brief Returns the projection of the specified vector on the plane

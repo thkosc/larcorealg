@@ -1,8 +1,8 @@
 /**
- * @file   GeometryCore.cxx
+ * @file   larcorealg/Geometry/GeometryCore.cxx
  * @brief  Access the description of detector geometry - implementation file
  * @author brebel@fnal.gov
- * @see    GeometryCore.h
+ * @see    larcorealg/Geometry/GeometryCore.h
  *
  */
 
@@ -17,6 +17,7 @@
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 #include "larcorealg/Geometry/Decomposer.h" // geo::vect::Dot()
+#include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect
 
 // Framework includes
 #include "cetlib/exception.h"
@@ -1372,11 +1373,11 @@ namespace geo {
     auto const dc = c2 - c1;
     
     // note: we are not checking that w1 and w2 are not parallel.
-    using geo::vect::Dot;
-    double const w1w2 = Dot(w1, w2); // this is cos(angle), angle between wires
+    using geo::vect::dot;
+    double const w1w2 = dot(w1, w2); // this is cos(angle), angle between wires
     double const cscAngle2 = 1.0 / (1.0 - sqr(w1w2)); // this is 1/sin^2(angle)
-    double const dcw1 = Dot(dc, w1);
-    double const dcw2 = Dot(dc, w2);
+    double const dcw1 = dot(dc, w1);
+    double const dcw2 = dot(dc, w2);
     double const t = (dcw1 - (dcw2 * w1w2)) * cscAngle2;
     double const u = (-dcw2 + (dcw1 * w1w2)) * cscAngle2;
     

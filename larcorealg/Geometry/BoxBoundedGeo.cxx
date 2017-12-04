@@ -7,48 +7,51 @@
 
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
 
+// LArSoft libraries
+#include "larcorealg/Geometry/geo_vectors_utils.h"
+
+
 namespace geo
 {
-  std::vector<TVector3> BoxBoundedGeo::GetIntersections(TVector3 const& TrajectoryStart, TVector3 const& TrajectoryDirect) const
-  {
-    std::vector<TVector3> IntersectionPoints;
+  //----------------------------------------------------------------------------
+  std::vector<geo::Point_t> BoxBoundedGeo::GetIntersections(
+    geo::Point_t const& TrajectoryStart,
+    geo::Vector_t const& TrajectoryDirect
+  ) const {
+  
+    std::vector<geo::Point_t> IntersectionPoints;
     std::vector<double> LineParameters;
     
     // Generate normal vectors and offsets for every plane of the box
-    static std::array<TVector3,6> NormalVectors;
-    static std::array<TVector3,6> NormalVectorOffsets;
-
-  
     // All normal vectors are headed outwards
-    NormalVectors.at(0) = TVector3(-1., 0., 0.); // Anode normal vector
-    NormalVectors.at(1) = TVector3(1., 0., 0.);  // Cathode
-    NormalVectors.at(2) = TVector3(0., -1., 0.); // Bottom
-    NormalVectors.at(3) = TVector3(0., 1., 0.);  // Top
-    NormalVectors.at(4) = TVector3(0., 0., -1.); // Upstram
-    NormalVectors.at(5) = TVector3(0., 0., 1.);  // Downstream
+    static std::array<geo::Vector_t, 6U> const NormalVectors = {
+      -geo::Xaxis<geo::Vector_t>(), geo::Xaxis<geo::Vector_t>(), // anode, cathode,
+      -geo::Yaxis<geo::Vector_t>(), geo::Yaxis<geo::Vector_t>(), // bottom, top, 
+      -geo::Zaxis<geo::Vector_t>(), geo::Zaxis<geo::Vector_t>()  // upstream, downstream
+    };
+    std::array<geo::Point_t, 6U> const NormalVectorOffsets = {
+      geo::Point_t{ Min().X(), Min().Y(), Min().Z() }, // Anode offset
+      geo::Point_t{ Max().X(), Min().Y(), Min().Z() }, // Cathode
+      geo::Point_t{ Min().X(), Min().Y(), Min().Z() }, // Bottom
+      geo::Point_t{ Min().X(), Max().Y(), Min().Z() }, // Top
+      geo::Point_t{ Min().X(), Min().Y(), Min().Z() }, // upstream
+      geo::Point_t{ Min().X(), Min().Y(), Max().Z() }  // downstream
+    };
     
-    // Fill offset vectors  
-    NormalVectorOffsets.at(0) = TVector3(c_min[0], c_min[1], c_min[2]); // Anode offset
-    NormalVectorOffsets.at(1) = TVector3(c_max[0], c_min[1], c_min[2]); // Cathode
-    NormalVectorOffsets.at(2) = TVector3(c_min[0], c_min[1], c_min[2]); // Bottom
-    NormalVectorOffsets.at(3) = TVector3(c_min[0], c_max[1], c_min[2]); // Top
-    NormalVectorOffsets.at(4) = TVector3(c_min[0], c_min[1], c_min[2]); // upstream
-    NormalVectorOffsets.at(5) = TVector3(c_min[0], c_min[1], c_max[2]); // downstream
-
     // Loop over all surfaces of the box 
     for(unsigned int face_no = 0; face_no < NormalVectors.size(); face_no++)
     {
       // Check if trajectory and surface are not parallel
-      if(NormalVectors.at(face_no).Dot(TrajectoryDirect))
+      if(NormalVectors[face_no].Dot(TrajectoryDirect))
       {
 	// Calculate the line parameter for the intersection points
-	LineParameters.push_back( NormalVectors.at(face_no).Dot(NormalVectorOffsets.at(face_no) - TrajectoryStart)
-				/ NormalVectors.at(face_no).Dot(TrajectoryDirect) );
+	LineParameters.push_back( NormalVectors[face_no].Dot(NormalVectorOffsets.at(face_no) - TrajectoryStart)
+				/ NormalVectors[face_no].Dot(TrajectoryDirect) );
       }
       else continue;
       
       // Calculate intersection point using the line parameter
-      IntersectionPoints.push_back( LineParameters.back()*TrajectoryDirect + TrajectoryStart );
+      IntersectionPoints.push_back( TrajectoryStart + LineParameters.back()*TrajectoryDirect );
       
       // Coordinate which should be ignored when checking for limits added by Christoph Rudolf von Rohr 05/21/2016
       unsigned int NoCheckCoord;
@@ -66,13 +69,18 @@ namespace geo
       }
       
       // Loop over all three space coordinates
-      for(unsigned int coord = 0; coord < 3; coord++)
+      unsigned int coord = 0;
+      for(auto extractCoord: geo::vect::coordReaders<geo::Point_t>())
       {
+        auto const lastPointCoord = geo::vect::bindCoord(IntersectionPoints.back(), extractCoord);
+        auto const minCoord = geo::vect::bindCoord(c_min, extractCoord);
+        auto const maxCoord = geo::vect::bindCoord(c_max, extractCoord);
+        
 	// Changed by Christoph Rudolf von Rohr 05/21/2016
 	// Then check if point is not within the surface limits at this coordinate, without looking
 	// at the plane normal vector coordinate. We can assume, that our algorithm already found this coordinate correctily.
 	// In rare cases, looking for boundaries in this coordinate causes unexpected behavior due to floating point inaccuracies.
-	if( coord != NoCheckCoord && (IntersectionPoints.back()[coord] > c_max[coord] || IntersectionPoints.back()[coord] < c_min[coord]) )
+	if( coord++ != NoCheckCoord && ((lastPointCoord() > maxCoord()) || (lastPointCoord() < minCoord)) )
 	{
 	  // if off limits, get rid of the useless data and break the coordinate loop
 	  LineParameters.pop_back();
@@ -89,5 +97,19 @@ namespace geo
     }
     
     return IntersectionPoints;
-  }
-} // GetIntersections()
+  } // GetIntersections()
+
+  //----------------------------------------------------------------------------
+  std::vector<TVector3> BoxBoundedGeo::GetIntersections
+    (TVector3 const& TrajectoryStart, TVector3 const& TrajectoryDirect) const
+  {
+    std::vector<TVector3> intersections;
+    for (auto const& point: GetIntersections(geo::Point_t(TrajectoryStart), geo::Vector_t(TrajectoryDirect)))
+      intersections.emplace_back(point.X(), point.Y(), point.Z());
+    return intersections;
+  } // GetIntersections(TVector3)
+
+  //----------------------------------------------------------------------------
+
+} // namespace geo
+ 
