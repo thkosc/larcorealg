@@ -2547,24 +2547,15 @@ namespace geo {
     
     //@{
     /**
-     * @brief Returns the centre of side of the detector facing the beam
+     * @brief Returns the center of side of the detector facing the beam.
      * @param tpcid ID of the TPC
      * @param tpc tpc number within the cryostat
      * @param cstat number of cryostat
-     * @return a vector of the position of centre of TPC face toward the beam
+     * @return the position of center of TPC face toward the beam
      * 
-     * As of April 2015, the origin of the co-ordinate system for ArgoNEUT and
-     * MicroBooNE is for z=0 and y=0 to be at the centre of the front face of
-     * the detector, but x=0 to be the edge of the TPC.
-     * This is convenient for read-out, but a pain for simulation.
-     * This method returns the centre of the front face of the TPC in the world
-     * co-ordinate system, making it easier to write detector-independent
-     * simulation code.
+     * Effectively, this is the center of the side of TPC active volume
+     * which faces the negative _z_ direction, the first that a beam following
      * 
-     * @bug Except that its implementation is not detector-independent at all,
-     * not to mention that it's taking x not in the middle but at one fourth
-     * of the TPC.
-     * @todo Replace with a TPCID
      */
     TVector3 GetTPCFrontFaceCenter(geo::TPCID const& tpcid) const;
     TVector3 GetTPCFrontFaceCenter

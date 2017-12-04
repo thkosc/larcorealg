@@ -812,9 +812,7 @@ namespace geo {
 
   //......................................................................
   TVector3 GeometryCore::GetTPCFrontFaceCenter(geo::TPCID const& tpcid) const
-  {
-    return TVector3( 0.5 * DetHalfWidth(tpcid), 0 , 0 );
-  }
+    { return TPC(tpcid).GetFrontFaceCenter<TVector3>(); }
 
   //......................................................................
   const std::string GeometryCore::VolumeName(TVector3 point)
