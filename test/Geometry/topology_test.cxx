@@ -1,5 +1,5 @@
 /**
- * @file   topology_test.cc
+ * @file   topology_test.cxx
  * @brief  Test for neighbourhood discovery in simple geometries.
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   July 12, 2017
