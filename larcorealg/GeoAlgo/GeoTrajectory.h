@@ -1,5 +1,5 @@
 /**
- * \file GeoObjects.h
+ * \file GeoTrajectory.h
  *
  * \ingroup GeoAlgo
  * 
