@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  WireGeo.h
+/// \file  larcorealg/Geometry/WireGeo.h
 /// \brief Encapsulate the geometry of a wire
 ///
 /// \author  brebel@fnal.gov

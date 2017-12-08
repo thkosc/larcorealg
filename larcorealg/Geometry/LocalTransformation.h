@@ -1,5 +1,5 @@
 /**
- * @file   LocalTransformation.h
+ * @file   larcorealg/Geometry/LocalTransformation.h
  * @brief  Class containing local-to-world transformations
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   November 30, 2016
