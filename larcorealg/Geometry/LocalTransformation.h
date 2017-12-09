@@ -11,11 +11,12 @@
 
 
 // ROOT libraries
-#include "TVector3.h"
-
+// (none)
 
 // C/C++ standard libraries
 #include <vector>
+#include <utility> // std::move()
+#include <type_traits> // std::enable_if_t<>
 #include <cstdlib> // std::size_t
 
 
@@ -27,11 +28,16 @@ namespace geo {
   
   /**
    * @brief Class to transform between world and local coordinates
+   * @tparam StoredMatrix type of transformation matrix internally stored
    * 
    * This class provides two directions of transformations (world to local and
    * the other way around), for points and for vectors.
    * The vector version of the transformation does not apply translation.
    * 
+   * @note In the class method examples, the following definition is assumed:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * using LocalTransformation_t = geo::LocalTransformation<TGeoHMatrix>;
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */
   template <typename StoredMatrix>
   class LocalTransformation {
@@ -40,6 +46,7 @@ namespace geo {
     /// Type of transformation matrix
     using TransformationMatrix_t = StoredMatrix;
     
+    //@{
     /**
      * @brief Constructor: uses the specified transformation matrix
      * @param matrix the transformation matrix to be used
@@ -48,6 +55,9 @@ namespace geo {
      */
     LocalTransformation(TransformationMatrix_t const& matrix)
       : fGeoMatrix(matrix) {}
+    LocalTransformation(TransformationMatrix_t&& matrix)
+      : fGeoMatrix(std::move(matrix)) {}
+    //@}
     
     /**
      * @brief Constructor: uses the specified transformation matrix
@@ -66,7 +76,7 @@ namespace geo {
      * 
      * The full transformation is applied. Fox example:
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * geo::LocalTransformation trans( ... ); // with proper initialisation
+     * LocalTransformation_t trans( ... ); // with proper initialisation
      * 
      * std::array<double, 3U> origin, center;
      * origin.fill(0.);
@@ -79,24 +89,35 @@ namespace geo {
       { fGeoMatrix.LocalToMaster(local, world); }
     
     
+    // @{
     /**
      * @brief Transforms a point from local frame to world frame
+     * @tparam SrcPoint type of the input (local) vector
+     * @tparam DestPoint type of the output (world) vector (default: as `Point`)
      * @param local local coordinates [cm]
      * @return corresponding world coordinates [cm]
      * 
      * The full transformation is applied. Fox example:
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * geo::LocalTransformation trans( ... ); // with proper initialisation
+     * LocalTransformation_t trans( ... ); // with proper initialisation
      * 
      * auto center = trans.LocalToWorld(TVector3());
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * `center` will be a TVector3 containing the world coordinates of the
+     * `center` will be a `TVector3` containing the world coordinates of the
      * center of the volume, which is usually represented by the origin in the
      * local coordinates (a TVector3 is by default constructed to point to the
      * origin).
      */
-    TVector3 LocalToWorld(TVector3 const& local) const;
-    
+    template <
+      typename DestPoint, typename SrcPoint,
+      typename = std::enable_if_t<!std::is_same<SrcPoint, DestPoint>::value>
+      >
+    DestPoint LocalToWorld(SrcPoint const& local) const
+      { return LocalToWorldImpl<DestPoint>(local); }
+    template <typename Point>
+    Point LocalToWorld(Point const& local) const
+      { return LocalToWorldImpl<Point>(local); }
+    // @}
     
     /**
      * @brief Transforms a vector from local frame to world frame
@@ -109,16 +130,27 @@ namespace geo {
     void LocalToWorldVect(double const* local, double* world) const
       { fGeoMatrix.LocalToMasterVect(local, world); }
     
-    
+    //@{
     /**
      * @brief Transforms a vector from local frame to world frame
+     * @tparam SrcVector type of the input (local) vector
+     * @tparam DestVector type of output (world) vector (default: as `Vector`)
      * @param local local coordinates [cm]
      * @return corresponding world coordinates [cm]
      * 
      * The translation is not applied, since the argument is supposed to be a
      * vector, relative difference between two points.
      */
-    TVector3 LocalToWorldVect(TVector3 const& local) const;
+    template <
+      typename DestVector, typename SrcVector,
+      typename = std::enable_if_t<!std::is_same<SrcVector, DestVector>::value>
+      >
+    DestVector LocalToWorldVect(SrcVector const& local) const
+      { return LocalToWorldVectImpl<DestVector>(local); }
+    template <typename Vector>
+    Vector LocalToWorldVect(Vector const& local) const
+      { return LocalToWorldVectImpl<Vector>(local); }
+    //@}
     
     
     /**
@@ -128,7 +160,7 @@ namespace geo {
      * 
      * The full transformation is applied. Fox example:
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * geo::LocalTransformation trans( ... ); // with proper initialisation
+     * LocalTransformation_t trans( ... ); // with proper initialisation
      * 
      * std::array<double, 3U> world{ 4.0, 5.0, -2.5 }, local;
      * trans.WorldToLocal(world.data(), local.data());
@@ -138,21 +170,33 @@ namespace geo {
     void WorldToLocal(double const* world, double* local) const
       { fGeoMatrix.MasterToLocal(world, local); }
     
+    //@{
     /**
      * @brief Transforms a point from world frame to local frame
+     * @tparam SrcPoint type of the input (local) vector
+     * @tparam DestPoint type of the output (world) vector (default: as `Point`)
      * @param world world coordinates [cm]
      * @return corresponding local coordinates [cm]
      * 
      * The full transformation is applied. Fox example:
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * geo::LocalTransformation trans( ... ); // with proper initialisation
+     * LocalTransformation_t trans( ... ); // with proper initialisation
      * 
      * auto local = trans.WorldToLocal(TVector3(4.0, 5.0, -2.5));
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * `local` will be a TVector3 containing the local coordinates of the
+     * `local` will be a `TVector3` containing the local coordinates of the
      * specified point.
      */
-    TVector3 WorldToLocal(TVector3 const& world) const;
+    template <
+      typename DestPoint, typename SrcPoint,
+      typename = std::enable_if_t<!std::is_same<SrcPoint, DestPoint>::value>
+      >
+    DestPoint WorldToLocal(SrcPoint const& world) const
+      { return WorldToLocalImpl<DestPoint>(world); }
+    template <typename Point>
+    Point WorldToLocal(Point const& world) const
+      { return WorldToLocalImpl<Point>(world); }
+    //@}
     
     /**
      * @brief Transforms a vector from world frame to local frame
@@ -165,15 +209,27 @@ namespace geo {
     void WorldToLocalVect(const double* world, double* local) const
       { fGeoMatrix.MasterToLocalVect(world, local); }
     
+    //@{
     /**
      * @brief Transforms a vector from world frame to local frame
+     * @tparam SrcVector type of the input (local) vector
+     * @tparam DestVector type of output (world) vector (default: as `Vector`)
      * @param world coordinates [cm]
      * @return corresponding world coordinates [cm]
      * 
      * The translation is not applied, since the argument is supposed to be a
      * vector, relative difference between two points.
      */
-    TVector3 WorldToLocalVect(TVector3 const& world) const;
+    template <
+      typename DestVector, typename SrcVector,
+      typename = std::enable_if_t<!std::is_same<SrcVector, DestVector>::value>
+      >
+    DestVector WorldToLocalVect(SrcVector const& world) const
+      { return WorldToLocalVectImpl<DestVector>(world); }
+    template <typename Vector>
+    Vector WorldToLocalVect(Vector const& world) const
+      { return WorldToLocalVectImpl<Vector>(world); }
+    //@}
     
     
     /// Direct access to the transformation matrix
@@ -189,6 +245,18 @@ namespace geo {
     
     TransformationMatrix_t fGeoMatrix; ///< local to world transform
     
+    
+    template <typename DestPoint, typename SrcPoint>
+    DestPoint LocalToWorldImpl(SrcPoint const& local) const;
+    
+    template <typename DestVector, typename SrcVector>
+    DestVector LocalToWorldVectImpl(SrcVector const& local) const;
+    
+    template <typename DestPoint, typename SrcPoint>
+    DestPoint WorldToLocalImpl(SrcPoint const& world) const;
+    
+    template <typename DestVector, typename SrcVector>
+    DestVector WorldToLocalVectImpl(SrcVector const& world) const;
     
   }; // class LocalTransformation<>
   
