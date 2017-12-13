@@ -815,10 +815,10 @@ namespace geo {
     { return TPC(tpcid).GetFrontFaceCenter<TVector3>(); }
 
   //......................................................................
-  const std::string GeometryCore::VolumeName(TVector3 point)
+  std::string GeometryCore::VolumeName(geo::Point_t const& point) const
   {
     // check that the given point is in the World volume at least
-    TGeoVolume *volWorld = gGeoManager->FindVolumeFast(this->GetWorldVolumeName().c_str());
+    TGeoVolume const*volWorld = gGeoManager->FindVolumeFast(this->GetWorldVolumeName().c_str());
     double halflength = ((TGeoBBox*)volWorld->GetShape())->GetDZ();
     double halfheight = ((TGeoBBox*)volWorld->GetShape())->GetDY();
     double halfwidth  = ((TGeoBBox*)volWorld->GetShape())->GetDX();
@@ -837,15 +837,14 @@ namespace geo {
       return unknown;
     }
     
-    const std::string name(gGeoManager->FindNode(point.x(), point.y(), point.z())->GetName());
-    return name;
+    return gGeoManager->FindNode(point.X(), point.Y(), point.Z())->GetName();
   }
 
   //......................................................................
-  const std::string GeometryCore::MaterialName(TVector3 point)
+  std::string GeometryCore::MaterialName(geo::Point_t const& point) const
   {
     // check that the given point is in the World volume at least
-    TGeoVolume *volWorld = gGeoManager->FindVolumeFast(this->GetWorldVolumeName().c_str());
+    TGeoVolume const*volWorld = gGeoManager->FindVolumeFast(this->GetWorldVolumeName().c_str());
     double halflength = ((TGeoBBox*)volWorld->GetShape())->GetDZ();
     double halfheight = ((TGeoBBox*)volWorld->GetShape())->GetDY();
     double halfwidth  = ((TGeoBBox*)volWorld->GetShape())->GetDX();
@@ -864,10 +863,8 @@ namespace geo {
       return unknown;
     }
     
-    const std::string name(gGeoManager->FindNode(point.x(), 
-                                                 point.y(), 
-                                                 point.z())->GetMedium()->GetMaterial()->GetName());
-    return name;
+    return gGeoManager->FindNode(point.X(), point.Y(), point.Z())
+      ->GetMedium()->GetMaterial()->GetName();
   }
 
   //......................................................................

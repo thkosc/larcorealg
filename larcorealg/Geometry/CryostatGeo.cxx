@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file CryostatGeo.cxx
+/// \file larcorealg/Geometry/CryostatGeo.cxx
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,6 @@
 #include "TClass.h"
 
 // C++ standard libraries
-#include <array>
 #include <limits> // std::numeric_limits<>
 #include <algorithm> // std::sort()
 
@@ -65,28 +64,18 @@ namespace geo{
 
   //......................................................................
   CryostatGeo::CryostatGeo(std::vector<const TGeoNode*>& path, int depth)
-    : fVolume(0)
+    : fTrans(path, depth)
+    , fVolume(nullptr)
   {
     
     // all planes are going to be contained in the volume named volCryostat
     // now get the total volume of the Cryostat
-    TGeoVolume *vc = path[depth]->GetVolume();
-    if(vc){
-      fVolume = vc;
-      if(!vc)
-	throw cet::exception("CryostatGeo") << "cannot find cryostat outline volume\n";
-      
-    }// end if found volume
-
+    fVolume = path[depth]->GetVolume();
+    if(!fVolume)
+      throw cet::exception("CryostatGeo") << "cannot find cryostat outline volume\n";
+    
     LOG_DEBUG("Geometry") << "cryostat  volume is " << fVolume->GetName();
 
-    // build a matrix to take us from the local to the world coordinates
-    // in one step
-    fGeoMatrix = *path[0]->GetMatrix();
-    for(int i = 1; i <= depth; ++i){
-      fGeoMatrix.Multiply(path[i]->GetMatrix());
-    }
-  
     // set the bounding box
     InitCryoBoundaries();
     
@@ -294,19 +283,19 @@ namespace geo{
   //......................................................................
   double CryostatGeo::HalfWidth()  const 
   {
-    return ((TGeoBBox*)fVolume->GetShape())->GetDX();
+    return static_cast<TGeoBBox const*>(fVolume->GetShape())->GetDX();
   }
 
   //......................................................................
   double CryostatGeo::HalfHeight() const 
   {
-    return ((TGeoBBox*)fVolume->GetShape())->GetDY();
+    return static_cast<TGeoBBox const*>(fVolume->GetShape())->GetDY();
   }
 
   //......................................................................
-  double CryostatGeo::Length() const
+  double CryostatGeo::HalfLength() const
   { 
-    return 2.0*((TGeoBBox*)fVolume->GetShape())->GetDZ();
+    return static_cast<TGeoBBox const*>(fVolume->GetShape())->GetDZ();
   }
 
   //......................................................................
@@ -320,37 +309,6 @@ namespace geo{
   } // CryostatGeo::CryostatBoundaries(double*)
   
   
-  //......................................................................
-  void CryostatGeo::LocalToWorld(const double* tpc, double* world) const
-  {
-    fGeoMatrix.LocalToMaster(tpc, world);
-  }
-
-  //......................................................................
-  void CryostatGeo::LocalToWorldVect(const double* tpc, double* world) const
-  {
-    fGeoMatrix.LocalToMasterVect(tpc, world);
-  }
-
-  //......................................................................
-
-  void CryostatGeo::WorldToLocal(const double* world, double* tpc) const
-  {
-    fGeoMatrix.MasterToLocal(world, tpc);
-  }
-
-  //......................................................................
-
-  // Convert a vector from world frame to the local plane frame
-  // \param world : 3-D array. Vector in world coordinates; input.
-  // \param plane : 3-D array. Vector in plane coordinates; plane.
-  void CryostatGeo::WorldToLocalVect(const double* world, double* plane) const
-  {
-    fGeoMatrix.MasterToLocalVect(world,plane);
-  }
-
-
-
   //......................................................................
   // Find the nearest opdet to point in this cryostat
 
@@ -383,14 +341,14 @@ namespace geo{
     }
     
     // get the half width, height, etc of the cryostat
-    const double halflength = Length() / 2.0;
+    const double halflength = HalfLength();
     const double halfwidth  = HalfWidth();
     const double halfheight = HalfHeight();
     
-    geo::Point_t const pos = { halfwidth,  halfheight,  halflength};
-    geo::Point_t const neg = {-halfwidth, -halfheight, -halflength};
-    
-    SetBoundaries(LocalToWorld(neg), LocalToWorld(pos));
+    SetBoundaries(
+      toWorldCoords(LocalPoint_t{ -halfwidth, -halfheight, -halflength }),
+      toWorldCoords(LocalPoint_t{ +halfwidth, +halfheight, +halflength })
+      );
     
   } // CryostatGeo::InitCryoBoundaries()
   
@@ -398,5 +356,5 @@ namespace geo{
 
   
 
-}
+} // namespace geo
 ////////////////////////////////////////////////////////////////////////

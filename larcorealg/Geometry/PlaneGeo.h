@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  PlaneGeo.h
+/// \file  larcorealg/Geometry/PlaneGeo.h
 /// \brief Encapsulate the construction of a single detector plane
 ///
 /// \author  brebel@fnal.gov
@@ -11,7 +11,7 @@
 #include "larcorealg/CoreUtils/DereferenceIterator.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "larcorealg/Geometry/SimpleGeo.h"
-#include "larcorealg/Geometry/LocalTransformation.h" // geo::LocalTransformationFromPath
+#include "larcorealg/Geometry/LocalTransformationGeo.h"
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
 #include "larcorealg/Geometry/Decomposer.h"
 #include "larcorealg/Geometry/WireGeo.h"
@@ -23,14 +23,16 @@
 #include "Math/GenVector/PositionVector2D.h"
 #include "Math/GenVector/DisplacementVector2D.h"
 
+// ROOT libraries
+#include "TGeoMatrix.h" // TGeoHMatrix
 
 // C/C++ standard libraries
 #include <cmath> // std::atan2()
 #include <vector>
 #include <string>
 
+
 class TGeoNode;
-class TGeoHMatrix;
 class TVector3;
 
 namespace geo {
@@ -72,19 +74,65 @@ namespace geo {
   //       Use `geo::GeometryCore::SignalType` instead.
   //       (see LArSoft issue #14365 at https://cdcvs.fnal.gov/redmine/issues/14365 )
   class PlaneGeo {
+    
+    using DefaultVector_t = TVector3; // ... not for long
+    using DefaultPoint_t = TVector3; // ... not for long
+    
   public:
     
     using GeoNodePath_t = std::vector<TGeoNode const*>;
     
+    /// @{
+    /**
+     * @name Types for geometry-local reference vectors.
+     * 
+     * These types represents points and displacement vectors in the reference
+     * frame defined in the plane geometry box from the GDML geometry
+     * description.
+     * 
+     * No alias is explicitly defined for the LArSoft global vector types,
+     * `geo::Point_t` and `geo::Vector_t`.
+     * 
+     * Remember the `LocalPoint_t` and `LocalVector_t` vectors from different
+     * instances of `geo::PlaneGeo` have the same type but are not compatible.
+     */
+    
+    /// Tag for vectors in the "local" GDML coordinate frame of the plane.
+    struct PlaneGeoCoordinatesTag {};
+    
+    /// Type of points in the local GDML wire plane frame.
+    using LocalPoint_t = geo::Point3DBase_t<PlaneGeoCoordinatesTag>;
+    
+    /// Type of displacement vectors in the local GDML wire plane frame.
+    using LocalVector_t = geo::Vector3DBase_t<PlaneGeoCoordinatesTag>;
+    
+    ///@}
+    
+    /// @{
+    /// @name Types for vectors in the wire coordinate frame.
+    
     /// Tag for wire base vectors.
     struct WireCoordinateReferenceTag {};
-    
-    /// Tag for plane frame base vectors.
-    struct WidthDepthReferenceTag {};
     
     /// Type for projections in the wire base representation.
     using WireCoordProjection_t = ROOT::Math::DisplacementVector2D
       <ROOT::Math::Cartesian2D<double>, WireCoordinateReferenceTag>;
+    
+    /// Type used for plane decompositions on wire base.
+    using WireDecomposer_t = geo::Decomposer
+      <geo::Vector_t, geo::Point_t, WireCoordProjection_t>;
+    
+    /// Type describing a 3D point or vector decomposed on a plane on wire base.
+    using WireDecomposedVector_t = WireDecomposer_t::DecomposedVector_t;
+    
+    /// @}
+    
+    
+    /// @{
+    /// @name Types for vectors in the width/depth coordinate frame.
+    
+    /// Tag for plane frame base vectors.
+    struct WidthDepthReferenceTag {};
     
     /// Type for projections in the plane frame base representation.
     /// @fixme the following should be a PositionVector2D
@@ -95,20 +143,16 @@ namespace geo {
     using WidthDepthDisplacement_t = ROOT::Math::DisplacementVector2D
       <ROOT::Math::Cartesian2D<double>, WidthDepthReferenceTag>;
     
-    /// Type used for plane decompositions on wire base.
-    using WireDecomposer_t = geo::Decomposer
-      <geo::Vector_t, geo::Point_t, WireCoordProjection_t>;
-    
     /// Type used for plane decompositions on plane frame (width/depth).
     using WidthDepthDecomposer_t = geo::Decomposer
       <geo::Vector_t, geo::Point_t, WidthDepthProjection_t>;
     
-    /// Type describing a 3D point or vector decomposed on a plane on wire base.
-    using WireDecomposedVector_t = WireDecomposer_t::DecomposedVector_t;
-    
     /// Type describing a 3D point or vector decomposed on a plane
     /// with plane frame base (width and depth).
     using WDDecomposedVector_t = WidthDepthDecomposer_t::DecomposedVector_t;
+    
+    /// @}
+    
     
     /// Type for description of rectangles.
     using Rect = lar::util::simple_geo::Rectangle<double>;
@@ -158,7 +202,7 @@ namespace geo {
      * GetNormalDirection() make a orthonormal base.
      * That base (width, depth, normal) is guaranteed to be positive defined.
      */
-    template <typename Vector = TVector3>
+    template <typename Vector = DefaultVector_t>
     Vector WidthDir() const { return geo::vect::convertTo<Vector>(fDecompFrame.MainDir()); }
     //@}
     
@@ -171,7 +215,7 @@ namespace geo {
      * GetNormalDirection() make a orthonormal base.
      * That base (width, depth, normal) is guaranteed to be positive defined.
      */
-    template <typename Vector = TVector3>
+    template <typename Vector = DefaultVector_t>
     Vector DepthDir() const { return geo::vect::convertTo<Vector>(fDecompFrame.SecondaryDir()); }
     
     /**
@@ -349,7 +393,7 @@ namespace geo {
      *       in the opposite direction depending on the original geometry
      *       description.
      */
-    template <typename Vector = TVector3>
+    template <typename Vector = DefaultVector_t>
     Vector GetNormalDirection() const { return geo::vect::convertTo<Vector>(fNormal); }
 
     /**
@@ -360,7 +404,7 @@ namespace geo {
      * The versor is orthogonal to the wires (assumed parallel),
      * lies on the plane and its direction goes toward increasing wire IDs.
      */
-    template <typename Vector = TVector3>
+    template <typename Vector = DefaultVector_t>
     Vector GetIncreasingWireDirection() const
       { return geo::vect::convertTo<Vector>(fDecompWire.SecondaryDir()); }
     
@@ -378,12 +422,13 @@ namespace geo {
      * geometry does not place the wires, which define the drift distance, in
      * the plane in the middle of the box.
      */
-    template <typename Point = TVector3>
+    template <typename Point = DefaultPoint_t>
     Point GetCenter() const
       { return geo::vect::convertTo<Point>(fCenter); }
     
     /**
      * @brief Returns the centre of the box representing the plane.
+     * @tparam Point type of point to be returned (current default: `TVector3`)
      * @return the centre of the box, in world coordinates [cm]
      * @see GetCenter()
      * 
@@ -392,7 +437,9 @@ namespace geo {
      * This is rarely of any use, as most of the times `GetCenter()` delivers
      * the proper information, e.g. for simulation and reconstruction.
      */
-    TVector3 GetBoxCenter() const;
+    template <typename Point = DefaultPoint_t>
+    Point GetBoxCenter() const
+      { return geo::vect::convertTo<Point>(toWorldCoords(LocalPoint_t{ 0.0, 0.0, 0.0 })); }
     
     /**
      * @brief Returns the direction of the wires.
@@ -401,10 +448,11 @@ namespace geo {
      * 
      * All wires in the plane are assumed parallel.
      */
-    template <typename Vector = TVector3>
+    template <typename Vector = DefaultVector_t>
     Vector GetWireDirection() const { return geo::vect::convertTo<Vector>(fDecompWire.MainDir()); }
     
     
+    //@{
     /**
      * @brief Returns the ID of wire closest to the specified position.
      * @param pos world coordinates of the point [cm]
@@ -426,7 +474,10 @@ namespace geo {
      * from any of these extrapolated wires, the method will not report error.
      * 
      */
-    geo::WireID NearestWireID(TVector3 const& pos) const;
+    geo::WireID NearestWireID(geo::Point_t const& pos) const;
+    geo::WireID NearestWireID(TVector3 const& pos) const
+      { return NearestWireID(geo::vect::toPoint(pos)); }
+    //@}
     
     
     //@{
@@ -452,6 +503,7 @@ namespace geo {
     //@}
     
     
+    //@{
     /**
      * @brief Shifts the position of an electron drifted by a distance.
      * @param position _(modified)_ the position of the electron
@@ -466,10 +518,13 @@ namespace geo {
      * an electron, a positive drift normally moves its position toward the wire
      * plane.
      */
+    void DriftPoint(geo::Point_t& position, double distance) const
+      { position -= distance * GetNormalDirection<geo::Vector_t>(); }
     void DriftPoint(TVector3& position, double distance) const
       { position -= distance * GetNormalDirection(); }
+    //@}
     
-    
+    //@{
     /**
      * @brief Shifts the position along drift direction to fall on the plane.
      * @param position _(modified)_ the position to be shifted
@@ -479,8 +534,11 @@ namespace geo {
      * returned by `GetNormalDirection()`), no matter where the position is
      * relative to the plane.
      */
+    void DriftPoint(geo::Point_t& position) const
+      { DriftPoint(position, DistanceFromPlane(position)); }
     void DriftPoint(TVector3& position) const
       { DriftPoint(position, DistanceFromPlane(position)); }
+    //@}
     
     
     /**
@@ -605,7 +663,8 @@ namespace geo {
      * The point does not need to be on the plane, and the projection of the
      * point to the plane is considered.
      */
-    double WireCoordinate(TVector3 const& point) const
+    template <typename Point = DefaultPoint_t>
+    double WireCoordinate(Point const& point) const
       { return PlaneCoordinate(point) / WirePitch(); }
     
     
@@ -638,7 +697,7 @@ namespace geo {
      * The returned point is such that its decomposition results in a null
      * projection and a 0 distance from the plane.
      */
-    template <typename Point = TVector3>
+    template <typename Point = DefaultPoint_t>
     Point ProjectionReferencePoint() const
       { return geo::vect::convertTo<Point>(fDecompWire.ReferencePoint()); }
     
@@ -659,8 +718,10 @@ namespace geo {
      * 
      * The reference point is also returned by ProjectionReferencePoint().
      */
-    WireCoordProjection_t PointProjection(geo::Point_t const& point) const
+    WireCoordProjection_t Projection(geo::Point_t const& point) const
       { return fDecompWire.ProjectPointOnPlane(point); }
+    WireCoordProjection_t PointProjection(geo::Point_t const& point) const
+      { return Projection(point); }
     WireCoordProjection_t PointProjection(TVector3 const& point) const
       { return PointProjection(geo::vect::toPoint(point)); }
     //@}
@@ -678,8 +739,10 @@ namespace geo {
      * `WireGeo::Direction()`). The component @f$ w @f$ is defined on the wire
      * coordinate direction (see `GetIncreasingWireDirection()`). 
      */
-    WireCoordProjection_t VectorProjection(geo::Vector_t const& v) const
+    WireCoordProjection_t Projection(geo::Vector_t const& v) const
       { return fDecompWire.ProjectVectorOnPlane(v); }
+    WireCoordProjection_t VectorProjection(geo::Vector_t const& v) const
+      { return Projection(v); }
     WireCoordProjection_t VectorProjection(TVector3 const& v) const
       { return VectorProjection(geo::vect::toVector(v)); }
     //@}
@@ -693,7 +756,7 @@ namespace geo {
      * 
      * See `ComposePoint(double, WireCoordProjection_t const&)` for details.
      */
-    template <typename Point = TVector3>
+    template <typename Point = DefaultPoint_t>
     Point ComposePoint(WireDecomposedVector_t const& decomp) const
       { return geo::vect::convertTo<Point>(fDecompWire.ComposePoint(decomp)); }
     
@@ -721,7 +784,7 @@ namespace geo {
      * vectors instead of points, that is, entities ignoring the reference
      * point.
      */
-    template <typename Point = TVector3>
+    template <typename Point = DefaultPoint_t>
     Point ComposePoint
       (double distance, WireCoordProjection_t const& proj) const
       { return geo::vect::convertTo<Point>(fDecompWire.ComposePoint(distance, proj)); }
@@ -943,7 +1006,7 @@ namespace geo {
      * frame, as described in MoveProjectionToPlane().
      */
     geo::Point_t MovePointOverPlane(geo::Point_t const& point) const;
-    TVector3 MovePointOverPlane(TVector3 const& point) const; // TODO
+    TVector3 MovePointOverPlane(TVector3 const& point) const;
     //@}
     
     /**
@@ -958,7 +1021,7 @@ namespace geo {
      * `ComposePointWidthDepth(double, DecomposedVector_t::Projection_t const&)`
      * for details.
      */
-    template <typename Point = TVector3>
+    template <typename Point = DefaultPoint_t>
     Point ComposePoint(WDDecomposedVector_t const& decomp) const
       { return geo::vect::convertTo<Point>(fDecompFrame.ComposePoint(decomp)); }
     
@@ -981,7 +1044,7 @@ namespace geo {
      * DecomposePointWidthDepth().
      * 
      */
-    template <typename Point = TVector3>
+    template <typename Point = DefaultPoint_t>
     Point ComposePoint
       (double distance, WidthDepthProjection_t const& proj) const
       { return geo::vect::convertTo<Point>(fDecompFrame.ComposePoint(distance, proj)); }
@@ -991,7 +1054,13 @@ namespace geo {
     
     
     /// @{
-    /// @name Coordinate transformation
+    /**
+     * @name Coordinate transformation
+     * 
+     * Local points and displacement vectors are described by the types
+     * `geo::PlaneGeo::LocalPoint_t` and `geo::PlaneGeo::LocalVector_t`,
+     * respectively.
+     */
     
     /// Transform point from local plane frame to world frame.
     void LocalToWorld(const double* plane, double* world) const
@@ -999,7 +1068,11 @@ namespace geo {
       
     /// Transform point from local plane frame to world frame.
     TVector3 LocalToWorld(const TVector3& local) const
-      { return fTrans.LocalToWorld(local); }
+      { return fTrans.LocalToWorld<TVector3>(local); }
+    
+    /// Transform point from local plane frame to world frame.
+    geo::Point_t toWorldCoords(LocalPoint_t const& local) const
+      { return fTrans.toWorldCoords(local); }
     
     /// Transform direction vector from local to world.
     void LocalToWorldVect(const double* plane, double* world) const
@@ -1007,7 +1080,11 @@ namespace geo {
     
     /// Transform direction vector from local to world.
     TVector3 LocalToWorldVect(const TVector3& local) const
-      { return fTrans.LocalToWorldVect(local); }
+      { return fTrans.LocalToWorldVect<TVector3>(local); }
+    
+    /// Transform direction vector from local to world.
+    geo::Vector_t toWorldCoords(LocalVector_t const& local) const
+      { return fTrans.toWorldCoords(local); }
     
     /// Transform point from world frame to local plane frame.
     void WorldToLocal(const double* world, double* plane) const
@@ -1015,7 +1092,11 @@ namespace geo {
     
     /// Transform point from world frame to local plane frame.
     TVector3 WorldToLocal(TVector3 const& world) const
-      { return fTrans.WorldToLocal(world); }
+      { return fTrans.WorldToLocal<TVector3>(world); }
+    
+    /// Transform point from world frame to local plane frame.
+    LocalPoint_t toLocalCoords(geo::Point_t const& world) const
+      { return fTrans.toLocalCoords(world); }
     
     /// Transform direction vector from world to local.
     void WorldToLocalVect(const double* world, double* plane) const
@@ -1023,7 +1104,11 @@ namespace geo {
     
     /// Transform direction vector from world to local.
     TVector3 WorldToLocalVect(TVector3 const& world) const
-      { return fTrans.WorldToLocalVect(world); }
+      { return fTrans.WorldToLocalVect<TVector3>(world); }
+    
+    /// Transform direction vector from world to local.
+    LocalVector_t toLocalCoords(geo::Vector_t const& world) const
+      { return fTrans.toLocalCoords(world); }
     
     /// @}
     
@@ -1060,7 +1145,7 @@ namespace geo {
     void DetectGeometryDirections();
     
     /// Returns a direction normal to the plane (pointing is not defined).
-    TVector3 GetNormalAxis() const;
+    geo::Vector_t GetNormalAxis() const;
     
     /// Updates the cached normal to plane versor; needs the TPC box coordinates.
     void UpdatePlaneNormal(geo::BoxBoundedGeo const& TPCbox);
@@ -1104,7 +1189,8 @@ namespace geo {
   private:
     using WireCollection_t = std::vector<geo::WireGeo>;
     
-    using LocalTransformation_t = geo::LocalTransformation<TGeoHMatrix>;
+    using LocalTransformation_t
+      = geo::LocalTransformationGeo<TGeoHMatrix, LocalPoint_t, LocalVector_t>;
     
     struct RectSpecs {
       double halfWidth;
@@ -1125,7 +1211,7 @@ namespace geo {
     double                fSinPhiZ;     ///< Sine of @f$ \phi_{z} @f$.
     double                fCosPhiZ;     ///< Cosine of @f$ \phi_{z} @f$.
     
-    TVector3              fNormal;      ///< Normal to the plane, inward in TPC.
+    geo::Vector_t         fNormal;      ///< Normal to the plane, inward in TPC.
     /// Decomposition on wire coordinates; the main direction is along the wire,
     /// the secondary one is the one measured by the wire, the normal matches
     /// the plane's normal.
@@ -1138,7 +1224,7 @@ namespace geo {
     /// Area covered by wires in frame base.
     Rect                  fActiveArea;
     /// Center of the plane, lying on the wire plane.
-    TVector3              fCenter;
+    geo::Point_t          fCenter;
 
     geo::PlaneID          fID;          ///< ID of this plane.
     
@@ -1165,11 +1251,8 @@ void geo::PlaneGeo::PrintPlaneInfo(
   if (verbosity-- <= 0) return; // 0
   
   //----------------------------------------------------------------------------
-  decltype(auto) center = GetCenter();
-  
   out
-    << " at (" << center.X() << ", " << center.Y() << ", " << center.Z()
-      << ") cm"
+    << " at " << GetCenter<geo::Vector_t>() << " cm"
     << ", theta: " << ThetaZ() << " rad";
   
   if (verbosity-- <= 0) return; // 1
@@ -1187,36 +1270,29 @@ void geo::PlaneGeo::PrintPlaneInfo(
   if (verbosity-- <= 0) return; // 2
   
   //----------------------------------------------------------------------------
-  auto normal = GetNormalDirection();
-  auto incrZdir = GetIncreasingWireDirection();
-  decltype(auto) wireNormalDir = fDecompWire.NormalDir();
+  auto const& normal = GetNormalDirection<geo::Vector_t>();
+  auto const& incrZdir = GetIncreasingWireDirection<geo::Vector_t>();
+  auto const& wireNormalDir = fDecompWire.NormalDir();
   out << "\n" << indent
-    << "normal to plane: ("
-      << normal.X() << ", " << normal.Y() << ", " << normal.Z() << ")"
-    << ", direction of increasing wire number: ("
-      << incrZdir.X() << ", " << incrZdir.Y() << ", " << incrZdir.Z() << ")"
-    << " [wire frame normal: (" << wireNormalDir.X()
-      << ", " << wireNormalDir.Y() << ", " << wireNormalDir.Z() << ")]"
+    << "normal to plane: " << normal
+    << ", direction of increasing wire number: " << incrZdir
+    << " [wire frame normal: " << wireNormalDir << "]"
     << " (" << (WireIDincreasesWithZ()? "increases": "decreases") << " with z)";
     
   if (verbosity-- <= 0) return; // 3
   
   //----------------------------------------------------------------------------
   
-  decltype(auto) wireDir = GetWireDirection();
-  decltype(auto) widthDir = WidthDir();
-  decltype(auto) depthDir = DepthDir();
-  decltype(auto) frameNormalDir = fDecompFrame.NormalDir();
+  auto const& wireDir = GetWireDirection<geo::Vector_t>();
+  auto const& widthDir = WidthDir<geo::Vector_t>();
+  auto const& depthDir = DepthDir<geo::Vector_t>();
+  auto const& frameNormalDir = fDecompFrame.NormalDir();
   
   out << "\n" << indent
-    << "wire direction: ("
-      << wireDir.X() << ", " << wireDir.Y() << ", " << wireDir.Z() << ")"
-    << "; width " << Width() << " cm in direction: ("
-      << widthDir.X() << ", " << widthDir.Y() << ", " << widthDir.Z() << ")"
-    << ", depth " << Depth() << " cm in direction: ("
-      << depthDir.X() << ", " << depthDir.Y() << ", " << depthDir.Z() << ")"
-    << " [normal: (" << frameNormalDir.X()
-      << ", " << frameNormalDir.Y() << ", " << frameNormalDir.Z() << ")]"
+    << "wire direction: " << wireDir
+    << "; width " << Width() << " cm in direction: " << widthDir
+    << ", depth " << Depth() << " cm in direction: " << depthDir
+    << " [normal: " << frameNormalDir << "]"
     ;
     
   if (verbosity-- <= 0) return; // 4
@@ -1234,11 +1310,7 @@ void geo::PlaneGeo::PrintPlaneInfo(
   // print also the containing box
   auto const box = BoundingBox();
   out << "\n" << indent
-    << "bounding box: ( "
-      << box.MinX() << ", " << box.MinY() << ", " << box.MinZ()
-    << " ) -- ( "
-      << box.MaxX() << ", " << box.MaxY() << ", " << box.MaxZ()
-    << " )";
+    << "bounding box: " << box.Min() << " -- " << box.Max();
   
 //  if (verbosity-- <= 0) return; // 6
   

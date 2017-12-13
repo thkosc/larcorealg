@@ -479,7 +479,7 @@ namespace geo {
      * `c` is not needed (as above):
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
      * geo::Point_t A { 1.0, 2.0, 3.0 }, geo::Point_t B {5.0, 7.0, 9.0 };
-     * for (auto coordMan = geo::vect::coordManagers<geo::Point const>()) {
+     * for (auto coordMan: geo::vect::coordManagers<geo::Point_t const>()) {
      *   auto Ac = geo::vect::bindCoord(A, coordMan);
      *   auto Bc = geo::vect::bindCoord(B, coordMan);
      *   std::cout << (Bc() - Ac() * 2.0) << std::endl;

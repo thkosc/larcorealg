@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file PlaneGeo.cxx
+/// \file larcorealg/Geometry/PlaneGeo.cxx
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,6 @@
 #include "larcorealg/CoreUtils/RealComparisons.h"
 #include "larcorealg/CoreUtils/SortByPointers.h" // util::makePointerVector()
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi()
-#include "larcorealg/Geometry/geo_vectors_utils_TVector.h" // geo::vect::dump
 
 // Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -488,12 +487,12 @@ namespace geo{
       for (double dy: { -(pShape->GetDY()), +(pShape->GetDY()) }) {
         for (double dz: { -(pShape->GetDZ()), +(pShape->GetDZ()) }) {
           
-          auto const p = LocalToWorld({ dx, dy, dz });
+          auto const p = toWorldCoords(LocalPoint_t{ dx, dy, dz });
           
           if (points++ == 0)
-            box.SetBoundaries(p.X(), p.X(), p.Y(), p.Y(), p.Z(), p.Z());
+            box.SetBoundaries(p, p);
           else
-            box.ExtendToInclude(p.X(), p.Y(), p.Z());
+            box.ExtendToInclude(p);
           
         } // for z
       } // for y
@@ -561,15 +560,6 @@ namespace geo{
   bool PlaneGeo::WireIDincreasesWithZ() const {
     return GetIncreasingWireDirection().Z() > 0.;
   } // PlaneGeo::WireIDincreasesWithZ()
-  
-  
-  //......................................................................
-  TVector3 PlaneGeo::GetBoxCenter() const {
-    
-    // convert the origin (default constructed TVector)
-    return LocalToWorld({});
-    
-  } // PlaneGeo::GetBoxCenter()
   
   
   //......................................................................
@@ -680,7 +670,7 @@ namespace geo{
   
   
   //......................................................................
-  geo::WireID PlaneGeo::NearestWireID(TVector3 const& pos) const {
+  geo::WireID PlaneGeo::NearestWireID(geo::Point_t const& pos) const {
     
     //
     // 1) compute the wire coordinate of the point
@@ -700,7 +690,6 @@ namespace geo{
       if (nearestWireNo < 0 ) wireNo = 0;
       else                    wireNo = Nwires() - 1;
       
-      using namespace geo::vect::dump; // to output a TVector3
       throw InvalidWireError("Geometry", ID(), nearestWireNo, wireNo)
         << "Can't find nearest wire for position " << pos
         << " in plane " << std::string(ID()) << " approx wire number # "
@@ -801,7 +790,7 @@ namespace geo{
         << "'] has a shape which is a " << pShape->IsA()->GetName()
         << ", not a TGeoBBox! Dimensions won't be available.";
       // set it invalid
-      fDecompFrame.SetOrigin({ 0., 0., 0. });
+      fDecompFrame.SetOrigin(geo::origin());
       fDecompFrame.SetMainDir({ 0., 0., 0. });
       fDecompFrame.SetSecondaryDir({ 0., 0., 0. });
       fFrameSize = { 0.0, 0.0 };
@@ -815,15 +804,15 @@ namespace geo{
       size_t iSide = 0;
       TVector3 dir;
       
-      sides[iSide] = LocalToWorldVect({ pShape->GetDX(), 0.0, 0.0 });
+      sides[iSide] = toWorldCoords(LocalVector_t{ pShape->GetDX(), 0.0, 0.0 });
       iSmallest = iSide;
       ++iSide;
       
-      sides[iSide] = LocalToWorldVect({ 0.0, pShape->GetDY(), 0.0 });
+      sides[iSide] = toWorldCoords(LocalVector_t{ 0.0, pShape->GetDY(), 0.0 });
       if (sides[iSide].Mag2() < sides[iSmallest].Mag2()) iSmallest = iSide;
       ++iSide;
       
-      sides[iSide] = LocalToWorldVect({ 0.0, 0.0, pShape->GetDZ() });
+      sides[iSide] = toWorldCoords(LocalVector_t{ 0.0, 0.0, pShape->GetDZ() });
       if (sides[iSide].Mag2() < sides[iSmallest].Mag2()) iSmallest = iSide;
       ++iSide;
       
@@ -858,30 +847,23 @@ namespace geo{
   } // PlaneGeo::DetectGeometryDirections()
 
   //......................................................................
-  TVector3 PlaneGeo::GetNormalAxis() const {
+  geo::Vector_t PlaneGeo::GetNormalAxis() const {
     const unsigned int NWires = Nwires();
-    if (NWires < 2) return TVector3(); // why are we even here?
+    if (NWires < 2) return {}; // why are we even here?
     
     // 1) get the direction of the middle wire
-    TVector3 WireDir = Wire(NWires / 2).Direction();
+    auto const WireDir = Wire(NWires / 2).Direction<geo::Vector_t>();
     
     // 2) get the direction between the middle wire and the next one
-    double MiddleWireCenter[3], NextToMiddleWireCenter[3];
-    Wire(NWires / 2).GetCenter(MiddleWireCenter);
-    Wire(NWires / 2 + 1).GetCenter(NextToMiddleWireCenter);
-    TVector3 ToNextWire(NextToMiddleWireCenter);
-    ToNextWire -= TVector3(MiddleWireCenter);
+    auto const ToNextWire = Wire(NWires / 2 + 1).GetCenter<geo::Point_t>()
+      - Wire(NWires / 2).GetCenter<geo::Point_t>();
     
     // 3) get the direction perpendicular to the plane
-    TVector3 PlaneNorm = WireDir.Cross(ToNextWire);
-    
     // 4) round it
-    for (int i = 0; i < 3; ++i)
-      if (std::abs(PlaneNorm[i]) < 1e-4) PlaneNorm[i] = 0.;
-    
     // 5) return its norm
-    return PlaneNorm.Unit();
-  } // GeometryTest::GetNormalAxis()
+    return geo::vect::rounded01(WireDir.Cross(ToNextWire).Unit(), 1e-4);
+    
+  } // PlaneGeo::GetNormalAxis()
   
   
   //......................................................................
@@ -1187,11 +1169,11 @@ namespace geo{
     //    normal direction)
     //
     
-    fCenter = GetBoxCenter();
+    fCenter = GetBoxCenter<geo::Point_t>();
     
     DriftPoint(fCenter, DistanceFromPlane(fCenter));
     
-    fDecompFrame.SetOrigin(geo::vect::toPoint(fCenter)); // equivalent to GetCenter() now
+    fDecompFrame.SetOrigin(fCenter); // equivalent to GetCenter() now
     
   } // PlaneGeo::UpdateWirePlaneCenter()
   

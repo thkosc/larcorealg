@@ -130,7 +130,8 @@ namespace geo {
      * `local` will be a `LocalPoint_t` containing the local coordinates of the
      * specified point.
      */
-    LocalPoint_t toLocalCoords(GlobalPoint_t const& world) const;
+    LocalPoint_t toLocalCoords(GlobalPoint_t const& world) const
+      { return Base_t::template WorldToLocal<LocalPoint_t>(world); }
     
     /**
      * @brief Transforms a vector from world frame to local frame.
@@ -140,7 +141,8 @@ namespace geo {
      * The translation is not applied, since the argument is supposed to be a
      * vector, relative difference between two points.
      */
-    LocalVector_t toLocalCoords(GlobalVector_t const& world) const;
+    LocalVector_t toLocalCoords(GlobalVector_t const& world) const
+      { return Base_t::template WorldToLocalVect<LocalVector_t>(world); }
     
     
     static_assert(!std::is_same<LocalPoint_t, LocalVector_t>(),

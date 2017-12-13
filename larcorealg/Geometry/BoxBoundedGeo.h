@@ -67,15 +67,16 @@ namespace geo {
       Coord_t z_min, Coord_t z_max
       ):
       c_min{ x_min, y_min, z_min }, c_max{ x_max, y_max, z_max }
-      {}
+      { SortCoordinates(); }
     BoxBoundedGeo(Coords_t lower, Coords_t upper):
       c_min(lower), c_max(upper)
-      {}
+      { SortCoordinates(); }
     //@}
     
     
-    /// @name Dimension queries
     /// @{
+    /// @name Dimension queries
+    
     /// Returns the world x coordinate of the start of the box.
     double MinX() const { return c_min.X(); }
     
@@ -331,6 +332,7 @@ namespace geo {
       {
         c_min.SetXYZ(x_min, y_min, z_min);
         c_max.SetXYZ(x_max, y_max, z_max);
+        SortCoordinates();
       }
 
     /**
@@ -339,7 +341,7 @@ namespace geo {
      * @param upper upper coordinates (x, y, z)
      */
     void SetBoundaries(Coords_t lower, Coords_t upper)
-      { c_min = lower; c_max = upper; }
+      { c_min = lower; c_max = upper; SortCoordinates(); }
     
     /**
      * @brief Extends the current box to also include the specified point.
@@ -425,6 +427,9 @@ namespace geo {
     // we don't allow the derived classes to mess with the boundaries
     Coords_t c_min; ///< minimum coordinates (x, y, z)
     Coords_t c_max; ///< maximum coordinates (x, y, z)
+    
+    /// Makes sure each coordinate of the minimum point is smaller than maximum.
+    void SortCoordinates();
     
   }; // class BoxBoundedGeo
   

@@ -84,9 +84,11 @@ namespace geo {
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * `center` will contain the world coordinates of the center of the volume,
      * which is usually represented by the origin in the local coordinates.
+     * 
+     * In-place replacement is *not* supported: `world` and `local` buffers are
+     * assumed not to, and must not, overlap.
      */
-    void LocalToWorld(double const* local, double* world) const
-      { fGeoMatrix.LocalToMaster(local, world); }
+    void LocalToWorld(double const* local, double* world) const;
     
     
     // @{
@@ -126,9 +128,11 @@ namespace geo {
      * 
      * The translation is not applied, since the argument is supposed to be a
      * vector, relative difference between two points.
+     * 
+     * In-place replacement is *not* supported: `world` and `local` buffers are
+     * assumed not to, and must not, overlap.
      */
-    void LocalToWorldVect(double const* local, double* world) const
-      { fGeoMatrix.LocalToMasterVect(local, world); }
+    void LocalToWorldVect(double const* local, double* world) const;
     
     //@{
     /**
@@ -166,9 +170,11 @@ namespace geo {
      * trans.WorldToLocal(world.data(), local.data());
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * `local` will contain the local coordinates of the specified point.
+     * 
+     * In-place replacement is *not* supported: `world` and `local` buffers are
+     * assumed not to, and must not, overlap.
      */
-    void WorldToLocal(double const* world, double* local) const
-      { fGeoMatrix.MasterToLocal(world, local); }
+    void WorldToLocal(double const* world, double* local) const;
     
     //@{
     /**
@@ -205,9 +211,12 @@ namespace geo {
      * 
      * The translation is not applied, since the argument is supposed to be a
      * vector, relative difference between two points.
+     * 
+     * In-place replacement is *not* supported: `world` and `local` buffers are
+     * assumed not to, and must not, overlap.
      */
-    void WorldToLocalVect(const double* world, double* local) const
-      { fGeoMatrix.MasterToLocalVect(world, local); }
+    void WorldToLocalVect(const double* world, double* local) const;
+    
     
     //@{
     /**

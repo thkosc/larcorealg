@@ -8,7 +8,7 @@
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
 
 // LArSoft libraries
-#include "larcorealg/Geometry/geo_vectors_utils.h"
+#include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect namespace
 
 
 namespace geo
@@ -110,6 +110,22 @@ namespace geo
   } // GetIntersections(TVector3)
 
   //----------------------------------------------------------------------------
+  void BoxBoundedGeo::SortCoordinates() {
+    
+    for (auto coordMan: geo::vect::coordManagers<geo::Point_t>()) {
+      auto min = geo::vect::bindCoord(c_min, coordMan);
+      auto max = geo::vect::bindCoord(c_max, coordMan);
+      if (min() > max()) {
+        auto temp = min();
+        min = max();
+        max = temp;
+      }
+    } // for
+    
+  } // BoxBoundedGeo::SortCoordinates()
+
+  //----------------------------------------------------------------------------
+
 
 } // namespace geo
  

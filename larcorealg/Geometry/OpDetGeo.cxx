@@ -5,15 +5,21 @@
 /// \author  bjpjones@mit.edu
 ////////////////////////////////////////////////////////////////////////
 
-#include <cmath>
-
+// class header
 #include "larcorealg/Geometry/OpDetGeo.h"
 
+// LArSoft libraries
+#include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect::makeFromCoords()
+#include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi()
+
+// ROOT libraries
 #include "TGeoManager.h"
 #include "TGeoTube.h"
-#include "TGeoMatrix.h"
 #include "TGeoNode.h"
-#include "TMath.h"
+
+// C/C++ standard libraries
+#include <cmath>
+
 
 namespace {
   template <typename T>
@@ -23,58 +29,13 @@ namespace {
 namespace geo{
 
   //-----------------------------------------
-  OpDetGeo::OpDetGeo(std::vector<const TGeoNode*>& path, int depth) 
+  OpDetGeo::OpDetGeo(std::vector<const TGeoNode*>& path, int depth)
+    : fTrans(path, depth)
   {
     fOpDetNode = path[depth];
-
-
-    // Build the matrix that takes us to the top world frame
-    // build a matrix to take us from the local to the world coordinates
-    // in one step
-    fGeoMatrix = *path[0]->GetMatrix();
-    for(int i = 1; i <= depth; ++i){
-      fGeoMatrix.Multiply(path[i]->GetMatrix());
-    }
-  }
-
-  //......................................................................
-
-  /// Transform a position from local frame to world frame
-  /// \param local : 3D array. Position in the local frame  Input.
-  /// \param world : 3D array. Position in the world frame. Returned.
-  void OpDetGeo::LocalToWorld(const double* local, double* world) const
-  {
-    fGeoMatrix.LocalToMaster(local,world);
-  }
-
-  //......................................................................    
-
-  /// Transform a 3-vector from local frame to world frame
-  /// \param local : 3D array. Position in the local frame  Input.
-  /// \param world : 3D array. Position in the world frame. Returned.
-  void OpDetGeo::LocalToWorldVect(const double* local, double* world) const
-  {
-    fGeoMatrix.LocalToMasterVect(local,world);
-  }
     
-  //......................................................................
-
-  /// Transform a position from world frame to local frame
-  /// \param world : 3D array. Position in the world frame. Input.
-  /// \param local : 3D array. Position in the local frame  Returned.
-  void OpDetGeo::WorldToLocal(const double* world, double* local) const
-  {
-    fGeoMatrix.MasterToLocal(world,local);
-  }
-
-  //......................................................................
-
-  /// Transform a 3-vector from world frame to local frame
-  /// \param world : 3D array. Position in the world frame. Input.
-  /// \param local : 3D array. Position in the local frame  Returned.
-  void OpDetGeo::WorldToLocalVect(const double* world, double* local) const
-  {
-    fGeoMatrix.MasterToLocalVect(world,local);
+    fCenter = toWorldCoords(geo::origin<LocalPoint_t>());
+    
   }
 
   //......................................................................
@@ -111,50 +72,41 @@ namespace geo{
   }
 
   //......................................................................
-  double OpDetGeo::ThetaZ(bool degrees) const
+  double OpDetGeo::ThetaZ() const
   {
-    static double xyzCenter[3] = {0,0,0};
-    static double xyzEnd[3] = {0,0,0};
-    static double halfL =this->HalfL();
-    this->GetCenter(xyzCenter,0.0);
-    this->GetCenter(xyzEnd,halfL);
+    auto const& center = GetCenter();
+    auto const& end = toWorldCoords(LocalPoint_t{ 0.0, 0.0, HalfL() });
+    
+    // TODO change this into something generic
     //either y or x will be 0, so ading both will always catch the right
     //one
-    double angle = (xyzEnd[1]-xyzCenter[1]+xyzEnd[0]-xyzCenter[0]) / 
-      TMath::Abs(xyzEnd[1]-xyzCenter[1]+xyzCenter[0]-xyzEnd[0]) * 
-      TMath::ACos((xyzEnd[2] - xyzCenter[2])/halfL);
-    if(angle < 0) angle +=TMath::Pi(); 
-    if(degrees) angle*=180.0/TMath::Pi();
+    double angle = (end.Y()-center.Y()+end.X()-center.X()) / 
+      std::abs(end.Y()-center.Y()+center.X()-end.X()) * 
+      std::acos((end.Z() - center.Z())/HalfL());
+    if (angle < 0) angle += util::pi(); 
     return angle;
   }
 
+  //......................................................................
+  double OpDetGeo::ThetaZ(bool degree) const
+    { return degree? util::RadiansToDegrees(ThetaZ()): ThetaZ(); }
+  
   
 
   //......................................................................
-  // Get the distance from some point to this detector
+  double OpDetGeo::DistanceToPoint(geo::Point_t const& point) const
+    { return (point - GetCenter()).R(); }
   double OpDetGeo::DistanceToPoint(double const* xyz) const
-  {
-    double Center[3];
-    GetCenter(Center);
-    return std::sqrt(
-      sqr(Center[0]-xyz[0]) +
-      sqr(Center[1]-xyz[1]) +
-      sqr(Center[2]-xyz[2]));
-  }
+    { return DistanceToPoint(geo::vect::makeFromCoords<geo::Point_t>(xyz)); }
 
 
   //......................................................................
-  // Get cos(angle) to normal of this detector - used for solid angle calcs
-  double OpDetGeo::CosThetaFromNormal(double const* xyz) const
-  {
-    double local[3];
-    WorldToLocal(xyz, local);
-    return local[2] / 
-      std::sqrt(sqr(local[0]) +
-	   sqr(local[1]) +
-	   sqr(local[2]));
-
+  double OpDetGeo::CosThetaFromNormal(geo::Point_t const& point) const {
+    auto const& local = toLocalCoords(point);
+    return local.Z() / local.R();
   }
+  double OpDetGeo::CosThetaFromNormal(double const* xyz) const
+    { return CosThetaFromNormal(geo::vect::makeFromCoords<geo::Point_t>(xyz)); }
 
 
 }

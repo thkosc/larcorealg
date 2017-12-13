@@ -7,22 +7,19 @@
 // class header
 #include "larcorealg/Geometry/TPCGeo.h"
 
-// ROOT includes
-#include "TMath.h"
-#include "TVector3.h"
-#include "TGeoManager.h"
-#include "TGeoNode.h"
-#include "TGeoMatrix.h"
-#include "TGeoBBox.h"
+// LArSoft includes
+#include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/WireGeo.h"
+#include "larcorealg/CoreUtils/RealComparisons.h"
 
 // Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib/exception.h"
 
-// LArSoft includes
-#include "larcorealg/Geometry/PlaneGeo.h"
-#include "larcorealg/Geometry/WireGeo.h"
-#include "larcorealg/CoreUtils/RealComparisons.h"
+// ROOT includes
+#include "TGeoNode.h"
+#include "TGeoMatrix.h"
+#include "TGeoBBox.h"
 
 // C/C++ standard libraries
 #include <cmath>
@@ -37,20 +34,15 @@ namespace geo{
 
 
   //......................................................................
-  TVector3 const TPCGeo::DirX(1.0, 0.0, 0.0);
-  TVector3 const TPCGeo::DirY(0.0, 1.0, 0.0);
-  TVector3 const TPCGeo::DirZ(0.0, 0.0, 1.0);
-  
-  //......................................................................
   TPCGeo::TPCGeo(GeoNodePath_t& path, size_t depth)
     : BoxBoundedGeo() // we initialize boundaries at the end of construction
     , fTrans(path, depth)
     , fActiveVolume(0)
     , fTotalVolume(0)
     , fDriftDirection(geo::kUnknownDrift)
-    , fWidthDir (DirX)
-    , fHeightDir(DirY)
-    , fLengthDir(DirZ)
+    , fWidthDir (geo::Xaxis())
+    , fHeightDir(geo::Yaxis())
+    , fLengthDir(geo::Zaxis())
     , fDriftDir() // null until known
   {
     
@@ -89,7 +81,7 @@ namespace geo{
     localActiveCenter.fill(0.0);
     ActiveHMatrix.LocalToMaster
       (localActiveCenter.data(), worldActiveCenter.data());
-    fActiveCenter = TVector3(worldActiveCenter.data());
+    fActiveCenter = geo::vect::makeFromCoords<geo::Point_t>(worldActiveCenter);
     
     
     // find the wires for the plane so that you can use them later
@@ -114,36 +106,36 @@ namespace geo{
       if(std::abs(rotMatrix[2]) == 1){
         fActiveHalfWidth = ((TGeoBBox*)fActiveVolume->GetShape())->GetDZ();
         fHalfWidth       = ((TGeoBBox*)fTotalVolume->GetShape())->GetDZ();
-        fWidthDir        = DirZ;
+        fWidthDir        = Zaxis();
       }
       if(std::abs(rotMatrix[1]) == 1){
         fActiveHalfWidth = ((TGeoBBox*)fActiveVolume->GetShape())->GetDY();
         fHalfWidth       = ((TGeoBBox*)fTotalVolume->GetShape())->GetDY();
-        fWidthDir        = DirY;
+        fWidthDir        = Yaxis();
       }
     }
     if(rotMatrix[4] != 1){
       if(std::abs(rotMatrix[3]) == 1){
         fActiveHalfHeight = ((TGeoBBox*)fActiveVolume->GetShape())->GetDX();
         fHalfHeight       = ((TGeoBBox*)fTotalVolume->GetShape())->GetDX();
-        fHeightDir        = DirX;
+        fHeightDir        = Xaxis();
       }
       if(std::abs(rotMatrix[5]) == 1){
         fActiveHalfHeight = ((TGeoBBox*)fActiveVolume->GetShape())->GetDZ();
         fHalfHeight       = ((TGeoBBox*)fTotalVolume->GetShape())->GetDZ();
-        fHeightDir        = DirZ;
+        fHeightDir        = Zaxis();
       }
     }
     if(rotMatrix[8] != 1){
       if(std::abs(rotMatrix[6]) == 1){
         fActiveLength = 2.*((TGeoBBox*)fActiveVolume->GetShape())->GetDX();
         fLength       = 2.*((TGeoBBox*)fTotalVolume->GetShape())->GetDX();
-        fLengthDir    = DirX;
+        fLengthDir    = Xaxis();
       }
       if(std::abs(rotMatrix[7]) == 1){
         fActiveLength = 2.*((TGeoBBox*)fActiveVolume->GetShape())->GetDY();
         fLength       = 2.*((TGeoBBox*)fTotalVolume->GetShape())->GetDY();
-        fLengthDir    = DirY;
+        fLengthDir    = Yaxis();
       }
     }
     
@@ -446,26 +438,26 @@ namespace geo{
     switch (driftDirCode) {
       case +1:
         fDriftDirection = geo::kPosX; // this is the same as kPos!
-        fDriftDir = DirX;
+        fDriftDir = geo::Xaxis();
         break;
       case -1:
         fDriftDirection = geo::kNegX; // this is the same as kNeg!
-        fDriftDir = -DirX;
+        fDriftDir = -geo::Xaxis();
         break;
       case +2:
-        fDriftDir = DirY;
+        fDriftDir = geo::Yaxis();
         fDriftDirection = geo::kPos;
         break;
       case -2:
-        fDriftDir = -DirY;
+        fDriftDir = -geo::Yaxis();
         fDriftDirection = geo::kNeg;
         break;
       case +3:
-        fDriftDir = DirZ;
+        fDriftDir = geo::Zaxis();
         fDriftDirection = geo::kPos;
         break;
       case -3:
-        fDriftDir = -DirZ;
+        fDriftDir = -geo::Zaxis();
         fDriftDirection = geo::kNeg;
         break;
       default:
@@ -508,20 +500,14 @@ namespace geo{
     // to avoid this, we should transform the six vertices
     // rather than just the centre
     
-    std::array<double, 3> origin, world;
-    origin.fill(0.);
-    LocalToWorld(origin.data(), world.data());
-    
-    // y and z values are easy and can be figured out using the TPC origin
-    // the x values are a bit trickier, at least the -x value seems to be
-    
+    // we rely on the asumption that the center of TPC is at the local origin
     SetBoundaries(
-      world[0] - HalfWidth(),  world[0] + HalfWidth(),
-      world[1] - HalfHeight(), world[1] + HalfHeight(),
-      world[2] - 0.5*Length(), world[2] + 0.5*Length()
+      toWorldCoords(LocalPoint_t(-HalfWidth(), -HalfHeight(), -HalfLength())),
+      toWorldCoords(LocalPoint_t(+HalfWidth(), +HalfHeight(), +HalfLength()))
       );
     
-    auto const& activeCenter = GetActiveVolumeCenter();
+    // the center of the active volume may be elsewhere than the local origin:
+    auto const& activeCenter = GetActiveVolumeCenter<geo::Point_t>();
     fActiveBox.SetBoundaries(
       activeCenter.X() - ActiveHalfWidth(),  activeCenter.X() + ActiveHalfWidth(),
       activeCenter.Y() - ActiveHalfHeight(), activeCenter.Y() + ActiveHalfHeight(),

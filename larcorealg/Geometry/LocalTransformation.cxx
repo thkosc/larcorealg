@@ -35,7 +35,7 @@ namespace geo {
       matrix.Multiply(path[i]->GetMatrix());
     return matrix;
     
-  } // geo::LocalTransformationFromPath::transformationFromPath()
+  } // geo::LocalTransformation::transformationFromPath()
 
 
   //----------------------------------------------------------------------------
@@ -54,9 +54,10 @@ namespace geo {
       CLHEP::Hep3Vector(translation[0], translation[1], translation[2])
       );
     
-  } // geo::LocalTransformationFromPath::transformationFromPath()
+  } // geo::LocalTransformation::transformationFromPath()
 
 } // namespace geo
+
 
 //------------------------------------------------------------------------------
   

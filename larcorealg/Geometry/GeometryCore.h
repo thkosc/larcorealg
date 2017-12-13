@@ -56,8 +56,10 @@
 #include "larcorealg/Geometry/OpDetGeo.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
+#include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect namespace
 #include "larcorealg/CoreUtils/RealComparisons.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 
@@ -65,8 +67,7 @@
 #include "fhiclcpp/ParameterSet.h"
 
 // ROOT libraries
-#include <TVector3.h>
-// #include <Rtypes.h>
+#include "TVector3.h"
 
 // C/C++ standard libraries
 #include <cstddef> // size_t
@@ -1775,18 +1776,19 @@ namespace geo {
     /// Return the name of the world volume (needed by Geant4 simulation)
     const std::string GetWorldVolumeName() const;
     
+    //@{
     /**
      * @brief Returns the name of the deepest volume containing specified point
      * @param point the location to query, in world coordinates
      * @return name of the volume containing the point
      * 
-     * @todo Use a reference to TVector3
-     * @todo Use a double[3] instead?
-     * @todo declare it const
      * @todo what happens if none?
      * @todo Unify the coordinates type
      */
-    const std::string VolumeName(TVector3 point);
+    std::string VolumeName(geo::Point_t const& point) const;
+    std::string VolumeName(TVector3 const& point) const
+      { return VolumeName(geo::vect::toPoint(point)); }
+    //@}
     
     
     /**
@@ -1817,15 +1819,15 @@ namespace geo {
     std::vector<std::vector<TGeoNode const*>> FindAllVolumePaths
       (std::set<std::string> const& vol_names) const;
     
+    //@{
     /**
      * @brief Name of the deepest material containing the point xyz
      * @return material of the origin by default
-     * 
-     * @todo make this constant
-     * @todo remove return value constantness (or make it a reference)
-     * @todo Unify the coordinates type
      */
-    const std::string MaterialName(TVector3 point);
+    std::string MaterialName(TVector3 const& point) const
+      { return MaterialName(geo::vect::toPoint(point)); }
+    std::string MaterialName(geo::Point_t const& point) const;
+    //@}
     
     
     /// Returns the material at the specified position

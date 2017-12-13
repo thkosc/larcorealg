@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  CryostatGeo.h
+/// \file  larcorealg/Geometry/CryostatGeo.h
 /// \brief Encapsulate the construction of a single cyostat
 ///
 /// \author  brebel@fnal.gov
@@ -12,13 +12,11 @@
 #include "larcorealg/Geometry/OpDetGeo.h"
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
-#include "larcorealg/Geometry/geo_vectors_utils.h" // geo::Xcoord()
-#include "larcorealg/CoreUtils/DumpUtils.h" // lar::dump::vector3D()
+#include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h" // geo::Point_t
 
 // ROOT libraries
-#include "TVector3.h"
 #include "TGeoVolume.h"
 #include "TGeoMatrix.h" // TGeoHMatrix
 
@@ -34,48 +32,82 @@ namespace geo {
   //......................................................................
   /// Geometry information for a single cryostat
   class CryostatGeo: public geo::BoxBoundedGeo {
-  public:
     
-    /// Construct a representation of a single cryostat of the detector
+      public:
+    
+    using GeoNodePath_t = geo::WireGeo::GeoNodePath_t;
+    
+    /// @{
+    /**
+     * @name Types for geometry-local reference vectors.
+     * 
+     * These types represents points and displacement vectors in the reference
+     * frame defined in the cryostat geometry box from the GDML geometry
+     * description.
+     * 
+     * No alias is explicitly defined for the LArSoft global vector types,
+     * `geo::Point_t` and `geo::Vector_t`.
+     * 
+     * Remember the `LocalPoint_t` and `LocalVector_t` vectors from different
+     * instances of `geo::CryostatGeo` have the same type but are not
+     * compatible.
+     */
+    
+    /// Tag for vectors in the "local" GDML coordinate frame of the cryostat.
+    struct CryostatGeoCoordinatesTag {};
+    
+    /// Type of points in the local GDML cryostat frame.
+    using LocalPoint_t = geo::Point3DBase_t<CryostatGeoCoordinatesTag>;
+    
+    /// Type of displacement vectors in the local GDML cryostat frame.
+    using LocalVector_t = geo::Vector3DBase_t<CryostatGeoCoordinatesTag>;
+    
+    ///@}
+    
+    
+    /// Construct a representation of a single cryostat of the detector.
     CryostatGeo(std::vector<const TGeoNode*>& path, int depth);
     
     
     /// @{
     /// @name Cryostat geometry information
     
-    /// Half width of the cryostat
+    /// Half width of the cryostat [cm]
     double            HalfWidth()                               const;
-    /// Half height of the cryostat
+    /// Half height of the cryostat [cm]
     double            HalfHeight()                              const;
-    /// Full width of the cryostat
+    /// Half height of the cryostat [cm]
+    double            HalfLength()                              const;
+    /// Full width of the cryostat [cm]
     double            Width()                                   const { return 2. * HalfWidth(); }
-    /// Full height of the cryostat
+    /// Full height of the cryostat [cm]
     double            Height()                                  const { return 2. * HalfHeight(); }
-    /// Length of the cryostat
-    double            Length()                                  const;
+    /// Length of the cryostat [cm]
+    double            Length()                                  const { return 2. * HalfLength(); }
     /// Mass of the cryostat
     double            Mass()                                    const { return fVolume->Weight(); }
     /// Pointer to ROOT's volume descriptor
     const TGeoVolume* Volume()                                  const { return fVolume;           }
     
-    /// @brief Returns boundaries of the cryostat (in centimetres)
+    /// @brief Returns boundaries of the cryostat (in centimetres).
     /// @return boundaries in a geo::BoxBoundedGeo
-    geo::BoxBoundedGeo const& Boundaries() const { return *this; }
+    geo::BoxBoundedGeo const& Boundaries() const
+      { return BoundingBox(); }
     
-    /// @brief Fills boundaries of the cryostat (in centimetres)
+    /// @brief Fills boundaries of the cryostat (in centimetres).
     /// @param boundaries filled as: [0] -x [1] +x [2] -y [3] +y [4] -z [5] +z
     void Boundaries(double* boundaries) const;
     
     
     /// Returns the geometrical center of the cryostat.
     geo::Point_t GetCenter() const
-      { return { CenterX(), CenterY(), CenterZ() }; }
+      { return Boundaries().Center(); }
     
     /// Returns the bounding box of this cryostat.
     geo::BoxBoundedGeo const& BoundingBox() const
-      { return *this; }
+      { return static_cast<geo::BoxBoundedGeo const&>(*this); }
     
-    /// Returns the identifier of this cryostat
+    /// Returns the identifier of this cryostat.
     geo::CryostatID const& ID() const { return fID; }
     
     
@@ -229,27 +261,67 @@ namespace geo {
     /// @{
     /// @name Coordinate transformation
     
-    //@{
-    /// Transform point from local plane frame to world frame
-    void LocalToWorld(const double* tpc, double* world)         const;
+    /// @{
+    /// @name Coordinate transformation
+    
+    /// Transform point from local cryostat frame to world frame.
+    void LocalToWorld(const double* cryo, double* world) const
+      { fTrans.LocalToWorld(cryo, world); }
+      
+    /// Transform point from local cryostat frame to world frame.
+    /// @deprecated This method breaks the distinction between local and global
+    ///             vectors, since input and output vectors share the same type;
+    ///             use the "official" vector types `geo::Point_t`,
+    ///             `geo::CryostatGeo::LocalPoint_t`, `geo::Vector_t` and
+    ///             `geo::CryostatGeo::LocalVector_t`, and then use the method
+    ///             `geo::CryostatGeo::toWorldCoords()` instead.
     template <typename Point>
-    Point LocalToWorld( Point const& local )                    const;
-    //@}
+    [[deprecated("use toWorldCoords() instead")]]
+    Point LocalToWorld(Point const& local) const
+      { return fTrans.LocalToWorld(local); }
     
-    /// Transform direction vector from local to world
-    void LocalToWorldVect(const double* tpc, double* world)     const;
+    /// Transform point from local cryostat frame to world frame.
+    geo::Point_t toWorldCoords(LocalPoint_t const& local) const
+      { return fTrans.toWorldCoords(local); }
     
-    //@{
-    /// Transform point from world frame to local tpc frame
-    void WorldToLocal(const double* world, double* tpc)         const;
+    /// Transform direction vector from local to world.
+    void LocalToWorldVect(const double* cryo, double* world) const
+      { fTrans.LocalToWorldVect(cryo, world); }
+    
+    /// Transform direction vector from local to world.
+    geo::Vector_t toWorldCoords(LocalVector_t const& local) const
+      { return fTrans.toWorldCoords(local); }
+    
+    /// Transform point from world frame to local cryostat frame.
+    void WorldToLocal(const double* world, double* cryo) const
+      { fTrans.WorldToLocal(world, cryo); }
+    
+    /// Transform point from world frame to local cryostat frame.
+    /// @deprecated This method breaks the distinction between local and global
+    ///             vectors, since input and output vectors share the same type;
+    ///             use the "official" vector types `geo::Point_t`,
+    ///             `geo::CryostatGeo::LocalPoint_t`, `geo::Vector_t` and
+    ///             `geo::CryostatGeo::LocalVector_t`, and then use the method
+    ///             `geo::CryostatGeo::toLocalCoords()` instead.
     template <typename Point>
-    Point WorldToLocal( Point const& world )                    const;
-    //@}
+    [[deprecated("use toLocalCoords() instead")]]
+    Point WorldToLocal(Point const& world) const
+      { return fTrans.WorldToLocal(world); }
     
-    // Transform direction vector from world to local
-    void WorldToLocalVect(const double* world, double* tpc)     const;
+    /// Transform point from world frame to local cryostat frame.
+    LocalPoint_t toLocalCoords(geo::Point_t const& world) const
+      { return fTrans.toLocalCoords(world); }
     
-    ///@}
+    /// Transform direction vector from world to local.
+    void WorldToLocalVect(const double* world, double* cryo) const
+      { fTrans.WorldToLocalVect(world, cryo); }
+    
+    /// Transform direction vector from world to local.
+    LocalVector_t toLocalCoords(geo::Vector_t const& world) const
+      { return fTrans.toLocalCoords(world); }
+    
+    /// @}
+    
     
     /// Method to sort TPCGeo objects
     void              SortSubVolumes(geo::GeoObjectSorter const& sorter);
@@ -274,8 +346,11 @@ namespace geo {
     void InitCryoBoundaries();
 
   private:
-
-    TGeoHMatrix            fGeoMatrix;      ///< Cryostat to world transform.
+    
+    using LocalTransformation_t
+      = geo::LocalTransformationGeo<TGeoHMatrix, LocalPoint_t, LocalVector_t>;
+    
+    LocalTransformation_t  fTrans;          ///< Cryostat-to-world transformation.
     std::vector<TPCGeo>    fTPCs;           ///< List of tpcs in this cryostat
     std::vector<OpDetGeo>  fOpDets;         ///< List of opdets in this cryostat
     TGeoVolume*            fVolume;         ///< Total volume of cryostat, called volCryostat in GDML file
@@ -302,11 +377,9 @@ void geo::CryostatGeo::PrintCryostatInfo(
   if (verbosity-- <= 0) return; // 0
   
   //----------------------------------------------------------------------------
-  auto const& center = GetCenter();
-  
   out
     << " (" << Width() << " x " << Height() << " x " << Length() << ") cm^3 at "
-      << lar::dump::vector3D(center);
+      << GetCenter();
   
   if (verbosity-- <= 0) return; // 1
   
@@ -324,11 +397,7 @@ void geo::CryostatGeo::PrintCryostatInfo(
   // print also the containing box
   geo::BoxBoundedGeo const& box = BoundingBox();
   out << "\n" << indent
-    << "bounding box: ( "
-      << box.MinX() << ", " << box.MinY() << ", " << box.MinZ()
-    << " ) -- ( "
-      << box.MaxX() << ", " << box.MaxY() << ", " << box.MaxZ()
-    << " )";
+    << "bounding box: " << box.Min() << " -- " << box.Max();
   
 //  if (verbosity-- <= 0) return; // 3
   
@@ -337,28 +406,7 @@ void geo::CryostatGeo::PrintCryostatInfo(
 
 
 //------------------------------------------------------------------------------
-template <typename Point>
-Point geo::CryostatGeo::WorldToLocal(Point const& world) const {
-  using namespace geo::vect;
-  std::array<double, 4U> const worldArray
-    { Xcoord(world), Ycoord(world), Zcoord(world), 1.0 };
-  std::array<double, 4U> localArray;
-  fGeoMatrix.MasterToLocal(worldArray.data(), localArray.data());
-  return { localArray[0], localArray[1], localArray[2] };
-} // geo::CryostatGeo::WorldToLocal()
 
-//------------------------------------------------------------------------------
-template <typename Point>
-Point geo::CryostatGeo::LocalToWorld(Point const& local) const {
-  using namespace geo::vect;
-  std::array<double, 4U> const localArray
-    { Xcoord(local), Ycoord(local), Zcoord(local), 1.0 };
-  std::array<double, 4U> worldArray;
-  fGeoMatrix.LocalToMaster(localArray.data(), worldArray.data());
-  return { worldArray[0], worldArray[1], worldArray[2] };
-} // geo::CryostatGeo::LocalToWorld()
-
-//------------------------------------------------------------------------------
 
 #endif // LARCOREALG_GEOMETRY_CRYOSTATGEO_H
 ////////////////////////////////////////////////////////////////////////

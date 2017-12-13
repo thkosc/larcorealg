@@ -96,13 +96,14 @@ namespace {
   
   
   /// Returns a convenience string for the specified direction
-  std::string directionName(TVector3 const& v) {
-    if (v == geo::TPCGeo::DirX) return "x";
-    if (v == geo::TPCGeo::DirY) return "y";
-    if (v == geo::TPCGeo::DirZ) return "z";
-    if (v == -geo::TPCGeo::DirX) return "-x";
-    if (v == -geo::TPCGeo::DirY) return "-y";
-    if (v == -geo::TPCGeo::DirZ) return "-z";
+  template <typename Vector>
+  std::string directionName(Vector const& v) {
+    if (v == geo::Xaxis<Vector>()) return "x";
+    if (v == geo::Yaxis<Vector>()) return "y";
+    if (v == geo::Zaxis<Vector>()) return "z";
+    if (v == -geo::Xaxis<Vector>()) return "-x";
+    if (v == -geo::Yaxis<Vector>()) return "-y";
+    if (v == -geo::Zaxis<Vector>()) return "-z";
     std::ostringstream sstr;
     sstr << v;
     return sstr.str();
@@ -527,14 +528,17 @@ namespace geo{
       
       for(unsigned int w = 0;  w < nWires; ++w) {
         const geo::WireGeo& wire = plane.Wire(w);
-        double xyz[3] = { 0. };
-        wire.LocalToWorld(xyz, xyz); // LocalToWorld() supports in place transf.
+        // this additional check is preserved to test alternative transformation
+        // code paths; center is expected to match wire.GetCenter()
+        std::array<double, 3U> const local = { 0.0, 0.0, 0.0 };
+        std::array<double, 3U> center;
+        wire.LocalToWorld(local.data(), center.data());
         
         // the wire should be aligned on z axis, half on each side of 0,
         // in its local frame
         mf::LogVerbatim("GeometryTest") << indent
           << "    wire #" << w
-          << " at " << lar::dump::array<3>(xyz)
+          << " at " << lar::dump::array<3>(center)
           << "\n" << indent << "       start at " << lar::dump::vector3D(wire.GetStart())
           << "\n" << indent << "      middle at " << lar::dump::vector3D(wire.GetCenter())
           << "\n" << indent << "         end at " << lar::dump::vector3D(wire.GetEnd())
