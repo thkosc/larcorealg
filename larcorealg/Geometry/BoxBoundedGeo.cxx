@@ -14,6 +14,16 @@
 namespace geo
 {
   //----------------------------------------------------------------------------
+  bool BoxBoundedGeo::ContainsPosition
+    (TVector3 const& point, double wiggle /* = 1.0 */) const
+    { return ContainsPosition(geo::vect::toPoint(point), wiggle); }
+  
+  //----------------------------------------------------------------------------
+  bool BoxBoundedGeo::ContainsPosition
+    (double const* point, double wiggle /* = 1.0 */) const
+    { return ContainsPosition(geo::vect::makePointFromCoords(point), wiggle); }
+  
+  //----------------------------------------------------------------------------
   std::vector<geo::Point_t> BoxBoundedGeo::GetIntersections(
     geo::Point_t const& TrajectoryStart,
     geo::Vector_t const& TrajectoryDirect

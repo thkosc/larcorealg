@@ -182,28 +182,27 @@ namespace geo {
     bool ContainsYZ(double y, double z, double const wiggle = 1) const
       { return ContainsY(y, wiggle) && ContainsZ(z, wiggle); }
     
+    //@{
     /**
-     * @brief Returns whether this TPC contains the specified world coordinate
-     * @param worldLoc the absolute ("world") coordinate (x, y, z)
+     * @brief Returns whether this volume contains the specified point.
+     * @param point the point [cm]
      * @param wiggle expansion factor for the range
-     * @return whether the specified coordinate is in this TPC
+     * @return whether the specified coordinate is in this volume
      *
-     * If the wiggle is larger than 1, each size of the TPC is expanded by the
-     * wiggle factor.
+     * If the wiggle is larger than 1, each size of the volume is expanded by
+     * the wiggle factor.
      * If the wiggle is less than 1, each size is shrinked.
      */
     bool ContainsPosition
-      (double const worldLoc[3], double const wiggle = 1) const
+      (geo::Point_t const& point, double wiggle = 1.0) const
       {
-        return ContainsX(worldLoc[0], wiggle)
-          && ContainsYZ(worldLoc[1], worldLoc[2], wiggle);
+        return ContainsX(point.X(), wiggle)
+          && ContainsYZ(point.Y(), point.Z(), wiggle);
       } // ContainsPosition()
-    bool ContainsPosition
-      (TVector3 const& worldLoc, double const& wiggle = 1 ) const
-      {
-        return ContainsX(worldLoc[0], wiggle)
-          && ContainsYZ(worldLoc[1], worldLoc[2], wiggle);
-      } // ContainsPosition()
+    bool ContainsPosition(TVector3 const& point, double wiggle = 1.0) const;
+    bool ContainsPosition(double const* point, double wiggle = 1.0) const;
+    //@}
+    
     ///@}
     
     
