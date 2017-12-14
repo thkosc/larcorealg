@@ -308,42 +308,45 @@ namespace geo {
   
   
   //......................................................................
-  geo::TPCID GeometryCore::FindTPCAtPosition(double const worldLoc[3]) const {
-    geo::TPCID tpcid; // invalid by default
+  geo::TPCID GeometryCore::FindTPCAtPosition(geo::Point_t const& point) const {
     
     // first find the cryostat
-    tpcid.Cryostat = FindCryostatAtPosition(worldLoc);
-    if (tpcid.Cryostat == std::numeric_limits<unsigned int>::max()) return tpcid;
+    geo::CryostatGeo const* cryo = PositionToCryostatPtr(point);
+    if (!cryo) return {};
     
     // then ask it about the TPC
-    tpcid.TPC = Cryostat(tpcid.Cryostat).FindTPCAtPosition(worldLoc, 1. + fPositionWiggle);
-    if (tpcid.TPC == UINT_MAX) return tpcid;
+    geo::TPCID tpcid = cryo->PositionToTPCID(point, 1. + fPositionWiggle);
+    if (tpcid) return tpcid;
     
-    // finally declare the result valid and return it
-    tpcid.isValid = true;
+    // return an invalid TPC ID with cryostat information set:
+    tpcid.Cryostat = cryo->ID().Cryostat;
+    tpcid.markInvalid();
     return tpcid;
+    
   } // GeometryCore::FindTPCAtPosition()
   
   
   //......................................................................
-  const TPCGeo& GeometryCore::PositionToTPC
-    (double const  worldLoc[3], geo::TPCID& tpcid) const
+  geo::CryostatGeo const* GeometryCore::PositionToCryostatPtr
+    (geo::Point_t const& point) const
   {
-    return PositionToCryostat(worldLoc, tpcid.Cryostat)
-      .PositionToTPC(worldLoc, tpcid.TPC, 1.+fPositionWiggle);
-  }
-
-  const TPCGeo& GeometryCore::PositionToTPC(double const  worldLoc[3],
-                                        unsigned int &tpc,
-                                        unsigned int &cstat) const
+    for (geo::CryostatGeo const& cryostat: IterateCryostats()) {
+      if (cryostat.ContainsPosition(point, 1.0 + fPositionWiggle))
+        return &cryostat;
+    }
+    return nullptr;
+  } // GeometryCore::PositionToCryostatPtr()
+  
+  
+  //......................................................................
+  geo::CryostatID GeometryCore::PositionToCryostatID
+    (geo::Point_t const& point) const
   {
-    geo::TPCID tpcid;
-    TPCGeo const& TPC = PositionToTPC(worldLoc, tpcid);
-    cstat = tpcid.Cryostat;
-    tpc = tpcid.TPC;
-    return TPC;
-  }
-
+    geo::CryostatGeo const* cryo = PositionToCryostatPtr(point);
+    return cryo? cryo->ID(): geo::CryostatID{};
+  } // GeometryCore::PositionToCryostatID()
+  
+  
   //......................................................................
   unsigned int GeometryCore::FindCryostatAtPosition(double const worldLoc[3]) const
   {
@@ -388,15 +391,72 @@ namespace geo {
     }
     return geo::CryostatID::InvalidID;
   } // GeometryCore::FindCryostatAtPosition()
-
-  //......................................................................
-  const CryostatGeo& GeometryCore::PositionToCryostat
-    (double const worldLoc[3]) const
-  {
-    geo::CryostatID cid;
-    return PositionToCryostat(worldLoc, cid);
-  } // GeometryCore::PositionToCryostat(double[3])
   
+  
+  //......................................................................
+  geo::TPCGeo const* GeometryCore::PositionToTPCptr
+    (geo::Point_t const& point) const
+  {
+    geo::CryostatGeo const* cryo = PositionToCryostatPtr(point);
+    return cryo? cryo->PositionToTPCptr(point, 1. + fPositionWiggle): nullptr;
+  } // GeometryCore::PositionToTPCptr()
+  
+  
+  //......................................................................
+  geo::TPCGeo const& GeometryCore::PositionToTPC
+    (geo::Point_t const& point) const
+  {
+    geo::TPCGeo const* tpc = PositionToTPCptr(point);
+    if (!tpc) {
+      throw cet::exception("GeometryCore")
+        << "Can't find any TPC at position " << point << "\n";
+    }
+    return *tpc;
+  } // GeometryCore::PositionToTPC()
+  
+  
+  //......................................................................
+  TPCGeo const& GeometryCore::PositionToTPC
+    (double const worldLoc[3], TPCID& tpcid) const
+  {
+    geo::TPCGeo const& TPC = PositionToTPC(worldLoc);
+    tpcid = TPC.ID();
+    return TPC;
+  } // GeometryCore::PositionToTPC(double*, TPCID&)
+  
+  
+  //......................................................................
+  TPCGeo const& GeometryCore::PositionToTPC
+    (double const worldLoc[3], unsigned int &tpc, unsigned int &cstat) const
+  {
+    geo::TPCGeo const& TPC = PositionToTPC(worldLoc);
+    cstat = TPC.ID().Cryostat;
+    tpc = TPC.ID().TPC;
+    return TPC;
+  } // GeometryCore::PositionToTPC(double*, TPCID&)
+  
+  
+  //......................................................................
+  geo::TPCID GeometryCore::PositionToTPCID(geo::Point_t const& point) const {
+    geo::TPCGeo const* tpc = PositionToTPCptr(point);
+    return tpc? tpc->ID(): geo::TPCID{};
+  } // GeometryCore::PositionToTPCID()
+  
+  
+  //......................................................................
+  geo::CryostatGeo const& GeometryCore::PositionToCryostat
+    (geo::Point_t const& point) const
+  {
+    geo::CryostatGeo const* cstat = PositionToCryostatPtr(point);
+    if (!cstat) {
+      throw cet::exception("GeometryCore")
+        << "Can't find any cryostat at position " << point << "\n";
+    }
+    return *cstat;
+  } // GeometryCore::PositionToCryostat()
+  
+  
+  //......................................................................
   const CryostatGeo& GeometryCore::PositionToCryostat
     (double const  worldLoc[3], geo::CryostatID& cid) const
   {
@@ -809,10 +869,6 @@ namespace geo {
       s->GetAxisRange(3,z1,z2); if (zlo) *zlo = z1; if (zhi) *zhi = z2;
     }
   }
-
-  //......................................................................
-  TVector3 GeometryCore::GetTPCFrontFaceCenter(geo::TPCID const& tpcid) const
-    { return TPC(tpcid).GetFrontFaceCenter<TVector3>(); }
 
   //......................................................................
   std::string GeometryCore::VolumeName(geo::Point_t const& point) const

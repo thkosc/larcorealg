@@ -194,6 +194,18 @@ namespace geo {
       { return TPC(tpcid); }
     //@}
     
+    
+    /**
+     * @brief Returns a container with references to all TPCs.
+     * @return a container with references to all TPCs
+     * 
+     * The returned value can be used in a range-for loop like:
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+     * for (geo::TPCGeo const& tpc: cryo.TPCs()) { ... }
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     */
+    auto TPCs() const -> decltype(auto) { return fTPCs; }
+    
     /**
      * @brief Returns the TPC number itpc from this cryostat
      * @param itpc the number of local TPC
@@ -221,16 +233,43 @@ namespace geo {
      * @brief Returns the index of the TPC at specified location
      * @param worldLoc 3D coordinates of the point (world reference frame)
      * @param wiggle a small factor (like 1+epsilon) to avoid rounding errors
-     * @return the TPC index, or UINT_MAX if no TPC is there
+     * @return the TPC index, or `geo::TPCID::InvalidID` if no TPC is there
+     * @deprecated Use `PositionToTPCID()` instead
      */
-    unsigned int FindTPCAtPosition(double const worldLoc[3],
-                                   double const wiggle) const;
+    geo::TPCID::TPCID_t FindTPCAtPosition
+      (double const worldLoc[3], double const wiggle) const;
     
-    /// Return the TPCGeo object containing the world position worldLoc
-    /// @todo What if there is none?
-    const TPCGeo&     PositionToTPC(double const  worldLoc[3],
-				    unsigned int &tpc,
-				    double const &wiggle)       const;
+    /**
+     * @brief Returns the ID of the TPC at specified location.
+     * @param worldLoc 3D coordinates of the point (world reference frame)
+     * @param wiggle a small factor (like 1+epsilon) to avoid rounding errors
+     * @return the ID of the TPC at the specified point (invalid ID if none)
+     */
+    geo::TPCID PositionToTPCID
+      (geo::Point_t const& point, double wiggle) const;
+    
+    //@{
+    /**
+     * @brief Returns the ID of the TPC at specified location.
+     * @param worldLoc 3D coordinates of the point (world reference frame)
+     * @param wiggle a small factor (like 1+epsilon) to avoid rounding errors
+     * @return the ID of the TPC at the specified point (invalid ID if none)
+     */
+    TPCGeo const& PositionToTPC
+      (geo::Point_t const& point, double wiggle) const;
+    TPCGeo const& PositionToTPC
+      (double const  worldLoc[3], double wiggle) const
+      { return PositionToTPC(geo::vect::makePointFromCoords(worldLoc), wiggle); }
+    //@}
+    
+    /**
+     * @brief Returns a pointer to the TPC at specified location.
+     * @param point position in space [cm]
+     * @param wiggle a small factor (like 1+&epsilon;) to avoid rounding errors
+     * @return a pointer to the `geo::TPCGeo` at `point` (`nullptr` if none)
+     */
+    geo::TPCGeo const* PositionToTPCptr
+      (geo::Point_t const& point, double wiggle) const;
     
     /// Returns the largest number of planes among the TPCs in this cryostat
     unsigned int MaxPlanes() const;
@@ -344,6 +383,7 @@ namespace geo {
 
     /// Fill the boundary information of the cryostat
     void InitCryoBoundaries();
+    
 
   private:
     

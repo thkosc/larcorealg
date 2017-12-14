@@ -651,6 +651,87 @@ struct test_vectorAccess<Vector const> {
 
 
 //------------------------------------------------------------------------------
+template <typename Vector, unsigned int Dim = geo::vect::dimension<Vector>()>
+struct IsfiniteTester;
+
+template <typename Vector>
+struct IsfiniteTester<Vector, 4U> {
+  IsfiniteTester()
+    {
+      BOOST_CHECK( geo::vect::isfinite(Vector{ 1.0, 2.0, 3.0, 4.0 }));
+      BOOST_CHECK( geo::vect::isfinite(Vector{ 0.0, 2.0, 3.0, 4.0 }));
+      BOOST_CHECK( geo::vect::isfinite(Vector{ 1.0, 0.0, 3.0, 4.0 }));
+      BOOST_CHECK( geo::vect::isfinite(Vector{ 1.0, 2.0, 0.0, 4.0 }));
+      BOOST_CHECK( geo::vect::isfinite(Vector{ 1.0, 2.0, 3.0, 0.0 }));
+      
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ std::nan(""), 2.0, 3.0, 4.0 }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ 1.0, std::nan(""), 3.0, 4.0 }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ 1.0, 2.0, std::nan(""), 4.0 }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ 1.0, 2.0, 3.0, std::nan("") }));
+      
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ std::nan(""), std::nan(""), 3.0, 4.0 }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ std::nan(""), 2.0, std::nan(""), 4.0 }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ std::nan(""), 2.0, 3.0, std::nan("") }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ 1.0, std::nan(""), std::nan(""), 4.0 }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ 1.0, std::nan(""), 3.0, std::nan("") }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ 1.0, 2.0, std::nan(""), std::nan("") }));
+      
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ 1.0, std::nan(""), std::nan(""), std::nan("") }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ std::nan(""), 2.0, std::nan(""), std::nan("") }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ std::nan(""), std::nan(""), 3.0, std::nan("") }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ std::nan(""), std::nan(""), std::nan(""), 4.0 }));
+      
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ std::nan(""), std::nan(""), std::nan(""), std::nan("") }));
+    }
+};
+
+template <typename Vector>
+struct IsfiniteTester<Vector, 3U> {
+  IsfiniteTester()
+    {
+      BOOST_CHECK( geo::vect::isfinite(Vector{ 1.0, 2.0, 3.0 }));
+      BOOST_CHECK( geo::vect::isfinite(Vector{ 0.0, 2.0, 3.0 }));
+      BOOST_CHECK( geo::vect::isfinite(Vector{ 1.0, 0.0, 3.0 }));
+      BOOST_CHECK( geo::vect::isfinite(Vector{ 1.0, 2.0, 0.0 }));
+      BOOST_CHECK( geo::vect::isfinite(Vector{ 1.0, 2.0, 3.0 }));
+      
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ std::nan(""), 2.0, 3.0 }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ 1.0, std::nan(""), 3.0 }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ 1.0, 2.0, std::nan("") }));
+      
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ 1.0, std::nan(""), std::nan("") }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ std::nan(""), 2.0, std::nan("") }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ std::nan(""), std::nan(""), 3.0 }));
+      
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ std::nan(""), std::nan(""), std::nan("") }));
+    }
+};
+
+template <typename Vector>
+struct IsfiniteTester<Vector, 2U> {
+  IsfiniteTester()
+    {
+      BOOST_CHECK( geo::vect::isfinite(Vector{ 1.0, 2.0 }));
+      BOOST_CHECK( geo::vect::isfinite(Vector{ 0.0, 2.0 }));
+      BOOST_CHECK( geo::vect::isfinite(Vector{ 1.0, 0.0 }));
+      
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ std::nan(""), 2.0 }));
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ 1.0, std::nan("") }));
+      
+      BOOST_CHECK(!geo::vect::isfinite(Vector{ std::nan(""), std::nan("") }));
+    }
+};
+
+
+template <typename Vector>
+void test_vectorProcessing() {
+  
+  (void) IsfiniteTester<Vector>();
+  
+} // test_vectorProcessing()
+
+
+//------------------------------------------------------------------------------
 template <typename Source, typename Dest>
 void test_vector2Dconvert() {
   
@@ -939,6 +1020,17 @@ BOOST_AUTO_TEST_CASE(vectorUtilDocumentation_test) {
 BOOST_AUTO_TEST_CASE(vectorProperties_test) {
   (void) VectorTraitsTester();
 } // BOOST_AUTO_TEST_CASE(vectorConversion_test)
+
+
+//------------------------------------------------------------------------------
+BOOST_AUTO_TEST_CASE(vectorProcessing_test) {
+  test_vectorProcessing<TVector2>();
+  test_vectorProcessing<geo::Point_t>();
+  test_vectorProcessing<geo::Vector_t>();
+  test_vectorProcessing<TVector3>();
+  test_vectorProcessing<TLorentzVector>();
+} // BOOST_AUTO_TEST_CASE(vectorProcessing_test)
+
 
 //------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(vectorConversion_test) {

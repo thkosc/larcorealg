@@ -232,34 +232,49 @@ namespace geo{
   //......................................................................
   // wiggle is 1+a small number to allow for rounding errors on the 
   // passed in world loc relative to the boundaries.
-  unsigned int CryostatGeo::FindTPCAtPosition(double const worldLoc[3], 
-                                              double const wiggle) const
+  geo::TPCID::TPCID_t CryostatGeo::FindTPCAtPosition
+    (double const worldLoc[3], double wiggle) const
   {
-    const unsigned int nTPC = NTPC();
-    for(unsigned int t = 0; t < nTPC; ++t){
-      geo::TPCGeo const& tpc = TPC(t);
-      if (tpc.ContainsPosition(worldLoc, wiggle)) return t;
-    }
-    return std::numeric_limits<unsigned int>::max();
+    geo::TPCID tpcid
+      = PositionToTPCID(geo::vect::makePointFromCoords(worldLoc), wiggle);
+    return tpcid? tpcid.TPC: geo::TPCID::InvalidID;
   } // CryostatGeo::FindTPCAtPosition()
 
   //......................................................................
   // wiggle is 1+a small number to allow for rounding errors on the 
   // passed in world loc relative to the boundaries.
-  const TPCGeo& CryostatGeo::PositionToTPC(double const  worldLoc[3],
-					   unsigned int &tpc, 
-					   double const &wiggle) const
-  {
-    tpc = FindTPCAtPosition(worldLoc, wiggle);
-    if(tpc == std::numeric_limits<unsigned int>::max())
-      throw cet::exception("CryostatGeo") << "Can't find TPC for position (" 
-				       << worldLoc[0] << ","
-				       << worldLoc[1] << "," 
-				       << worldLoc[2] << ")\n";
-			
-    return TPC(tpc);
+  geo::TPCID CryostatGeo::PositionToTPCID
+    (geo::Point_t const& point, double wiggle) const
+  { 
+    geo::TPCGeo const* tpc = PositionToTPCptr(point, wiggle);
+    return tpc? tpc->ID(): geo::TPCID{};
   }
 
+  //......................................................................
+  // wiggle is 1+a small number to allow for rounding errors on the 
+  // passed in world loc relative to the boundaries.
+  TPCGeo const& CryostatGeo::PositionToTPC
+    (geo::Point_t const& point, double wiggle) const
+  {
+    geo::TPCGeo const* tpc = PositionToTPCptr(point, wiggle);
+    if (!tpc) {
+      throw cet::exception("CryostatGeo")
+        << "Can't find any TPC for position " << point << " within " << ID()
+        << "\n";
+    }
+    return *tpc;
+  }
+  
+  //......................................................................
+  geo::TPCGeo const* CryostatGeo::PositionToTPCptr
+    (geo::Point_t const& point, double wiggle) const
+  {
+    for (auto const& tpc: TPCs())
+      if (tpc.ContainsPosition(point, wiggle)) return &tpc;
+    return nullptr;
+  } // CryostatGeo::PositionToTPCptr()
+  
+  
   //......................................................................
   unsigned int CryostatGeo::MaxPlanes() const {
     unsigned int maxPlanes = 0;
@@ -352,9 +367,8 @@ namespace geo{
     
   } // CryostatGeo::InitCryoBoundaries()
   
-  //......................................................................
-
   
+  //......................................................................
 
 } // namespace geo
 ////////////////////////////////////////////////////////////////////////

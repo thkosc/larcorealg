@@ -57,6 +57,7 @@
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect namespace
+// #include "larcorealg/Geometry/geo_vectors_utils_TVector.h" // toTVector3()
 #include "larcorealg/CoreUtils/RealComparisons.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
@@ -77,7 +78,6 @@
 #include <memory> // std::shared_ptr<>
 #include <iterator> // std::forward_iterator_tag
 #include <type_traits> // std::is_base_of<>
-#include <cmath> // std::isfinite()
 
 
 // ROOT class prototypes
@@ -1436,6 +1436,10 @@ namespace geo {
    * 
    */
   class GeometryCore {
+    
+    using DefaultVector_t = TVector3; ///< Default template argument.
+    using DefaultPoint_t = TVector3; ///< Default template argument.
+    
   public:
     
     /// Type used for expressing coordinates
@@ -1991,21 +1995,44 @@ namespace geo {
      * @param worldLoc 3D coordinates of the point (world reference frame)
      * @return the index of the cryostat, or UINT_MAX if no cryostat is there
      *
-     * @todo replace the return value with a CryostatID
-     * @todo what happens if it does not exist?
-     * @todo Unify the coordinates type
+     * @deprecated Use `PositionToCryostatID()` instead
      */
     unsigned int FindCryostatAtPosition(double const worldLoc[3]) const;
     
+    
     /**
-     * @brief Returns the cryostat at specified location
-     * @param worldLoc 3D coordinates of the point (world reference frame)
-     * @return a constant reference to the CryostatGeo object of the cryostat
+     * @brief Returns the cryostat at specified location.
+     * @param point the location [cm]
+     * @return pointer to the `geo::CryostatGeo` including `point`, or `nullptr`
+     * 
+     * The tolerance used here is the one returned by DefaultWiggle().
+     */
+    geo::CryostatGeo const* PositionToCryostatPtr
+      (geo::Point_t const& point) const;
+    
+    /**
+     * @brief Returns the ID of the cryostat at specified location.
+     * @param point the location [cm]
+     * @return ID of the cryostat including `point` (invalid if none)
+     * 
+     * The tolerance used here is the one returned by DefaultWiggle().
+     */
+    geo::CryostatID PositionToCryostatID(geo::Point_t const& point) const;
+    
+    
+    //@{
+    /**
+     * @brief Returns the cryostat at specified location.
+     * @param point the location [cm]
+     * @return a constant reference to the `geo::CryostatGeo` containing `point`
      * @throws cet::exception ("Geometry" category) if no cryostat matches
      * 
      * The tolerance used here is the one returned by DefaultWiggle().
      */
-    CryostatGeo const& PositionToCryostat(double const worldLoc[3]) const;
+    CryostatGeo const& PositionToCryostat(geo::Point_t const& point) const;
+    CryostatGeo const& PositionToCryostat(double const point[3]) const
+      { return PositionToCryostat(geo::vect::makePointFromCoords(point)); }
+    //@}
     
     /**
      * @brief Returns the cryostat at specified location
@@ -2302,37 +2329,70 @@ namespace geo {
      * @param worldLoc 3D coordinates of the point (world reference frame) [cm]
      * @return the TPC ID, or an invalid one if no TPC is there
      */
-    geo::TPCID FindTPCAtPosition(double const worldLoc[3]) const;
+    geo::TPCID FindTPCAtPosition(double const worldLoc[3]) const
+      { return FindTPCAtPosition(geo::vect::makePointFromCoords(worldLoc)); }
     
+    //@{
     /**
      * @brief Returns the ID of the TPC at specified location.
      * @param worldLoc 3D point (world reference frame, centimeters)
      * @return the TPC ID, or an invalid one if no TPC is there
      */
+    geo::TPCID FindTPCAtPosition(geo::Point_t const& point) const;
     geo::TPCID FindTPCAtPosition(TVector3 const& point) const
-      {
-        double const worldLoc[3] = { point.X(), point.Y(), point.Z() };
-        return FindTPCAtPosition(worldLoc);
-      }
+      { return FindTPCAtPosition(geo::vect::toPoint(point)); }
+    //@}
+    
+    /**
+     * @brief Returns the TPC at specified location.
+     * @param point the location [cm]
+     * @return the `geo::TPCGeo` including `point`, or `nullptr` if none
+     */
+    geo::TPCGeo const* PositionToTPCptr(geo::Point_t const& point) const;
     
     
     //@{
     /**
-     * @brief Returns the TPC at specified location
-     * @param worldLoc 3D coordinates of the point (world reference frame)
-     * @param tpc (output) tpc number within the cryostat
-     * @param cstat (output) number of cryostat
-     * @return a constant reference to the TPCGeo object of the TPC
+     * @brief Returns the TPC at specified location.
+     * @param point the location [cm]
+     * @return a constant reference to the `geo::TPCGeo` including `point`
      * @throws cet::exception ("Geometry" category) if no TPC matches
-     * 
-     * @todo replace the output parameters with a TPC ID
+     */
+    geo::TPCGeo const& PositionToTPC(geo::Point_t const& point) const;
+    TPCGeo const& PositionToTPC(double const point[3]) const
+      { return PositionToTPC(geo::vect::makePointFromCoords(point)); }
+    //@}
+    
+    /**
+     * @brief Returns the TPC at specified location.
+     * @param point the location [cm]
+     * @param tpc _(output)_ where to store the number of TPC
+     * @param cstat _(output)_ where to store the number of cryostat
+     * @return a constant reference to the `geo::TPCGeo` including `point`
+     * @throws cet::exception ("Geometry" category) if no TPC matches
+     * @deprecated Use `PositionToTPCID()` or `PositionToTPC().ID()`
      */
     TPCGeo const& PositionToTPC
       (double const worldLoc[3], unsigned int &tpc, unsigned int &cstat) const;
+    
+    /**
+     * @brief Returns the TPC at specified location.
+     * @param point the location [cm]
+     * @param tpcid _(output)_ where to store the TPC ID
+     * @return a constant reference to the `geo::TPCGeo` including `point`
+     * @throws cet::exception ("Geometry" category) if no TPC matches
+     * @deprecated Use `PositionToTPCID()` or `PositionToTPC().ID()`
+     */
     TPCGeo const& PositionToTPC
       (double const worldLoc[3], TPCID& tpcid) const;
-    //@}
     
+    /**
+     * @brief Returns the ID of the TPC at specified location.
+     * @param point the location [cm]
+     * @return ID of the TPC at specified location, invalid if none
+     * @see `PositionToTPC()`
+     */
+    geo::TPCID PositionToTPCID(geo::Point_t const& point) const;
     
     ///
     /// iterators
@@ -2559,10 +2619,13 @@ namespace geo {
      * which faces the negative _z_ direction, the first that a beam following
      * 
      */
-    TVector3 GetTPCFrontFaceCenter(geo::TPCID const& tpcid) const;
-    TVector3 GetTPCFrontFaceCenter
+    template <typename Point = DefaultPoint_t>
+    Point GetTPCFrontFaceCenter(geo::TPCID const& tpcid) const
+      { return TPC(tpcid).GetFrontFaceCenter<Point>(); }
+    template <typename Point = DefaultPoint_t>
+    Point GetTPCFrontFaceCenter
       (unsigned int tpc = 0, unsigned int cstat = 0) const
-      { return GetTPCFrontFaceCenter(geo::TPCID(cstat, tpc)); }
+      { return GetTPCFrontFaceCenter<Point>(geo::TPCID(cstat, tpc)); }
     //@}
     
     
@@ -3755,7 +3818,7 @@ namespace geo {
      * `intersection` point will contain that intersection.
      * 
      * To test that the result is not infinity (nor NaN), use
-     * `geo::GeometryCore::isfinite(intersection)` etc.
+     * `geo::vect::isfinite(intersection)` etc.
      * 
      */
     bool WireIDsIntersect
@@ -4839,11 +4902,6 @@ namespace geo {
     bool ValueInRange(double value, double min, double max) const;
     
     
-    /// Returns whether the argument vector has all components finite.
-    template <typename Point3D>
-    static bool isfinite(Point3D const& point);
-    
-    
     /// @name Geometry initialization
     /// @{
     
@@ -5089,6 +5147,7 @@ inline bool geo::GeometryCore::IncrementID(readout::ROPID& id) const {
 //******************************************************************************
 //***  template implementation
 //***
+//------------------------------------------------------------------------------
 template <typename Stream>
 void geo::GeometryCore::Print
   (Stream&& out, std::string indent /* = "  " */) const
@@ -5178,12 +5237,7 @@ void geo::GeometryCore::Print
 } // geo::GeometryCore::Print()
 
 
-template <typename Point3D>
-bool geo::GeometryCore::isfinite(Point3D const& point) {
-  return std::isfinite(point.X()) && std::isfinite(point.Y())
-    && std::isfinite(point.Z());
-} // geo::GeometryCore::isfinite()
-
+//------------------------------------------------------------------------------
 // template member function specializations
 namespace geo {
 

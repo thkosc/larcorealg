@@ -36,6 +36,42 @@ namespace geo {
     
     //--------------------------------------------------------------------------
     namespace details {
+      //------------------------------------------------------------------------
+      template <typename Op, typename... T>
+      struct AccumulateImpl;
+      
+      template
+        <typename Op, typename First, typename Second, typename... Others>
+      struct AccumulateImpl<Op, First, Second, Others...> {
+        static auto compute(Op op, First&& a, Second&& b, Others&&... others)
+          -> decltype(auto) 
+          {
+            return op(
+              a,
+              AccumulateImpl<Op, Second, Others...>::compute
+                (op, std::forward<Second>(b), std::forward<Others>(others)...)
+              );
+          }
+      }; // AccumulateImpl<>
+      
+      template <typename Op, typename T>
+      struct AccumulateImpl<Op, T> {
+        static auto compute(Op, T&& v) -> decltype(auto) { return v; }
+      };
+      
+      template <typename Op, typename... T>
+      auto extended_accumulate(Op op, T&&... args)
+        { return AccumulateImpl<Op, T...>::compute(op, std::forward<T>(args)...); }
+      
+      
+      template <typename... T>
+      auto extended_and(T... args) -> decltype(auto)
+        {
+          auto and_op = [](auto&& a, auto&& b) { return a && b; };
+          return extended_accumulate(and_op, std::forward<T>(args)...); 
+        }
+      
+      //------------------------------------------------------------------------
       //
       // These two pages of metaprogramming madness are aimed to have objects
       // that can provide a uniform coordinate get/set for any type of vector,
@@ -341,6 +377,7 @@ namespace geo {
         
       }; // class BoundCoordManager
       
+      //------------------------------------------------------------------------
       
     } // namespace details
     
@@ -889,6 +926,10 @@ namespace geo {
     void round01(Vector& v, Scalar tol) { v = rounded01(v, tol); }
     
     
+    /// Returns whether all components of the vector are finite.
+    template <typename Vector>
+    bool isfinite(Vector const& v);
+    
     /// Returns a vector parallel to v and with norm 1
     template <typename Vector>
     Vector normalize(Vector const& v) { return v.Unit(); }
@@ -1187,6 +1228,16 @@ namespace geo {
     ::geo::Vector_t toVector(Vector const& v) 
       { return geo::vect::convertTo<::geo::Vector_t>(v); }
     
+    /// Creates a `geo::Point_t` from its coordinates (see `makeFromCoords()`).
+    template <typename Coords>
+    constexpr ::geo::Point_t makePointFromCoords(Coords&& coords)
+      { return makeFromCoords<::geo::Point_t>(std::forward<Coords>(coords)); }
+    
+    /// Creates a `geo::Vector_t` from its coordinates (see `makeFromCoords()`).
+    template <typename Coords>
+    constexpr ::geo::Vector_t makeVectorFromCoords(Coords&& coords)
+      { return makeFromCoords<::geo::Vector_t>(std::forward<Coords>(coords)); }
+    
     /// @}
     
    
@@ -1479,6 +1530,11 @@ namespace geo {
       
       
       //------------------------------------------------------------------------
+      template <typename Point, std::size_t... I>
+      bool isfiniteImpl(Point const& point, std::index_sequence<I...>)
+        { return extended_and(std::isfinite(coord(point, I))...); }
+      
+      //------------------------------------------------------------------------
       
     } // namespace details
   } // namespace vect
@@ -1576,6 +1632,12 @@ Vector geo::vect::transformCoords(Vector const& v, Pred&& pred) {
   return makeFromCoords<Vector>(values);
 } // geo::vect::transformCoords()
 
+
+//------------------------------------------------------------------------------
+/// Returns whether all components of the vector are finite.
+template <typename Vector>
+bool geo::vect::isfinite(Vector const& v)
+  { return details::isfiniteImpl(v, details::makeVectorIndices<Vector>()); }
 
 //------------------------------------------------------------------------------
 
