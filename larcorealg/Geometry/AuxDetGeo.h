@@ -1,60 +1,163 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  AuxDetGeo.h
+/// \file  larcorealg/Geometry/AuxDetGeo.h
 /// \brief Encapsulate the geometry of an auxiliary detector
 ///
 /// \author  miceli@fnal.gov
 ////////////////////////////////////////////////////////////////////////
 
-#ifndef GEO_AuxDetGeo_H
-#define GEO_AuxDetGeo_H
-#include <vector>
-#include "TGeoVolume.h"
+#ifndef LARCOREALG_GEOMETRY_AUXDETGEO_H
+#define LARCOREALG_GEOMETRY_AUXDETGEO_H
 
-#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
+// LArSoft libraries
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcorealg/CoreUtils/RealComparisons.h"
-#include "larcorealg/CoreUtils/DumpUtils.h" // lar::dump::array(), ...
+
+// ROOT libraries
+#include "TGeoVolume.h"
+#include "TGeoMatrix.h" // TGeoHMatrix
+
+// C/C++ libraries
+#include <vector>
 
 class TGeoNode;
-class TGeoHMatrix;
-class TGeoMatrix;
+
 
 namespace geo {
   
   class AuxDetGeo {
   public:
+    /// @{
+    /**
+     * @name Types for geometry-local reference vectors.
+     * 
+     * These types represents points and displacement vectors in the reference
+     * frame defined in the auxiliary detector geometry box from the GDML
+     * geometry description.
+     * 
+     * No alias is explicitly defined for the LArSoft global vector types,
+     * `geo::Point_t` and `geo::Vector_t`.
+     * 
+     * Remember the `LocalPoint_t` and `LocalVector_t` vectors from different
+     * instances of `geo::AuxDetGeo` have the same type but are not compatible.
+     */
+    
+    /// Tag for vectors in the "local" GDML coordinate frame of the
+    /// auxiliary detector.
+    struct AuxDetGeoCoordinatesTag {};
+    
+    /// Type of points in the local GDML auxiliary detector frame.
+    using LocalPoint_t = geo::Point3DBase_t<AuxDetGeoCoordinatesTag>;
+    
+    /// Type of displacement vectors in the local GDML auxiliary detector frame.
+    using LocalVector_t = geo::Vector3DBase_t<AuxDetGeoCoordinatesTag>;
+    
+    ///@}
+    
     AuxDetGeo(std::vector<const TGeoNode*>& path, 
               int                           depth);
+    
     ~AuxDetGeo();
     
-    void GetCenter(double* xyz, 
-                   double localz=0.0)    const;
+    /**
+     * @brief Return the center position of an AuxDet.
+     * @param xyz _(output)_ the returned location: `{ x, y, z }` [cm]
+     * @param localz (default: `0`) distance along the length of the volume (z)
+     *               [cm]
+     */
+    void GetCenter(double* xyz, double localz=0.0)    const;
+    
+    /**
+     * @brief Returns the geometric center of the sensitive volume.
+     * @param localz (default: `0`) distance from the center along the length
+     *               of the volume (z) [cm]
+     * @return the geometric center of the sensitive volume [cm]
+     */
+    geo::Point_t GetCenter(double localz = 0.0) const;
+    
+    /// Returns the unit normal vector to the detector.
+    geo::Vector_t GetNormalVector() const;
+    
+    /// Fills the unit normal vector to the detector.
     void GetNormalVector(double* xyzDir) const;
-
-    //box geometry
+    
+    
+    /// @{
+    /// @name Box geometry
     double Length()                  const { return fLength;      }
     double HalfWidth1()      	       const { return fHalfWidth1;  }
     double HalfWidth2()      	       const { return fHalfWidth2;  }
     double HalfHeight()      	       const { return fHalfHeight;  }
     const TGeoVolume* TotalVolume()  const { return fTotalVolume; }
+    /// @}
     
-    double DistanceToPoint(double * xyz) const;
+    //@{
+    /// Returns the distance of `point` from the center of the detector.
+    geo::Length_t DistanceToPoint(geo::Point_t const& point) const
+      { return (point - GetCenter()).R(); }
+    geo::Length_t DistanceToPoint(double const* point) const;
+    //@}
     
-    void LocalToWorld    (const double* local, double* world) const;
-    void LocalToWorldVect(const double* local, double* world) const;
-    void WorldToLocal    (const double* world, double* local) const;
-    void WorldToLocalVect(const double* world, double* local) const;
-
+    /// @{
+    /// @name Coordinate transformation
+    
+    /// Transform point from local auxiliary detector frame to world frame.
+    void LocalToWorld(const double* auxdet, double* world) const
+      { fTrans.LocalToWorld(auxdet, world); }
+      
+    /// Transform point from local auxiliary detector frame to world frame.
+    geo::Point_t toWorldCoords(LocalPoint_t const& local) const
+      { return fTrans.toWorldCoords(local); }
+    
+    /// Transform direction vector from local to world.
+    void LocalToWorldVect(const double* auxdet, double* world) const
+      { fTrans.LocalToWorldVect(auxdet, world); }
+    
+    /// Transform direction vector from local to world.
+    geo::Vector_t toWorldCoords(LocalVector_t const& local) const
+      { return fTrans.toWorldCoords(local); }
+    
+    /// Transform point from world frame to local auxiliary detector frame.
+    void WorldToLocal(const double* world, double* auxdet) const
+      { fTrans.WorldToLocal(world, auxdet); }
+    
+    /// Transform point from world frame to local auxiliary detector frame.
+    LocalPoint_t toLocalCoords(geo::Point_t const& world) const
+      { return fTrans.toLocalCoords(world); }
+    
+    /// Transform direction vector from world to local.
+    void WorldToLocalVect(const double* world, double* auxdet) const
+      { fTrans.WorldToLocalVect(world, auxdet); }
+    
+    /// Transform direction vector from world to local.
+    LocalVector_t toLocalCoords(geo::Vector_t const& world) const
+      { return fTrans.toLocalCoords(world); }
+    
+    /// @}
+    
+    
     std::string Name() const { return fTotalVolume->GetName(); }
-
-    // methods for the sensitive volumes in the aux det
     
-    size_t                    FindSensitiveVolume      (double const worldLoc[3])  const;
-    AuxDetSensitiveGeo const& PositionToSensitiveVolume(double const worldLoc[3],
-                                                        size_t     & sv)           const;
+    /// @{
+    /// @name Access to the sensitive volumes in the detector
+    
+    //@{
+    std::size_t FindSensitiveVolume(geo::Point_t const& point)  const;
+    /// @deprecated Use the version with `geo::Point_t` argument instead
+    std::size_t FindSensitiveVolume(double const worldLoc[3])  const;
+    //@}
+    //@{
+    AuxDetSensitiveGeo const& PositionToSensitiveVolume
+      (geo::Point_t const& point, size_t& sv) const;
+    /// @deprecated Use the version with `geo::Point_t` argument instead
+    AuxDetSensitiveGeo const& PositionToSensitiveVolume
+      (double const worldLoc[3], size_t& sv) const;
+    //@}
     AuxDetSensitiveGeo const& SensitiveVolume(size_t sv) const { return *fSensitive[sv];   }
     size_t                    NSensitiveVolume()         const { return fSensitive.size(); }
+    
+    /// @}
     
     void                      SortSubVolumes(geo::GeoObjectSorter const& sorter);
 
@@ -89,19 +192,26 @@ namespace geo {
     
     
   private:
-
+    
+    using LocalTransformation_t
+      = geo::LocalTransformationGeo<TGeoHMatrix, LocalPoint_t, LocalVector_t>;
+    
+    
     void FindAuxDetSensitive(std::vector<const TGeoNode*>& path,
                              unsigned int                  depth);
     void MakeAuxDetSensitive(std::vector<const TGeoNode*>& path,
                              int                           depth);
 
     const TGeoVolume*     	         fTotalVolume; ///< Total volume of AuxDet, called vol*
-    TGeoHMatrix*                     fGeoMatrix;   ///< Transformation matrix to world frame
+    LocalTransformation_t 	         fTrans;       ///< Auxiliary detector-to-world transformation.
     double                	         fLength;      ///< length of volume, along z direction in local
     double                	         fHalfWidth1;  ///< 1st half width of volume, at -z/2 in local coordinates
     double                	         fHalfWidth2;  ///< 2nd half width (width1==width2 for boxes), at +z/2
     double                	         fHalfHeight;  ///< half height of volume
     std::vector<AuxDetSensitiveGeo*> fSensitive;   ///< sensitive volumes in the detector
+    
+    /// Extracts the size of the detector from the geometry information.
+    void InitShapeSize();
   };
 }
 
@@ -122,9 +232,7 @@ void geo::AuxDetGeo::PrintAuxDetInfo(
   if (verbosity-- <= 0) return; // 0
   
   //----------------------------------------------------------------------------
-  std::array<double, 3U> center;
-  GetCenter(center.data());
-  out << " centered at " << lar::dump::array<3U>(center) << " cm";
+  out << " centered at " << GetCenter() << " cm";
   
   if (verbosity-- <= 0) return; // 1
   
@@ -149,9 +257,7 @@ void geo::AuxDetGeo::PrintAuxDetInfo(
   if (verbosity-- <= 0) return; // 3
   
   //----------------------------------------------------------------------------
-  std::array<double, 3U> normal;
-  GetNormalVector(normal.data());
-  out << ", normal facing " << lar::dump::array<3U>(normal);
+  out << ", normal facing " << GetNormalVector();
   
 //  if (verbosity-- <= 0) return; // 4
   
@@ -162,4 +268,4 @@ void geo::AuxDetGeo::PrintAuxDetInfo(
 
 //------------------------------------------------------------------------------
 
-#endif
+#endif // LARCOREALG_GEOMETRY_AUXDETGEO_H

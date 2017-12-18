@@ -18,6 +18,7 @@
 #include "larcorealg/Geometry/ChannelMapStandardAlg.h"
 #include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/Geometry/DriftPartitions.h" // BuildDriftVolumes()
+#include "larcorealg/CoreUtils/DumpUtils.h" // lar::dump::vector3D()
 
 // utility libraries
 #include "messagefacility/MessageLogger/MessageLogger.h"

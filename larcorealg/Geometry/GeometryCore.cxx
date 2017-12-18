@@ -452,45 +452,59 @@ namespace geo {
   } // GeometryCore::PositionToCryostat(double[3], unsigned int)
   
   //......................................................................
+  unsigned int GeometryCore::FindAuxDetAtPosition(geo::Point_t const& point) const
+  {
+    std::array<double, 3U> worldPos = { point.X(), point.Y(), point.Z() };
+    return fChannelMapAlg->NearestAuxDet(worldPos.data(), AuxDets());
+  } // GeometryCore::FindAuxDetAtPosition()
+  
+  //......................................................................
   unsigned int GeometryCore::FindAuxDetAtPosition(double const  worldPos[3]) const
-  {
-    return fChannelMapAlg->NearestAuxDet(worldPos, AuxDets());
-  } // GeometryCore::FindAuxDetAtPosition()
+    { return FindAuxDetAtPosition(geo::vect::makePointFromCoords(worldPos)); }
   
-
   
   //......................................................................
-  const AuxDetGeo& GeometryCore::PositionToAuxDet(double const  worldLoc[3],
-                                              unsigned int &ad) const
-  {    
+  const AuxDetGeo& GeometryCore::PositionToAuxDet
+    (geo::Point_t const& point, unsigned int &ad) const
+  {
     // locate the desired Auxiliary Detector
-    ad = this->FindAuxDetAtPosition(worldLoc);
-    
-    return this->AuxDet(ad);
+    ad = FindAuxDetAtPosition(point);
+    return AuxDet(ad);
   }
 
   //......................................................................
-  void GeometryCore::FindAuxDetSensitiveAtPosition(double const worldPos[3],
-					       size_t     & adg,
-					       size_t     & sv) const
-  {
-    adg = this->FindAuxDetAtPosition(worldPos);
-    sv  = fChannelMapAlg->NearestSensitiveAuxDet(worldPos, AuxDets());
+  const AuxDetGeo& GeometryCore::PositionToAuxDet
+    (double const  worldLoc[3], unsigned int &ad) const
+    { return PositionToAuxDet(geo::vect::makePointFromCoords(worldLoc), ad); }
 
-    return;
+  //......................................................................
+  void GeometryCore::FindAuxDetSensitiveAtPosition
+    (geo::Point_t const& point, size_t& adg, size_t& sv) const
+  {
+    adg = FindAuxDetAtPosition(point);
+    std::array<double, 3U> const worldPos = { point.X(), point.Y(), point.Z() };
+    sv  = fChannelMapAlg->NearestSensitiveAuxDet(worldPos.data(), AuxDets());
   } // GeometryCore::FindAuxDetAtPosition()
   
-
+  //......................................................................
+  void GeometryCore::FindAuxDetSensitiveAtPosition
+    (double const worldPos[3], size_t& adg, size_t& sv) const
+    { return FindAuxDetSensitiveAtPosition(geo::vect::makePointFromCoords(worldPos), adg, sv); }
+  
   
   //......................................................................
-  const AuxDetSensitiveGeo& GeometryCore::PositionToAuxDetSensitive(double const worldLoc[3],
-								size_t      &ad,
-								size_t      &sv) const
-  {    
+  const AuxDetSensitiveGeo& GeometryCore::PositionToAuxDetSensitive
+    (geo::Point_t const& point, size_t& ad, size_t& sv) const
+  {
     // locate the desired Auxiliary Detector
-    this->FindAuxDetSensitiveAtPosition(worldLoc, ad, sv);    
-    return this->AuxDet(ad).SensitiveVolume(sv);
+    FindAuxDetSensitiveAtPosition(point, ad, sv);
+    return AuxDet(ad).SensitiveVolume(sv);
   }
+  
+  //......................................................................
+  const AuxDetSensitiveGeo& GeometryCore::PositionToAuxDetSensitive
+    (double const worldLoc[3], size_t& ad, size_t& sv) const
+    { return PositionToAuxDetSensitive(geo::vect::makePointFromCoords(worldLoc), ad, sv); }
   
   //......................................................................
   const AuxDetGeo& GeometryCore::ChannelToAuxDet(std::string const& auxDetName,

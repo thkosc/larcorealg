@@ -3918,7 +3918,7 @@ namespace geo {
      * to the one of the first wire.
      * Wires are assumed to have at most one intersection.
      * If wires are parallel, `intersection` will have all components set to
-     * infinity (`std::numeric_limit<>::infinity()`) and `false` is returned.
+     * infinity (`std::numeric_limits<>::infinity()`) and `false` is returned.
      * If the intersection is outside the TPC, `false` is also returned, but the
      * `intersection` point will contain that intersection.
      * 
@@ -3945,7 +3945,7 @@ namespace geo {
      * @f$ x = 0 @f$ plane.
      * Wires are assumed to have at most one intersection.
      * If wires are parallel, `widIntersect` will have the two components set to
-     * infinity (`std::numeric_limit<>::infinity()`) and the TPC number set to
+     * infinity (`std::numeric_limits<>::infinity()`) and the TPC number set to
      * invalid (`geo::TPCID::InvalidID`). Also, `false` is returned.
      * If the intersection is outside the TPC, `false` is also returned, but the
      * `widIntersect` will contain the coordinates of that intersection. The TPC
@@ -4291,19 +4291,42 @@ namespace geo {
     AuxDetGeo const& AuxDet(unsigned int const ad = 0) const;
     
     /**
-     * @brief Returns the index of the auxiliary detector at specified location
+     * @brief Returns the index of the auxiliary detector at specified location.
      * @param worldLoc 3D coordinates of the point (world reference frame)
-     * @return the index of the detector, or UINT_MAX if no detector is there
+     * @return the index of the detector, or
+     *        `std::numeric_limits<unsigned int>::max()` if no detector is there
      * 
-     * @todo replace with numeric_limits<>?
+     * @bug Actually, an exception is thrown.
+     * @deprecated Use the version with `geo::Point_t`.
      */
     unsigned int FindAuxDetAtPosition(double const worldLoc[3]) const;
+    
+    /**
+     * @brief Returns the index of the auxiliary detector at specified location.
+     * @param point location to be tested
+     * @return the index of the detector, or
+     *        `std::numeric_limits<unsigned int>::max()` if no detector is there
+     * 
+     * @bug Actually, an exception is thrown.
+     */
+    unsigned int FindAuxDetAtPosition(geo::Point_t const& point) const;
+    
+    /**
+     * @brief Fills the indices of the sensitive auxiliary detector at location
+     * @param point location to be tested
+     * @param adg _(output)_ auxiliary detector index
+     * @param sv _(output)_ sensitive volume index
+     */
+    void  FindAuxDetSensitiveAtPosition(geo::Point_t const& point,
+                                        std::size_t       & adg,
+                                        std::size_t       & sv) const;
     
     /**
      * @brief Fills the indices of the sensitive auxiliary detector at location
      * @param worldLoc 3D coordinates of the point (world reference frame)
      * @param adg (output) auxiliary detector index
      * @param sv (output) sensitive volume index
+     * @deprecated Use the version with `geo::Point_t`.
      */
     void  FindAuxDetSensitiveAtPosition(double const worldLoc[3],
                                         size_t     & adg,
@@ -4311,14 +4334,38 @@ namespace geo {
     
     /**
      * @brief Returns the auxiliary detector at specified location
-     * @param worldLoc 3D coordinates of the point (world reference frame)
-     * @param ad (output) the auxiliary detector index
+     * @param point location to be tested
+     * @param ad _(output)_ the auxiliary detector index
      * @return constant reference to AuxDetGeo object of the auxiliary detector
      * 
      * @todo what happens if it does not exist?
      */
     AuxDetGeo const& PositionToAuxDet
-      (double const worldLoc[3], unsigned int &ad) const;
+      (geo::Point_t const& point, unsigned int& ad) const;
+    
+    /**
+     * @brief Returns the auxiliary detector at specified location
+     * @param worldLoc 3D coordinates of the point (world reference frame)
+     * @param ad (output) the auxiliary detector index
+     * @return constant reference to AuxDetGeo object of the auxiliary detector
+     * 
+     * @deprecated Use the version with `geo::Point_t`.
+     * @todo what happens if it does not exist?
+     */
+    AuxDetGeo const& PositionToAuxDet
+      (double const worldLoc[3], unsigned int& ad) const;
+    
+    /**
+     * @brief Returns the auxiliary detector at specified location
+     * @param point location to be tested
+     * @param ad _(output)_ the auxiliary detector index
+     * @param sv _(output)_ the auxiliary detector sensitive volume index
+     * @return reference to AuxDetSensitiveGeo object of the auxiliary detector
+     * 
+     * @todo what happens if it does not exist?
+     */
+    const AuxDetSensitiveGeo& PositionToAuxDetSensitive
+      (geo::Point_t const& point, size_t& ad, size_t& sv) const;
     
     /**
      * @brief Returns the auxiliary detector at specified location
@@ -4328,6 +4375,7 @@ namespace geo {
      * @return reference to AuxDetSensitiveGeo object of the auxiliary detector
      * 
      * @todo what happens if it does not exist?
+     * @deprecated Use the version with `geo::Point_t`.
      */
     const AuxDetSensitiveGeo& PositionToAuxDetSensitive(double const worldLoc[3],
                                                         size_t     & ad,
