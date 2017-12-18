@@ -56,8 +56,8 @@
 #include "larcorealg/Geometry/OpDetGeo.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
+#include "larcorealg/Geometry/BoxBoundedGeo.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect namespace
-// #include "larcorealg/Geometry/geo_vectors_utils_TVector.h" // toTVector3()
 #include "larcorealg/CoreUtils/RealComparisons.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
@@ -83,6 +83,7 @@
 // ROOT class prototypes
 class TGeoManager;
 class TGeoNode;
+class TGeoVolume;
 class TGeoMaterial;
 
 
@@ -1443,27 +1444,31 @@ namespace geo {
   public:
     
     /// Type used for expressing coordinates
-    using Coord_t = double;
+    /// @deprecated Use directly `geo::Length_t`
+    using Coord_t [[deprecated("Use geo::Point_t instead")]] = geo::Length_t;
     
     /// Type used to represent a point in global coordinates
-  //  using Point3D_t = std::array<Coord_t, 3>; // one day it will be standard...
-    using Point3D_t = TVector3; // terrible choice... we know
+    /// @deprecated Use directly `geo::Point_t`
+    using Point3D_t [[deprecated("Convert the code to use geo::Point_t")]]
+      = DefaultPoint_t;
     
     
-    /// Simple class with two points (a pair with aliases)
-    struct Segment_t: public std::pair<Point3D_t, Point3D_t> {
+    /// Simple class with two points (a pair with aliases).
+    template <typename Point>
+    struct Segment: public std::pair<Point, Point> {
       
       // use the base class constructors
-      using std::pair<Point3D_t, Point3D_t>::pair;
+      using std::pair<Point, Point>::pair;
       
-      Point3D_t const& start() const { return this->first; }
-      Point3D_t& start() { return this->first; }
+      Point const& start() const { return this->first; }
+      Point& start() { return this->first; }
       
-      Point3D_t const& end() const { return this->second; }
-      Point3D_t& end() { return this->second; }
+      Point const& end() const { return this->second; }
+      Point& end() { return this->second; }
       
     }; // struct Segment_t
     
+    using Segment_t = Segment<DefaultPoint_t>;
     
     /// Type of list of cryostats
     using CryostatList_t = GeometryData_t::CryostatList_t;
@@ -1476,7 +1481,7 @@ namespace geo {
     static constexpr std::size_t MaxWireDepthInGDML = 20U;
     
     /// Value of tolerance for equality comparisons
-    static lar::util::RealComparisons<Coord_t> coordIs;
+    static lar::util::RealComparisons<geo::Length_t> coordIs;
     
     
     // import iterators
@@ -1731,6 +1736,10 @@ namespace geo {
     // position
     //
     
+    /// Returns a pointer to the world volume.
+    TGeoVolume const* WorldVolume() const;
+    
+    
     /**
      * @brief Fills the arguments with the boundaries of the world
      * @param xlo (output) pointer to the lower x coordinate
@@ -1740,18 +1749,22 @@ namespace geo {
      * @param zlo (output) pointer to the lower z coordinate
      * @param zlo (output) pointer to the upper z coordinate
      * @throw cet::exception (`"GeometryCore"` category) if no world found
+     * @see `GetWorldVolumeName()`
      *
-     * This method fills the boundaries of the world volume, that is the one
-     * known as `"volWorld"` in the geometry.
+     * This method fills the boundaries of the world volume
+     * (`GetWorldVolumeName()`).
      * 
      * If a pointer is null, its coordinate is skipped.
-     *
-     * @todo Replace it with a TPC boundaries style thing?
-     * @todo Unify the coordinates type
+     * 
+     * @deprecated Use the version without arguments instead.
      */
     void WorldBox(double* xlo, double* xhi,
                   double* ylo, double* yhi,
                   double* zlo, double* zhi) const;
+    
+    /// Returns a box with the extremes of the world volume (from shape axes).
+    /// @see `GetWorldVolumeName()`
+    geo::BoxBoundedGeo WorldBox() const;
     
     /**
      * @brief The position of the detector respect to earth surface
@@ -1767,7 +1780,7 @@ namespace geo {
      * @todo check that this is actually how it is used
      */
     //
-    double SurfaceY() const { return fSurfaceY; }
+    geo::Length_t SurfaceY() const { return fSurfaceY; }
     
     
     //
@@ -1823,6 +1836,9 @@ namespace geo {
     std::vector<std::vector<TGeoNode const*>> FindAllVolumePaths
       (std::set<std::string> const& vol_names) const;
     
+    
+    /// Returns the material at the specified position
+    TGeoMaterial const* Material(geo::Point_t const& point) const;
     //@{
     /**
      * @brief Name of the deepest material containing the point xyz
@@ -1834,27 +1850,30 @@ namespace geo {
     //@}
     
     
-    /// Returns the material at the specified position
-    /// @todo Unify the coordinates type
-    TGeoMaterial const* Material(double x, double y, double z) const;
+    //@{
+    /// Returns the total mass [kg] of the specified volume (default: world).
+    double TotalMass() const { return TotalMass(GetWorldVolumeName()); }
+    double TotalMass(std::string vol) const;
+    //@}
     
-    /// Returns the total mass [kg] of the specified volume (default: world)
-    /// @todo Use GetWorldVolumeName() as default instead
-    double TotalMass(const char* vol = "volWorld") const;
-    
-    // this requires a bit more explanation about what this mass density is...
+    //@{
     /**
-     * @brief Return the column density between two points
-     * @param p1 pointer to array holding (x, y, z) of the first point
-     * @param p2 pointer to array holding (x, y, z) of the second point
-     * @return the mass
+     * @brief Returns the column density between two points.
+     * @param p1 the first point
+     * @param p2 the second point
+     * @return the column density [kg / cm&sup2;]
+     * 
+     * The column density is defined as
+     * @f$ \int_{\vec{p}_{1}}^{\vec{p}_{2}} \rho(\vec{p}) d\vec{p} @f$
+     * where @f$ \rho(\vec{p}) @f$ is the density at point @f$ \vec{p} @f$,
+     * which the integral leads from `p1` to `p2` in a straight line.
      * 
      * Both points are specified in world coordinates.
-     * 
-     * @todo Unify the coordinates type
      */
-    /// Returns the mass between two coordinates
+    double MassBetweenPoints
+      (geo::Point_t const& p1, geo::Point_t const& p2) const;
     double MassBetweenPoints(double *p1, double *p2) const;
+    //@}
     
     
     /// Prints geometry information with maximum verbosity.
@@ -1990,6 +2009,7 @@ namespace geo {
       { return CryostatPtr(cryoid); }
     //@}
     
+    //@{
     /**
      * @brief Returns the index of the cryostat at specified location
      * @param worldLoc 3D coordinates of the point (world reference frame)
@@ -1997,7 +2017,11 @@ namespace geo {
      *
      * @deprecated Use `PositionToCryostatID()` instead
      */
-    unsigned int FindCryostatAtPosition(double const worldLoc[3]) const;
+    geo::CryostatID::CryostatID_t FindCryostatAtPosition
+      (geo::Point_t const& worldLoc) const;
+    geo::CryostatID::CryostatID_t FindCryostatAtPosition
+      (double const worldLoc[3]) const;
+    //@}
     
     
     /**
@@ -2043,6 +2067,7 @@ namespace geo {
      * 
      * The tolerance used here is the one returned by DefaultWiggle().
      * 
+     * @deprecated Use `PositionToCryostat(geo::Point_t const&)` instead.
      */
     CryostatGeo const& PositionToCryostat
       (double const worldLoc[3], geo::CryostatID& cid) const;
@@ -2056,8 +2081,7 @@ namespace geo {
      * 
      * The tolerance used here is the one returned by DefaultWiggle().
      * 
-     * @deprecated Use PositionToCryostat(double const[3], geo::CryostatID&)
-     *             instead.
+     * @deprecated Use `PositionToCryostat(geo::Point_t const&)` instead.
      */
     CryostatGeo const& PositionToCryostat
       (double const worldLoc[3], unsigned int &cstat) const;
@@ -2139,22 +2163,22 @@ namespace geo {
     
     //@{
     /// Returns the half width of the cryostat (x direction)
-    double CryostatHalfWidth(geo::CryostatID const& cid) const;
-    double CryostatHalfWidth(unsigned int cstat = 0) const
+    geo::Length_t CryostatHalfWidth(geo::CryostatID const& cid) const;
+    geo::Length_t CryostatHalfWidth(unsigned int cstat = 0) const
       { return CryostatHalfWidth(geo::CryostatID(cstat)); }
     //@}
     
     //@{
     /// Returns the height of the cryostat (y direction)
-    double CryostatHalfHeight(geo::CryostatID const& cid) const;
-    double CryostatHalfHeight(unsigned int cstat = 0) const
+    geo::Length_t CryostatHalfHeight(geo::CryostatID const& cid) const;
+    geo::Length_t CryostatHalfHeight(unsigned int cstat = 0) const
       { return CryostatHalfHeight(geo::CryostatID(cstat)); }
     //@}
     
     //@{
     /// Returns the length of the cryostat (z direction)
-    double CryostatLength(geo::CryostatID const& cid) const;
-    double CryostatLength(unsigned int cstat = 0) const
+    geo::Length_t CryostatLength(geo::CryostatID const& cid) const;
+    geo::Length_t CryostatLength(unsigned int cstat = 0) const
       { return CryostatLength(geo::CryostatID(cstat)); }
     //@}
     
@@ -2171,6 +2195,7 @@ namespace geo {
      * [2] lower y coordinate  [3] upper y coordinate
      * [4] lower z coordinate  [5] upper z coordinate
      * 
+     * @deprecated Use `CryostatGeo::Boundaries()` (from `Cryostat(cid)`).
      * @todo What happen on invalid cryostat?
      */
     void CryostatBoundaries
@@ -2188,8 +2213,8 @@ namespace geo {
      * [2] lower y coordinate  [3] upper y coordinate
      * [4] lower z coordinate  [5] upper z coordinate
      * 
-     * @deprecated Use CryostatBoundaries(double*, geo::CryostatID const&)
-     * or (recommended) CryostatGeo::Boundaries() instead
+     * @deprecated Use `CryostatBoundaries(double*, geo::CryostatID const&)`
+     * or (recommended) `CryostatGeo::Boundaries()` from `Cryostat(cid)` instead
      */
     void CryostatBoundaries
       (double* boundaries, unsigned int cstat = 0) const
@@ -2559,8 +2584,9 @@ namespace geo {
      * @todo deprecate this function
      * @todo rename the function
      */
-    double DetHalfWidth(geo::TPCID const& tpcid) const;
-    double DetHalfWidth(unsigned int tpc = 0, unsigned int cstat = 0) const
+    geo::Length_t DetHalfWidth(geo::TPCID const& tpcid) const;
+    geo::Length_t DetHalfWidth
+      (unsigned int tpc = 0, unsigned int cstat = 0) const
       { return DetHalfWidth(geo::TPCID(cstat, tpc)); }
     //@}
     
@@ -2580,8 +2606,9 @@ namespace geo {
      * @todo deprecate this function
      * @todo rename the function
      */
-    double DetHalfHeight(geo::TPCID const& tpcid) const;
-    double DetHalfHeight(unsigned int tpc = 0, unsigned int cstat = 0) const
+    geo::Length_t DetHalfHeight(geo::TPCID const& tpcid) const;
+    geo::Length_t DetHalfHeight
+      (unsigned int tpc = 0, unsigned int cstat = 0) const
       { return DetHalfHeight(geo::TPCID(cstat, tpc)); }
     //@}
     
@@ -2601,8 +2628,8 @@ namespace geo {
      * @todo deprecate this function
      * @todo rename the function
      */
-    double DetLength(geo::TPCID const& tpcid) const;
-    double DetLength(unsigned int tpc = 0, unsigned int cstat = 0) const
+    geo::Length_t DetLength(geo::TPCID const& tpcid) const;
+    geo::Length_t DetLength(unsigned int tpc = 0, unsigned int cstat = 0) const
       { return DetLength(geo::TPCID(cstat, tpc)); }
     //@}
     
@@ -3034,16 +3061,16 @@ namespace geo {
      * @todo return the absolute value of the distance (makes the order unimportant)
      * @todo document what will happen (in the future methods) with planes on different TPCs
      */
-    double PlanePitch(
+    geo::Length_t PlanePitch(
       geo::TPCID const& tpcid,
       geo::PlaneID::PlaneID_t p1 = 0, geo::PlaneID::PlaneID_t p2 = 1
       )
       const;
-    double PlanePitch(geo::PlaneID const& pid1, geo::PlaneID const& pid2) const;
-    double PlanePitch(unsigned int p1 = 0,
-                      unsigned int p2 = 1,
-                      unsigned int tpc = 0,
-                      unsigned int cstat = 0) const;
+    geo::Length_t PlanePitch(geo::PlaneID const& pid1, geo::PlaneID const& pid2) const;
+    geo::Length_t PlanePitch(unsigned int p1 = 0,
+                             unsigned int p2 = 1,
+                             unsigned int tpc = 0,
+                             unsigned int cstat = 0) const;
     //@}
     
     /**
@@ -3494,14 +3521,14 @@ namespace geo {
      * @todo document what will happen (in the future methods) with wires on different planes
      * 
      */
-    double WirePitch
+    geo::Length_t WirePitch
       (geo::PlaneID const& planeid, unsigned int w1 = 0, unsigned int w2 = 1)
       const;
-    double WirePitch(unsigned int w1 = 0, 
-                     unsigned int w2 = 1, 
-                     unsigned int plane = 0,
-                     unsigned int tpc = 0,
-                     unsigned int cstat = 0) const
+    geo::Length_t WirePitch(unsigned int w1 = 0, 
+                            unsigned int w2 = 1, 
+                            unsigned int plane = 0,
+                            unsigned int tpc = 0,
+                            unsigned int cstat = 0) const
       { return WirePitch(geo::PlaneID(cstat, tpc, plane), w1, w2); }
     //@}
     
@@ -3517,7 +3544,7 @@ namespace geo {
      * This method assumes that all the wires on all the planes on the specified
      * view of all TPCs have the same pitch.
      */
-    double WirePitch(geo::View_t view) const; 
+    geo::Length_t WirePitch(geo::View_t view) const; 
     
     
     //@{
@@ -3570,6 +3597,9 @@ namespace geo {
      * @throws cet::exception wire not present
      * 
      * The starting point is the wire end with lower z coordinate.
+     * 
+     * @deprecated use the wire ID interface instead (but note that it does not
+     *             sort the ends)
      */
     void WireEndPoints
       (geo::WireID const& wireid, double *xyzStart, double *xyzEnd) const;
@@ -3603,51 +3633,114 @@ namespace geo {
      * 
      * The start and end are assigned as returned from the geo::WireGeo object.
      * The rules for this assignment are documented in that class.
+     * 
+     * @deprecated use the wire ID interface instead (but note that it does not
+     *             sort the ends)
      */
-    Segment_t WireEndPoints(geo::WireID const& wireID) const;
+    template <typename Point = DefaultPoint_t>
+    Segment<Point> WireEndPoints(geo::WireID const& wireID) const;
     
     //
     // closest wire
     //
     
+    /**
+     * @brief Returns the ID of wire closest to position in the specified TPC.
+     * @param point the point to be tested [cm]
+     * @param planeid ID of the plane
+     * @return the ID of the wire, or an invalid wire ID
+     * @see `geo::PlaneGeo::ClosestWireID()`
+     * @bug Instead of returning an invalid wire ID, an exception is thrown!
+     * 
+     * If the nearest wire is not closer than half a wire pitch, the result is
+     * marked invalid. The returned (invalid) ID will contain the non-existing
+     * wire that would be the nearest, if it existed.
+     * 
+     * If the wire ID is invalid and the existing closest wire is desired,
+     * a possible solution is (when the BUG will be solved):
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+     * geo::WireID wireID = geom->NearestWireID(point, planeID);
+     * if (!wireID) wireID = geom->Plane(planeID).ClosestWireID(wireID);
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * Note however that this will execute plane lookup twice, and a more
+     * efficient approach would be to ask the plane everything directly:
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+     * geo::PlaneGeo const& plane = geom->Plane(planeID);
+     * geo::WireID wireID = plane.NearestWireID(point);
+     * if (!wireID) wireID = plane.ClosestWireID(wireID);
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * Until the BUG is fixed, the actual working code is:
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+     * geo::PlaneGeo const& plane = geom->Plane(planeID);
+     * geo::WireID wireID;
+     * try {
+     *   wireID = plane.NearestWireID(point);
+     * }
+     * catch (geo::InvalidWireError const& e) {
+     *   if (!e.hasSuggestedWire()) throw;
+     *   wireID = plane.ClosestWireID(e.suggestedWireID());
+     * }
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     */
+    geo::WireID NearestWireID
+      (geo::Point_t const& point, geo::PlaneID const& planeid) const;
+    
     //@{
     /**
-     * @brief Returns the ID of wire closest to position in the specified TPC
-     * @param worldLoc 3D coordinates of the point (world reference frame)
+     * @brief Returns the ID of wire closest to position in the specified TPC.
+     * @param point the point to be tested [cm]
      * @param planeid ID of the plane
      * @param PlaneNo plane number within the TPC
      * @param TPCNo tpc number within the cryostat
      * @param cstat cryostat number
      * @return the ID of the wire, or an invalid wire ID
+     * @bug Instead of returning an invalid wire ID, an exception is thrown!
      *
      * The different versions allow different way to provide the position.
-     *
-     * @todo add a PlaneID version
+     * 
+     * @deprecated Use the version with a `geo::Point_t` and `PlaneID` arguments
      * @todo remove the integers version
-     * @todo Verify the invalid wire ID part
      */
     geo::WireID NearestWireID
-      (const double worldLoc[3], geo::PlaneID const& planeid) const;
+      (const double point[3], geo::PlaneID const& planeid) const;
     geo::WireID  NearestWireID
-      (std::vector<double> const& worldLoc, geo::PlaneID const& planeid)  const;
+      (std::vector<double> const& point, geo::PlaneID const& planeid)  const;
     geo::WireID   NearestWireID
-      (const TVector3& worldLoc, geo::PlaneID const& planeid) const;
-    geo::WireID   NearestWireID(const double worldLoc[3],
+      (const TVector3& point, geo::PlaneID const& planeid) const
+      { return NearestWireID(geo::vect::toPoint(point), planeid); }
+    geo::WireID   NearestWireID(const double point[3],
                                       unsigned int const PlaneNo,
                                       unsigned int const TPCNo = 0,
                                       unsigned int const cstat = 0)  const
-     { return NearestWireID(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
-    geo::WireID   NearestWireID(std::vector<double> const& worldLoc,
+     { return NearestWireID(point, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
+    geo::WireID   NearestWireID(std::vector<double> const& point,
                                       unsigned int const PlaneNo,
                                       unsigned int const TPCNo = 0,
                                       unsigned int const cstat = 0)  const
-     { return NearestWireID(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
-    geo::WireID   NearestWireID(const TVector3& worldLoc,
+     { return NearestWireID(point, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
+    geo::WireID   NearestWireID(const TVector3& point,
                                       unsigned int const PlaneNo,
                                       unsigned int const TPCNo = 0,
                                       unsigned int const cstat = 0)  const
-     { return NearestWireID(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
+     { return NearestWireID(point, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
+    geo::WireID   NearestWireID(geo::Point_t const& point,
+                                      unsigned int const PlaneNo,
+                                      unsigned int const TPCNo = 0,
+                                      unsigned int const cstat = 0)  const
+     { return NearestWireID(point, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
     //@}
+    
+    /**
+     * @brief Returns the index of wire closest to position in the specified TPC
+     * @param point the point to be tested [cm]
+     * @param planeid ID of the plane
+     * @return the index of the wire, or `geo::WireID::InvalidID` on failure
+     * @bug Actually, on failure an exception `geo::InvalidWireError` is thrown
+     * 
+     * @deprecated Use NearestWireID() instead.
+     */
+    geo::WireID::WireID_t NearestWire
+      (geo::Point_t const& point, geo::PlaneID const& planeid) const;
     
     //@{
     /**
@@ -3661,17 +3754,17 @@ namespace geo {
      *
      * The different versions allow different way to provide the position.
      *
-     * @todo add a PlaneID version
+     * @deprecated Use NearestWireID() instead.
      * @todo remove the integers version
      * @todo what happens when no wire is found?
-     * @todo deprecate this for NearestWireID()
      */
     unsigned int       NearestWire
       (const double worldLoc[3], geo::PlaneID const& planeid)  const;
     unsigned int       NearestWire
       (std::vector<double> const& worldLoc, geo::PlaneID const& planeid) const;
     unsigned int       NearestWire
-      (const TVector3& worldLoc, geo::PlaneID const& planeid)  const;
+      (const TVector3& worldLoc, geo::PlaneID const& planeid)  const
+      { return NearestWire(geo::vect::toPoint(worldLoc), planeid); }
     unsigned int       NearestWire(const double worldLoc[3],
                                    unsigned int const PlaneNo,
                                    unsigned int const TPCNo = 0,
@@ -3687,6 +3780,11 @@ namespace geo {
                                    unsigned int const TPCNo = 0,
                                    unsigned int const cstat = 0)  const
       { return NearestWire(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
+    unsigned int       NearestWire(geo::Point_t const& worldLoc,
+                                   unsigned int const PlaneNo,
+                                   unsigned int const TPCNo = 0,
+                                   unsigned int const cstat = 0)  const
+      { return NearestWire(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
     //@}
     
     
@@ -3696,15 +3794,17 @@ namespace geo {
      * @param ZPos z coordinate on the wire plane
      * @param planeid ID of the plane
      * @return an index interpolation between the two nearest wires
-     * @see ChannelMapAlg::WireCoordinate()
+     * @deprecated Use
+     *             `WireCoordinate(geo::Point_t const&, geo::PlaneID const&)`
+     *             instead
      *
-     * Respect to NearestWireID(), this method returns a real number,
+     * Respect to `NearestWireID()`, this method returns a real number,
      * representing a continuous coordinate in the wire axis, with the round
      * values corresponding to the actual wires.
      * 
      * @todo Unify (y, z) coordinate
      */
-    double WireCoordinate
+    geo::Length_t WireCoordinate
       (double YPos, double ZPos, geo::PlaneID const& planeid) const;
     
     /**
@@ -3719,16 +3819,16 @@ namespace geo {
      *
      * @deprecated Use the version with plane ID instead
      */
-    double WireCoordinate(double YPos, double ZPos,
-                          unsigned int PlaneNo,
-                          unsigned int TPCNo,
-                          unsigned int cstat) const
+    geo::Length_t WireCoordinate(double YPos, double ZPos,
+                                 unsigned int PlaneNo,
+                                 unsigned int TPCNo,
+                                 unsigned int cstat) const
       { return WireCoordinate(YPos, ZPos, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
     
+    //@{
     /**
      * @brief Returns the index of the nearest wire to the specified position
      * @param pos world coordinates of the position (it will be projected)
-     * @param ZPos z coordinate on the wire plane
      * @param planeid ID of the plane
      * @return an index interpolation between the two nearest wires
      * @see ChannelMapAlg::WireCoordinate()
@@ -3737,8 +3837,12 @@ namespace geo {
      * representing a continuous coordinate in the wire axis, with the round
      * values corresponding to the actual wires.
      */
-    double WireCoordinate
-      (TVector3 const& pos, geo::PlaneID const& planeid) const;
+    geo::Length_t WireCoordinate
+      (geo::Point_t const& pos, geo::PlaneID const& planeid) const;
+    geo::Length_t WireCoordinate
+      (TVector3 const& pos, geo::PlaneID const& planeid) const
+      { return WireCoordinate(geo::vect::toPoint(pos), planeid); }
+    //@}
     
     //
     // wire intersections
@@ -3801,6 +3905,7 @@ namespace geo {
       double& x, double& y
       ) const;
     
+    //@{
     /**
      * @brief Computes the intersection between two wires.
      * @param wid1 ID of the first wire
@@ -3821,9 +3926,13 @@ namespace geo {
      * `geo::vect::isfinite(intersection)` etc.
      * 
      */
+    bool WireIDsIntersect(
+      WireID const& wid1, WireID const& wid2,
+      geo::Point_t& intersection
+      ) const;
     bool WireIDsIntersect
-      (WireID const& wid1, WireID const& wid2, Point3D_t& intersection)
-      const;
+      (WireID const& wid1, WireID const& wid2, TVector3& intersection) const;
+    //@}
     
     /**
      * @brief Computes the intersection between two wires.
@@ -4104,16 +4213,22 @@ namespace geo {
     OpDetGeo const& OpDetGeoFromOpDet(unsigned int OpDet) const;
     //@}
     
+    
+    //@{
     /**
      * @brief Find the nearest OpChannel to some point
      * @param xyz point to be queried, in world coordinates
-     * @return the nearest OpChannel to the point
+     * @return the nearest OpChannel to the point,
+     *         or `std::numeric_limits<unsigned int>::max()` if invalid point
      * 
-     * The cryostat the channel is in is automatically discovered.
-     * @todo make xyz constant; maybe an array?
-     * @todo Unify the coordinates type
+     * @deprecated This method does not tell in which cryostat the detector is;
+     *             use `geo::CryostatGeo::GetClosestOpDet()` instead
+     *             (find the cryostat with `PositionToCryostatPtr()`).
+     * 
      */
-    unsigned int GetClosestOpDet(double * xyz) const;
+    unsigned int GetClosestOpDet(geo::Point_t const& point) const;
+    unsigned int GetClosestOpDet(double const* point) const;
+    //@}
     
     
     //
@@ -4329,6 +4444,17 @@ namespace geo {
     // geometry queries
     //
     
+    /**
+     * @brief Returns the ID of the channel nearest to the specified position
+     * @param worldLoc 3D coordinates of the point (world reference frame)
+     * @param planeid ID of the wire plane the channel must belong to
+     * @return the ID of the channel, or `raw::InvalidChannelID` if invalid wire
+     * @bug on invalid wire, a `geo::InvalidWireError` exception is thrown
+     *
+     */
+    raw::ChannelID_t  NearestChannel
+      (geo::Point_t const& worldLoc, geo::PlaneID const& planeid) const;
+    
     //@{
     /**
      * @brief Returns the ID of the channel nearest to the specified position
@@ -4337,18 +4463,19 @@ namespace geo {
      * @param TPCNo the number of TPC
      * @param cstat the number of cryostat
      * @return the ID of the channel, or raw::InvalidChannelID if invalid wire
+     * @bug on invalid wire, a `geo::InvalidWireError` exception is thrown
      *
      * The different versions allow different way to provide the position.
      *
      * @todo remove the integers version
-     * @todo Verify the raw::InvalidChannelID part
      */
     raw::ChannelID_t  NearestChannel
       (const double worldLoc[3], geo::PlaneID const& planeid) const;
     raw::ChannelID_t  NearestChannel
       (std::vector<double> const& worldLoc, geo::PlaneID const& planeid) const;
     raw::ChannelID_t  NearestChannel
-      (const TVector3& worldLoc, geo::PlaneID const& planeid) const;
+      (const TVector3& worldLoc, geo::PlaneID const& planeid) const
+      { return NearestChannel(geo::vect::toPoint(worldLoc), planeid); }
     raw::ChannelID_t  NearestChannel(const double worldLoc[3],
                                        unsigned int const PlaneNo,
                                        unsigned int const TPCNo = 0,
@@ -4360,6 +4487,11 @@ namespace geo {
                                        unsigned int const cstat = 0) const
       { return NearestChannel(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
     raw::ChannelID_t  NearestChannel(const TVector3& worldLoc,
+                                       unsigned int const PlaneNo,
+                                       unsigned int const TPCNo = 0,
+                                       unsigned int const cstat = 0) const
+      { return NearestChannel(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
+    raw::ChannelID_t  NearestChannel(geo::Point_t const& worldLoc,
                                        unsigned int const PlaneNo,
                                        unsigned int const TPCNo = 0,
                                        unsigned int const cstat = 0) const
@@ -4577,7 +4709,8 @@ namespace geo {
      * @param tpcsetid ID of the TPC set
      * @return vector of the position of centre of TPC set face toward the beam
      */
-    TVector3 GetTPCsetFrontFaceCenter(readout::TPCsetID const& tpcsetid) const;
+    geo::Point_t GetTPCsetFrontFaceCenter
+      (readout::TPCsetID const& tpcsetid) const;
     
     
 #endif // 0
@@ -5147,6 +5280,16 @@ inline bool geo::GeometryCore::IncrementID(readout::ROPID& id) const {
 //******************************************************************************
 //***  template implementation
 //***
+//------------------------------------------------------------------------------
+template <typename Point>
+geo::GeometryCore::Segment<Point> geo::GeometryCore::WireEndPoints
+  (geo::WireID const& wireid) const
+{
+  geo::WireGeo const& wire = Wire(wireid);
+  return { wire.GetStart<Point>(), wire.GetEnd<Point>() };
+} // geo::GeometryCore::WireEndPoints(WireID)
+
+
 //------------------------------------------------------------------------------
 template <typename Stream>
 void geo::GeometryCore::Print

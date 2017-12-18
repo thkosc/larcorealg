@@ -66,21 +66,6 @@ std::ostream& operator<< (std::ostream& out, TVector2 const& v) {
 } // operator<< (TVector2)
 
 
-namespace std {
-  
-  template <typename T, size_t N>
-  std::ostream& operator<<
-    (std::ostream& out, std::array<T, N> const& v)
-  {
-    out << "{";
-    for (auto c: v) out << " " << c;
-    out << " }";
-    return out;
-  } // operator<< (geo::GeometryCore::Point3D_t)
-  
-} // namespace std
-
-
 //------------------------------------------------------------------------------
 namespace {
   template <typename T>
@@ -2338,7 +2323,7 @@ namespace geo{
       if (iTPC->Cryostat < geom->Ncryostats() - 1) {
         geo::WireID w1 { iTPC->Cryostat, iTPC->TPC, 0, 0 },
           w2 { iTPC->Cryostat + 1, iTPC->TPC, 1, 1 };
-        geo::GeometryCore::Point3D_t xingPoint;
+        geo::Point_t xingPoint;
         if (geom->WireIDsIntersect(w1, w2, xingPoint)) {
           LOG_ERROR("GeometryTest") << "WireIDsIntersect() on " << w1
             << " and " << w2 << " returned " << xingPoint
@@ -2351,7 +2336,7 @@ namespace geo{
       if (iTPC->TPC < geom->NTPC(iTPC->Cryostat) - 1) {
         geo::WireID w1 { iTPC->Cryostat, iTPC->TPC, 0, 0 },
           w2 { iTPC->Cryostat, iTPC->TPC + 1, 1, 1 };
-        geo::GeometryCore::Point3D_t xingPoint;
+        geo::Point_t xingPoint;
         if (geom->WireIDsIntersect(w1, w2, xingPoint)) {
           LOG_ERROR("GeometryTest") << "WireIDsIntersect() on " << w1
             << " and " << w2 << " returned " << xingPoint
@@ -2365,7 +2350,7 @@ namespace geo{
       for (unsigned int plane = 0; plane < nPlanes; ++plane) {
         geo::WireID w1 { iTPC->Cryostat, iTPC->TPC, plane, 0 },
           w2 { iTPC->Cryostat, iTPC->TPC, plane, 1 };
-        geo::GeometryCore::Point3D_t xingPoint;
+        geo::Point_t xingPoint;
         if (geom->WireIDsIntersect(w1, w2, xingPoint)) {
           LOG_ERROR("GeometryTest") << "WireIDsIntersect() on " << w1
             << " and " << w2 << " returned " << xingPoint
@@ -2475,7 +2460,7 @@ namespace geo{
       for (unsigned int iPlane2 = iPlane1 + 1; iPlane2 < NPlanes; ++iPlane2) {
         const geo::WireID& w2 = WireIDs[iPlane2];
         
-        GeometryCore::Point3D_t xingPoint;
+        geo::Point_t xingPoint;
         if (!geom->WireIDsIntersect(w1, w2, xingPoint)) {
           LOG_ERROR("GeometryTest") << "Wires " << w1 << " and " << w2
             << " should intersect around " << point << " of TPC " << TPC.ID()
@@ -2507,7 +2492,7 @@ namespace geo{
         } // bDriftOnX
         
         
-        GeometryCore::Point3D_t xingPointInv;
+        geo::Point_t xingPointInv;
         if (!geom->WireIDsIntersect(w2, w1, xingPointInv)) {
           LOG_ERROR("GeometryTest") << "Wires " << w2 << " and " << w1
             << " (reversed test) should intersect around " << point
@@ -2540,7 +2525,7 @@ namespace geo{
           (sqr(d1) + sqr(d2) - 2.0 * d1 * d2 * cosAlpha) / (1 - sqr(cosAlpha))
           );
         // the actual distance we have found:
-        double const d = plane1.VectorProjection(xingPoint - point).R();
+        double const d = plane1.VectorProjection(xingPoint - geo::vect::toPoint(point)).R();
         LOG_DEBUG("GeometryTest")
           << " - wires " << w1 << " and " << w2 << " intersect at " << xingPoint
           << ", " << d << " cm far from starting point (expected: "

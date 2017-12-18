@@ -33,6 +33,9 @@ namespace geo {
   /// Geometry information for a single cryostat
   class CryostatGeo: public geo::BoxBoundedGeo {
     
+    /// Type used internally to store the TPCs.
+    using TPCList_t = std::vector<TPCGeo>;
+    
       public:
     
     using GeoNodePath_t = geo::WireGeo::GeoNodePath_t;
@@ -204,7 +207,7 @@ namespace geo {
      * for (geo::TPCGeo const& tpc: cryo.TPCs()) { ... }
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    auto TPCs() const -> decltype(auto) { return fTPCs; }
+    auto const& TPCs() const { return fTPCs; }
     
     /**
      * @brief Returns the TPC number itpc from this cryostat
@@ -288,9 +291,17 @@ namespace geo {
     
     /// Return the iopdet'th optical detector in the cryostat
     const OpDetGeo&   OpDet(unsigned int iopdet)                const;
-
-    /// Find the nearest opdet to point in this cryostat
-    unsigned int GetClosestOpDet(double const* xyz)             const;
+    
+    //@{
+    /// Returns the index of the optical detector in this cryostat closest to
+    /// `point`.
+    unsigned int GetClosestOpDet(geo::Point_t const& point) const;
+    unsigned int GetClosestOpDet(double const* point) const;
+    //@}
+    
+    /// Returns the optical detector det in this cryostat nearest to `point`.
+    /// If there are no optical detectors, `nullptr` is returned.
+    geo::OpDetGeo const* GetClosestOpDetPtr(geo::Point_t const& point) const;
     
     /// Get name of opdet geometry element
     std::string  OpDetGeoName()                                 const { return fOpDetGeoName; }
@@ -391,7 +402,7 @@ namespace geo {
       = geo::LocalTransformationGeo<TGeoHMatrix, LocalPoint_t, LocalVector_t>;
     
     LocalTransformation_t  fTrans;          ///< Cryostat-to-world transformation.
-    std::vector<TPCGeo>    fTPCs;           ///< List of tpcs in this cryostat
+    TPCList_t              fTPCs;           ///< List of tpcs in this cryostat
     std::vector<OpDetGeo>  fOpDets;         ///< List of opdets in this cryostat
     TGeoVolume*            fVolume;         ///< Total volume of cryostat, called volCryostat in GDML file
     std::string            fOpDetGeoName;   ///< Name of opdet geometry elements in gdml

@@ -1,5 +1,5 @@
 /**
- * @file   Exceptions.h
+ * @file   larcorealg/Geometry/Exceptions.h
  * @brief  Collection of exceptions for Geometry system
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   November 24, 2016

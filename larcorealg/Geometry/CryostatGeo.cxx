@@ -327,23 +327,32 @@ namespace geo{
   //......................................................................
   // Find the nearest opdet to point in this cryostat
 
-  unsigned int CryostatGeo::GetClosestOpDet(double const* xyz) const
+  geo::OpDetGeo const* CryostatGeo::GetClosestOpDetPtr
+    (geo::Point_t const& point) const
   {
-    int    ClosestDet=-1;
-    float  ClosestDist=UINT_MAX;
-
-    for(size_t o=0; o!=NOpDet(); o++)
-      {
-	float ThisDist = OpDet(0).DistanceToPoint(xyz); 
-	if(ThisDist < ClosestDist)
-	  {
-	    ClosestDist = ThisDist;
-	    ClosestDet  = o;
-	  }
-      }
-    return ClosestDet;
-    
+    unsigned int iOpDet = GetClosestOpDet(point);
+    return
+      (iOpDet == std::numeric_limits<double>::max())? nullptr: &OpDet(iOpDet);
   }
+  
+  //......................................................................
+  unsigned int CryostatGeo::GetClosestOpDet(geo::Point_t const& point) const {
+    unsigned int ClosestDet = std::numeric_limits<unsigned int>::max();
+    double ClosestDist = std::numeric_limits<double>::max();
+    
+    for(unsigned int o = 0U; o < NOpDet(); ++o) {
+      double const ThisDist = OpDet(o).DistanceToPoint(point); 
+      if(ThisDist < ClosestDist) {
+        ClosestDist = ThisDist;
+        ClosestDet  = o;
+      }
+    } // for
+    return ClosestDet;
+  } // CryostatGeo::GetClosestOpDet(geo::Point_t)
+  
+  //......................................................................
+  unsigned int CryostatGeo::GetClosestOpDet(double const* point) const
+    { return GetClosestOpDet(geo::vect::makePointFromCoords(point)); }
   
   //......................................................................
   void CryostatGeo::InitCryoBoundaries() {

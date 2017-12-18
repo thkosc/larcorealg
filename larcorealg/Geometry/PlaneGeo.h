@@ -473,11 +473,69 @@ namespace geo {
      * long, and if the position projection is closer than half the wire pitch
      * from any of these extrapolated wires, the method will not report error.
      * 
+     * @todo When the ID is out of range, instead of throwing an exception,
+     *       return an invalid wire ID with the wire number set to the
+     *       non-existing wire which _would_ be the nearest to `pos`.
      */
     geo::WireID NearestWireID(geo::Point_t const& pos) const;
     geo::WireID NearestWireID(TVector3 const& pos) const
       { return NearestWireID(geo::vect::toPoint(pos)); }
     //@}
+    
+    
+    /**
+     * @brief Returns the wire closest to the specified position.
+     * @param pos world coordinates of the point [cm]
+     * @return the ID of the wire closest to the projection of pos on the plane
+     * @throw InvalidWireError (category: `"Geometry"`) if out of range
+     *
+     * The position is projected on the wire plane, and the nearest wire to the
+     * projected point is returned.
+     * 
+     * If the wire is father than half a wire pitch from the point, an exception
+     * is thrown that contains both the wire that would be the closest one
+     * (`badWireID()`), and also the wire that is actually the closest one
+     * (`betterWireID()`). When this happens, the specified position was
+     * outside the wire plane.
+     * 
+     * Note that the caller should check for containment: this function may or
+     * may not report the position being outside the plane, depending on where
+     * it is. In the current implementation, the wires are considered infinitely
+     * long, and if the position projection is closer than half the wire pitch
+     * from any of these extrapolated wires, the method will not report error.
+     */
+    geo::WireGeo const& NearestWire(geo::Point_t const& pos) const;
+    
+    
+    /**
+     * @brief Returns the closest valid wire ID to the specified wire.
+     * @param wireNo number of the wire on this plane
+     * @return complete wire ID of the closest wire on this plane
+     * 
+     * If the wire number described a wire present on this plane, its complete
+     * wire ID is returned, valid. Otherwise, a valid wire ID is returned which
+     * points to the existing wire closest to the specified wire number: the
+     * first wire if the wire number is negative, or the last wire if the wire
+     * number is larger than the actual wires.
+     * 
+     * Note that the argument `geo::WireID::WireID_t` type is an integral type,
+     * and if a floating point value is specified for it, it's subject to
+     * truncation.
+     */
+    geo::WireID ClosestWireID(geo::WireID::WireID_t wireNo) const;
+    
+    
+    /**
+     * @brief Returns the closest valid wire ID to the specified wire.
+     * @param wireid the wire ID (must be on this plane)
+     * @return complete wire ID of the closest wire, invalid if not this plane
+     * @see `ClosestWireID(geo::WireID::WireID_t)`
+     * 
+     * If `wireid` is not on this plane, it is returned but marked as invalid.
+     * Otherwise, the returned ID is the same as in
+     * `ClosestWireID(geo::WireID::WireID_t)`.
+     */
+    geo::WireID ClosestWireID(geo::WireID const& wireid) const; // inline
     
     
     //@{
@@ -1230,10 +1288,34 @@ namespace geo {
     
     friend details::ActiveAreaCalculator;
     
+    /// Returns `min` if `v` < `min`, `max` if `v` > `max`, `v` otherwise.
+    template <typename T>
+    static T boundedValue(T v, T min, T max)
+      { return std::min(max, std::max(min, v)); }
+    
   }; // class PlaneGeo
   
 } // namespace geo
 
+
+//------------------------------------------------------------------------------
+//--- inline implementation
+//---
+inline geo::WireID geo::PlaneGeo::ClosestWireID
+  (geo::WireID::WireID_t wireNo) const
+{
+  return { ID(), boundedValue<geo::WireID::WireID_t>(wireNo, 0, Nwires()) };
+}
+
+inline geo::WireID geo::PlaneGeo::ClosestWireID(geo::WireID const& wireid) const
+{
+  if (wireid.asPlaneID() != ID()) {
+    geo::WireID invalid{ wireid };
+    invalid.markInvalid();
+    return invalid;
+  }
+  return ClosestWireID(wireid.Wire);
+} // geo::PlaneGeo::ClosestWireID()
 
 //------------------------------------------------------------------------------
 //--- template implementation

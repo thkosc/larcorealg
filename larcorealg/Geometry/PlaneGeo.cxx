@@ -702,6 +702,29 @@ namespace geo{
   
   
   //......................................................................
+  geo::WireGeo const& PlaneGeo::NearestWire(geo::Point_t const& point) const {
+    
+    //
+    // Note that this code is ready for when NearestWireID() will be changed
+    // to return an invalid ID instead of throwing.
+    // As things are now, `NearestWireID()` will never return an invalid ID,
+    // but it will throw an exception similar to this one.
+    //
+    
+    geo::WireID const wireID = NearestWireID(point);
+    if (wireID) return Wire(wireID); // we have that wire, so we return it
+    
+    // wire ID is invalid, meaning it's out of range. Throw an exception!
+    geo::WireID const closestID = ClosestWireID(wireID);
+    throw InvalidWireError("Geometry", ID(), closestID.Wire, wireID.Wire)
+      << "Can't find nearest wire for position " << point
+      << " in plane " << std::string(ID()) << " approx wire number # "
+      << closestID.Wire << " (capped from " << wireID.Wire << ")\n";
+    
+  } // PlaneGeo::NearestWire()
+  
+  
+  //......................................................................
   double PlaneGeo::ThetaZ() const { return FirstWire().ThetaZ(); }
   
   

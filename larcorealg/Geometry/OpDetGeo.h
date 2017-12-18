@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  OpDetGeo.h
+/// \file  larcorealg/Geometry/OpDetGeo.h
 /// \brief Encapsulate the geometry of an optical detector
 ///
 /// \author  bjpjones@mit.gov

@@ -18,6 +18,7 @@
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 #include "larcorealg/Geometry/Decomposer.h" // geo::vect::dot()
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect
+#include "larcorealg/Geometry/geo_vectors_utils_TVector.h" // geo::vect
 
 // Framework includes
 #include "cetlib/exception.h"
@@ -52,8 +53,7 @@ namespace geo {
   
   
   //......................................................................
-  lar::util::RealComparisons<GeometryCore::Coord_t> GeometryCore::coordIs
-    { 1e-8 };
+  lar::util::RealComparisons<geo::Length_t> GeometryCore::coordIs{ 1e-8 };
   
   
   //......................................................................
@@ -348,49 +348,20 @@ namespace geo {
   
   
   //......................................................................
-  unsigned int GeometryCore::FindCryostatAtPosition(double const worldLoc[3]) const
+  geo::CryostatID::CryostatID_t GeometryCore::FindCryostatAtPosition
+    (geo::Point_t const& worldLoc) const
   {
-    // boundaries of the TPC in the world volume are organized as
-    // [0] = -x
-    // [1] = +x
-    // [2] = -y
-    // [3] = +y
-    // [4] = -z
-    // [5] = +z
-    static std::vector<double> cstatBoundaries(this->Ncryostats()*6);
-
-    static bool firstCalculation = true;
-
-    if ( firstCalculation ){
-      firstCalculation = false;
-      double origin[3] = {0.};
-      double world[3] = {0.};
-      for(unsigned int c = 0; c < this->Ncryostats(); ++c){
-        this->Cryostat(c).LocalToWorld(origin, world);
-        // y and z values are easy and can be figured out using the TPC origin
-        // the x values are a bit trickier, at least the -x value seems to be
-        cstatBoundaries[0+c*6] =  world[0] - this->Cryostat(c).HalfWidth();
-        cstatBoundaries[1+c*6] =  world[0] + this->Cryostat(c).HalfWidth();
-        cstatBoundaries[2+c*6] =  world[1] - this->Cryostat(c).HalfHeight();
-        cstatBoundaries[3+c*6] =  world[1] + this->Cryostat(c).HalfHeight();
-        cstatBoundaries[4+c*6] =  world[2] - 0.5*this->Cryostat(c).Length();
-        cstatBoundaries[5+c*6] =  world[2] + 0.5*this->Cryostat(c).Length();
-      }
-    }// end if this is the first calculation
-
-    // locate the desired Cryostat
-    for(unsigned int c = 0; c < this->Ncryostats(); ++c){
-      if(worldLoc[0] >= cstatBoundaries[0+c*6] * (1. + fPositionWiggle) &&
-         worldLoc[0] <= cstatBoundaries[1+c*6] * (1. + fPositionWiggle) && 
-         worldLoc[1] >= cstatBoundaries[2+c*6] * (1. + fPositionWiggle) && 
-         worldLoc[1] <= cstatBoundaries[3+c*6] * (1. + fPositionWiggle) && 
-         worldLoc[2] >= cstatBoundaries[4+c*6] * (1. + fPositionWiggle) && 
-         worldLoc[2] <= cstatBoundaries[5+c*6] * (1. + fPositionWiggle) ){
-        return c;
-      }
-    }
-    return geo::CryostatID::InvalidID;
-  } // GeometryCore::FindCryostatAtPosition()
+    geo::CryostatGeo const* cryo = PositionToCryostatPtr(worldLoc);
+    return cryo? cryo->ID().Cryostat: geo::CryostatID::InvalidID;
+  } // GeometryCore::FindCryostatAtPosition(Point)
+  
+  
+  //......................................................................
+  geo::CryostatID::CryostatID_t GeometryCore::FindCryostatAtPosition
+    (double const worldLoc[3]) const
+  {
+    return FindCryostatAtPosition(geo::vect::makePointFromCoords(worldLoc));
+  } // GeometryCore::FindCryostatAtPosition(double[])
   
   
   //......................................................................
@@ -687,37 +658,39 @@ namespace geo {
   }
 
   //......................................................................
-  double GeometryCore::DetHalfWidth(geo::TPCID const& tpcid)  const 
+  geo::Length_t GeometryCore::DetHalfWidth(geo::TPCID const& tpcid)  const 
   {
     return TPC(tpcid).ActiveHalfWidth();
   }
 
   //......................................................................
-  double GeometryCore::DetHalfHeight(geo::TPCID const& tpcid) const 
+  geo::Length_t GeometryCore::DetHalfHeight(geo::TPCID const& tpcid) const 
   {
     return TPC(tpcid).ActiveHalfHeight();
   }
 
   //......................................................................
-  double GeometryCore::DetLength(geo::TPCID const& tpcid) const
+  geo::Length_t GeometryCore::DetLength(geo::TPCID const& tpcid) const
   { 
     return TPC(tpcid).ActiveLength();
   }
 
   //......................................................................
-  double GeometryCore::CryostatHalfWidth(geo::CryostatID const& cid) const
+  geo::Length_t GeometryCore::CryostatHalfWidth
+    (geo::CryostatID const& cid) const
   {
     return Cryostat(cid).HalfWidth();
   }
 
   //......................................................................
-  double GeometryCore::CryostatHalfHeight(geo::CryostatID const& cid) const
+  geo::Length_t GeometryCore::CryostatHalfHeight
+    (geo::CryostatID const& cid) const
   {
     return Cryostat(cid).HalfHeight();
   }
 
   //......................................................................
-  double GeometryCore::CryostatLength(geo::CryostatID const& cid) const
+  geo::Length_t GeometryCore::CryostatLength(geo::CryostatID const& cid) const
   {
     return Cryostat(cid).Length();
   }
@@ -758,7 +731,7 @@ namespace geo {
   //......................................................................
   // This method returns the distance between the specified wires.
   // w1 < w2.  The wires are assumed to be on the same plane
-  double GeometryCore::WirePitch(
+  geo::Length_t GeometryCore::WirePitch(
     geo::PlaneID const& planeid,
     unsigned int /* w1 */ /* = 0 */, unsigned int /* w2 */ /* = 1 */
     )
@@ -770,7 +743,7 @@ namespace geo {
   //......................................................................
   // This method returns the distance between wires in the specified view
   // it assumes all planes of a given view have the same pitch
-  double GeometryCore::WirePitch(geo::View_t view) const
+  geo::Length_t GeometryCore::WirePitch(geo::View_t view) const
   { 
     // look in cryostat 0, tpc 0 to find the plane with the 
     // specified view
@@ -836,45 +809,52 @@ namespace geo {
   } // GeometryCore::MaxWires()
   
   //......................................................................
-  //
-  // Return the ranges of x,y and z for the "world volume" that the
-  // entire geometry lives in. If any pointers are 0, then those
-  // coordinates are ignored.
-  //
-  // \param xlo : On return, lower bound on x positions
-  // \param xhi : On return, upper bound on x positions
-  // \param ylo : On return, lower bound on y positions
-  // \param yhi : On return, upper bound on y positions
-  // \param zlo : On return, lower bound on z positions
-  // \param zhi : On return, upper bound on z positions
-  //
+  TGeoVolume const* GeometryCore::WorldVolume() const {
+    return gGeoManager->FindVolumeFast(GetWorldVolumeName().c_str());
+  }
+  
+  //......................................................................
+  geo::BoxBoundedGeo GeometryCore::WorldBox() const {
+    
+    TGeoVolume const* world = WorldVolume();
+    if(!world) {
+      throw cet::exception("GeometryCore")
+        << "no world volume '" << GetWorldVolumeName() << "'\n";
+    }
+    TGeoShape const* s = world->GetShape();
+    if(!s) {
+      throw cet::exception("GeometryCore")
+        << "world volume '" << GetWorldVolumeName() << "' is shapeless!!!\n";
+    }
+    
+    double x1, x2, y1, y2, z1, z2;
+    s->GetAxisRange(1, x1, x2);
+    s->GetAxisRange(2, y1, y2);
+    s->GetAxisRange(3, z1, z2);
+    
+    // geo::BoxBoundedGeo constructor will sort the coordinates as needed
+    return geo::BoxBoundedGeo{ x1, x2, y1, y2, z1, z2 };
+  } // GeometryCore::WorldBox()
+  
+  //......................................................................
   void GeometryCore::WorldBox(double* xlo, double* xhi,
                           double* ylo, double* yhi,
                           double* zlo, double* zhi) const
   {
-    const TGeoShape* s = gGeoManager->GetVolume("volWorld")->GetShape();
-    if(!s)
-      throw cet::exception("GeometryCore") << "no pointer to world volume TGeoShape\n";
-
-    if (xlo || xhi) {
-      double x1, x2;
-      s->GetAxisRange(1,x1,x2); if (xlo) *xlo = x1; if (xhi) *xhi = x2;
-    }
-    if (ylo || yhi) {
-      double y1, y2;
-      s->GetAxisRange(2,y1,y2); if (ylo) *ylo = y1; if (yhi) *yhi = y2;
-    }
-    if (zlo || zhi) {
-      double z1, z2;
-      s->GetAxisRange(3,z1,z2); if (zlo) *zlo = z1; if (zhi) *zhi = z2;
-    }
+    geo::BoxBoundedGeo const box = WorldBox();
+    if (xlo) *xlo = box.MinX();
+    if (ylo) *ylo = box.MinY();
+    if (zlo) *zlo = box.MinZ();
+    if (xhi) *xhi = box.MaxX();
+    if (yhi) *yhi = box.MaxY();
+    if (zhi) *zhi = box.MaxZ();
   }
 
   //......................................................................
   std::string GeometryCore::VolumeName(geo::Point_t const& point) const
   {
     // check that the given point is in the World volume at least
-    TGeoVolume const*volWorld = gGeoManager->FindVolumeFast(this->GetWorldVolumeName().c_str());
+    TGeoVolume const*volWorld = WorldVolume();
     double halflength = ((TGeoBBox*)volWorld->GetShape())->GetDZ();
     double halfheight = ((TGeoBBox*)volWorld->GetShape())->GetDY();
     double halfwidth  = ((TGeoBBox*)volWorld->GetShape())->GetDX();
@@ -897,30 +877,33 @@ namespace geo {
   }
 
   //......................................................................
+  TGeoMaterial const* GeometryCore::Material(geo::Point_t const& point) const {
+    auto const pNode = gGeoManager->FindNode(point.X(), point.Y(), point.Z());
+    if (!pNode) return nullptr;
+    auto const pMedium = pNode->GetMedium();
+    return pMedium? pMedium->GetMaterial(): nullptr;
+  }
+
+  //......................................................................
   std::string GeometryCore::MaterialName(geo::Point_t const& point) const
   {
     // check that the given point is in the World volume at least
-    TGeoVolume const*volWorld = gGeoManager->FindVolumeFast(this->GetWorldVolumeName().c_str());
-    double halflength = ((TGeoBBox*)volWorld->GetShape())->GetDZ();
-    double halfheight = ((TGeoBBox*)volWorld->GetShape())->GetDY();
-    double halfwidth  = ((TGeoBBox*)volWorld->GetShape())->GetDX();
-    if(std::abs(point.x()) > halfwidth  ||
-       std::abs(point.y()) > halfheight ||
-       std::abs(point.z()) > halflength
-       ){ 
-      mf::LogWarning("GeometryCoreBadInputPoint") << "point (" << point.x() << ","
-                                              << point.y() << "," << point.z() << ") "
-                                              << "is not inside the world volume "
-                                              << " half width = " << halfwidth
-                                              << " half height = " << halfheight
-                                              << " half length = " << halflength
-                                              << " returning unknown material name";
-      const std::string unknown("unknownMaterial");
-      return unknown;
+    geo::BoxBoundedGeo worldBox = WorldBox();
+    if (!worldBox.ContainsPosition(point)) {
+      mf::LogWarning("GeometryCoreBadInputPoint")
+        << "point " << point << " is not inside the world volume "
+        << worldBox.Min() << " -- " << worldBox.Max()
+        << "; returning unknown material name";
+      return { "unknownMaterial" };
     }
-    
-    return gGeoManager->FindNode(point.X(), point.Y(), point.Z())
-      ->GetMedium()->GetMaterial()->GetName();
+    auto const pMaterial = Material(point);
+    if (!pMaterial) {
+      mf::LogWarning("GeometryCoreBadInputPoint")
+        << "material for point " << point
+        << " not found! returning unknown material name";
+      return { "unknownMaterial" };
+    }
+    return pMaterial->GetName();
   }
 
   //......................................................................
@@ -990,26 +973,21 @@ namespace geo {
   // Return the total mass of the detector
   //
   //
-  double GeometryCore::TotalMass(const char *vol) const
+  double GeometryCore::TotalMass(std::string vol) const
   {
     //the TGeoNode::GetVolume() returns the TGeoVolume of the detector outline
     //and ROOT calculates the mass in kg for you
-    TGeoVolume *gvol = gGeoManager->FindVolumeFast(vol);
+    TGeoVolume *gvol = gGeoManager->FindVolumeFast(vol.c_str());
     if(gvol) return gvol->Weight();
 
-    throw cet::exception("GeometryCore") << "could not find specified volume " 
-                                     << vol
-                                     << " to determine total mass\n"; 
+    throw cet::exception("GeometryCore") << "could not find specified volume '" 
+                                         << vol
+                                         << " 'to determine total mass\n"; 
   }
 
   //......................................................................
-  //
-  // Return the column density between 2 points
-  //
-  // \param p1  : pointer to array holding xyz of first point in world coordinates
-  // \param p2  : pointer to array holding xyz of second point in world coorinates
-  //
-  double GeometryCore::MassBetweenPoints(double *p1, double *p2) const
+  double GeometryCore::MassBetweenPoints
+    (geo::Point_t const& p1, geo::Point_t const& p2) const
   {
 
     //The purpose of this method is to determine the column density
@@ -1020,12 +998,11 @@ namespace geo {
     double columnD = 0.;
 
     //first initialize a track - get the direction cosines
-    double length = std::sqrt( sqr(p2[0]-p1[0])
-                             + sqr(p2[1]-p1[1])
-                             + sqr(p2[2]-p1[2]));
-    double dxyz[3] = {(p2[0]-p1[0])/length, (p2[1]-p1[1])/length, (p2[2]-p1[2])/length}; 
-
-    gGeoManager->InitTrack(p1,dxyz);
+    geo::Vector_t const dir = (p2 - p1).Unit();
+    
+    double const dxyz[3] = { dir.X(), dir.Y(), dir.Z() };
+    double const cp1[3] = { p1.X(), p1.Y(), p1.Z() };
+    gGeoManager->InitTrack(cp1, dxyz);
 
     //might be helpful to have a point to a TGeoNode
     TGeoNode *node = gGeoManager->GetCurrentNode();
@@ -1033,7 +1010,7 @@ namespace geo {
     //check that the points are not in the same volume already.  
     //if they are in different volumes, keep stepping until you 
     //are in the same volume as the second point
-    while(!gGeoManager->IsSameLocation(p2[0], p2[1], p2[2])){
+    while(!gGeoManager->IsSameLocation(p2.X(), p2.Y(), p2.Z())){
       gGeoManager->FindNextBoundary();
       columnD += gGeoManager->GetStep()*node->GetMedium()->GetMaterial()->GetDensity();
     
@@ -1043,11 +1020,10 @@ namespace geo {
 
     //now you are in the same volume as the last point, but not at that point.
     //get the distance between the current point and the last one
-    const double *current = gGeoManager->GetCurrentPoint();
-    length = std::sqrt( sqr(p2[0]-current[0])
-                      + sqr(p2[1]-current[1])
-                      + sqr(p2[2]-current[2]));
-    columnD += length*node->GetMedium()->GetMaterial()->GetDensity();
+    geo::Point_t const last
+      = geo::vect::makePointFromCoords(gGeoManager->GetCurrentPoint());
+    double const lastStep = (p2 - last).R();
+    columnD += lastStep*node->GetMedium()->GetMaterial()->GetDensity();
 
     return columnD;
   }
@@ -1066,14 +1042,14 @@ namespace geo {
   
   
   //----------------------------------------------------------------------------
-  double GeometryCore::WireCoordinate
-    (TVector3 const& pos, geo::PlaneID const& planeid) const
+  geo::Length_t GeometryCore::WireCoordinate
+    (geo::Point_t const& pos, geo::PlaneID const& planeid) const
   {
     return Plane(planeid).WireCoordinate(pos);
   }
 
   //----------------------------------------------------------------------------
-  double GeometryCore::WireCoordinate
+  geo::Length_t GeometryCore::WireCoordinate
     (double YPos, double ZPos, geo::PlaneID const& planeid) const
   {
     return fChannelMapAlg->WireCoordinate(YPos, ZPos, planeid);
@@ -1081,15 +1057,15 @@ namespace geo {
 
   //----------------------------------------------------------------------------
   // The NearestWire and PlaneWireToChannel are attempts to speed
-  // up the simulation by memoizing the computationally intensive
+  // up the simulation by memorizing the computationally intensive
   // setup steps for some geometry calculations.  The results are
-  // valid assuming the wireplanes are comprised of straight,
+  // valid assuming the wire planes are comprised of straight,
   // parallel wires with constant pitch across the entire plane, with
   // a hierarchical numbering scheme - Ben J Oct 2011
   unsigned int GeometryCore::NearestWire
-    (const TVector3& worldPos, geo::PlaneID const& planeid) const
+    (geo::Point_t const& point, geo::PlaneID const& planeid) const
   {
-    return NearestWireID(worldPos, planeid).Wire;
+    return NearestWireID(point, planeid).Wire;
     // return fChannelMapAlg->NearestWire(worldPos, planeid);
   }
 
@@ -1113,10 +1089,9 @@ namespace geo {
 
   //----------------------------------------------------------------------------
   geo::WireID GeometryCore::NearestWireID
-    (const TVector3& worldPos, geo::PlaneID const& planeid) const
+    (geo::Point_t const& worldPos, geo::PlaneID const& planeid) const
   {
-    return Plane(planeid).NearestWireID(worldPos); 
-  //  return fChannelMapAlg->NearestWireID(worldPos, planeid);
+    return Plane(planeid).NearestWireID(worldPos);
   }
 
   //----------------------------------------------------------------------------
@@ -1157,14 +1132,23 @@ namespace geo {
 
   //----------------------------------------------------------------------------
   raw::ChannelID_t GeometryCore::NearestChannel
-    (const TVector3& worldPos, geo::PlaneID const& planeid) const
+    (geo::Point_t const& worldPos, geo::PlaneID const& planeid) const
   {
     
     // This method is supposed to return a channel number rather than
     //  a wire number.  Perform the conversion here (although, maybe
     //  faster if we deal in wire numbers rather than channel numbers?)
-    return PlaneWireToChannel(NearestWireID(worldPos, planeid));
-  }
+    
+    // NOTE on failure both NearestChannel() and upstream:
+    // * according to documentation, should return invalid channel
+    // * in the actual code throw an exception because of a BUG
+    // 
+    // The following implementation automatically becomes in fact compliant to
+    // the documentation if upstreams becomes compliant to.
+    // When that happens, just delete this comment.
+    geo::WireID const wireID = NearestWireID(worldPos, planeid);
+    return wireID? PlaneWireToChannel(wireID): raw::InvalidChannelID;
+  } // GeometryCore::NearestChannel()
 
   //--------------------------------------
   raw::ChannelID_t GeometryCore::PlaneWireToChannel(WireID const& wireid) const
@@ -1182,14 +1166,6 @@ namespace geo {
     return (value>=min) && (value<=max);
   }
 
-  //......................................................................
-  GeometryCore::Segment_t GeometryCore::WireEndPoints
-    (geo::WireID const& wireid) const
-  {
-    geo::WireGeo const& wire = Wire(wireid);
-    return { wire.GetStart(), wire.GetEnd() };
-  } // GeometryCore::WireEndPoints(WireID)
-  
   //......................................................................
   void GeometryCore::WireEndPoints
     (geo::WireID const& wireid, double *xyzStart, double *xyzEnd) const
@@ -1371,8 +1347,10 @@ namespace geo {
   
   
   //......................................................................
-  bool GeometryCore::WireIDsIntersect
-    (const geo::WireID& wid1, const geo::WireID& wid2, Point3D_t& intersection)
+  bool GeometryCore::WireIDsIntersect(
+    const geo::WireID& wid1, const geo::WireID& wid2,
+    geo::Point_t& intersection
+  )
     const
   {
     //
@@ -1441,6 +1419,18 @@ namespace geo {
     return within;
     
   } // GeometryCore::WireIDsIntersect(Point3D_t)
+  
+  
+  //......................................................................
+  bool GeometryCore::WireIDsIntersect
+    (const geo::WireID& wid1, const geo::WireID& wid2, TVector3& intersection)
+    const
+  {
+    geo::Point_t p;
+    bool res = WireIDsIntersect(wid1, wid2, p);
+    intersection = geo::vect::toTVector3(p);
+    return res;
+  } // GeometryCore::WireIDsIntersect(TVector3)
   
   
   //----------------------------------------------------------------------------
@@ -1830,13 +1820,19 @@ namespace geo {
   
   //--------------------------------------------------------------------
   // Find the closest OpChannel to this point, in the appropriate cryostat  
-  unsigned int GeometryCore::GetClosestOpDet(double * xyz) const
+  unsigned int GeometryCore::GetClosestOpDet(geo::Point_t const& point) const
   {
-    geo::CryostatID cid;
-    PositionToCryostat(xyz, cid);
-    int o = Cryostat(cid).GetClosestOpDet(xyz);
-    return OpDetFromCryo(o, cid.Cryostat);
+    geo::CryostatGeo const* cryo = PositionToCryostatPtr(point);
+    if (!cryo) return std::numeric_limits<unsigned int>::max();
+    int o = cryo->GetClosestOpDet(point);
+    return OpDetFromCryo(o, cryo->ID().Cryostat);
   }
+  
+  
+  //--------------------------------------------------------------------
+  // Find the closest OpChannel to this point, in the appropriate cryostat  
+  unsigned int GeometryCore::GetClosestOpDet(double const* point) const
+    { return GetClosestOpDet(geo::vect::makePointFromCoords(point)); }
   
   
   //--------------------------------------------------------------------
