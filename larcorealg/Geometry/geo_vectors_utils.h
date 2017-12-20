@@ -946,6 +946,10 @@ namespace geo {
     template <typename Vector>
     auto mag2(Vector const& v) { return v.Mag2(); }
     
+    /// Return norm of the specified vector
+    template <typename Vector>
+    auto norm(Vector const& v) { return v.Mag(); }
+    
     /// Return "mixed" product of three vectors:
     /// @f$ \vec{a} \times \vec{b} \cdot \vec{c} @f$
     template <typename Vector>
@@ -1242,6 +1246,22 @@ namespace geo {
     
    
   } // namespace vect 
+} // namespace geo
+
+
+//------------------------------------------------------------------------------
+//---  template specializations for standard geometry vectors
+//---
+namespace geo {
+  namespace vect {
+    
+    //--------------------------------------------------------------------------
+    template <>
+    inline auto norm(geo::Vector_t const& v) { return v.R(); }
+    
+    //--------------------------------------------------------------------------
+    
+  } // namespace vect
 } // namespace geo
 
 
