@@ -21,6 +21,8 @@
 
 // C/C++ standard library
 #include <array>
+#include <vector>
+#include <iterator> // std::back_inserter()
 #include <type_traits> // std::declval(), std::is_same<>, ...
 #include <functional> // std::mem_fn()
 #include <cassert>
@@ -854,7 +856,7 @@ namespace geo {
     /**
      * @brief Returns a vector of type `Dest` with the same content as a `Src`.
      * @tparam Dest target vector type
-     * @tparam Src type of the vector to be converted from
+     * @tparam Source type of the vector to be converted from
      * @param v the vector to be converted from
      * @return a vector with the same content as `v`, but of type `Dest`
      * 
@@ -863,6 +865,25 @@ namespace geo {
      */
     template <typename Dest, typename Source>
     Dest convertTo(Source const& v);
+    
+    
+    /**
+     * @brief Returns a vector of type `Dest` with the same content as a `Src`.
+     * @tparam Dest target vector type
+     * @tparam Source type of the vector to be converted from
+     * @param coll the collection of vectors to be converted from
+     * @return a collection of vectors with the same content as `coll`, but of
+     *         type `Dest`
+     * @see `convertTo()`
+     * 
+     * This version applies `convertTo()` to all the elements of the specified
+     * collection, returning a collection of the same template type
+     * (`std::vector`).
+     * 
+     * For the requirements, see `convertTo()`.
+     */
+    template <typename Dest, typename Source>
+    std::vector<Dest> convertCollTo(std::vector<Source> const& coll);
     
     
     /**
@@ -1231,6 +1252,22 @@ namespace geo {
     template <typename Vector>
     ::geo::Vector_t toVector(Vector const& v) 
       { return geo::vect::convertTo<::geo::Vector_t>(v); }
+    
+    
+    /// Convert the specified collection of points into a collection of
+    /// `geo::Point_t`.
+    template <typename Point>
+    std::vector<geo::Point_t> convertCollToPoint
+      (std::vector<Point> const& coll)
+      { return convertCollTo<geo::Point_t>(coll); }
+    
+    /// Convert the specified collection of vectors into a collection of
+    /// `geo::Vector_t`.
+    template <typename Vector>
+    std::vector<geo::Vector_t> convertCollToVector
+      (std::vector<Vector> const& coll)
+      { return convertCollTo<geo::Vector_t>(coll); }
+    
     
     /// Creates a `geo::Point_t` from its coordinates (see `makeFromCoords()`).
     template <typename Coords>
@@ -1641,6 +1678,19 @@ constexpr auto geo::vect::bindCoordReaders(Vector const& v) {
 template <typename Dest, typename Source>
 Dest geo::vect::convertTo(Source const& v)
   { return details::ConvertToDispatcher<Dest, Source>::convert(v); }
+
+
+//----------------------------------------------------------------------------
+template <typename Dest, typename Source>
+std::vector<Dest> geo::vect::convertCollTo(std::vector<Source> const& coll) {
+  
+  std::vector<Dest> dest;
+  dest.reserve(coll.size());
+  std::transform(coll.begin(), coll.end(), std::back_inserter(dest),
+    geo::vect::convertTo<Dest, Source>);
+  return dest;
+  
+} // geo::vect::convertCollTo()
 
 
 //------------------------------------------------------------------------
