@@ -479,7 +479,7 @@ namespace geo {
 
   //......................................................................
   void GeometryCore::FindAuxDetSensitiveAtPosition
-    (geo::Point_t const& point, size_t& adg, size_t& sv) const
+    (geo::Point_t const& point, std::size_t& adg, std::size_t& sv) const
   {
     adg = FindAuxDetAtPosition(point);
     std::array<double, 3U> const worldPos = { point.X(), point.Y(), point.Z() };
