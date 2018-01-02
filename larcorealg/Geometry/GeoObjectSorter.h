@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 /// \file  GeoObjectSorter.h
 /// \brief Interface to algorithm class for sorting geo::XXXGeo objects
+/// \ingroup Geometry
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
@@ -22,6 +23,7 @@ namespace geo{
   class PlaneGeo;
   class WireGeo;
   
+  /// @ingroup Geometry
   class GeoObjectSorter {
 
   public:

@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 /// \file  larcorealg/Geometry/PlaneGeo.h
 /// \brief Encapsulate the construction of a single detector plane
+/// \ingroup Geometry
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
@@ -45,6 +46,7 @@ namespace geo {
   
   /**
    * @brief Geometry information for a single wire plane.
+   * @ingroup Geometry
    * 
    * The plane is represented in the geometry by a solid which contains wires.
    * Currently, only box solids are well supported.
@@ -106,7 +108,7 @@ namespace geo {
     /// Type of displacement vectors in the local GDML wire plane frame.
     using LocalVector_t = geo::Vector3DBase_t<PlaneGeoCoordinatesTag>;
     
-    ///@}
+    /// @}
     
     /// @{
     /// @name Types for vectors in the wire coordinate frame.
@@ -135,7 +137,7 @@ namespace geo {
     struct WidthDepthReferenceTag {};
     
     /// Type for projections in the plane frame base representation.
-    /// @fixme the following should be a PositionVector2D
+    /// @todo the following should be a PositionVector2D
     using WidthDepthProjection_t = ROOT::Math::DisplacementVector2D
       <ROOT::Math::Cartesian2D<double>, WidthDepthReferenceTag>;
     
@@ -192,7 +194,6 @@ namespace geo {
     /// @{
     /// @name Plane size and coordinates
     
-    //@{
     /**
      * @brief Return the direction of plane width.
      * @tparam Vector the type of vector to return (current default: `TVector3`)
@@ -204,7 +205,6 @@ namespace geo {
      */
     template <typename Vector = DefaultVector_t>
     Vector WidthDir() const { return geo::vect::convertTo<Vector>(fDecompFrame.MainDir()); }
-    //@}
     
     /**
      * @brief Return the direction of plane depth.
@@ -565,7 +565,7 @@ namespace geo {
     /**
      * @brief Shifts the position of an electron drifted by a distance.
      * @param position _(modified)_ the position of the electron
-     * @param drift drift distance to shift the electron by [cm]
+     * @param distance drift distance to shift the electron by [cm]
      * 
      * This is a pure geometry computation: the position is shifted by the drift
      * distance in the direction opposite to the normal to the plane (as

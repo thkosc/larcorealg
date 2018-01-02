@@ -4,6 +4,7 @@
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   December 2, 2017
  * @see    `larcorealg/Geometry/geo_vectors_utils.h`
+ * @ingroup Geometry
  * 
  * This library provides facilities that can be used for both LArSoft geometry
  * vectors (`geo_vectors.h`) and ROOT `TVector3` and related, with the same
@@ -29,8 +30,10 @@
 namespace geo {
   namespace vect {
     
+    // --- BEGIN TVector3 conversions ------------------------------------------
+    /// @name TVector3 conversions
+    /// @ingroup Geometry
     /// @{
-    /// @name `TVector3` conversions.
     
     //--------------------------------------------------------------------------
     /// Converts a vector into a `TVector3`.
@@ -42,8 +45,11 @@ namespace geo {
     
     /// Utilities to print vector types.
     namespace dump {
+      
+      // --- BEGIN Output of old-style ROOT vectors (TVector3 etc.) ------------
+      /// @name Output of old-style ROOT vectors (TVector3 etc.)
+      /// @ingroup Geometry
       /// @{
-      /// @name Output of old-style ROOT vectors (`TVector3` etc.).
       
       /// Print a `TVector2` to an output stream.
       template <typename Stream>
@@ -63,14 +69,19 @@ namespace geo {
       template <typename Stream>
       Stream& operator<< (Stream&& out, TLorentzVector const& v) {
         out 
-          << "( " << v.X() << ", " << v.Y() << ", " << v.Z() << "; " << v.T() << " )";
+          << "( " << v.X() << ", " << v.Y() << ", " << v.Z() << "; " << v.T()
+          << " )";
         return out;
       } // operator<< (TLorentzVector)
       
+      // --- END Output of old-style ROOT vectors (TVector3 etc.) --------------
       /// @}
       
     } // namespace dump
     //--------------------------------------------------------------------------
+    
+    /// @}
+    // --- END TVector3 conversions --------------------------------------------
     
   } // namespace vect
 } // namespace geo

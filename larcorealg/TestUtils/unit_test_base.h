@@ -566,6 +566,7 @@ namespace testing {
     
     /**
      * @brief Constructor: sets everything up and declares the test started
+     * @param bSetup (_default: `true`_) call `Setup()` after construction
      * 
      * The configuration is from a default-constructed ConfigurationClass.
      * This is suitable for use as Boost unit test fixture.
@@ -575,7 +576,8 @@ namespace testing {
     //@{
     /**
      * @brief Setup from a configuration
-     * @param configurer an instance of ConfigurationClass
+     * @param configurer an instance of `ConfigurationClass`
+     * @param bSetup (_default: `true`_) call `Setup()` after construction
      * 
      * The configuration is from the specified configurer class.
      * 
@@ -585,11 +587,12 @@ namespace testing {
      * 
      * In the r-value-reference constructor, the configurer is moved.
      */
-    BasicTesterEnvironment(Configuration_t const& cfg_obj, bool bSetup = true):
-      config(cfg_obj)
+    BasicTesterEnvironment
+      (Configuration_t const& configurer, bool bSetup = true):
+      config(configurer)
       { if (bSetup) Setup(); }
-    BasicTesterEnvironment(Configuration_t&& cfg_obj, bool bSetup = true):
-      config(cfg_obj)
+    BasicTesterEnvironment(Configuration_t&& configurer, bool bSetup = true):
+      config(configurer)
       { if (bSetup) Setup(); }
     //@}
     
@@ -781,6 +784,7 @@ namespace testing {
      * @brief Sets a service provider up by calling its testing::setupProvider()
      * @tparam Prov type of provider
      * @tparam Args type of arguments for the setup function
+     * @param name the service name (for configuration retrieval)
      * @param args arguments for the setup function
      * @return a pointer to the provider set up
      * @see SetupProvider()
@@ -846,6 +850,7 @@ namespace testing {
      * @tparam Interface type of provider interface being implemented
      * @tparam Prov type of provider
      * @tparam Args type of arguments for the setup function
+     * @param name the service name (for configuration retrieval)
      * @param args arguments for the setup function
      * @return a pointer to the provider set up
      * @see SetupProviderFromService(), SetupProviderFor()

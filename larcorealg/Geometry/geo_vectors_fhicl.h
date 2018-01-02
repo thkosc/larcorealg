@@ -3,6 +3,7 @@
  * @brief  Helpers for reading vectors from FHiCL files.
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   March 24, 2017
+ * @ingroup Geometry
  * 
  * This library depends on ROOT GenVector.
  * In the CET link list in `CMakeLists.txt`, link to `${ROOT_GENVECTOR}`.

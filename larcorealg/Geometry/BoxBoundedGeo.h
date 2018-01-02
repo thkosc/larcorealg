@@ -4,6 +4,7 @@
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   April 9th, 2015
  * @see    larcorealg/Geometry/BoxBoundedGeo.cpp
+ * @ingroup Geometry
  */
 
 #ifndef LARCOREALG_GEOMETRY_BOXBOUNDEDGEO_H
@@ -24,6 +25,7 @@
 namespace geo {
   /**
    * @brief A base class aware of world box coordinates
+   * @ingroup Geometry
    * 
    * An object describing a simple shape can inherit from this one to gain
    * access to a common boundary checking interface.
@@ -45,7 +47,7 @@ namespace geo {
      */
     BoxBoundedGeo() = default;
     
-    //@{
+    
     /**
      * @brief Constructor: sets the boundaries in world coordinates as specified
      * @param x_min lower x coordinate
@@ -54,9 +56,7 @@ namespace geo {
      * @param y_max upper y coordinate
      * @param z_min lower z coordinate
      * @param z_max upper z coordinate
-     * @param lower lower coordinates (x, y, z)
-     * @param upper upper coordinates (x, y, z)
-     * @see SetBoundaries
+     * @see `SetBoundaries()`
      * 
      * Note that is assumed that each minimum is larger than its maximum,
      * and no check is performed.
@@ -68,10 +68,19 @@ namespace geo {
       ):
       c_min{ x_min, y_min, z_min }, c_max{ x_max, y_max, z_max }
       { SortCoordinates(); }
+    
+    /**
+     * @brief Constructor: sets the boundaries in world coordinates as specified
+     * @param lower lower coordinates (x, y, z)
+     * @param upper upper coordinates (x, y, z)
+     * @see `SetBoundaries()`
+     * 
+     * Note that is assumed that each minimum is larger than its maximum,
+     * and no check is performed.
+     */
     BoxBoundedGeo(Coords_t lower, Coords_t upper):
       c_min(lower), c_max(upper)
       { SortCoordinates(); }
-    //@}
     
     
     /// @{
@@ -138,6 +147,7 @@ namespace geo {
     
     /// @name Containment in the full volume
     /// @{
+    
     /**
      * @brief Returns whether this TPC contains the specified world x coordinate
      * @param x the absolute ("world") coordinate x
@@ -182,7 +192,7 @@ namespace geo {
     bool ContainsYZ(double y, double z, double const wiggle = 1) const
       { return ContainsY(y, wiggle) && ContainsZ(z, wiggle); }
     
-    //@{
+    
     /**
      * @brief Returns whether this volume contains the specified point.
      * @param point the point [cm]
@@ -199,17 +209,19 @@ namespace geo {
         return ContainsX(point.X(), wiggle)
           && ContainsYZ(point.Y(), point.Z(), wiggle);
       } // ContainsPosition()
+    /// @see `ContainsPosition(geo::Point_t const&, double) const`.
     bool ContainsPosition(TVector3 const& point, double wiggle = 1.0) const;
+    /// @see `ContainsPosition(geo::Point_t const&, double) const`.
     bool ContainsPosition(double const* point, double wiggle = 1.0) const;
-    //@}
     
-    ///@}
+    
+    /// @}
     
     
     /// @name Containment in a fiducial volume
     /// @{
     /**
-     * @brief Returns whether TPC fiducial volume contains world x coordinate
+     * @brief Returns whether TPC fiducial volume contains world x coordinate.
      * @param x the absolute ("world") coordinate x
      * @param neg_margin how far within the TPC the fiducial region starts
      * @param pos_margin how far before the TPC the fiducial region ends
@@ -232,6 +244,12 @@ namespace geo {
       {
         return CoordinateContained(x, MinX() + neg_margin, MaxX() - pos_margin);
       }
+    /**
+     * @brief Returns whether TPC fiducial volume contains world x coordinate.
+     * @see `InFiducialX(double, double, double) const`
+     * 
+     * Margins are symmetric.
+     */
     bool InFiducialX(double x, double margin) const
       { return InFiducialX(x, margin, margin); }
     
@@ -257,6 +275,12 @@ namespace geo {
       {
         return CoordinateContained(y, MinY() + neg_margin, MaxY() - pos_margin);
       }
+    /**
+     * @brief Returns whether TPC fiducial volume contains world y coordinate.
+     * @see `InFiducialY(double, double, double) const`
+     * 
+     * Margins are symmetric.
+     */
     bool InFiducialY(double y, double margin) const
       { return InFiducialY(y, margin, margin); }
     
@@ -282,6 +306,12 @@ namespace geo {
       {
         return CoordinateContained(z, MinZ() + neg_margin, MaxZ() - pos_margin);
       }
+    /**
+     * @brief Returns whether TPC fiducial volume contains world z coordinate.
+     * @see `InFiducialZ(double, double, double) const`
+     * 
+     * Margins are symmetric.
+     */
     bool InFiducialZ(double z, double margin) const
       { return InFiducialZ(z, margin, margin); }
     
@@ -306,6 +336,17 @@ namespace geo {
           && (c <= (max < 0? max / wiggle: max * wiggle));
       } // CoordinateContained()
     
+    /**
+     * @brief Returns whether the specified coordinate is in a range
+     * @param c the coordinate
+     * @param range pointer to [ lower boundary, upper boundary ] of the range
+     * @param wiggle expansion factor for the range
+     * @return whether the specified coordinate is in a range
+     * @see `CoordinateContained(double, double, double, double)`
+     *
+     * If the wiggle is larger than 1, the range is expanded by the wiggle factor.
+     * If the wiggle is less than 1, the range is shrinked.
+     */
     static bool CoordinateContained
       (double c, double const* range, double wiggle = 1.)
       { return CoordinateContained(c, range[0], range[1], wiggle); }

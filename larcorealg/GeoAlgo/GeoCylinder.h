@@ -22,9 +22,10 @@ namespace geoalgo {
      \class Cylinder
      @brief Representation of a 3D Cylinder volume.
      A Cylinder object inherits from a geoalgo::Line
-     @input 2 points, which define the line representing
+     @remark input:
+     * 2 points, which define the line representing
      the central axis of the cylinder
-     @input a radius, defining the radius of the cylinder
+     * a radius, defining the radius of the cylinder
   */
   class Cylinder : public Line {
     

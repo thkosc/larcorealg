@@ -3,6 +3,7 @@
  * @brief  Utilities to extend the interface of geometry vectors.
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   November 27, 2017
+ * @ingroup Geometry
  * 
  * This library provides facilities that can be used for both LArSoft geometry
  * vectors (`geo_vectors.h`) and ROOT `TVector3` and related, with the same
@@ -28,8 +29,10 @@
 #include <cassert>
 
 namespace geo {
+  
   /**
    * @brief Utilities to manipulate geometry vectors.
+   * @ingroup Geometry
    *
    * The utilities include generic vector interface facilities allowing to
    * use different vector types via templates.
@@ -384,6 +387,10 @@ namespace geo {
     } // namespace details
     
     
+    // BEGIN Geometry group ------------------------------------------------------
+    /// @ingroup Geometry
+    /// @{
+  
     /// Convenience utilities not directly related to vectors.
     namespace extra {
       
@@ -398,6 +405,7 @@ namespace geo {
     } // namespace extra
     
     
+    // --- BEGIN Vector coordinate access abstraction --------------------------
     /// @{
     /**
      * @name Vector coordinate access abstraction
@@ -562,7 +570,7 @@ namespace geo {
     //@{
     /// Returns a sequence of indices valid for a vector of the specified type.
     template <typename Vector>
-    constexpr std::array<std::size_t, dimension<Vector>()> indices();
+    constexpr std::array<std::size_t, geo::vect::dimension<Vector>()> indices();
     template <typename Vector>
     constexpr auto indices(Vector const&) -> decltype(indices<Vector>());
     //@}
@@ -575,7 +583,7 @@ namespace geo {
      * @brief Creates a `Vector` object with coordinates from `coords`.
      * @tparam Vector the type of vector to be created
      * @tparam Coords type of object holding the value of the needed coordinates
-     * @param coord object holding the value of the needed coordinates
+     * @param coords object holding the value of the needed coordinates
      * @return a newly created `Vector` object with coordinates from `coords`
      * 
      * To create a vector of dimension _N_, the first _N_ values are extracted
@@ -690,13 +698,12 @@ namespace geo {
     static constexpr auto TcoordManager<Vector const>
       = details::makeCoordReader(&Vector::T);
     
-    //@{
+    
     /**
      * @brief Returns an object that can be bound to a vector to manage one of
      *        its coordinates.
      * @tparam Vector type of vector to get a manager for (constantness matters)
      * @param n index of the coordinate (`0`: X, `1`: Y, `2`: Z, `3`: T)
-     * @param v a vector of type `Vector` (ignored)
      * @return a coordinate manager, undefined if index is invalid
      * 
      * Index `n` is assumed to be smaller than the dimension of the vector.
@@ -734,9 +741,21 @@ namespace geo {
      */
     template <typename Vector>
     constexpr auto coordManager(unsigned int n);
+    
+    /**
+     * @brief Returns an object that can be bound to a vector to manage one of
+     *        its coordinates.
+     * @tparam Vector type of vector to get a manager for (constantness matters)
+     * @param n index of the coordinate (`0`: X, `1`: Y, `2`: Z, `3`: T)
+     * @param v a vector of type `Vector` (ignored)
+     * @return a coordinate manager, undefined if index is invalid
+     * @see `geo::vect::coordManager(unsigned int)`
+     * 
+     * An alias of `geo::vect::coordManager(unsigned int)`.
+     */
     template <typename Vector>
     constexpr auto coordManager(unsigned int n, Vector& v);
-    //@}
+    
     
     //@{
     /// Returns an array with all coordinate managers for a type of vector.
@@ -901,8 +920,10 @@ namespace geo {
     Vector transformCoords(Vector const& v, Pred&& pred);
     
     /// @}
+    // --- END Vector coordinate access abstraction ----------------------------
     
     
+    // --- BEGIN Functions for common vector operations ------------------------
     /// @{
     /** ************************************************************************
      * @name Functions for common vector operations.
@@ -928,7 +949,7 @@ namespace geo {
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
      * struct Vector_t: public VectorBase_t { using VectorBase_t::VectorBase_t; };
      * struct Point_t: public VectorBase_t { using VectorBase_t::VectorBase_t; };
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      *       This will likely have consequences though (for example, the sum of
      *       two `Vector_t` or `Point_t` will become a `VectorBase_t`).
      *       
@@ -979,7 +1000,7 @@ namespace geo {
     
     
     /// @}
-    //--------------------------------------------------------------------------
+    // --- END Functions for common vector operations --------------------------
     
     
     /** ************************************************************************
@@ -1036,6 +1057,7 @@ namespace geo {
         { add(begin, end); }
       
       
+      // --- BEGIN Result query ------------------------------------------------
       /// @{
       /// @name Result query
       
@@ -1068,9 +1090,11 @@ namespace geo {
       
       
       /// @}
+      // --- END Result query --------------------------------------------------
       
+      // --- BEGIN Addition of points ------------------------------------------
       /// @{
-      /// @name Addition of points.
+      /// @name Addition of points
       
       /**
        * @brief Accumulates a point.
@@ -1119,6 +1143,7 @@ namespace geo {
       void clear() { fSums.fill(0.); fW = 0.0; }
       
       /// @}
+      // --- END Addition of points --------------------------------------------
       
         private:
       using IndexSequence_t = std::make_index_sequence<Dim>;
@@ -1150,6 +1175,7 @@ namespace geo {
     using MiddlePointAccumulator = MiddlePointAccumulatorDim<3U>;
     
     
+    // --- BEGIN Middle point functions ----------------------------------------
     /// @{
     /// @name Middle point functions
     
@@ -1234,9 +1260,11 @@ namespace geo {
       }
     
     /// @}
+    // --- END Middle point functions ------------------------------------------
     
     
-    /// @{ 
+    // --- BEGIN Support for LArSoft geometry vectors --------------------------
+    /// @{
     /// @name Support for LArSoft geometry vectors
     
     // import global definitions
@@ -1280,9 +1308,14 @@ namespace geo {
       { return makeFromCoords<::geo::Vector_t>(std::forward<Coords>(coords)); }
     
     /// @}
+    // --- END Support for LArSoft geometry vectors ----------------------------
     
-   
-  } // namespace vect 
+  
+  } // namespace vect
+  
+  /// @}
+  // END Geometry group --------------------------------------------------------
+  
 } // namespace geo
 
 
@@ -1621,7 +1654,6 @@ constexpr Vector geo::vect::makeFromCoords(Coords&& coords) {
 
 
 //------------------------------------------------------------------------------
-/// An object that can be bound to a vector to manage one of its coordinates.
 template <typename Vector>
 constexpr auto geo::vect::coordManager(unsigned int n)
   { return details::CoordManagerImpl<Vector>::get(n); }
@@ -1704,7 +1736,6 @@ Vector geo::vect::transformCoords(Vector const& v, Pred&& pred) {
 
 
 //------------------------------------------------------------------------------
-/// Returns whether all components of the vector are finite.
 template <typename Vector>
 bool geo::vect::isfinite(Vector const& v)
   { return details::isfiniteImpl(v, details::makeVectorIndices<Vector>()); }

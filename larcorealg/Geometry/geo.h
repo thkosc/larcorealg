@@ -134,10 +134,12 @@ inline double geo::ClosestApproach(const double point[],
 /// \param y_hi - y box coordinates in space w.r.t. the origin
 /// \param y_lo - y box coordinates in space w.r.t. the origin
 /// \param z_hi - z box coordinates in space w.r.t. the origin
-/// \param z_hi - z box coordinates in space w.r.t. the origin
+/// \param z_lo - z box coordinates in space w.r.t. the origin
 /// \param x0[] - initial position of the particle
 /// \param gradient[] - initial gradient of particle position
-/// \param track_length - length of track
+/// \param point[] (_output_) - position of the particle at intersection
+/// 
+/// @see `geo::BoxBoundedGeo::GetIntersection()`
 ///
 /// *** assumes particle's track is linear
 ///

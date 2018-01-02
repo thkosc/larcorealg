@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 /// \file  larcorealg/Geometry/CryostatGeo.h
 /// \brief Encapsulate the construction of a single cyostat
+/// \ingroup Geometry
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
@@ -30,7 +31,8 @@ class TGeoNode;
 namespace geo {
 
   //......................................................................
-  /// Geometry information for a single cryostat
+  /// @brief Geometry information for a single cryostat.
+  /// @ingroup Geometry
   class CryostatGeo: public geo::BoxBoundedGeo {
     
     /// Type used internally to store the TPCs.
@@ -145,26 +147,25 @@ namespace geo {
     /// @}
     
     
+    // BEGIN TPC access --------------------------------------------------------
     /// @{
     /// @name TPC access
     
-    //@{
-    /// Number of TPCs in this cryostat
+    /// Number of TPCs in this cryostat.
     unsigned int      NTPC()                                    const { return fTPCs.size();      }
+    /// Alias for `NTPC()`.
     unsigned int      NElements()                               const { return fTPCs.size();      }
-    //@}
     
-    //@{
     /**
-     * @brief Returns whether a TPC with index itpc is present in this cryostat
+     * @brief Returns whether a TPC with index itpc is present in this cryostat.
      * @param itpc index of TPC in this cryostat
      * @return whether the TPC with index itpc is present in this cryostat
      */
     bool HasTPC(unsigned int itpc) const { return itpc < NTPC(); }
-    bool HasElement(unsigned int itpc) const { return HasTPC(itpc); }
-    //@}
     
-    //@{
+    /// Alias for `HasTPC()`.
+    bool HasElement(unsigned int itpc) const { return HasTPC(itpc); }
+    
     /**
      * @brief Returns whether the TPC in tpcid is present in this cryostat
      * @param tpcid full TPC ID
@@ -174,14 +175,13 @@ namespace geo {
      * is invalid.
      */
     bool HasTPC(geo::TPCID const& tpcid) const { return HasTPC(tpcid.TPC); }
+    /// Alias for `HasTPC(geo::TPCID const&)`
     bool HasElement(geo::TPCID const& tpcid) const { return HasTPC(tpcid); }
-    //@}
     
-    /// Return the itpc'th TPC in the cryostat.
+    /// @brief Return the itpc'th TPC in the cryostat.
     /// @throws cet::exception (category "TPCOutOfRange") if no such TPC
     const TPCGeo&     TPC(unsigned int itpc)                    const;
     
-    //@{
     /**
      * @brief Returns the TPC in tpcid from this cryostat
      * @param tpcid full TPC ID
@@ -193,9 +193,9 @@ namespace geo {
      */
     const TPCGeo&     TPC(TPCID const& tpcid)                   const
       { return TPC(tpcid.TPC); }
+    /// Alias for `TPC()`.
     const TPCGeo&     GetElement(TPCID const& tpcid)            const
       { return TPC(tpcid); }
-    //@}
     
     
     /**
@@ -210,16 +210,15 @@ namespace geo {
     auto const& TPCs() const { return fTPCs; }
     
     /**
-     * @brief Returns the TPC number itpc from this cryostat
+     * @brief Returns the TPC number itpc from this cryostat.
      * @param itpc the number of local TPC
      * @return a constant pointer to the TPC, or nullptr if it does not exist
      */
     TPCGeo const*     TPCPtr(unsigned int itpc)                    const
       { return HasTPC(itpc)? &(fTPCs[itpc]): nullptr; }
     
-    //@{
     /**
-     * @brief Returns the TPC in tpcid from this cryostat
+     * @brief Returns the TPC in tpcid from this cryostat.
      * @param tpcid full TPC ID
      * @return a constant pointer to the TPC, or nullptr if it does not exist
      *
@@ -228,9 +227,9 @@ namespace geo {
      */
     TPCGeo const*     TPCPtr(TPCID const& tpcid)                   const
       { return TPCPtr(tpcid.TPC); }
+    /// Alias for `TPCPtr()`.
     TPCGeo const*     GetElementPtr(TPCID const& tpcid)            const
       { return TPCPtr(tpcid); }
-    //@}
     
     /**
      * @brief Returns the index of the TPC at specified location
@@ -244,14 +243,21 @@ namespace geo {
     
     /**
      * @brief Returns the ID of the TPC at specified location.
-     * @param worldLoc 3D coordinates of the point (world reference frame)
+     * @param point 3D coordinates of the point (world reference frame)
      * @param wiggle a small factor (like 1+epsilon) to avoid rounding errors
      * @return the ID of the TPC at the specified point (invalid ID if none)
      */
     geo::TPCID PositionToTPCID
       (geo::Point_t const& point, double wiggle) const;
     
-    //@{
+    /**
+     * @brief Returns the ID of the TPC at specified location.
+     * @param point the location (world reference frame)
+     * @param wiggle a small factor (like 1+epsilon) to avoid rounding errors
+     * @return the ID of the TPC at the specified point (invalid ID if none)
+     */
+    TPCGeo const& PositionToTPC
+      (geo::Point_t const& point, double wiggle) const;
     /**
      * @brief Returns the ID of the TPC at specified location.
      * @param worldLoc 3D coordinates of the point (world reference frame)
@@ -259,11 +265,8 @@ namespace geo {
      * @return the ID of the TPC at the specified point (invalid ID if none)
      */
     TPCGeo const& PositionToTPC
-      (geo::Point_t const& point, double wiggle) const;
-    TPCGeo const& PositionToTPC
       (double const  worldLoc[3], double wiggle) const
       { return PositionToTPC(geo::vect::makePointFromCoords(worldLoc), wiggle); }
-    //@}
     
     /**
      * @brief Returns a pointer to the TPC at specified location.
@@ -281,8 +284,10 @@ namespace geo {
     unsigned int MaxWires() const;
     
     /// @}
+    // END TPC access ----------------------------------------------------------
     
     
+    // BEGIN Optical detector access -------------------------------------------
     /// @{
     /// @name Optical detector access
     
@@ -292,12 +297,11 @@ namespace geo {
     /// Return the iopdet'th optical detector in the cryostat
     const OpDetGeo&   OpDet(unsigned int iopdet)                const;
     
-    //@{
     /// Returns the index of the optical detector in this cryostat closest to
     /// `point`.
     unsigned int GetClosestOpDet(geo::Point_t const& point) const;
+    /// @see `GetClosestOpDet(geo::Point_t const&) const`
     unsigned int GetClosestOpDet(double const* point) const;
-    //@}
     
     /// Returns the optical detector det in this cryostat nearest to `point`.
     /// If there are no optical detectors, `nullptr` is returned.
@@ -307,10 +311,9 @@ namespace geo {
     std::string  OpDetGeoName()                                 const { return fOpDetGeoName; }
 
     /// @}
-
-    /// @{
-    /// @name Coordinate transformation
+    // END Optical detector access ---------------------------------------------
     
+    // BEGIN Coordinate transformation -----------------------------------------
     /// @{
     /// @name Coordinate transformation
     
@@ -371,6 +374,7 @@ namespace geo {
       { return fTrans.toLocalCoords(world); }
     
     /// @}
+    // END Coordinate transformation -------------------------------------------
     
     
     /// Method to sort TPCGeo objects

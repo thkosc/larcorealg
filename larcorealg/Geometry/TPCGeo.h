@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 /// \file  larcorealg/Geometry/TPCGeo.h
 /// \brief Encapsulate the construction of a single detector plane
+/// \ingroup Geometry
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
@@ -31,7 +32,8 @@ class TGeoNode;
 namespace geo {
 
   //......................................................................
-  /// Geometry information for a single tpc
+  /// @brief Geometry information for a single TPC.
+  /// @ingroup Geometry
   class TPCGeo: public BoxBoundedGeo {
     
     using DefaultVector_t = TVector3; // ... not for long
@@ -351,7 +353,7 @@ namespace geo {
     /**
      * @brief Shifts the position of an electron drifted by a distance.
      * @param position _(modified)_ the position of the electron
-     * @param drift drift distance to shift the electron by [cm]
+     * @param distance drift distance to shift the electron by [cm]
      * @see geo::Plane::DriftPoint(), ReferencePlane()
      * 
      * This operation is delegated to the reference plane

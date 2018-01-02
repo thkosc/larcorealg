@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 /// \file  ChannelMapAlg.h
 /// \brief Interface to algorithm class for a specific detector channel mapping
+/// \ingroup Geometry
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
@@ -27,6 +28,7 @@ namespace geo{
   class AuxDetGeometryData_t;
   class AuxDetGeo;  
   
+  /// \ingroup Geometry
   class AuxDetChannelMapAlg{
 
     typedef std::pair<uint32_t, size_t> chanAndSV;

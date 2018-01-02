@@ -4,6 +4,7 @@
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   July 13, 2017
  * @see    DriftPartitions.cxx
+ * @ingroup Geometry
  * 
  */
 
@@ -67,7 +68,9 @@ namespace geo {
   } // namespace details
   
   
-  //----------------------------------------------------------------------------
+  // --- BEGIN -----------------------------------------------------------------
+  /// @ingroup Geometry
+  /// @{
   /**
   * @brief Set of drift volumes.
   * 
@@ -200,7 +203,8 @@ namespace geo {
   DriftPartitions buildDriftVolumes(geo::CryostatGeo const& cryo);
   
   
-  //----------------------------------------------------------------------------
+  /// @}
+  // --- END -------------------------------------------------------------------
   
 } // namespace geo
 

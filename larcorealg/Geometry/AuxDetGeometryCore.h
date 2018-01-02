@@ -3,6 +3,7 @@
  * @brief  Access the description of auxiliary detector geometry
  * @author brebel@fnal.gov
  * @see    AuxDetGeometryCore.cxx
+ * @ingroup Geometry
  */
 #ifndef GEO_AUXDETGEOMETRYCORE_H
 #define GEO_AUXDETGEOMETRYCORE_H
@@ -40,6 +41,7 @@ namespace geo {
   
   
   /// Data in the geometry description
+  /// \ingroup Geometry
   struct AuxDetGeometryData_t {
     
     /// Type of list of auxiliary detectors
@@ -52,6 +54,7 @@ namespace geo {
   
   /** **************************************************************************
    * @brief Description of geometry of one set of auxiliary detectors
+   * @ingroup Geometry
    * 
    * @note All lengths are specified in centimetres
    * 
@@ -165,7 +168,7 @@ namespace geo {
      * @brief Returns the number of sensitive components of auxiliary detector
      * @param aid ID of the auxiliary detector
      * @return number of sensitive components in the auxiliary detector aid
-     * @thrws cet::exception (category "Geometry") if aid does not exist
+     * @throws cet::exception (category "Geometry") if aid does not exist
      */
     unsigned int NAuxDetSensitive(size_t const& aid) const;
     

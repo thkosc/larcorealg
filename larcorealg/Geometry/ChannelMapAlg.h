@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
-/// \file  ChannelMapAlg.h
+/// \file  larcorealg/Geometry/ChannelMapAlg.h
 /// \brief Interface to algorithm class for a specific detector channel mapping
+/// \ingroup Geometry
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
@@ -36,6 +37,7 @@ namespace geo{
   
   /**
    * @brief Interface for a class providing readout channel mapping to geometry
+   * @ingroup Geometry
    * 
    * @note A number of methods react specifically when provided with invalid IDs
    * as arguments. An invalid ID is an ID with the `isValid` flag unset, or, in
@@ -406,7 +408,7 @@ namespace geo{
      * @brief Returns the index of the detector containing the specified channel
      * @param auxDets list of the auxiliary detectors
      * @param detName name of the auxiliary detector being investigated
-     * @param number of the channel within that auxiliary detector
+     * @param channel number of the channel within that auxiliary detector
      * @return index of the sought auxiliary detector within auxDets
      * 
      * @bug This function is somehow broken in that it ignores the `auxDets`
@@ -422,7 +424,7 @@ namespace geo{
      * @brief Returns the index of the sensitive detector containing the channel
      * @param auxDets list of the sensitive auxiliary detectors
      * @param detName name of the auxiliary detector being investigated
-     * @param number of the channel within that auxiliary detector
+     * @param channel number of the channel within that auxiliary detector
      * @return index of the sought sensitive auxiliary detector within auxDets
      */
     virtual std::pair<size_t, size_t> ChannelToSensitiveAuxDet(

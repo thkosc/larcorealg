@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 /// \file  larcorealg/Geometry/OpDetGeo.h
 /// \brief Encapsulate the geometry of an optical detector
+/// \ingroup Geometry
 ///
 /// \author  bjpjones@mit.gov
 ////////////////////////////////////////////////////////////////////////
@@ -25,6 +26,7 @@ class TGeoNode;
 
 namespace geo {
 
+  /// @ingroup Geometry
   class OpDetGeo {
   public:
     

@@ -2,6 +2,7 @@
  * @file   SimpleGeo.h
  * @brief  Some simple functions to represent geometry entities
  * @author Gianluca Petrillo (petrillo@fnal.gov)
+ * @ingroup Geometry
  * 
  * This library is simple and header-only.
  * 
@@ -19,6 +20,10 @@
 
 namespace lar {
   namespace util {
+    
+    // --- BEGIN Geometry group ------------------------------------------------
+    /// @ingroup Geometry
+    /// @{
 
     /**
      * @brief Simple class definitions for geometry concepts.
@@ -419,6 +424,10 @@ namespace lar {
       /// @}
       
     } // namespace simple_geo
+    
+    /// @}
+    // --- END Geometry group --------------------------------------------------
+
   } // namespace util
 } // namespace lar
 

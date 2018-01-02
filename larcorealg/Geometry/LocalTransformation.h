@@ -3,6 +3,7 @@
  * @brief  Class containing local-to-world transformations
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   November 30, 2016
+ * @ingroup Geometry
  *
  */
 
@@ -29,6 +30,7 @@ namespace geo {
   /**
    * @brief Class to transform between world and local coordinates
    * @tparam StoredMatrix type of transformation matrix internally stored
+   * @ingroup Geometry
    * 
    * This class provides two directions of transformations (world to local and
    * the other way around), for points and for vectors.

@@ -3,6 +3,7 @@
  * @brief  Access the description of detector geometry
  * @author brebel@fnal.gov
  * @see    larcorealg/Geometry/GeometryCore.cxx
+ * @ingroup Geometry
  *
  * Structure of the header:
  *     
@@ -1136,8 +1137,9 @@ namespace geo {
     
   } // namespace details
   
-    
-    
+  // BEGIN Geometry group ------------------------------------------------------
+  /// @ingroup Geometry
+  /// @{
   /**
    * @brief Forward iterator browsing all cryostats in the detector
    * 
@@ -5262,6 +5264,9 @@ namespace geo {
     void init(TGeoNode const* start_node);
     
   }; // class ROOTGeoNodeForwardIterator
+  
+  /// @}
+  // END Geometry group --------------------------------------------------------
   
 } // namespace geo
 

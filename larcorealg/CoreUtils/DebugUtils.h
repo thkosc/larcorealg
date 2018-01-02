@@ -38,7 +38,7 @@ namespace lar {
     
     /** ***********************************************************************
      * @brief Outputs a demangled name for type T.
-     * @param T type whose name must be demangled (optional)
+     * @tparam T type whose name must be demangled (optional)
      * @return a string with demangled name
      *
      * It relies on cetlib.

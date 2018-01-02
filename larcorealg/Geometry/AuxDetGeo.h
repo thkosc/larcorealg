@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 /// \file  larcorealg/Geometry/AuxDetGeo.h
 /// \brief Encapsulate the geometry of an auxiliary detector
+/// \ingroup Geometry
 ///
 /// \author  miceli@fnal.gov
 ////////////////////////////////////////////////////////////////////////
@@ -26,6 +27,7 @@ class TGeoNode;
 
 namespace geo {
   
+  /// \ingroup Geometry
   class AuxDetGeo {
   public:
     /// @{

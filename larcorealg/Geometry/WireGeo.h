@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 /// \file  larcorealg/Geometry/WireGeo.h
 /// \brief Encapsulate the geometry of a wire
+/// \ingroup Geometry
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
@@ -32,6 +33,7 @@ namespace geo {
   
   /** **************************************************************************
    * @brief Geometry description of a TPC wire
+   * @ingroup Geometry
    * 
    * The wire is a single straight segment on a wire plane.
    * Different wires may be connected to the same readout channel. That is of

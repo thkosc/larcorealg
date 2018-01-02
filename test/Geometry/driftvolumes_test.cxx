@@ -1,5 +1,5 @@
 /**
- * @file   driftvolumes_test.cc
+ * @file   driftvolumes_test.cxx
  * @brief  Test for neighbourhood discovery in simple geometries.
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   July 13, 2017

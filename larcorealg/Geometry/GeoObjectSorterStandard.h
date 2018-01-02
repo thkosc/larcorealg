@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////
 /// \file  GeoObjectSorterStandard.h
 /// \brief Interface to algorithm class for standard sorting of geo::XXXGeo objects
+/// \ingroup Geometry
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
@@ -12,7 +13,8 @@
 #include "larcorealg/Geometry/GeoObjectSorter.h"
 
 namespace geo{
-
+  
+  /// @ingroup Geometry
   class GeoObjectSorterStandard : public GeoObjectSorter {
 
   public:

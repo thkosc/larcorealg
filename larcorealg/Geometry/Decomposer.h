@@ -3,6 +3,7 @@
  * @brief  Classes to project and compose a vector on a plane
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   December 1, 2016
+ * @ingroup Geometry
  * 
  */
 
@@ -19,6 +20,11 @@
 
 
 namespace geo {
+  
+  // --- BEGIN Decomposition objects -------------------------------------------
+  /// @name Decomposition objects
+  /// @ingroup Geometry
+  /// @{
   
   /** **************************************************************************
    * @brief A base for a plane in space
@@ -667,6 +673,9 @@ namespace geo {
     
     
   }; // class Decomposer<>
+  
+  /// @}
+  // --- END Decomposition objects ---------------------------------------------
   
 } // namespace geo
 
