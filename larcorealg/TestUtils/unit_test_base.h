@@ -770,7 +770,7 @@ namespace testing {
      * If the provider already exists, an exception is thrown.
      */
     template <typename Prov, typename... Args>
-    Prov* SetupProvider(Args... args)
+    Prov* SetupProvider(Args&&... args)
       {
         if (!providers.setup<Prov>(std::forward<Args>(args)...))
           throw std::runtime_error("Provider already exists!");
@@ -790,9 +790,12 @@ namespace testing {
      * Provider setup is attempted by constructing the provider with a parameter
      * set from the registered configuration of service with specified `name`.
      */
-    template <typename Prov>
-    Prov* SetupProviderFromService(std::string name)
-      { return SetupProvider<Prov>(this->ServiceParameters(name)); }
+    template <typename Prov, typename... Args>
+    Prov* SetupProviderFromService(std::string name, Args&&... args)
+      {
+        return SetupProvider<Prov>
+          (this->ServiceParameters(name, std::forward<Args>(args)...));
+      }
     
     /**
      * @brief Acquires a service provider
@@ -831,7 +834,7 @@ namespace testing {
      * class Interface.
      */
     template <typename Interface, typename Prov, typename... Args>
-    Prov* SetupProviderFor(Args... args)
+    Prov* SetupProviderFor(Args&&... args)
       {
         auto prov = SetupProvider<Prov>(std::forward<Args>(args)...);
         providers.set_alias<Prov, Interface>();
@@ -856,10 +859,11 @@ namespace testing {
      * but also as `provider<Interface>()`, which returns a pointer to the base
      * class Interface.
      */
-    template <typename Interface, typename Prov>
-    Prov* SetupProviderFromServiceFor(std::string name)
+    template <typename Interface, typename Prov, typename... Args>
+    Prov* SetupProviderFromServiceFor(std::string name, Args&&... args)
       {
-        auto prov = SetupProviderFromService<Prov>(name);
+        auto* prov
+          = SetupProviderFromService<Prov>(name, std::forward<Args>(args)...);
         providers.set_alias<Prov, Interface>();
         return prov;
       }
