@@ -157,13 +157,14 @@ cet_test(driftvolumes_test
   USE_BOOST_UNIT
   )
 
+cet_test(geometrydatacontainers_test
+  SOURCES geometrydatacontainers_test.cxx
+  USE_BOOST_UNIT
+  )
+
 cet_test(topology_test
   SOURCES topology_test.cxx
   LIBRARIES larcorealg_Geometry
-#             ${MF_MESSAGELOGGER}
-#             ${MF_UTILITIES}
-#             ${FHICLCPP}
-#             cetlib cetlib_except
   USE_BOOST_UNIT
   )
 

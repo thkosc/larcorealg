@@ -58,6 +58,7 @@
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
+#include "larcorealg/Geometry/GeometryDataContainers.h" // geo::TPCDataContainer
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect namespace
 #include "larcorealg/CoreUtils/RealComparisons.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
@@ -2272,6 +2273,63 @@ namespace geo {
     unsigned int TotalNTPC() const;
     
     
+    /**
+     * @brief Returns a container with one entry per TPC.
+     * @tparam T type of data in the container
+     * @return a container with one default-constructed `T` per TPC
+     * @see `geo::TPCDataContainer`
+     * 
+     * The working assumption is that all cryostats have the same number of
+     * TPCs. It is always guaranteed that all existing TPCs have an entry in
+     * the container, although if the previous working assumption is not
+     * satisfied there will be entries in the containers which are not
+     * associated to a valid TPC.
+     * 
+     * The interface of the container is detailed in the documentation of the
+     * container itself, `geo::TPCDataContainer`. Example of usage:
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+     * auto const* geom = lar::providerFrom<geo::GeometryCore>();
+     * auto tracksPerTPC
+     *   = geom->makeTPCData<std::vector<recob::Track const*>>();
+     * 
+     * for (recob::Track const& track: tracks) {
+     *   geo::TPCGeo const* tpc = geom->PositionToTPCptr(track.Start());
+     *   if (tpc) tracksPerTPC[tpc->ID()].push_back(&track);
+     * } // for
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * where the container will be filled with pointers to all tracks starting
+     * from a given TPC (tracks reconstructed as starting outside the TPCs will
+     * be not saved in the container).
+     */
+    template <typename T>
+    geo::TPCDataContainer<T> makeTPCData() const
+      { return { Ncryostats(), MaxTPCs() }; }
+    
+    /**
+     * @brief Returns a container with one entry per TPC.
+     * @tparam T type of data in the container
+     * @param defValue the initial value of all elements in the container
+     * @return a container with a value `defValue` per each TPC
+     * @see `geo::TPCDataContainer`
+     * 
+     * This function operates as `makeTPCData() const`, except that copies
+     * the specified value into all the entries of the container. Example:
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+     * auto const* geom = lar::providerFrom<geo::GeometryCore>();
+     * auto nTracksPerTPC = geom->makeTPCData(0U);
+     * 
+     * for (recob::Track const& track: tracks) {
+     *   geo::TPCGeo const* tpc = geom->PositionToTPCptr(track.Start());
+     *   if (tpc) ++(tracksPerTPC[tpc->ID()]);
+     * } // for
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     */
+    template <typename T>
+    geo::TPCDataContainer<T> makeTPCData(T const& defValue) const
+      { return { Ncryostats(), MaxTPCs(), defValue }; }
+    
+    
+    
     //@{
     /**
      * @brief Returns the total number of TPCs in the specified cryostat
@@ -2706,6 +2764,60 @@ namespace geo {
     
     /// Returns the largest number of planes among all TPCs in this detector
     unsigned int MaxPlanes() const;
+    
+    /**
+     * @brief Returns a container with one entry per wire plane.
+     * @tparam T type of data in the container
+     * @return a container with one default-constructed `T` per plane
+     * @see `geo::PlaneDataContainer`
+     * 
+     * The working assumption is that all cryostats have the same number of
+     * TPCs, and all TPCs have the same number of planes. It is always
+     * guaranteed that all existing planes have an entry in the container,
+     * although if the previous working assumption is not satisfied there will
+     * be entries in the containers which are not associated to a valid plane.
+     * 
+     * The interface of the container is detailed in the documentation of the
+     * container itself, `geo::PlaneDataContainer`. Example of usage:
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+     * auto const* geom = lar::providerFrom<geo::GeometryCore>();
+     * auto hitsPerPlane
+     *   = geom->makePlaneData<std::vector<recob::Hit const*>>();
+     * 
+     * for (recob::Hit const& hit: hits) {
+     *   if (hit.WireID()) hitsPerPlane[hit.WireID()].push_back(&hit);
+     * } // for
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * where the container will be filled with pointers to all hits on the given
+     * wire plane (wire IDs are implicitly converted into plane IDs in the index
+     * `operator[]` call).
+     */
+    template <typename T>
+    geo::PlaneDataContainer<T> makePlaneData() const
+      { return { Ncryostats(), MaxTPCs(), MaxPlanes() }; }
+    
+    /**
+     * @brief Returns a container with one entry per wire plane.
+     * @tparam T type of data in the container
+     * @param defValue the initial value of all elements in the container
+     * @return a container with one default-constructed `T` per plane
+     * @see `geo::PlaneDataContainer`
+     * 
+     * This function operates as `makePlaneData() const`, except that copies
+     * the specified value into all the entries of the container. Example:
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+     * auto const* geom = lar::providerFrom<geo::GeometryCore>();
+     * auto nHitsPerPlane = geom->makePlaneData(0U);
+     * 
+     * for (recob::Hit const& hit: hits) {
+     *   if (hit.WireID()) ++(hitsPerPlane[hit.WireID()]);
+     * } // for
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     */
+    template <typename T>
+    geo::PlaneDataContainer<T> makePlaneData(T const& defValue) const
+      { return { Ncryostats(), MaxTPCs(), MaxPlanes(), defValue }; }
+    
     
     //@{
     /**
