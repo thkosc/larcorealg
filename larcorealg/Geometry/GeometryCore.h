@@ -2583,6 +2583,21 @@ namespace geo {
       >
     IterateTPCIDs(geo::CryostatID const& cid) const { return { this, cid }; }
     
+    /// `IterateTPCIDs()` is not supported on TPC IDs.
+    void IterateTPCIDs(geo::TPCID const& pid) const = delete;
+    
+    /// `IterateTPCIDs()` is not supported on plane IDs.
+    void IterateTPCIDs(geo::PlaneID const& pid) const = delete;
+    
+    /// `IterateTPCIDs()` is not supported on wire IDs.
+    void IterateTPCIDs(geo::WireID const& pid) const = delete;
+    
+    /// `IterateTPCIDs()` is not supported on readout IDs.
+    void IterateTPCIDs(readout::TPCsetID const&) const = delete;
+    
+    /// `IterateTPCIDs()` is not supported on readout IDs.
+    void IterateTPCIDs(readout::ROPID const&) const = delete;
+    
     /**
      * @brief Enables ranged-for loops on all TPCs of the detector.
      * @returns an object suitable for ranged-for loops on all TPCs
@@ -2624,6 +2639,21 @@ namespace geo {
       &GeometryCore::begin_TPC, &GeometryCore::end_TPC
       >
     IterateTPCs(geo::CryostatID const& cid) const { return { this, cid }; }
+    
+    /// `IterateTPCs()` is not supported on TPC IDs.
+    void IterateTPCs(geo::TPCID const& pid) const = delete;
+    
+    /// `IterateTPCs()` is not supported on plane IDs.
+    void IterateTPCs(geo::PlaneID const& pid) const = delete;
+    
+    /// `IterateTPCs()` is not supported on wire IDs.
+    void IterateTPCs(geo::WireID const& pid) const = delete;
+    
+    /// `IterateTPCs()` is not supported on readout IDs.
+    void IterateTPCs(readout::TPCsetID const&) const = delete;
+    
+    /// `IterateTPCs()` is not supported on readout IDs.
+    void IterateTPCs(readout::ROPID const&) const = delete;
     
     
     //
@@ -3089,6 +3119,20 @@ namespace geo {
       >
     IteratePlaneIDs(geo::TPCID const& tid) const { return { this, tid }; }
     
+    
+    /// `IteratePlaneIDs()` is not supported on plane IDs.
+    void IteratePlaneIDs(geo::PlaneID const& pid) const = delete;
+    
+    /// `IteratePlaneIDs()` is not supported on wire IDs.
+    void IteratePlaneIDs(geo::WireID const& pid) const = delete;
+    
+    /// `IteratePlaneIDs()` is not supported on readout IDs.
+    void IteratePlaneIDs(readout::TPCsetID const&) const = delete;
+    
+    /// `IteratePlaneIDs()` is not supported on readout IDs.
+    void IteratePlaneIDs(readout::ROPID const&) const = delete;
+    
+    
     /**
      * @brief Enables ranged-for loops on all planes of the detector.
      * @returns an object suitable for ranged-for loops on all planes
@@ -3153,6 +3197,18 @@ namespace geo {
       &GeometryCore::begin_plane, &GeometryCore::end_plane
       >
     IteratePlanes(geo::TPCID const& tid) const { return { this, tid }; }
+    
+    /// `IteratePlanes()` is not supported on plane IDs.
+    void IteratePlanes(geo::PlaneID const& pid) const = delete;
+    
+    /// `IteratePlanes()` is not supported on wire IDs.
+    void IteratePlanes(geo::WireID const& pid) const = delete;
+    
+    /// `IteratePlanes()` is not supported on readout IDs.
+    void IteratePlanes(readout::TPCsetID const&) const = delete;
+    
+    /// `IteratePlanes()` is not supported on readout IDs.
+    void IteratePlanes(readout::ROPID const&) const = delete;
     
     
     //
@@ -3516,6 +3572,16 @@ namespace geo {
       >
     IterateWireIDs(geo::PlaneID const& pid) const { return { this, pid }; }
     
+    /// `IterateWireIDs()` is not supported on wire IDs.
+    void IterateWireIDs(geo::WireID const& pid) const = delete;
+    
+    /// `IterateWireIDs()` is not supported on readout IDs.
+    void IterateWireIDs(readout::TPCsetID const&) const = delete;
+    
+    /// `IterateWireIDs()` is not supported on readout IDs.
+    void IterateWireIDs(readout::ROPID const&) const = delete;
+    
+    
     /**
      * @brief Enables ranged-for loops on all wires of the detector.
      * @returns an object suitable for ranged-for loops on all wires
@@ -3606,6 +3672,15 @@ namespace geo {
       &GeometryCore::begin_wire, &GeometryCore::end_wire
       >
     IterateWires(geo::PlaneID const& tid) const { return { this, tid }; }
+    
+    /// `IterateWires()` is not supported on wire IDs.
+    void IterateWires(geo::WireID const& pid) const = delete;
+    
+    /// `IterateWires()` is not supported on readout IDs.
+    void IterateWires(readout::TPCsetID const&) const = delete;
+    
+    /// `IterateWires()` is not supported on readout IDs.
+    void IterateWires(readout::ROPID const&) const = delete;
     
     //
     // single object features
