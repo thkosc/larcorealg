@@ -39,7 +39,7 @@ class TVector3;
 namespace geo {
 
   namespace details {
-    class ActiveAreaCalculator;
+    struct ActiveAreaCalculator;
   } // namespace details
   
   //......................................................................
