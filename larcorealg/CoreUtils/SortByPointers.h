@@ -115,7 +115,7 @@ auto util::makePointerVector(Coll& coll) {
   ptr_coll_t ptrs;
   ptrs.reserve(n);
   std::transform(coll.begin(), coll.end(), std::back_inserter(ptrs),
-    &std::addressof<value_type>);
+    [](auto& obj){ return &obj; });
   
   return ptrs;
   
