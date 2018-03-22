@@ -15,7 +15,7 @@
 
 // ROOT libraries
 #include "TVector3.h"
-
+// ???? AuxDetGeometryData_t
 // C/C++ standard libraries
 #include <vector>
 #include <map>
@@ -25,7 +25,7 @@
 namespace geo{
   
   // forward-declaration from geometry
-  class AuxDetGeometryData_t;
+  struct AuxDetGeometryData_t;
   class AuxDetGeo;  
   
   /// \ingroup Geometry
