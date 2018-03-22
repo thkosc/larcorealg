@@ -1286,7 +1286,7 @@ namespace geo {
 
     geo::PlaneID          fID;          ///< ID of this plane.
     
-    friend class details::ActiveAreaCalculator;
+    friend struct details::ActiveAreaCalculator;
     
     /// Returns `min` if `v` < `min`, `max` if `v` > `max`, `v` otherwise.
     template <typename T>
