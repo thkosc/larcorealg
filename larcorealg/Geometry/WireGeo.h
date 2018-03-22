@@ -28,7 +28,7 @@ class TGeoNode;
 
 namespace geo {
   
-  class WireID; // forward declaration
+  struct WireID; // forward declaration
   
   
   /** **************************************************************************
