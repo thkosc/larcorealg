@@ -31,7 +31,7 @@
 namespace geo{
   
   // forward-declaration from geometry
-  class GeometryData_t;
+  struct GeometryData_t;
   class AuxDetGeo;
   
   
