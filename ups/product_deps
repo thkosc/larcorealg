@@ -1,6 +1,6 @@
 # The parent line must be the first non-comment line in the file
 # This line defines the product name and version
-parent	larcorealg	v1_18_01
+parent	larcorealg	v06_72_00_rc0
 defaultqual	e15
 
 # These optional lines define the installed directories where
@@ -20,9 +20,9 @@ fcldir product_dir job
 gdmldir product_dir
 #
 product         version
-larcoreobj      v1_22_00
+larcoreobj      v06_72_00_rc0
 
-cetbuildtools	v7_00_03	-	only_for_build
+cetbuildtools	v7_02_01	-	only_for_build
 end_product_list
 
 # e15  - with gcc 6.4.0 and -std=c++14
@@ -30,9 +30,9 @@ qualifier	larcoreobj		notes
 e15:debug	e15:debug	
 e15:opt		e15:opt
 e15:prof	e15:prof	
-e14:debug	e14:debug	
-e14:opt		e14:opt
-e14:prof	e14:prof	
+c2:debug	c2:debug	
+c2:opt		c2:opt
+c2:prof		c2:prof	
 end_qualifier_list
 
 # Preserve tabs and formatting in emacs and vi / vim:
