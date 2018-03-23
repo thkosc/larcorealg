@@ -1059,7 +1059,6 @@ std::vector<double> geo::part::GridPartition<Data>::detectSeparators(
   static_assert(details::is_partition_ptr_iterator<BeginIter>(),
     "Begin iterator does not point to a pointer to partition type");
   
-  using Range_t = PartitionBase::Area_t::Range_t;
   details::PartitionRangeLowerBoundExtractor<Range> lowerBound;
   
   std::size_t const nParts = std::distance(b, e);

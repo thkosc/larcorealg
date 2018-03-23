@@ -1830,8 +1830,6 @@ namespace geo{
     
     unsigned int nErrors = 0;
     for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
-    
-      decltype(auto) const refPoint = plane.GetCenter();
       
       double const halfWidth = plane.Width() / 2;
       double const halfDepth = plane.Depth() / 2;
