@@ -27,7 +27,9 @@ void Point2DTest() {
   
   using Point_t = lar::util::simple_geo::Point2D<float>;
   
-  std::array<Point_t::Data_t, 2U> buffer = { 1., 2. };
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  std::array<Point_t::Data_t, 2U> buffer = {{ 1., 2. }};
   
   //
   // default constructor
@@ -76,7 +78,9 @@ void Point3DTest() {
   
   using Point_t = lar::util::simple_geo::Point3D<float>;
   
-  std::array<Point_t::Data_t, 3U> buffer = { 1., 2., 4. };
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  std::array<Point_t::Data_t, 3U> buffer = {{ 1., 2., 4. }};
   
   //
   // default constructor

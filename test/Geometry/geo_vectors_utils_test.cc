@@ -133,12 +133,16 @@ void test_MiddlePointAccumulator_generic() {
   
   static_assert(Dim < MaxDim, "This test supports only up to dimension 4");
   using GenType = std::array<Scalar_t, MaxDim>;
-  GenType const genExpected{ 2., 4., 6., 8. };
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  GenType const genExpected{{ 2., 4., 6., 8. }};
   
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
   std::vector<GenType> genPoints {
-    GenType{ 1., 2., 3.,  4. },
-    GenType{ 2., 4., 6.,  8. },
-    GenType{ 3., 6., 9., 12. }
+    GenType{{ 1., 2., 3.,  4. }},
+    GenType{{ 2., 4., 6.,  8. }},
+    GenType{{ 3., 6., 9., 12. }}
   };
   
   std::vector<Point> points;
@@ -214,12 +218,14 @@ void test_MiddlePointAccumulator_documentation_class() {
    * auto middleAboveGround = pointsAboveGround.middlePoint();
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */
-  std::array<geo::Point_t, 4> const points = {
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  std::array<geo::Point_t, 4> const points = {{
     geo::Point_t{ 0.0,  1.0,  2.0 },
     geo::Point_t{ 0.0, -1.0,  2.0 },
     geo::Point_t{ 0.0,  1.0, -2.0 },
     geo::Point_t{ 0.0, -1.0, -2.0 }
-  };
+  }};
   
   geo::vect::MiddlePointAccumulator pointsAboveGround;
   for (auto const& point: points)
@@ -382,7 +388,9 @@ template <typename Vector>
 struct test_vectorAccess {
   
   test_vectorAccess() {
-    std::array<double, 3U> const coords = { 1.0, 5.0, 9.0 };
+    // BUG the double brace syntax is required to work around clang bug 21629
+    // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+    std::array<double, 3U> const coords = {{ 1.0, 5.0, 9.0 }};
     Vector v{ coords[0], coords[1], coords[2] };
     
     unsigned int iCoord = 0;
@@ -593,7 +601,9 @@ struct test_vectorAccess<Vector const> {
   
   test_vectorAccess() {
 
-    std::array<double, 3U> const coords = { 1.0, 5.0, 9.0 };
+    // BUG the double brace syntax is required to work around clang bug 21629
+    // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+    std::array<double, 3U> const coords = {{ 1.0, 5.0, 9.0 }};
     Vector const v{ coords[0], coords[1], coords[2] };
     
     unsigned int iCoord = 0;
@@ -735,7 +745,9 @@ void test_vectorProcessing() {
 template <typename Source, typename Dest>
 void test_vector2Dconvert() {
   
-  std::array<double, 4U> srcData { 1.0, 5.0, 9.0, 16.0 };
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  std::array<double, 4U> srcData {{ 1.0, 5.0, 9.0, 16.0 }};
   Source const src{ srcData[0], srcData[1] };
   
   auto dest = geo::vect::convertTo<Dest>(src);
@@ -753,7 +765,9 @@ void test_vector2Dconvert() {
 template <typename Source, typename Dest>
 void test_vector3Dconvert() {
   
-  std::array<double, 4U> srcData { 1.0, 5.0, 9.0, 16.0 };
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  std::array<double, 4U> srcData {{ 1.0, 5.0, 9.0, 16.0 }};
   Source const src{ srcData[0], srcData[1], srcData[2] };
   
   auto dest = geo::vect::convertTo<Dest>(src);
@@ -772,7 +786,9 @@ void test_vector3Dconvert() {
 template <typename Source, typename Dest>
 void test_vector4Dconvert() {
   
-  std::array<double, 4U> srcData { 1.0, 5.0, 9.0, 16.0 };
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  std::array<double, 4U> srcData {{ 1.0, 5.0, 9.0, 16.0 }};
   Source const src{ srcData[0], srcData[1], srcData[2], srcData[3] };
   
   auto dest = geo::vect::convertTo<Dest>(src);
@@ -795,7 +811,9 @@ void test_makeFromCoords_documentation() {
    * constexpr auto p = geo::vect::makeFromCoords<geo::Point_t>(data);
    * auto v = geo::vect::makeFromCoords<geo::Vector_t>(data.data() + 1);
    */
-  constexpr std::array<float, 5U> data { 2.0, 5.0, 7.0, 11.0, 15.5 };
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  constexpr std::array<float, 5U> data {{ 2.0, 5.0, 7.0, 11.0, 15.5 }};
   auto const p = geo::vect::makeFromCoords<geo::Point_t>(data);
   auto const v = geo::vect::makeFromCoords<geo::Vector_t>(data.data() + 1);
   
@@ -809,7 +827,9 @@ void test_makeFromCoords_documentation() {
 template <typename Vector>
 void test_transform() {
   
-  std::array<float, 5U> data { 4.0, 5.0, 7.0, 11.0, 15.5 };
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  std::array<float, 5U> data {{ 4.0, 5.0, 7.0, 11.0, 15.5 }};
   auto const v = geo::vect::makeFromCoords<Vector>(data);
   
   auto const neg_v = geo::vect::transformCoords(v, [](auto c){ return -c; });

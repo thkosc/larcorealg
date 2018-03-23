@@ -34,19 +34,23 @@ namespace geo
     
     // Generate normal vectors and offsets for every plane of the box
     // All normal vectors are headed outwards
-    static std::array<geo::Vector_t, 6U> const NormalVectors = {
+    // BUG the double brace syntax is required to work around clang bug 21629
+    // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+    static std::array<geo::Vector_t, 6U> const NormalVectors = {{
       -geo::Xaxis<geo::Vector_t>(), geo::Xaxis<geo::Vector_t>(), // anode, cathode,
       -geo::Yaxis<geo::Vector_t>(), geo::Yaxis<geo::Vector_t>(), // bottom, top, 
       -geo::Zaxis<geo::Vector_t>(), geo::Zaxis<geo::Vector_t>()  // upstream, downstream
-    };
-    std::array<geo::Point_t, 6U> const NormalVectorOffsets = {
+    }};
+    // BUG the double brace syntax is required to work around clang bug 21629
+    // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+    std::array<geo::Point_t, 6U> const NormalVectorOffsets = {{
       geo::Point_t{ Min().X(), Min().Y(), Min().Z() }, // Anode offset
       geo::Point_t{ Max().X(), Min().Y(), Min().Z() }, // Cathode
       geo::Point_t{ Min().X(), Min().Y(), Min().Z() }, // Bottom
       geo::Point_t{ Min().X(), Max().Y(), Min().Z() }, // Top
       geo::Point_t{ Min().X(), Min().Y(), Min().Z() }, // upstream
       geo::Point_t{ Min().X(), Min().Y(), Max().Z() }  // downstream
-    };
+    }};
     
     // Loop over all surfaces of the box 
     for(unsigned int face_no = 0; face_no < NormalVectors.size(); face_no++)

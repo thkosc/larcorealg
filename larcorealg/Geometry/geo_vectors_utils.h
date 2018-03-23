@@ -1374,7 +1374,9 @@ namespace geo {
       
       template <typename T, T... Indices>
       constexpr auto makeIndexSeqImpl(std::integer_sequence<T, Indices...>)
-        { return std::array<T, sizeof...(Indices)>{ Indices... }; }
+        // BUG the double brace syntax is required to work around clang bug 21629
+        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+        { return std::array<T, sizeof...(Indices)>{{ Indices... }}; }
       
       // fill a sequence object with the first `N` values of type `T`.
       template <typename T, T N>
@@ -1458,11 +1460,13 @@ namespace geo {
         using Base_t = CoordManagersImplBase<Vector, 2U>;
         using typename Base_t::Return_t;
         static constexpr Return_t get()
-          { 
-            return {
+          {
+            // BUG the double brace syntax is required to work around clang bug 21629
+            // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+            return {{
                 XcoordManager<Vector>
               , YcoordManager<Vector>
-            };
+            }};
           }
       }; // CoordManagersImpl<2U>
       
@@ -1473,12 +1477,14 @@ namespace geo {
         using Base_t = CoordManagersImplBase<Vector, 3U>;
         using typename Base_t::Return_t;
         static constexpr Return_t get()
-          { 
-            return {
+          {
+            // BUG the double brace syntax is required to work around clang bug 21629
+            // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+            return {{
                 XcoordManager<Vector>
               , YcoordManager<Vector>
               , ZcoordManager<Vector>
-            };
+            }};
           }
       }; // CoordManagersImpl<3U>
       
@@ -1489,13 +1495,15 @@ namespace geo {
         using Base_t = CoordManagersImplBase<Vector, 4U>;
         using typename Base_t::Return_t;
         static constexpr Return_t get()
-          { 
-            return {
+          {
+            // BUG the double brace syntax is required to work around clang bug 21629
+            // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+            return {{
                 XcoordManager<Vector>
               , YcoordManager<Vector>
               , ZcoordManager<Vector>
               , TcoordManager<Vector>
-            };
+            }};
           }
       }; // CoordManagersImpl<4U>
       
@@ -1522,10 +1530,12 @@ namespace geo {
         using typename Base_t::Return_t;
         static Return_t bind(Vector& v)
           {
-            return {
+            // BUG the double brace syntax is required to work around clang bug 21629
+            // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+            return {{
                 Xcoord(v)
               , Ycoord(v)
-            };
+            }};
           }
       }; // BindCoordManagersImpl<2U>
       
@@ -1537,11 +1547,13 @@ namespace geo {
         using typename Base_t::Return_t;
         static Return_t bind(Vector& v)
           {
-            return {
+            // BUG the double brace syntax is required to work around clang bug 21629
+            // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+            return {{
                 Xcoord(v)
               , Ycoord(v)
               , Zcoord(v)
-            };
+            }};
           }
       }; // BindCoordManagersImpl<3U>
       
@@ -1553,12 +1565,14 @@ namespace geo {
         using typename Base_t::Return_t;
         static Return_t bind(Vector& v)
           {
-            return {
+            // BUG the double brace syntax is required to work around clang bug 21629
+            // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+            return {{
                 Xcoord(v)
               , Ycoord(v)
               , Zcoord(v)
               , Tcoord(v)
-            };
+            }};
           }
       }; // BindCoordManagersImpl<4U>
       

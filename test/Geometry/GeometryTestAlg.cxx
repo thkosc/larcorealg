@@ -515,7 +515,9 @@ namespace geo{
         const geo::WireGeo& wire = plane.Wire(w);
         // this additional check is preserved to test alternative transformation
         // code paths; center is expected to match wire.GetCenter()
-        std::array<double, 3U> const local = { 0.0, 0.0, 0.0 };
+        // BUG the double brace syntax is required to work around clang bug 21629
+        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+        std::array<double, 3U> const local = {{ 0.0, 0.0, 0.0 }};
         std::array<double, 3U> center;
         wire.LocalToWorld(local.data(), center.data());
         
@@ -1265,7 +1267,9 @@ namespace geo{
           //
           // drift
           //
-          std::array<double, 3> drifts { -distance, distance, 2.*distance };
+          // BUG the double brace syntax is required to work around clang bug 21629
+          // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+          std::array<double, 3> drifts {{ -distance, distance, 2.*distance }};
           for (double drift: drifts) {
             
             // DriftPoint() moves the point in the drift direction,
@@ -1737,7 +1741,9 @@ namespace geo{
           //
           // drift
           //
-          std::array<double, 3> drifts { -distance, distance, 2.*distance };
+          // BUG the double brace syntax is required to work around clang bug 21629
+          // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+          std::array<double, 3> drifts {{ -distance, distance, 2.*distance }};
           for (double drift: drifts) {
             
             // DriftPoint() moves the point in the drift direction,
@@ -2040,8 +2046,10 @@ namespace geo{
     (const geo::PlaneGeo& plane)
   {
     TVector3 IncreasingWireDir = plane.GetIncreasingWireDirection();
+    // BUG the double brace syntax is required to work around clang bug 21629
+    // (https://bugs.llvm.org/show_bug.cgi?id=21629)
     return
-      { IncreasingWireDir.X(), IncreasingWireDir.Y(), IncreasingWireDir.Z() };
+      {{ IncreasingWireDir.X(), IncreasingWireDir.Y(), IncreasingWireDir.Z() }};
   } // GeometryTestAlg::GetIncreasingWireDirection()
   
   
@@ -2724,8 +2732,10 @@ namespace geo{
       
       
       // pick a point in the very middle of the TPC:
+      // BUG the double brace syntax is required to work around clang bug 21629
+      // (https://bugs.llvm.org/show_bug.cgi?id=21629)
       const std::array<double, 3> A
-        = { TPC.CenterX(), TPC.CenterY(), TPC.CenterZ() };
+        = {{ TPC.CenterX(), TPC.CenterY(), TPC.CenterZ() }};
       // pick a radius half the way to the closest border
       const double radius
         = std::min({ TPC.HalfWidth(), TPC.HalfHeight(), TPC.Length()/2. }) / 2.;
@@ -2745,11 +2755,13 @@ namespace geo{
         
         // define B as a point "radius" far from A in the angle direction,
         // with some arbitrary and fixed dx offset
-        std::array<double, 3> B = {
+        // BUG the double brace syntax is required to work around clang bug 21629
+        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+        std::array<double, 3> B = {{
           A[0] + dX,
           A[1] + radius * std::sin(angle),
           A[2] + radius * std::cos(angle)
-          };
+          }};
         
         // get the expectation; this function assumes a drift velocity of
         // 1 mm per tick by default; for the test, it does not matter

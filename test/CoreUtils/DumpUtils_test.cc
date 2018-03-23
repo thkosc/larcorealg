@@ -30,7 +30,9 @@
 //------------------------------------------------------------------------------
 void ArrayTest_STLarray() {
   std::ostringstream sstr;
-  std::array<float, 5> const array = { 1., 2., 3., 4., 6. };
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  std::array<float, 5> const array = {{ 1., 2., 3., 4., 6. }};
   sstr << lar::dump::array<5>(array);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 3; 4; 6 }");
   BOOST_CHECK_EQUAL

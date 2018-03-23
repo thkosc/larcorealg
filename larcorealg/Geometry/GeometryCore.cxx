@@ -454,7 +454,9 @@ namespace geo {
   //......................................................................
   unsigned int GeometryCore::FindAuxDetAtPosition(geo::Point_t const& point) const
   {
-    std::array<double, 3U> worldPos = { point.X(), point.Y(), point.Z() };
+    // BUG the double brace syntax is required to work around clang bug 21629
+    // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+    std::array<double, 3U> worldPos = {{ point.X(), point.Y(), point.Z() }};
     return fChannelMapAlg->NearestAuxDet(worldPos.data(), AuxDets());
   } // GeometryCore::FindAuxDetAtPosition()
   
@@ -482,7 +484,9 @@ namespace geo {
     (geo::Point_t const& point, std::size_t& adg, std::size_t& sv) const
   {
     adg = FindAuxDetAtPosition(point);
-    std::array<double, 3U> const worldPos = { point.X(), point.Y(), point.Z() };
+    // BUG the double brace syntax is required to work around clang bug 21629
+    // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+    std::array<double, 3U> const worldPos = {{ point.X(), point.Y(), point.Z() }};
     sv  = fChannelMapAlg->NearestSensitiveAuxDet(worldPos.data(), AuxDets());
   } // GeometryCore::FindAuxDetAtPosition()
   
