@@ -324,7 +324,10 @@ namespace geo {
           : fCoord(getter), fVector(v) {}
         
         /// Returns the value of the bound coordinate.
-        Scalar_t operator() () const { return manager().get(vector()); }
+        Scalar_t get() const { return manager().get(vector()); }
+        
+        /// Returns the value of the bound coordinate.
+        Scalar_t operator() () const { return get(); }
         
         /// Returns the value of the bound coordinate.
         operator Scalar_t() const { return manager().get(vector()); }
@@ -1638,7 +1641,7 @@ namespace geo {
       //------------------------------------------------------------------------
       template <typename Point, std::size_t... I>
       bool isfiniteImpl(Point const& point, std::index_sequence<I...>)
-        { return extended_and(std::isfinite(coord(point, I))...); }
+        { return extended_and(std::isfinite(coord(point, I).get())...); }
       
       //------------------------------------------------------------------------
       
