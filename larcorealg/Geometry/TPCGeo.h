@@ -417,9 +417,9 @@ namespace geo {
     Projection_t Projection(geo::Point_t const& point) const
       { return ReferencePlane().PointWidthDepthProjection(point); }
     Projection_t PointProjection(geo::Point_t const& point) const
-      { return PointProjection(point); }
+      { return Projection(point); }
     Projection_t PointProjection(TVector3 const& point) const
-      { return PointProjection(geo::vect::toPoint(point)); }
+      { return Projection(geo::vect::toPoint(point)); }
     //@}
     
     //@{
