@@ -1304,12 +1304,12 @@ namespace geo {
     
     /// Creates a `geo::Point_t` from its coordinates (see `makeFromCoords()`).
     template <typename Coords>
-    constexpr ::geo::Point_t makePointFromCoords(Coords&& coords)
+    GENVECTOR_CONSTEXPR ::geo::Point_t makePointFromCoords(Coords&& coords)
       { return makeFromCoords<::geo::Point_t>(std::forward<Coords>(coords)); }
     
     /// Creates a `geo::Vector_t` from its coordinates (see `makeFromCoords()`).
     template <typename Coords>
-    constexpr ::geo::Vector_t makeVectorFromCoords(Coords&& coords)
+    GENVECTOR_CONSTEXPR ::geo::Vector_t makeVectorFromCoords(Coords&& coords)
       { return makeFromCoords<::geo::Vector_t>(std::forward<Coords>(coords)); }
     
     /// @}
