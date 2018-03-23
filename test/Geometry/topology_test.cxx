@@ -63,7 +63,7 @@ void BoxedTopologyTest() {
           );
   std::vector<geo::BoxBoundedGeo const*> volumes;
   std::transform(boxes.cbegin(), boxes.cend(), std::back_inserter(volumes),
-    &std::addressof<geo::BoxBoundedGeo const>);
+    [](auto& obj){ return std::addressof(obj); });
   
   //
   // discovery of the neighbourhood

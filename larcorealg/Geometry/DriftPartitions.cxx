@@ -1075,8 +1075,8 @@ auto makeCPointerVector(BeginIter b, EndIter e) {
   using value_type = typename BeginIter::value_type;
   std::vector<value_type const*> result;
   result.reserve(std::distance(b, e));
-  std::transform
-    (b, e, std::back_inserter(result), std::addressof<value_type const>);
+  std::transform(b, e, std::back_inserter(result),
+    [](auto& obj){ return std::addressof(obj); });
   return result;
 } // makeCPointerVector()
 
