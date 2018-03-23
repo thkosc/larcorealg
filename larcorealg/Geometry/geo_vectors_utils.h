@@ -28,6 +28,7 @@
 #include <functional> // std::mem_fn()
 #include <cassert>
 
+
 namespace geo {
   
   /**
@@ -61,7 +62,8 @@ namespace geo {
       
       template <typename Op, typename T>
       struct AccumulateImpl<Op, T> {
-        static auto compute(Op, T&& v) -> decltype(auto) { return v; }
+        static auto compute(Op, T&& v) -> decltype(auto)
+          { return std::forward<T>(v); }
       };
       
       template <typename Op, typename... T>
