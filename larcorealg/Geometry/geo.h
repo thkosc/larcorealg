@@ -6,6 +6,8 @@
 
 #include "cetlib/exception.h"
 
+#include "stdexcept"
+
 
 /// Detector geometry definition and interface
 namespace geo {
@@ -181,9 +183,13 @@ inline bool geo::CrossesBoundary ( double x0[],          // initial particle pos
       for(int n=0; n<3; n++){    point[n] = x0[n] + distance[n]; }
       
       int j, k;
-      if(i==0) { j=1; k=2; } else
-        if(i==1) { j=2; k=0; } else
-	  if(i==2) { j=0; k=1; }
+      switch (i) {
+        case 0: j=1; k=2; break;
+        case 1: j=2; k=0; break;
+        case 2: j=0; k=1; break;
+        default:
+          throw std::logic_error("Big trouble");
+      } // switch
       
       // now want to check to see if the point is in the right plane
       if ( lo[j] < point[j] && point[j] < hi[j]
