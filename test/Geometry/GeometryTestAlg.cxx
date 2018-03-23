@@ -1151,9 +1151,9 @@ namespace geo{
     unsigned int nErrors = 0;
     for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
       
-      decltype(auto) const planeNorm = plane.GetNormalDirection();
-      decltype(auto) const wirePitch = plane.WirePitch();
-      decltype(auto) const refPoint = plane.ProjectionReferencePoint();
+      auto const& planeNorm = plane.GetNormalDirection();
+      auto const& wirePitch = plane.WirePitch();
+      auto const& refPoint = plane.ProjectionReferencePoint();
       
       unsigned int const lastWire = plane.Nwires() - 1;
       geo::WireID::WireID_t wireNo = 0;
@@ -1618,10 +1618,10 @@ namespace geo{
     unsigned int nErrors = 0;
     for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
     
-      decltype(auto) const planeNorm = plane.GetNormalDirection();
-      decltype(auto) const widthDir = plane.WidthDir();
-      decltype(auto) const depthDir = plane.DepthDir();
-      decltype(auto) const refPoint = plane.GetCenter();
+      auto const& planeNorm = plane.GetNormalDirection();
+      auto const& widthDir = plane.WidthDir();
+      auto const& depthDir = plane.DepthDir();
+      auto const& refPoint = plane.GetCenter();
       
       double const halfWidth = plane.Width() / 2;
       double const halfDepth = plane.Depth() / 2;
