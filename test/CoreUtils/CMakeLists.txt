@@ -16,6 +16,7 @@ cet_test(UncopiableAndUnmovableClass_test
 
 cet_test( ProviderPack_test USE_BOOST_UNIT )
 cet_test( RealComparisons_test USE_BOOST_UNIT )
+cet_test( NumericUtils_test USE_BOOST_UNIT )
 cet_test( DereferenceIterator_test USE_BOOST_UNIT )
 cet_test( DumpUtils_test
   LIBRARIES
