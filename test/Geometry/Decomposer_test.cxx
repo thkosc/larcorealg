@@ -35,22 +35,6 @@
 #include <ostream>
 
 
-// needed for using Boost unit test macros on 3D points and vectors
-template <typename Vector3D>
-std::ostream& Vector3DToStream(std::ostream& out, Vector3D const& v)
-  { return out << "{ " << v.X() << "; " << v.Y() << "; " << v.Z() << " }"; }
-
-std::ostream& operator<< (std::ostream& out, TVector3 const& v)
-  { return Vector3DToStream(out, v); }
-
-// needed for using Boost unit test macros on TVector2
-std::ostream& operator<< (std::ostream& out, TVector2 const& v)
-  { return out << "{ " << v.X() << "; " << v.Y() << " }"; }
-
-bool operator== (TVector2 const& a, TVector2 const& b)
-  { return (a.X() == b.X()) && (a.Y() == b.Y()); }
-
-
 //------------------------------------------------------------------------------
 template <typename Vector, typename Point, typename Proj>
 void StandardDecomposerTest() {
