@@ -21,10 +21,13 @@
 // LArSoft libraries
 #include "larcorealg/Geometry/geo_vectors_utils.h"
 
-// C/C++ standard library
+// ROOT library
 #include "TVector2.h"
 #include "TVector3.h"
 #include "TLorentzVector.h"
+
+// C/C++ standard library
+#include <ostream>
 
 
 namespace geo {
@@ -53,26 +56,34 @@ namespace geo {
       
       /// Print a `TVector2` to an output stream.
       template <typename Stream>
-      Stream& operator<< (Stream&& out, TVector2 const& v) {
-        out << "( " << v.X() << ", " << v.Y() << " )";
-        return out;
-      } // operator<< (TVector2)
+      void Vector2(Stream&& out, TVector2 const& v)
+        { out << "( " << v.X() << ", " << v.Y() << " )"; }
       
       /// Print a `TVector3` to an output stream.
       template <typename Stream>
-      Stream& operator<< (Stream&& out, TVector3 const& v) {
-        out << "( " << v.X() << ", " << v.Y() << ", " << v.Z() << " )";
-        return out;
-      } // operator<< (TVector3)
+      void Vector3(Stream&& out, TVector3 const& v)
+        { out << "( " << v.X() << ", " << v.Y() << ", " << v.Z() << " )"; }
       
       /// Print a `TLorentzVector` to an output stream.
       template <typename Stream>
-      Stream& operator<< (Stream&& out, TLorentzVector const& v) {
+      void LorentzVector(Stream&& out, TLorentzVector const& v) {
         out 
           << "( " << v.X() << ", " << v.Y() << ", " << v.Z() << "; " << v.T()
           << " )";
-        return out;
-      } // operator<< (TLorentzVector)
+      } // LorentzVector()
+      
+      /// Print a `TVector2` to an output stream.
+      inline std::ostream& operator<< (std::ostream& out, TVector2 const& v)
+        { Vector2(out, v); return out; }
+      
+      /// Print a `TVector3` to an output stream.
+      inline std::ostream& operator<< (std::ostream& out, TVector3 const& v)
+        { Vector3(out, v); return out; }
+      
+      /// Print a `TLorentzVector` to an output stream.
+      inline std::ostream& operator<<
+        (std::ostream& out, TLorentzVector const& v)
+        { LorentzVector(out, v); return out; }
       
       // --- END Output of old-style ROOT vectors (TVector3 etc.) --------------
       /// @}
@@ -90,7 +101,7 @@ namespace geo {
 // The only way some generic code has to see the operator<< is for them to be
 // exposed in the same namespace as the vectors they dump are; in TVector case,
 // that's the global namespace... (Boost unit test checks still fail though)
-using namespace geo::vect::dump;
+using geo::vect::dump::operator<<;
 
 
 //------------------------------------------------------------------------------
