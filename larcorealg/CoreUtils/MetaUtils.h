@@ -35,6 +35,7 @@
  */
 namespace util {
   
+  
   //--- BEGIN MetaprogrammingBase ----------------------------------------------
   /**
    * @defgroup MetaprogrammingBase Simple utility traits
@@ -42,6 +43,15 @@ namespace util {
    * @ingroup Metaprogramming
    */
   /// @{
+  
+  namespace details {
+    
+    /// Implementation detail of `staticDumpClassName()`.
+    template <typename T>
+    struct ClassNameStaticDumper;
+    
+  } // namespace details
+  
   
   //----------------------------------------------------------------------------
   /// Trait returning the very same type as in the template argument.
@@ -152,12 +162,108 @@ namespace util {
   constexpr bool always_true_v = true;
   
   
+  // @{
+  /**
+   * @brief Helper to determine the type of a variable at compilation time.
+   * @tparam T type to be investigated
+   * 
+   * It may be difficult to understand which type is being used in a failing
+   * static assertion or in some complicate metaprogramming code (is there any
+   * other kind?), especially when due to a compilation failure the code can't
+   * be run.
+   * This class is supposed to help by forcing the compiler to a halt, and it is
+   * devised so that the compiler should print in the error message what it
+   * thinks the type `T` is.
+   * 
+   * An example of usage:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * #include "MetaUtils.h"
+   * 
+   * void f() {
+   *   constexpr auto v = 5U - 6U; // which type is `v` of?
+   *   util::staticDumpClassName(v);
+   * }
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * For example, Clang 5.0.1 emits these errors:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * In file included from metatest.cpp:1:
+   * ./MetaUtils.h:217:7: error: static_assert failed "ClassNameStaticDumper<T>: look for T in the error message context"
+   *       static_assert(
+   *       ^
+   * ./MetaUtils.h:228:39: note: in instantiation of template class 'util::details::ClassNameStaticDumper<unsigned int>' requested here
+   *   void staticDumpClassName() { (void) details::ClassNameStaticDumper<T>(); }
+   *                                       ^
+   * ./MetaUtils.h:195:46: note: in instantiation of function template specialization 'util::staticDumpClassName<unsigned int>' requested here
+   *   [[noreturn]] void staticDumpClassName(T) { staticDumpClassName<T>(); }
+   *                                              ^
+   * metatest.cpp:5:16: note: in instantiation of function template specialization 'util::staticDumpClassName<unsigned int>' requested here
+   *   (void) util::staticDumpClassName(v);
+   *                ^
+   * 1 error generated.
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * From the first "note" we can see that the type of `v` is `unsigned int`.
+   * Note that if `v` is not copiable, an additional error will be emitted.
+   * To avoid that, the type can be specified as template parameter, as in
+   * `util::staticDumpClassName<decltype(v)>()`.
+   * The same program is processed by GNU GCC with an error message:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * In file included from metatest.cpp:1:0:
+   * MetaUtils.h: In instantiation of ‘struct util::details::ClassNameStaticDumper<unsigned int>’:
+   * MetaUtils.h:248:48:   required from ‘void util::staticDumpClassName() [with T = unsigned int]’
+   * MetaUtils.h:215:68:   required from ‘void util::staticDumpClassName(T) [with T = unsigned int]’
+   * metatest.cpp:5:30:   required from here
+   * MetaUtils.h:237:7: error: static assertion failed: ClassNameStaticDumper<T>: look for T in the error message context
+   *        static_assert(
+   *        ^~~~~~~~~~~~~
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * where the type is mentioned in all the three context lines.
+   */
+  template <typename T>
+  void staticDumpClassName();
+  
+  template <typename T>
+  void staticDumpClassName(T) { staticDumpClassName<T>(); }
+  // @}
+  
+  
   /// @}
   //--- END MetaprogrammingBase ------------------------------------------------
   
   
 } // namespace util
 
+
+//------------------------------------------------------------------------------
+//---  Template implementation
+//------------------------------------------------------------------------------
+namespace util {
+  
+  //----------------------------------------------------------------------------
+  namespace details {
+    
+    /// Implementation detail of `staticDumpClassName()`.
+    template <typename T>
+    struct ClassNameStaticDumper {
+      static_assert(
+        util::always_false_type<T>(),
+        "ClassNameStaticDumper<T>: look for T in the error message context"
+        );
+    }; // struct ClassNameStaticDumper
+    
+  } // namespace details
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename T>
+  void staticDumpClassName() { (void) details::ClassNameStaticDumper<T>(); }
+  
+  
+  //----------------------------------------------------------------------------
+  
+} // namespace util
+
+
+//------------------------------------------------------------------------------
 
 #endif // LARCOREALG_COREUTILS_METAUTILS_H
 
