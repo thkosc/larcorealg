@@ -10,6 +10,8 @@
 #define LARCOREALG_COREUTILS_NUMERICUTILS_H
 
 // C/C++ standard libraries
+#include <type_traits>
+
 
 namespace util {
   
@@ -17,7 +19,7 @@ namespace util {
   /**
    * @brief Returns the absolute value of the difference between two values.
    * @tparam A type of the first value
-   * @tparam B type of the second value
+   * @tparam B type of the second value (*must* actually be as `A`)
    * @param a the first value
    * @param b the second value
    * @return the difference between the largest and the smallest of `a` and `b`
@@ -29,19 +31,23 @@ namespace util {
    * return std::max(a, b) - std::min(a, b);
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * 
+   * It still assumes that the difference is representable in `A`; for example,
+   * this assumption will fail for `int` types with `a` a very large number and
+   * `b` a very small (i.e. negative) number.
    * 
    * Requirements:
-   * * `A` and `B` must be comparable: in particular, `operator< (B, A)` must
-   *     exist
-   * * it must be possible to subtract `A` and `B`: in particular, both
-   *     `operator- (A, B)` and `operator- (B, A)` must exist and yield a result
-   *     of the same data type
-   * 
+   * * `A` and `B` must be the same type
    * 
    */
   template <typename A, typename B>
   constexpr auto absDiff(A const& a, B const& b)
-    { return (b > a)? (b - a): (a - b); }
+    {
+      static_assert(
+        std::is_same<std::decay_t<A>, std::decay_t<B>>(),
+        "Arguments of util::absDiff() have to be of the same type."
+        );
+      return (b > a)? (b - a): (a - b);
+    }
   // @}
   
 } // namespace util

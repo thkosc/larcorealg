@@ -16,7 +16,9 @@
 #include "larcorealg/CoreUtils/NumericUtils.h"
 
 // C/C++ standard libraries
-#include <type_traits>
+#include <limits> // std::numeric_limits<>
+#include <type_traits> // std::declval(), std::is_same<>, ...
+
 
 //------------------------------------------------------------------------------
 template <typename A, typename B, typename D = A>
@@ -28,8 +30,8 @@ void test_absDiff() {
     >(), "Difference between types is asymmetric."
     );
   
-  A a = 5;
-  B b = 6;
+  A const a = 5;
+  B const b = 6;
   
   auto absDeltaAB = util::absDiff(a, b);
   auto absDeltaBA = util::absDiff(b, a);
@@ -42,6 +44,16 @@ void test_absDiff() {
   
   BOOST_CHECK_EQUAL(absDeltaAB, D(1));
   BOOST_CHECK_EQUAL(absDeltaBA, D(1));
+  
+  // test that a very large B compares kind-of-correctly with a small A
+  // (the difference needs to be large)
+  B const m = std::numeric_limits<B>::max() - b;
+  
+  auto absDeltaAM = util::absDiff(a, m);
+  auto absDeltaMA = util::absDiff(m, a);
+  
+  BOOST_CHECK_GT(absDeltaAM, D(2*(a + b)));
+  BOOST_CHECK_GT(absDeltaMA, D(2*(a + b)));
   
 } // test_absDiff()
 
@@ -87,3 +99,14 @@ BOOST_AUTO_TEST_CASE(absDiffTestCase) {
 } // BOOST_AUTO_TEST_CASE(absDiffTestCase)
 
 //------------------------------------------------------------------------------
+
+// fun with C!!
+static_assert(5U - 6U >= 0,                         "ERROR 1");
+static_assert(5U - 6  >= 0,                         "ERROR 2");
+static_assert(5U < 6U,                              "ERROR 3");
+static_assert(5U < 6,                               "ERROR 4");
+static_assert(5U < -6,                              "ERROR 5"); // !!!
+static_assert(std::is_unsigned<decltype(5U - 6)>(), "ERROR 6");
+
+//------------------------------------------------------------------------------
+
