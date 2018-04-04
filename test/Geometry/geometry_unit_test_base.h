@@ -188,8 +188,8 @@ namespace testing {
    * (GeometryTesterEnvironment<ConfigurationClass>(no_setup))
    */
   template <typename ConfigurationClass>
-  class GeometryTesterEnvironment:
-    virtual public TesterEnvironment<ConfigurationClass>
+  class GeometryTesterEnvironment
+    : public TesterEnvironment<ConfigurationClass>
   {
     
     /// Base class
