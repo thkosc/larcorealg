@@ -105,7 +105,7 @@ static_assert(5U - 6U >= 0,                         "ERROR 1");
 static_assert(5U - 6  >= 0,                         "ERROR 2");
 static_assert(5U < 6U,                              "ERROR 3");
 static_assert(5U < 6,                               "ERROR 4");
-static_assert(5U < -6,                              "ERROR 5"); // !!!
+// static_assert(5U > -6,                              "ERROR 5"); // !!!
 static_assert(std::is_unsigned<decltype(5U - 6)>(), "ERROR 6");
 
 //------------------------------------------------------------------------------
