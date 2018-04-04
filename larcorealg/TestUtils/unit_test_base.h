@@ -559,7 +559,7 @@ namespace testing {
    * (BasicTesterEnvironment<ConfigurationClass>(no_setup))
    */
   template <typename ConfigurationClass>
-  class BasicTesterEnvironment: private details::CommandLineArguments {
+  class BasicTesterEnvironment {
     
       public:
     using Configuration_t = ConfigurationClass;
@@ -678,8 +678,6 @@ namespace testing {
     
     /// Parses the configuration, looking for the test environment options 
     void ParseEnvironmentOptions();
-    
-    void FillArgumentsFromCommandLine();
     
     fhicl::ParameterSet params; ///< full configuration of the test
     
