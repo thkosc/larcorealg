@@ -1,5 +1,5 @@
 /**
- * @file    ProviderPack.h
+ * @file    larcorealg/CoreUtils/ProviderPack.h
  * @brief   Data structure containing constant pointers to classes
  * @author  Gianluca Petrillo (petrillo@fnal.gov)
  * @date    November 20th, 2015
@@ -10,8 +10,8 @@
  */
 
 
-#ifndef DETECTORINFO_PROVIDERPACK_H
-#define DETECTORINFO_PROVIDERPACK_H
+#ifndef LARCOREALG_COREUTILS_PROVIDERPACK_H
+#define LARCOREALG_COREUTILS_PROVIDERPACK_H
 
 
 // C/C++ standard library
@@ -73,19 +73,19 @@ namespace lar {
    * a fast way to specify a set of LArSoft service providers.
    * The only limitation is that there should be only one object per type.
    * Pointed objects are not owned by this class.
-   *     
-   *     A a;
-   *     B b;
-   *     C c;
-   *     D d;
-   *     ProviderPack<A, B, C> pack(&a, &b, &c);
-   *     
-   *     // obtain a constant pointerto b from pack:
-   *     B const* b_ptr = pack.get<B>();
-   *     
-   *     if (pack.has<D>()) std::cerr << "Unexpected!" << std::endl;
-   *     
-   * (note that the latter check can be coded as a static assert)
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * A a;
+   * B1 b; // derived from B
+   * C c;
+   * D d;
+   * ProviderPack<A, B, C> pack(&a, &b, &c);
+   * 
+   * // obtain a constant pointer to b from pack:
+   * B const* b_ptr = pack.get<B>();
+   * 
+   * if constexpr (pack.has<D>()) std::cerr << "Unexpected!" << std::endl;
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * (note that in the latter check `constexpr` is supported only since C++17).
    */
   template <typename... Providers>
   class ProviderPack {
@@ -536,4 +536,4 @@ namespace lar {
   
 } // namespace lar
 
-#endif // DETECTORINFO_PROVIDERPACK_H
+#endif // LARCOREALG_COREUTILS_PROVIDERPACK_H
