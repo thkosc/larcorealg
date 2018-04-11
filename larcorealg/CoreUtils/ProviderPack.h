@@ -28,32 +28,55 @@ namespace lar {
     struct has_duplicate_types;
     
     
-    template <typename Key, typename... Types>
-    struct index_with_type_impl;
+    /**
+     * @brief Index of the class among Bases which is base of Derived.
+     * @tparam Derived the class to be found
+     * @tparam Bases a list of classes candidate to be the base of Derived
+     * @return index of the class among Bases which is base of Derived
+     * @throw static_assert if multiple classes are base of `Derived`
+     * @see hasBaseOf(), findBaseOf()
+     * 
+     * If no class among `Bases` is actually a base class of `Derived`, an
+     * invalid index is returned, greater than any valid index (that is,
+     * no smaller than `sizeof...(Bases)`).
+     */
+    template <typename Derived, typename... Bases>
+    constexpr std::size_t indexOfBaseOf();
+    
+    template <typename Derived, typename... Bases>
+    constexpr std::size_t indexOfDerivedFrom();
     
     /**
-     * @brief Hosts the index of type FindType in the list of types AmongTypes
-     * @tparam FindType the type to find
-     * @tparam AmongTypes the list of types
-     * 
-     * If FindType type is not any of AmongTypes types, a compilation error
-     * message (static assertion) is issued.
-     * Otherwise, the class has a `value` member pointing to the index of
-     * FindType among AmongTypes.
-     * This value is suct that this assertion is valid:
-     *     
-     *     std::is_same<
-     *       FindType,
-     *       typename std::tuple_element<
-     *         index_with_type<FindType, AmongTypes...>::value,
-     *         std::tuple<AmongTypes...>
-     *         >
-     *       >::value
-     *     
+     * @brief Index of the class among Bases which is base of Derived.
+     * @tparam Derived the class to be found
+     * @tparam Bases a list of classes candidate to be the base of Derived
+     * @return index of the class among Bases which is base of Derived
+     * @throw static_assert if none, or multiple classes, are base of `Derived`
+     * @see hasBaseOf(), indexOfBaseOf()
      */
-    template <typename FindType, typename... AmongTypes>
-    struct index_with_type;
-
+    template <typename Derived, typename... Bases>
+    constexpr std::size_t findBaseOf();
+    
+    template <typename Derived, typename... Bases>
+    constexpr std::size_t findDerivedFrom();
+    
+    /**
+     * @brief Returns whether there is exactly one base class of `Derived` among
+     *        `Bases`.
+     * @tparam Derived the class to be found
+     * @tparam Bases a list of classes candidate to be the base of Derived
+     * @return whether there is exactly one base class of `Derived`
+     * @throw static_assert if multiple classes are base of `Derived`
+     * @see indexOfBaseOf(), findBaseOf()
+     */
+    template <typename Derived, typename... Bases>
+    constexpr std::size_t hasBaseOf()
+      { return indexOfBaseOf<Derived, Bases...>() < sizeof...(Bases); }
+    
+    template <typename Derived, typename... Bases>
+    constexpr std::size_t hasDerivedFrom()
+      { return indexOfDerivedFrom<Derived, Bases...>() < sizeof...(Bases); }
+    
     
     /// Implementation detail for the extraction constructor
     template
@@ -169,8 +192,9 @@ namespace lar {
     template <typename Provider>
     Provider const* get() const
       {
-        return std::get<details::index_with_type<Provider, Providers...>::value>
-          (providers);
+        constexpr auto providerIndex
+          = details::findDerivedFrom<Provider, Providers...>();
+        return std::get<providerIndex>(providers);
       } // get<>()
     
     
@@ -178,18 +202,15 @@ namespace lar {
     template <typename Provider>
     void set(Provider const* provider_ptr)
       {
-        std::get<details::index_with_type<Provider, Providers...>::value>
-          (providers)
-          = provider_ptr;
+        constexpr auto providerIndex
+          = details::findDerivedFrom<Provider, Providers...>();
+        std::get<providerIndex>(providers) = provider_ptr;
       } // set<>()
     
     /// Returns whether there is a provider with the specified type
     template <typename Provider>
     static constexpr bool has()
-      {
-        return details::index_with_type_impl<Provider, Providers...>::value
-          < sizeof...(Providers);
-      } // has<>()
+      { return details::hasDerivedFrom<Provider, Providers...>(); }
     
     
     /// Returns whether other provider pack has all the same providers as this
@@ -289,21 +310,33 @@ namespace lar {
 namespace lar {
   namespace details {
     
+    template <bool Value>
+    using bool_constant = std::integral_constant<bool, Value>; // also in C++17
+    
+    template <std::size_t Value>
+    using index_constant = std::integral_constant<std::size_t, Value>;
+    
     //--------------------------------------------------------------------------
     //--- has_type, has_duplicate_types, are_same_types
     //---
     template <typename Target, typename... Types>
-    struct has_type:
-      public std::integral_constant
-        <bool, index_with_type_impl<Target, Types...>::value < sizeof...(Types)>
-      {};
+    struct has_type;
+    
+    template <typename Target, typename First, typename... Others>
+    struct has_type<Target, First, Others...>: has_type<Target, Others...> {};
+    
+    template <typename Target, typename... Others>
+    struct has_type<Target, Target, Others...>: std::true_type {};
+    
+    template <typename Target>
+    struct has_type<Target>: std::false_type {};
     
     
     //--------------------------------------------------------------------------
     template <typename Key, typename... Types>
     struct has_duplicate_types<Key, Types...>:
-      public std::integral_constant
-        <bool, has_type<Key, Types...>() || has_duplicate_types<Types...>()>
+      public bool_constant
+        <has_type<Key, Types...>() || has_duplicate_types<Types...>()>
       {};
     
     template <>
@@ -364,42 +397,216 @@ namespace lar {
       {};
     
     
-    //--------------------------------------------------------------------------
-    //--- index_with_type
-    //---
-    /// Generic template, to glue the two special cases;
-    /// in general, this will have in value field the index in Types of the type
-    /// Key, or a number larger than the number if types in Types if Key type
-    /// is not present among Types.
-    template <typename Key, typename... Types>
-    struct index_with_type_impl;
+    // --- BEGIN impementation of findDerivedFrom() ----------------------------
+    // 
+    // This is the implementation of findDerivedFrom() and findBaseOf().
+    // The functions are expected to assert that there is exactly one answer to
+    // a matching condition: for findDerivedFrom() that answer is which is the
+    // derived class of Base among Derived, for findBaseOf() is the opposite.
+    // 
+    // The implementation finds and returns the index of first class matching
+    // the condition, and it asserts that the answer is valid.
+    // It also finds the index of the next class matching the condition, just to
+    // assert that it is not valid (that is, there is no other matching class).
+    // 
+    // The class returning the index of the first matching class is implemented
+    // recursively, on a class taking the target class, the first of the
+    // candidate classes, and then all the others in a parameter pack.
+    // When the first candidate satisfies the condition, then the recursion is
+    // over. In the simplest case, where we are just looking for a specific
+    // class, the condition (the Target is the same as the First Candidate) can
+    // be implied and the compiler can implement it directly with parameter
+    // matching. In our cases the condition is non-trivial and we use a
+    // two-level recursion: the outer level, the "dispatcher", invokes a
+    // different "answer" class whether the condition is true or false. In the
+    // former case a result is presented; in the other case recursion ensues,
+    // back to the dispatcher. The dispatcher can also terminate the recursion
+    // when no answer is found. If recursion is terminated without a match, an
+    // invalid index is returned.
+    // 
+    // The class returning the next matching class is simply skipping a number
+    // of candidates, and then behaving like the one looking for the first
+    // matching candidate.
+    //
     
-    // common case: one or more types
-    template <typename Key, typename FirstType, typename... Types>
-    struct index_with_type_impl<Key, FirstType, Types...>:
-      public std::integral_constant <size_t,
-        std::is_same<Key, FirstType>::value
-          ? 0
-          : index_with_type_impl<Key, Types...>::value + 1
-        >
-      {};
+    //
+    // class to find the first matching class
+    //
+    template <
+      template <typename A, typename B> class Match,
+      typename Target, bool IsMatch, typename... Candidates
+      >
+    struct findFirstMatching_answer;
     
-    // special case: no type; this means failure
-    template <typename Key>
-    struct index_with_type_impl<Key>: public std::integral_constant <size_t, 0U>
-      {};
+    template <
+      template <typename A, typename B> class Match,
+      typename Target, typename... Candidates
+      >
+    struct findFirstMatching_answer<Match, Target, true, Candidates...>
+      : public index_constant<0U>
+    {};
     
+    template <
+      template <typename A, typename B> class Match,
+      typename Target, typename... Candidates
+      >
+    struct findFirstMatching_dispatcher;
     
-    template <typename FindType, typename... AmongTypes>
-    struct index_with_type:
-      public std::integral_constant
-        <size_t, index_with_type_impl<FindType, AmongTypes...>::value>
+    // end-of-recursion
+    template <
+      template <typename A, typename B> class Match,
+      typename Target
+      >
+    struct findFirstMatching_dispatcher<Match, Target>
+      : findFirstMatching_answer<Match, Target, true>
+    {};
+    
+    template <
+      template <typename A, typename B> class Match,
+      typename Target, typename FirstCandidate, typename... OtherCandidates
+      >
+    struct findFirstMatching_dispatcher
+      <Match, Target, FirstCandidate, OtherCandidates...>
+      : public findFirstMatching_answer<
+        Match,
+        Target,
+        Match<FirstCandidate, Target>::value,
+        FirstCandidate,
+        OtherCandidates...
+      >
+    {};
+    
+    template <
+      template <typename A, typename B> class Match,
+      typename Target, typename FirstCandidate, typename... OtherCandidates
+      >
+    struct findFirstMatching_answer
+      <Match, Target, false, FirstCandidate, OtherCandidates...>
+      : public index_constant
+        <(1U + findFirstMatching_dispatcher<Match, Target, OtherCandidates...>::value)>
+    {};
+    
+    template <
+      template <typename A, typename B> class Match,
+      typename Target, typename... Candidates
+      >
+    struct findFirstMatching_impl
+      : findFirstMatching_dispatcher<Match, Target, Candidates...>
     {
+        private:
+      static constexpr auto _index
+        = findFirstMatching_dispatcher<Match, Target, Candidates...>();
+    }; // struct findFirstMatching_impl
+    
+    
+    //
+    // class to apply findFirstMatching_impl after skipping some candidates
+    //
+    template <
+      unsigned int NSkip,
+      template <typename A, typename B> class Match,
+      typename Target, typename... Candidates
+      >
+    struct findNextMatching_impl;
+    
+    // recursion: peel one
+    template <
+      unsigned int NSkip,
+      template <typename A, typename B> class Match,
+      typename Target, typename FirstCandidate, typename... OtherCandidates
+      >
+    struct findNextMatching_impl
+      <NSkip, Match, Target, FirstCandidate, OtherCandidates...>
+      : index_constant<(
+        1U
+        + findNextMatching_impl
+          <(NSkip - 1U), Match, Target, OtherCandidates...>::value
+      )>
+    {
+      static_assert(NSkip > 0U, "Implementation error: no arguments to skip!");
+    };
+    
+    // end-of-recursion: skipped enough
+    template <
+      template <typename A, typename B> class Match,
+      typename Target, typename FirstCandidate, typename... OtherCandidates
+      >
+    struct findNextMatching_impl
+      <0U, Match, Target, FirstCandidate, OtherCandidates...>
+      : findFirstMatching_impl
+        <Match, Target, FirstCandidate, OtherCandidates...>
+    {};
+    
+    // end-of-recursion: all arguments skipped
+    template <
+      unsigned int NSkip,
+      template <typename A, typename B> class Match,
+      typename Target
+      >
+    struct findNextMatching_impl<NSkip, Match, Target>
+      : findFirstMatching_impl<Match, Target>
+      {};
+    
+    //
+    // class finding a match and asserting its existence and unicity
+    //
+    template <
+      template <typename A, typename B> class Match,
+      typename Target, typename... Candidates
+      >
+    struct findTheMatching_impl
+      : findFirstMatching_impl<Match, Target, Candidates...>
+    {
+        private:
+      static constexpr auto _index
+        = findFirstMatching_dispatcher<Match, Target, Candidates...>();
+      
       static_assert(
-        index_with_type<FindType, AmongTypes...>::value < sizeof...(AmongTypes),
-        "Required type is not present"
+        findNextMatching_impl<_index + 1U, Match, Target, Candidates...>()
+          >= sizeof...(Candidates),
+        "Multiple candidate classes match the Target one"
         );
-    }; // index_with_type
+    }; // struct findTheMatching_impl
+    
+    //
+    // implementations with concrete matching conditions
+    //
+    template <typename Derived, typename... Bases>
+    constexpr std::size_t indexOfBaseOf()
+      { return findTheMatching_impl<std::is_base_of, Derived, Bases...>(); }
+    
+    template <typename Derived, typename... Bases>
+    constexpr std::size_t findBaseOf()
+      { 
+        constexpr std::size_t index = indexOfBaseOf<Derived, Bases...>(); 
+        static_assert(
+          index < sizeof...(Bases),
+          "Target is not derived from any of the available classes"
+          );
+        return index;
+      } // findBaseOf()
+    
+    // this matching condition is the mirror of std::is_base_of
+    template <typename Derived, typename Base>
+    struct is_derived_of: std::is_base_of<Base, Derived> {};
+    
+    template <typename Base, typename... Derived>
+    constexpr std::size_t indexOfDerivedFrom()
+      { return findTheMatching_impl<is_derived_of, Base, Derived...>(); }
+    
+    template <typename Base, typename... Derived>
+    constexpr std::size_t findDerivedFrom()
+      { 
+        constexpr std::size_t index = indexOfDerivedFrom<Base, Derived...>(); 
+        static_assert(
+          index < sizeof...(Derived),
+          "Target is not base of any of the available classes"
+          );
+        return index;
+      } // findDerivedFrom()
+    
+    // --- END impementation of findDerivedFrom() ------------------------------
+    
     
     //--------------------------------------------------------------------------
     //--- SetFrom
