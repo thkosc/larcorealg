@@ -29,6 +29,7 @@
 
 // LArSoft libraries
 #include "larcorealg/CoreUtils/ProviderPack.h"
+#include "larcorealg/CoreUtils/UncopiableAndUnmovableClass.h"
 
 // C/C++ standard libraries
 #include <string>
@@ -37,7 +38,7 @@
 namespace svc {
   
   /// A service provider class
-  struct ProviderA {
+  struct ProviderA: public lar::UncopiableAndUnmovableClass {
     
     ProviderA(): count(max_count++) {}
     
@@ -51,11 +52,12 @@ namespace svc {
   unsigned int ProviderA::max_count = 0;
   
   /// A service provider class
-  struct ProviderB {
+  struct ProviderB: public lar::UncopiableAndUnmovableClass {
     
     ProviderB(): count(max_count++) {}
+    virtual ~ProviderB() noexcept = default;
     
-    operator std::string() const
+    virtual operator std::string() const
       { return "ProviderB[" + std::to_string(count) + "]"; }
     
     unsigned int count;
@@ -63,6 +65,20 @@ namespace svc {
     static unsigned int max_count;
   }; // ProviderB
   unsigned int ProviderB::max_count = 0;
+  
+  /// A service provider class derived from B
+  struct ProviderB1: public ProviderB {
+    
+    ProviderB1(): count(max_count++) {}
+    
+    virtual operator std::string() const override
+      { return "ProviderB1[" + std::to_string(count) + "]"; }
+    
+    unsigned int count;
+    
+    static unsigned int max_count;
+  }; // ProviderB1
+  unsigned int ProviderB1::max_count = 0;
   
   /// A service provider class
   struct ProviderC {
@@ -79,7 +95,7 @@ namespace svc {
   unsigned int ProviderC::max_count = 0;
   
   /// A service provider class
-  struct ProviderD {
+  struct ProviderD: public lar::UncopiableAndUnmovableClass {
     
     ProviderD(): count(max_count++) {}
     
@@ -96,9 +112,9 @@ namespace svc {
 } // namespace svc
 
 
-BOOST_AUTO_TEST_CASE(test_ProviderPack) {
+BOOST_AUTO_TEST_CASE(ProviderPack_testcase) {
   
-  // instantiate a ProviderPack with two classes
+  // instantiate a ProviderPack with three classes
   svc::ProviderA providerA;
   svc::ProviderB providerB;
   svc::ProviderC providerC;
@@ -168,4 +184,36 @@ BOOST_AUTO_TEST_CASE(test_ProviderPack) {
 #endif // !PROVIDERPACK_TEST_SKIP_COMPILATION_ERRORS
   
   
+} // BOOST_AUTO_TEST_CASE(ProviderPack_testcase)
+
+
+// -----------------------------------------------------------------------------
+BOOST_AUTO_TEST_CASE(ProviderPackDerived_testcase) {
+  
+  svc::ProviderA providerA;
+  svc::ProviderB1 providerB;
+  
+  //
+  // initialise a base class provider with a derived class
+  //
+  lar::ProviderPack<svc::ProviderA, svc::ProviderB> SP1
+    (&providerA, &providerB);
+  
+  BOOST_CHECK(SP1.get<svc::ProviderA>() == &providerA);
+  BOOST_CHECK(SP1.get<svc::ProviderB>() == &providerB);
+  
+  //
+  // initialise with a copy from makeProviderPack(),
+  // which should return lar::ProviderPack<svc::ProviderA, svc::ProviderB1>
+  //
+  lar::ProviderPack<svc::ProviderA, svc::ProviderB> SP2
+    = makeProviderPack(&providerA, &providerB);
+  
+  BOOST_CHECK_EQUAL(SP2.get<svc::ProviderA>(), &providerA);
+  BOOST_CHECK_EQUAL(SP2.get<svc::ProviderB>(), &providerB);
+  
 } // BOOST_AUTO_TEST_CASE(test_ProviderPack)
+
+
+// -----------------------------------------------------------------------------
+
