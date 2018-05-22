@@ -2141,11 +2141,7 @@ namespace geo{
           
           // using absolute value just in case (what happens if w1 > w2?)
           
-          const double pitch = std::abs(geom->WirePitch(
-            planeID,
-            (wireID.Wire > 0)? wireID.Wire - 1: 1,
-            wireID.Wire
-            ));
+          const double pitch = std::abs(geom->WirePitch(planeID));
           
           TVector3 wire_shifted;
           TVector3 const step = pitch * IncreasingWireDir;
