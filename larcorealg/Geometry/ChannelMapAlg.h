@@ -102,8 +102,22 @@ namespace geo{
      * On any type of error (e.g., invalid or unknown channel ID),
      * geo::kMysteryType is returned.
      */
-    virtual geo::SigType_t SignalType(raw::ChannelID_t const channel) const = 0;
+    geo::SigType_t SignalTypeForChannel(raw::ChannelID_t const channel) const;
+
+  protected:
+
+    /**
+     * @brief Return the signal type of the specified channel
+     * @param channel ID of the channel
+     * @return signal type of the channel, or geo::kMysteryType if not known
+     *
+     * On any type of error (e.g., invalid or unknown channel ID),
+     * geo::kMysteryType is returned.
+     */
+    virtual geo::SigType_t SignalTypeForChannelImpl(raw::ChannelID_t const channel) const = 0;
     
+  public:
+
     /**
      * @brief Return the signal type on the specified readout plane
      * @param ropid ID of the readout plane
@@ -116,9 +130,26 @@ namespace geo{
      * The default implementation uses readout plane to channel mapping.
      * Other implementation may decide to do the opposite.
      */
-    virtual geo::SigType_t SignalType(readout::ROPID const& ropid) const
-      { return SignalType(FirstChannelInROP(ropid)); }
-    
+    geo::SigType_t SignalTypeForROPID(readout::ROPID const& ropid) const;
+
+  protected:
+
+    /**
+     * @brief Return the signal type on the specified readout plane
+     * @param ropid ID of the readout plane
+     * @return signal type on the plane, or geo::kMysteryType if not known
+     *
+     * If the readout plane ID is marked invalid, geo::kMysteryType is returned.
+     * If the readout plane is not marked invalid, but it does not match an
+     * existing readout plane, the result is undefined.
+     *
+     * The default implementation uses readout plane to channel mapping.
+     * Other implementation may decide to do the opposite.
+     */
+    virtual geo::SigType_t SignalTypeForROPIDImpl(readout::ROPID const& ropid) const;
+
+  public:
+
     /// Returns a list of the plane IDs in the whole detector
     virtual std::set<geo::PlaneID> const& PlaneIDs() const = 0;
     

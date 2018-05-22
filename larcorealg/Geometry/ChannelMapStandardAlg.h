@@ -63,12 +63,6 @@ namespace geo{
       { return PlaneWireToChannel(geo::WireID(cstat, tpc, plane, wire)); }
     //@}
     
-    // FIXME: temporary (?) workaroud not to have SignalType(readout::ROPID) hidden by the following;
-    // the correct solution is an interface change where the interface is not virtual any more,
-    // but relies on implementation methods which are virtual.
-    // This requires adapting all derived classes which override these methods (DUNE's?).
-    using ChannelMapAlg::SignalType;
-    virtual SigType_t                SignalType( raw::ChannelID_t const channel ) const override;
     virtual std::set<PlaneID> const& PlaneIDs()                                   const override;
     
     
@@ -260,6 +254,8 @@ namespace geo{
     geo::GeoObjectSorterStandard                         fSorter;         ///< class to sort geo objects
     
     
+    virtual SigType_t SignalTypeForChannelImpl( raw::ChannelID_t const channel ) const override;
+
     /// Retrieved the wire cound for the specified plane ID
     unsigned int WireCount(geo::PlaneID const& id) const
       { return AccessElement(fWireCounts, id); }

@@ -530,7 +530,7 @@ namespace geo {
   //......................................................................
   SigType_t GeometryCore::SignalType(raw::ChannelID_t const channel) const
   {
-    return fChannelMapAlg->SignalType(channel);
+    return fChannelMapAlg->SignalTypeForChannel(channel);
   }
 
   //......................................................................
@@ -1743,7 +1743,7 @@ namespace geo {
   
   //--------------------------------------------------------------------
   geo::SigType_t GeometryCore::SignalType(readout::ROPID const& ropid) const {
-    return fChannelMapAlg->SignalType(ropid);
+    return fChannelMapAlg->SignalTypeForROPID(ropid);
   } // GeometryCore::SignalType(ROPID)
 
 

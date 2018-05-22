@@ -192,4 +192,18 @@ namespace geo{
     return std::make_pair(adGeoIdx, UINT_MAX);
   }
 
+  geo::SigType_t ChannelMapAlg::SignalTypeForChannel(raw::ChannelID_t const channel) const
+  {
+    return SignalTypeForChannelImpl(channel);
+  }
+
+  geo::SigType_t ChannelMapAlg::SignalTypeForROPID(readout::ROPID const& ropid) const
+  {
+    return SignalTypeForROPIDImpl(ropid);
+  }
+
+  geo::SigType_t ChannelMapAlg::SignalTypeForROPIDImpl(readout::ROPID const& ropid) const
+  {
+    return SignalTypeForChannel(FirstChannelInROP(ropid));
+  }
 }

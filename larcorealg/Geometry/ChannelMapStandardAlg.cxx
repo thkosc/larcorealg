@@ -279,7 +279,7 @@ namespace geo{
 
 
   //----------------------------------------------------------------------------
-  SigType_t ChannelMapStandardAlg::SignalType(raw::ChannelID_t const channel) const
+  SigType_t ChannelMapStandardAlg::SignalTypeForChannelImpl(raw::ChannelID_t const channel) const
   {
 
     // still assume one cryostat for now -- faster
