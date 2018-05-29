@@ -272,9 +272,7 @@ namespace geo {
     double            Plane0Pitch(unsigned int p)               const;
     double            PlanePitch(unsigned int p1=0,
                                  unsigned int p2=1)             const;
-    double            WirePitch(unsigned int w1=0,
-                                unsigned int w2=1,
-                                unsigned int p=0)               const;
+    double WirePitch(unsigned plane = 0) const;
     
     /// Returns the identifier of this TPC
     geo::TPCID const& ID() const { return fID; }
