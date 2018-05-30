@@ -77,7 +77,7 @@ namespace geo{
           geo::PlaneGeo const& plane = TPC.Plane(PlaneCount);
 
           fPlaneIDs.emplace(PlaneID(cs, TPCCount, PlaneCount));
-          double ThisWirePitch = TPC.WirePitch(0, 1, PlaneCount);
+          double ThisWirePitch = TPC.WirePitch(PlaneCount);
           fWireCounts[cs][TPCCount][PlaneCount] = plane.Nwires();
           
           double  WireCentre1[3] = {0.,0.,0.};

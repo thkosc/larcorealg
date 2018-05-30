@@ -1,3 +1,6 @@
+#ifndef GEO_CHANNELMAPALG_H
+#define GEO_CHANNELMAPALG_H
+// vim: sw=2 expandtab :
 ////////////////////////////////////////////////////////////////////////
 /// \file  larcorealg/Geometry/ChannelMapAlg.h
 /// \brief Interface to algorithm class for a specific detector channel mapping
@@ -5,8 +8,6 @@
 ///
 /// \author  brebel@fnal.gov
 ////////////////////////////////////////////////////////////////////////
-#ifndef GEO_CHANNELMAPALG_H
-#define GEO_CHANNELMAPALG_H
 
 // LArSoft  libraries
 #include "larcorealg/Geometry/Exceptions.h" // geo::InvalidWireIDError
@@ -616,8 +617,7 @@ namespace geo{
    std::map<std::string, size_t>          fADNameToGeo;             ///< map the names of the dets to the AuxDetGeo objects
    std::map<size_t, std::vector<size_t> > fADChannelToSensitiveGeo; ///< map the AuxDetGeo index to a vector of 
                                                                     ///< indices corresponding to the AuxDetSensitiveGeo index
-   
-   
+
    /**
     * @name Internal structure data access
     *
@@ -700,7 +700,6 @@ namespace geo{
        auto const& plane_map = TPC_map[id.Plane];
        return &plane_map;
      } // GetElementPtr()
-   //@}
    
    ///@} Internal structure data access
    

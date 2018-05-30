@@ -747,13 +747,8 @@ namespace geo {
   }
   
   //......................................................................
-  // This method returns the distance between the specified wires.
-  // w1 < w2.  The wires are assumed to be on the same plane
-  geo::Length_t GeometryCore::WirePitch(
-    geo::PlaneID const& planeid,
-    unsigned int /* w1 */ /* = 0 */, unsigned int /* w2 */ /* = 1 */
-    )
-    const
+  // This method returns the distance between wires in a plane.
+  geo::Length_t GeometryCore::WirePitch(geo::PlaneID const& planeid) const
   {
     return Plane(planeid).WirePitch();
   }

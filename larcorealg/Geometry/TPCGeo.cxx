@@ -422,11 +422,8 @@ namespace geo{
   }
 
   //......................................................................
-  // This method returns the distance between the specified wires.
-  // w1 < w2.  The wires are assumed to be on the same plane
-  double TPCGeo::WirePitch(unsigned int /*w1*/,  
-			   unsigned int /*w2*/,  
-			   unsigned int plane) const
+  // This method returns the distance between wires in the given plane.
+  double TPCGeo::WirePitch(unsigned plane) const
   { 
     return this->Plane(plane).WirePitch();
   }
