@@ -17,7 +17,7 @@
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 
 // Framework libraries
-#include "cetlib/exception.h"
+#include "cetlib_except/exception.h"
 
 // ROOT libraries
 #include "TVector3.h"
