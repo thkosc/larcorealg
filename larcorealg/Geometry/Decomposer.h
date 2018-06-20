@@ -32,7 +32,7 @@ namespace geo {
    * The base contains the two axes, a "main" one (@f$ \hat{u} @f$) and a
    * "secondary" one (@f$ \hat{v} @f$).
    * It also defines a normal (@f$ \hat{n} @f$) to the plane so that the base
-   * is positive defined ((@f$ \hat{u} \tomes \hat{v} \cdot \hat{m} = +1 @f$).
+   * is positive defined ((@f$ \hat{u} \times \hat{v} \cdot \hat{m} = +1 @f$).
    * 
    */
   template <typename Vector>
