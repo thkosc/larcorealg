@@ -2,6 +2,10 @@
 # File:    geometry_lartpcdetector.fcl
 # Purpose: Geometry service configuration for LArTPC "standard" detector
 # Author:  Gianluca Petrillo
+# Date:    June 21, 2018
+# Version: 1.1
+# Dependencies: none
+#
 # 
 # Provides configuration for geometry of the "standard" LArTPC detector
 # (a detector not necessarily existing).
@@ -12,42 +16,55 @@
 # - lartpcdetector_geometry_helper: configuration of the geometry helper
 #     these need to be used together, hence...
 # 
-# The following configuration bungle is provided:
-# - lartpcdetector_geometry_bundle: complete geometry set up; use it as:
+# The following configuration bundle is provided:
+# - lartpcdetector_geometry_services: complete geometry set up
+#
+#
+# Example of usage
+# -----------------
+#
+# The following snippet configures the geometry in a single step:
 #     
+#     #include "geometry_lartpcdetector.fcl"
+#
 #     services: {
-#       
-#       @table::lartpcdetector_geometry_bundle
-#     
+#       @table::geometry_lartpcdetector_services
 #     }
 #     
-# 
-# Dependencies: none
+#
+# Changes
+# --------
+#
+# 20180621 (petrillo@slac.stanford.edu) [v1.1]
+#   renamed `geometry_lartpcdetector_bundle` into
+#   `geometry_lartpcdetector_services`
+# xxxxxxxx (petrillo@fnal.gov) [v1.0]
+#   original version
 #
 #
 
 BEGIN_PROLOG
 
-lartpcdetector_geometry:
-{
+lartpcdetector_geometry: {
   SurfaceY:         690                  # in cm, vertical distance to the surface
-  Name:            "LArTPCdetector"
-  GDML:            "LArTPCdetector.gdml"
-  ROOT:            "LArTPCdetector.gdml"
-  DisableWiresInG4: true
-}
+  Name:             "LArTPCdetector"
+  GDML:             "LArTPCdetector.gdml"
+  ROOT:             "LArTPCdetector.gdml"
+  DisableWiresInG4:  true
+  SortingParameters: {}
+} # lartpcdetector_geometry
 
-lartpcdetector_geometry_helper:
-{
+
+lartpcdetector_geometry_helper: {
   service_provider : StandardGeometryHelper
 }
 
 
-lartpcdetector_geometry_bundle:
-{
+lartpcdetector_geometry_services: {
   Geometry:               @local::lartpcdetector_geometry
   ExptGeoInterfaceHelper: @local::lartpcdetector_geometry_helper
 }
 
 
 END_PROLOG
+
