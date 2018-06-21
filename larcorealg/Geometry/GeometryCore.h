@@ -4371,7 +4371,11 @@ namespace geo {
     
     
     
-    /// @name Optical detector access and information
+    /**
+     * @name Optical detector geometry access and information
+     * @anchor GeometryCoreOpDetGeometry
+     * @see @ref GeometryCoreOpDetChannel "optical detector channel information"
+     */
     /// @{
     
     //
@@ -5201,7 +5205,11 @@ namespace geo {
     
     
     
-    /// @name Optical readout channels
+    /**
+     * @name Optical readout channels
+     * @anchor GeometryCoreOpDetChannel
+     * @see @ref GeometryCoreOpDetGeometry "optical detector geometry information"
+     */
     /// @todo add explanation of the different IDs
     /// @{
     
