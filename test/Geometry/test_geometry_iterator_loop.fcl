@@ -10,7 +10,7 @@ process_name: testGeoIter
 
 services: {
   
-  @table::lartpcdetector_geometry_bundle
+  @table::lartpcdetector_geometry_services
   
   message: {
     destinations: {
