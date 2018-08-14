@@ -15,6 +15,9 @@
 
 // ROOT libraries
 #include "TGeoMatrix.h" // TGeoHMatrix
+#include "TGeoTube.h"
+#include "TGeoBBox.h"
+#include "TClass.h"
 
 // C/C++ standard libraries
 #include <vector>
@@ -64,7 +67,11 @@ namespace geo {
     double RMin() const;
     double RMax() const;
     double HalfL() const;
+    double HalfW() const;
+    double HalfH() const;
     double Length() const { return 2.0 * HalfL(); }
+    double Width() const { return 2.0 * HalfW(); }
+    double Height() const { return 2.0 * HalfH(); }
     double ThetaZ() const;  ///< returns angle of detector
                             ///< with respect to z axis 
                             ///< in the Y-Z plane, in radians
@@ -126,9 +133,18 @@ namespace geo {
     
     /// @}
     
-    
+    /// Returns the ROOT object describing the detector geometry.
     const TGeoNode*     Node() const { return fOpDetNode; }
-
+    
+    /// Returns the geometry object as `TGeoShape`.
+    TGeoShape const* Shape() const { return Node()->GetVolume()->GetShape(); }
+    
+    /// Returns whether the detector shape is a cilynder (`TGeoTube`).
+    bool isTube() const { return asTube() != nullptr; }
+    
+    /// Returns whether the detector shape is a bar (`TGeoBBox`).
+    bool isBar() const { return (asBox() != nullptr) && !isTube(); }
+    
     /**
      * @brief Prints information about this optical detector.
      * @tparam Stream type of output stream to use
@@ -163,6 +179,14 @@ namespace geo {
     const TGeoNode* fOpDetNode;  ///< Pointer to theopdet node
     geo::Point_t fCenter; ///< Stored geometric center of the optical detector.
     
+    /// Returns the geometry object as `TGeoTube`, `nullptr` if not a tube.
+    TGeoTube const* asTube() const
+      { return dynamic_cast<TGeoTube const*>(Shape()); }
+    
+    /// Returns the geometry object as `TGeoBBox`, `nullptr` if not a tube.
+    TGeoBBox const* asBox() const
+      { return dynamic_cast<TGeoBBox const*>(Shape()); }
+    
   }; // class OpDetGeo
   
 } // namespace geo
@@ -184,9 +208,16 @@ void geo::OpDetGeo::PrintOpDetInfo(
   if (verbosity-- <= 0) return; // 0
   
   //----------------------------------------------------------------------------
-  out << ", radius: " << RMax() << " cm";
-  if (RMin() != 0.0) out << " (inner: " << RMin() << " cm)";
-  out << ", length: " << Length() << " cm";
+  if (isTube()) {
+    out << ", radius: " << RMax() << " cm";
+    if (RMin() != 0.0) out << " (inner: " << RMin() << " cm)";
+    out << ", length: " << Length() << " cm";
+  }
+  else if (isBar()) {
+    out << ", bar size " << Width() << " x " << Height() << " x " << Length()
+      << " cm";
+  }
+  else out << ", shape: '" << Shape()->IsA()->GetName() << "'"; 
   
   if (verbosity-- <= 0) return; // 1
   

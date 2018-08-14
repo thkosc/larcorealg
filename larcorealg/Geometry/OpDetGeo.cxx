@@ -54,21 +54,38 @@ namespace geo{
 
   double OpDetGeo::RMax() const 
   {
-    return ((TGeoTube*)fOpDetNode->GetVolume()->GetShape())->GetRmax();
+    return asTube()->GetRmax();
   }
     
   //......................................................................
 
   double OpDetGeo::HalfL() const 
   {
-    return ((TGeoTube*)fOpDetNode->GetVolume()->GetShape())->GetDZ();
+    TGeoBBox const* pBox = asBox();
+    return pBox? pBox->GetDZ(): 0.0;
+  }
+
+  //......................................................................
+
+  double OpDetGeo::HalfW() const 
+  {
+    TGeoBBox const* pBox = asBox();
+    return pBox? pBox->GetDX(): 0.0;
+  }
+
+  //......................................................................
+
+  double OpDetGeo::HalfH() const 
+  {
+    TGeoBBox const* pBox = asBox();
+    return pBox? pBox->GetDY(): 0.0;
   }
 
   //......................................................................
 
   double OpDetGeo::RMin() const 
   {
-    return ((TGeoTube*)fOpDetNode->GetVolume()->GetShape())->GetRmin();
+    return asTube()->GetRmin();
   }
 
   //......................................................................
