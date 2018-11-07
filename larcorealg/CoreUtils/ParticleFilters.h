@@ -24,7 +24,7 @@
 #include <utility> // std::move()
 
 
-namespace larg4 {
+namespace util {
 
   /**
    * @brief Tag for filters
@@ -109,6 +109,6 @@ namespace larg4 {
     
   }; // PositionInVolumeFilter
   
-} // namespace larg4
+} // namespace util
 
 #endif // LARCOREALG_COREUTILS_PARTICLEFILTERS_H
