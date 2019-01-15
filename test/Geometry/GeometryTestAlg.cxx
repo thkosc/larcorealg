@@ -159,13 +159,13 @@ namespace geo{
     
     try{
       if (shouldRunTests("DetectorIntro")) {
-        LOG_INFO("GeometryTest") << "detector introduction:";
+        MF_LOG_INFO("GeometryTest") << "detector introduction:";
         printDetectorIntro();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("CheckOverlaps")) {
-        LOG_INFO("GeometryTest") << "test for overlaps ...";
+        MF_LOG_INFO("GeometryTest") << "test for overlaps ...";
         gGeoManager->CheckOverlaps(1e-5);
         gGeoManager->PrintOverlaps();
         if (!gGeoManager->GetListOfOverlaps()->IsEmpty()) {
@@ -174,11 +174,11 @@ namespace geo{
             << " overlaps found in geometry during overlap test!";
           ++nErrors;
         }
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("ThoroughCheck")) {
-        LOG_INFO("GeometryTest") << "thorough geometry test ...";
+        MF_LOG_INFO("GeometryTest") << "thorough geometry test ...";
         gGeoManager->CheckGeometryFull();
         if (!gGeoManager->GetListOfOverlaps()->IsEmpty()) {
           mf::LogError("GeometryTest")
@@ -186,146 +186,146 @@ namespace geo{
             << " overlaps found in geometry during thorough test!";
           ++nErrors;
         }
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("Cryostat")) {
-        LOG_INFO("GeometryTest") << "test Cryostat methods ...";
+        MF_LOG_INFO("GeometryTest") << "test Cryostat methods ...";
         testCryostat();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("FindVolumes")) {
-        LOG_INFO("GeometryTest") << "test FindAllVolumes method ...";
+        MF_LOG_INFO("GeometryTest") << "test FindAllVolumes method ...";
         testFindVolumes();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("PlaneDirections")) {
-        LOG_INFO("GeometryTest") << "test plane directions...";
+        MF_LOG_INFO("GeometryTest") << "test plane directions...";
         testPlaneDirections();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("WireOrientations")) {
-        LOG_INFO("GeometryTest") << "test wire orientations...";
+        MF_LOG_INFO("GeometryTest") << "test wire orientations...";
         testWireOrientations();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("ChannelToROP")) {
-        LOG_INFO("GeometryTest") << "test channel to ROP and back ...";
+        MF_LOG_INFO("GeometryTest") << "test channel to ROP and back ...";
         testChannelToROP();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("ChannelToWire")) {
-        LOG_INFO("GeometryTest") << "test channel to plane wire and back ...";
+        MF_LOG_INFO("GeometryTest") << "test channel to plane wire and back ...";
         testChannelToWire();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("FindPlaneCenters")) {
-        LOG_INFO("GeometryTest") << "test find plane centers...";
+        MF_LOG_INFO("GeometryTest") << "test find plane centers...";
         testFindPlaneCenters();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("WireCoordFromPlane")) {
-        LOG_INFO("GeometryTest") << "test PlaneGeo::WireCoordinate...";
+        MF_LOG_INFO("GeometryTest") << "test PlaneGeo::WireCoordinate...";
         testWireCoordFromPlane();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("ParallelWires")) {
-        LOG_INFO("GeometryTest") << "test wire parallelism...";
+        MF_LOG_INFO("GeometryTest") << "test wire parallelism...";
         testParallelWires();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("PlanePointDecomposition")) {
-        LOG_INFO("GeometryTest") << "test plane point decomposition...";
+        MF_LOG_INFO("GeometryTest") << "test plane point decomposition...";
         testPlanePointDecomposition();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("PlaneProjections")) {
-        LOG_INFO("GeometryTest") << "test PlaneGeo::PointProjection...";
+        MF_LOG_INFO("GeometryTest") << "test PlaneGeo::PointProjection...";
         testPlaneProjection();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("WireCoordAngle")) {
-        LOG_INFO("GeometryTest") << "testWireCoordAngle...";
+        MF_LOG_INFO("GeometryTest") << "testWireCoordAngle...";
         testWireCoordAngle();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("Projection")) {
-        LOG_INFO("GeometryTest") << "testProject...";
+        MF_LOG_INFO("GeometryTest") << "testProject...";
         testProject();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("WirePos")) {
-        LOG_INFO("GeometryTest") << "testWirePos...";
+        MF_LOG_INFO("GeometryTest") << "testWirePos...";
         // There is a contradiction here, and these must be tested differently
         // Testing based on detector ID should NOT become common practice
-        LOG_INFO("GeometryTest") << "disabled.";
+        MF_LOG_INFO("GeometryTest") << "disabled.";
       }
 
       if (shouldRunTests("NearestWire")) {
-        LOG_INFO("GeometryTest") << "testNearestWire...";
+        MF_LOG_INFO("GeometryTest") << "testNearestWire...";
         testNearestWire();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("WireIntersection")) {
-        LOG_INFO("GeometryTest") << "testWireIntersection...";
+        MF_LOG_INFO("GeometryTest") << "testWireIntersection...";
         testWireIntersection();
-        LOG_INFO("GeometryTest") << "testWireIntersection complete";
+        MF_LOG_INFO("GeometryTest") << "testWireIntersection complete";
       }
 
       if (shouldRunTests("ThirdPlane")) {
-        LOG_INFO("GeometryTest") << "testThirdPlane...";
+        MF_LOG_INFO("GeometryTest") << "testThirdPlane...";
         testThirdPlane();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("ThirdPlaneSlope")) {
-        LOG_INFO("GeometryTest") << "testThirdPlaneSlope...";
+        MF_LOG_INFO("GeometryTest") << "testThirdPlaneSlope...";
         testThirdPlane_dTdW();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("WirePitch")) {
-        LOG_INFO("GeometryTest") << "testWirePitch...";
+        MF_LOG_INFO("GeometryTest") << "testWirePitch...";
         testWirePitch();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("PlanePitch")) {
-        LOG_INFO("GeometryTest") << "testPlanePitch...";
+        MF_LOG_INFO("GeometryTest") << "testPlanePitch...";
         testPlanePitch();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("Stepping")) {
-        LOG_INFO("GeometryTest") << "testStepping...";
+        MF_LOG_INFO("GeometryTest") << "testStepping...";
         testStepping();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("FindAuxDet")) {
-        LOG_INFO("GeometryTest") << "testFindAuxDet...";
+        MF_LOG_INFO("GeometryTest") << "testFindAuxDet...";
         testFindAuxDet();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
       if (shouldRunTests("PrintWires")) {
-        LOG_INFO("GeometryTest") << "printAllGeometry...";
+        MF_LOG_INFO("GeometryTest") << "printAllGeometry...";
         printAllGeometry();
-        LOG_INFO("GeometryTest") << "complete.";
+        MF_LOG_INFO("GeometryTest") << "complete.";
       }
     }
     catch (cet::exception &e) {
@@ -664,7 +664,7 @@ namespace geo{
       double const worldLoc[3]
         = { cryo.CenterX(), cryo.CenterY(), cryo.CenterZ() };
                 
-      LOG_DEBUG("GeometryTest") << "\t testing GeometryCore::PoitionToCryostat....";
+      MF_LOG_DEBUG("GeometryTest") << "\t testing GeometryCore::PoitionToCryostat....";
       geo::CryostatID cid;
       try{
         geom->PositionToCryostat(worldLoc, cid);
@@ -678,9 +678,9 @@ namespace geo{
           << "Geometry points the middle of cryostat " << std::string(cryo.ID())
           << " to a different one (" << std::string(cid) << ")\n";
       }
-      LOG_DEBUG("GeometryTest") << "done";
+      MF_LOG_DEBUG("GeometryTest") << "done";
 
-      LOG_DEBUG("GeometryTest") << "\t Now test the TPCs associated with this cryostat";
+      MF_LOG_DEBUG("GeometryTest") << "\t Now test the TPCs associated with this cryostat";
       testTPC(cryo.ID());
     }
 
@@ -873,7 +873,7 @@ namespace geo{
         throw cet::exception("UnknownDriftDirection") << "\t\tdrift direction is unknown\n";
       }
 
-      LOG_DEBUG("GeometryTest") << "\t testing PositionToTPC...";
+      MF_LOG_DEBUG("GeometryTest") << "\t testing PositionToTPC...";
       // pick a position in the middle of the TPC in the world coordinates
       double worldLoc[3] = {0.};
       double localLoc[3] = {0.};
@@ -885,7 +885,7 @@ namespace geo{
         throw cet::exception("BadTPCLookupFromPosition") << "TPC look up returned tpc = "
                                                          << tpcNo << " should be " << t << "\n";
 
-      LOG_DEBUG("GeometryTest") << "done.";
+      MF_LOG_DEBUG("GeometryTest") << "done.";
     } // for TPC
     
     return;
@@ -1361,7 +1361,7 @@ namespace geo{
       
       geo::WireGeo const& middle_wire = geom->Wire(middle_wire_id);
       decltype(auto) middle_wire_center = middle_wire.GetCenter();
-      LOG_TRACE("GeometryTest")
+      MF_LOG_TRACE("GeometryTest")
         << "Center of " << middle_wire_id << " at " << middle_wire_center;
       
       // cross check: we can find the middle wire
@@ -1381,7 +1381,7 @@ namespace geo{
       const double pitch = plane.WirePitch();
       decltype(auto) wireCoordDir = plane.GetIncreasingWireDirection();
       
-      LOG_TRACE("GeometryTest")
+      MF_LOG_TRACE("GeometryTest")
         << "  pitch: " << pitch << " wire coord dir: cos(phi_z): "
         << wireCoordDir;
       
@@ -1561,7 +1561,7 @@ namespace geo{
       auto decomp = plane.DecomposePoint(reference);
       
       if (geom->coordIs.nonZero(decomp.distance)) {
-        LOG_ERROR("GeometryTest")
+        MF_LOG_ERROR("GeometryTest")
           << "Plane " << plane.ID() << " reference point " << reference
           << " has distance " << decomp.distance << " cm (should be 0)";
         ++nErrors;
@@ -1571,7 +1571,7 @@ namespace geo{
         || geom->coordIs.nonZero(decomp.projection.Y())
         )
       {
-        LOG_ERROR("GeometryTest")
+        MF_LOG_ERROR("GeometryTest")
           << "Plane " << plane.ID() << " reference point " << reference
           << " has projection ( " << decomp.projection.X()
           << " ; " << decomp.projection.Y() << " ) cm (should be (0;0) )";
@@ -2071,7 +2071,7 @@ namespace geo{
       
       decltype(auto) IncreasingWireDir = plane.GetIncreasingWireDirection();
       
-      LOG_DEBUG("GeoTestWireCoordinate")
+      MF_LOG_DEBUG("GeoTestWireCoordinate")
         << "The direction of increasing wires for plane " << planeID
         << " (theta=" << plane.Wire(0).ThetaZ() << " pitch="
         << plane.WirePitch() << " orientation="
@@ -2165,7 +2165,7 @@ namespace geo{
               }
               catch (cet::exception& e) {
                 if (hasCategory(e, "NotImplemented")) {
-                  LOG_ERROR("GeoTestWireCoordinate")
+                  MF_LOG_ERROR("GeoTestWireCoordinate")
                     << "WireCoordinate() is not implemented for your ChannelMap;"
                     " skipping the test";
                   bTestWireCoordinate = false;
@@ -2195,7 +2195,7 @@ namespace geo{
               }
               catch (cet::exception& e) {
                 throw cet::exception("GeoTestErrorWireCoordinate", "", e)
-              //  LOG_ERROR("GeoTestWireCoordinate")
+              //  MF_LOG_ERROR("GeoTestWireCoordinate")
                   << "wire " << std::string(wireID)
                   << " [center: " << wire_center << "] on step of "
                   << i << "/" << NSteps
@@ -2216,7 +2216,7 @@ namespace geo{
                   e << ", " << expected_wire_number
                     << " expected (more precisely, " << expected_wire << ").";
                 // throw e;
-                  LOG_ERROR("GeoTestWireCoordinate") << e.str();
+                  MF_LOG_ERROR("GeoTestWireCoordinate") << e.str();
                 }
                 else {
                   mf::LogVerbatim("GeoTestWireCoordinate") << e.str();
@@ -2247,7 +2247,7 @@ namespace geo{
     } // end loop over planes
 
     stopWatch.Stop();
-    LOG_DEBUG("GeoTestWireCoordinate") << "\tdone testing closest channel";
+    MF_LOG_DEBUG("GeoTestWireCoordinate") << "\tdone testing closest channel";
     stopWatch.Print();
     
     // trigger an exception with NearestChannel
@@ -2280,7 +2280,7 @@ namespace geo{
         // ok, then why do we disable it?
         // an implementation might prefer to cap the wire number and go on
         // instead of throwing.
-        LOG_WARNING("GeoTestWireCoordinate")
+        MF_LOG_WARNING("GeoTestWireCoordinate")
           << "GeometryCore::NearestChannel() did not raise an exception"
           " on out-of-world position (" << posWorld[0] << "; "
           << posWorld[1] << "; " << posWorld[2] << "), and returned "
@@ -2318,7 +2318,7 @@ namespace geo{
     for (geo::GeometryCore::TPC_id_iterator iTPC(&*geom); iTPC; ++iTPC) {
       const geo::TPCGeo& TPC = *(iTPC.get());
       
-      LOG_DEBUG("GeometryTest") << "Cryostat #" << iTPC->Cryostat
+      MF_LOG_DEBUG("GeometryTest") << "Cryostat #" << iTPC->Cryostat
         << " TPC #" << iTPC->TPC;
       
       // sanity: wires on different cryostats
@@ -2327,7 +2327,7 @@ namespace geo{
           w2 { iTPC->Cryostat + 1, iTPC->TPC, 1, 1 };
         geo::Point_t xingPoint;
         if (geom->WireIDsIntersect(w1, w2, xingPoint)) {
-          LOG_ERROR("GeometryTest") << "WireIDsIntersect() on " << w1
+          MF_LOG_ERROR("GeometryTest") << "WireIDsIntersect() on " << w1
             << " and " << w2 << " returned " << xingPoint
             << " cm, while should have reported no intersection at all";
           ++nErrors;
@@ -2340,7 +2340,7 @@ namespace geo{
           w2 { iTPC->Cryostat, iTPC->TPC + 1, 1, 1 };
         geo::Point_t xingPoint;
         if (geom->WireIDsIntersect(w1, w2, xingPoint)) {
-          LOG_ERROR("GeometryTest") << "WireIDsIntersect() on " << w1
+          MF_LOG_ERROR("GeometryTest") << "WireIDsIntersect() on " << w1
             << " and " << w2 << " returned " << xingPoint
             << ", while should have reported no intersection at all";
           ++nErrors;
@@ -2354,7 +2354,7 @@ namespace geo{
           w2 { iTPC->Cryostat, iTPC->TPC, plane, 1 };
         geo::Point_t xingPoint;
         if (geom->WireIDsIntersect(w1, w2, xingPoint)) {
-          LOG_ERROR("GeometryTest") << "WireIDsIntersect() on " << w1
+          MF_LOG_ERROR("GeometryTest") << "WireIDsIntersect() on " << w1
             << " and " << w2 << " returned " << xingPoint
             << ", while should have reported no intersection at all";
           ++nErrors;
@@ -2443,7 +2443,7 @@ namespace geo{
       WireDistances[iPlane]
         = (WireDistance - std::round(WireDistance)) * WirePitch[iPlane];
       
-      LOG_DEBUG("GeometryTest") << "Nearest wire to " << point
+      MF_LOG_DEBUG("GeometryTest") << "Nearest wire to " << point
         << " on plane " << std::string(plane.ID())
         << " (pitch: " << WirePitch[iPlane]
         << ", coord.dir.=" << WireCoordDirs[iPlane]
@@ -2464,7 +2464,7 @@ namespace geo{
         
         geo::Point_t xingPoint;
         if (!geom->WireIDsIntersect(w1, w2, xingPoint)) {
-          LOG_ERROR("GeometryTest") << "Wires " << w1 << " and " << w2
+          MF_LOG_ERROR("GeometryTest") << "Wires " << w1 << " and " << w2
             << " should intersect around " << point << " of TPC " << TPC.ID()
             << ", but they seem not to intersect at all!";
           ++nErrors;
@@ -2475,7 +2475,7 @@ namespace geo{
           
           geo::WireIDIntersection widIntersect;
           if (!geom->WireIDsIntersect(w1, w2, widIntersect)) {
-            LOG_ERROR("GeometryTest") << "Legacy check: wires " << w1 << " and "
+            MF_LOG_ERROR("GeometryTest") << "Legacy check: wires " << w1 << " and "
               << w2 << " should intersect around " << point << " of TPC "
               << TPC.ID() << ", but they seem not to intersect at all!";
             ++nErrors;
@@ -2484,7 +2484,7 @@ namespace geo{
           if (coordIs.nonEqual(widIntersect.y, xingPoint.Y())
             || coordIs.nonEqual(widIntersect.z, xingPoint.Z()))
           {
-            LOG_ERROR("GeometryTest") << "Legacy check: wires " << w1 << " and "
+            MF_LOG_ERROR("GeometryTest") << "Legacy check: wires " << w1 << " and "
               << w2 << " should intersect around " << point << " of TPC "
               << TPC.ID() << ", but legacy code says (?, "
               << widIntersect.y << ", " << widIntersect.z << ")!";
@@ -2496,7 +2496,7 @@ namespace geo{
         
         geo::Point_t xingPointInv;
         if (!geom->WireIDsIntersect(w2, w1, xingPointInv)) {
-          LOG_ERROR("GeometryTest") << "Wires " << w2 << " and " << w1
+          MF_LOG_ERROR("GeometryTest") << "Wires " << w2 << " and " << w1
             << " (reversed test) should intersect around " << point
             << " of TPC " << TPC.ID()
             << ", but they seem not to intersect at all!";
@@ -2505,7 +2505,7 @@ namespace geo{
         }
         plane1.DriftPoint(xingPointInv); // bring the point on plane 1
         if (vectorIs.nonEqual(xingPoint, xingPointInv)) {
-          LOG_ERROR("GeometryTest")
+          MF_LOG_ERROR("GeometryTest")
             << "WireIDsIntersect() gives different intersections for "
             << w1 << " and " << w2
             << ": " << xingPoint << " (direct) and " << xingPointInv
@@ -2528,7 +2528,7 @@ namespace geo{
           );
         // the actual distance we have found:
         double const d = plane1.VectorProjection(xingPoint - geo::vect::toPoint(point)).R();
-        LOG_DEBUG("GeometryTest")
+        MF_LOG_DEBUG("GeometryTest")
           << " - wires " << w1 << " and " << w2 << " intersect at " << xingPoint
           << ", " << d << " cm far from starting point (expected: "
           << expected_d << ")";
@@ -2538,7 +2538,7 @@ namespace geo{
         lar::util::RealComparisons<double> wireCoordIs
           (std::max(WirePitch[iPlane1], WirePitch[iPlane2]) * 1e-3); // cm
         if (wireCoordIs.nonEqual(d, expected_d)) {
-          LOG_ERROR("GeometryTest")
+          MF_LOG_ERROR("GeometryTest")
             << "wires " << w1 << " and " << w2 << " intersect at " << xingPoint
             << ", "
             << d << " cm far from starting point: too far from the expected "
@@ -2575,7 +2575,7 @@ namespace geo{
       const geo::TPCGeo& TPC = geom->TPC(tpcid);
       
       const unsigned int nPlanes = TPC.Nplanes();
-      LOG_DEBUG("GeometryTest") << tpcid << " (" << nPlanes << " planes)";
+      MF_LOG_DEBUG("GeometryTest") << tpcid << " (" << nPlanes << " planes)";
       
       
       for (geo::PlaneID::PlaneID_t iPlane1 = 0; iPlane1 < nPlanes; ++iPlane1) {
@@ -2598,13 +2598,13 @@ namespace geo{
             bError = hasCategory(e, "GeometryCore");
           } // try...catch
           
-          LOG_TRACE("GeometryTest")
+          MF_LOG_TRACE("GeometryTest")
             << "  [" << pid1 << "], [" << pid2 << "] => "
             << (bError? "error": std::string(third_plane));
           if (bError) continue; // we got what we wanted
           
           if (!bError && !isValidInput) {
-            LOG_ERROR("GeometryTest") << "ThirdPlane() on " << pid1
+            MF_LOG_ERROR("GeometryTest") << "ThirdPlane() on " << pid1
               << " and " << pid2 << " returned " << third_plane
               << ", while should have thrown an exception";
             ++nErrors;
@@ -2612,30 +2612,30 @@ namespace geo{
           } // if no error
           
           if (third_plane != tpcid) {
-            LOG_ERROR("GeometryTest") << "ThirdPlane() on " << pid1
+            MF_LOG_ERROR("GeometryTest") << "ThirdPlane() on " << pid1
               << " and " << pid2 << " returned " << third_plane
               << ", on a different TPC!!!";
             ++nErrors;
           }
           else if (!third_plane.isValid) {
-            LOG_ERROR("GeometryTest") << "ThirdPlane() on " << pid1
+            MF_LOG_ERROR("GeometryTest") << "ThirdPlane() on " << pid1
               << " and " << pid2 << " returned an invalid " << third_plane;
             ++nErrors;
           }
           else if (third_plane.Plane >= nPlanes) {
-            LOG_ERROR("GeometryTest") << "ThirdPlane() on " << pid1
+            MF_LOG_ERROR("GeometryTest") << "ThirdPlane() on " << pid1
               << " and " << pid2 << " returned " << third_plane
               << " with plane out of range";
             ++nErrors;
           }
           else if (third_plane == pid1) {
-            LOG_ERROR("GeometryTest") << "ThirdPlane() on " << pid1
+            MF_LOG_ERROR("GeometryTest") << "ThirdPlane() on " << pid1
               << " and " << pid2 << " returned " << third_plane
               << ", same as the first input";
             ++nErrors;
           }
           else if (third_plane == pid2) {
-            LOG_ERROR("GeometryTest") << "ThirdPlane() on " << pid1
+            MF_LOG_ERROR("GeometryTest") << "ThirdPlane() on " << pid1
               << " and " << pid2 << " returned " << third_plane
               << ", same as the second input";
             ++nErrors;
@@ -2680,7 +2680,7 @@ namespace geo{
         * ((TPC.DriftDirection() == geo::kNegX)? -1.: +1);
       
       const unsigned int NPlanes = TPC.Nplanes();
-      LOG_DEBUG("GeometryTest") << tpcid << " (" << NPlanes << " planes)";
+      MF_LOG_DEBUG("GeometryTest") << tpcid << " (" << NPlanes << " planes)";
       
       // sanity: planes on different cryostats
       if (tpcid.Cryostat < geom->Ncryostats() - 1) {
@@ -2696,7 +2696,7 @@ namespace geo{
           bError = hasCategory(e, "GeometryCore");
         } // try...catch
         if (!bError) {
-          LOG_ERROR("GeometryTest") << "ThirdPlane_dTdW() on " << p1
+          MF_LOG_ERROR("GeometryTest") << "ThirdPlane_dTdW() on " << p1
             << " and " << p2 << " returned " << slope
             << ", while should have thrown an exception";
           ++nErrors;
@@ -2717,7 +2717,7 @@ namespace geo{
           bError = hasCategory(e, "GeometryCore");
         } // try...catch
         if (!bError) {
-          LOG_ERROR("GeometryTest") << "ThirdPlane_dTdW() on " << p1
+          MF_LOG_ERROR("GeometryTest") << "ThirdPlane_dTdW() on " << p1
             << " and " << p2 << " returned " << slope
             << ", while should have thrown an exception";
           ++nErrors;
@@ -2882,7 +2882,7 @@ namespace geo{
             if (bValidInput) throw;
             bError = hasCategory(e, "GeometryCore");
             if (!bError) throw;
-            LOG_TRACE("GeometryTest")
+            MF_LOG_TRACE("GeometryTest")
               << input1.first << " slope:" << input1.second
               << "  " << input2.first << " slope:" << input2.second
               << "  => exception";
@@ -2890,7 +2890,7 @@ namespace geo{
           }
           
           if (!bValidInput && !bError) {
-            LOG_ERROR("GeometryTest")
+            MF_LOG_ERROR("GeometryTest")
               << "GeometryCore::ThirdPlane_dTdW() on "
               << input1.first << " and " << input2.first
               << " should have thrown an exception, it returned "
@@ -2899,14 +2899,14 @@ namespace geo{
             continue;
           } // if faulty input and no error
           
-          LOG_TRACE("GeometryTest")
+          MF_LOG_TRACE("GeometryTest")
             << input1.first << " slope:" << input1.second
             << "  " << input2.first << " slope:" << input2.second
             << "  => " << output.first << " slope:" << output_slope;
           if (((output.second == 0.) && (output_slope > 1e-3))
             || std::abs(output_slope/output.second - 1.) > 1e-3)
           {
-            LOG_ERROR("testThirdPlane_dTdW_at")
+            MF_LOG_ERROR("testThirdPlane_dTdW_at")
               << "GeometryCore::ThirdPlane_dTdW(): "
               << input1.first << " slope:" << input1.second
               << "  " << input2.first << " slope:" << input2.second
@@ -2972,7 +2972,7 @@ namespace geo{
       if (fExpectedWirePitches.empty()) {
         geo::WireGeo const& wire1 = plane.Wire(1); // pWire now points to wire0
         expectedPitch = geo::WireGeo::WirePitch(*pWire, wire1);
-        LOG_DEBUG("WirePitch")
+        MF_LOG_DEBUG("WirePitch")
           << "Wire pitch on " << planeid << ": " << expectedPitch << " cm";
       }
       else if (planeid.Plane < fExpectedWirePitches.size())
@@ -3044,7 +3044,7 @@ namespace geo{
       double expectedPitch = 0.;
       if (fExpectedPlanePitches.empty()) {
         expectedPitch = TPC.PlanePitch(0, 1);
-        LOG_DEBUG("PlanePitch")
+        MF_LOG_DEBUG("PlanePitch")
           << "Plane pitch between the first two planes of " << tpcid << ": "
           << expectedPitch << " cm";
       }
