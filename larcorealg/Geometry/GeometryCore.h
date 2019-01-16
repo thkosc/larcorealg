@@ -4594,7 +4594,10 @@ namespace geo {
     /// @brief Returns the number of channels in the specified ROP
     /// @return number of channels in the specified ROP, 0 if non-existent
     unsigned int Nchannels(readout::ROPID const& ropid) const;
-    
+   
+    /// @brief Returns an std::vector<ChannelID_t> in all TPCs in a TPCSet
+    std::vector<raw::ChannelID_t> const ChannelsInTPC() const;
+    // 
     /**
      * @brief Returns a list of possible views in the detector.
      * @return the set of views
