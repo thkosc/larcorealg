@@ -44,7 +44,6 @@
 #include <limits> // std::numeric_limits<>
 #include <numeric> // std::accumulate
 
-
 namespace geo {
   
   template <typename T>
@@ -199,6 +198,30 @@ namespace geo {
     return fChannelMapAlg->Nchannels(ropid);
   } // GeometryCore::Nchannels(ROPID)
   
+  //......................................................................
+  
+  std::vector<raw::ChannelID_t> const GeometryCore::ChannelsInTPC() const
+  {
+    std::vector<raw::ChannelID_t> channels;
+    channels.reserve(fChannelMapAlg->Nchannels());
+
+    for (const readout::TPCsetID & ts: IterateTPCsetIDs()) 
+    {
+      for (auto const t: fChannelMapAlg->TPCsetToTPCs(ts)) 
+      {
+        for (auto const & wire: IterateWireIDs(t)) 
+        {
+          channels.push_back(fChannelMapAlg->PlaneWireToChannel(wire));
+        } 
+      }
+    }
+    std::sort(channels.begin(), channels.end());
+    auto last = std::unique(channels.begin(), channels.end());
+    channels.erase(last, channels.end());
+    return channels;
+  }
+
+
   //......................................................................
   unsigned int GeometryCore::NOpDets() const
   {
