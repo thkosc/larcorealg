@@ -71,7 +71,7 @@ namespace geo{
     
     if(!fActiveVolume) fActiveVolume = fTotalVolume;
     
-    LOG_DEBUG("Geometry") << "detector total  volume is " << fTotalVolume->GetName()
+    MF_LOG_DEBUG("Geometry") << "detector total  volume is " << fTotalVolume->GetName()
                           << "\ndetector active volume is " << fActiveVolume->GetName();
 
     // compute the active volume transformation too

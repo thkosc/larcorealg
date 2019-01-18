@@ -1172,8 +1172,8 @@ namespace testing {
       mf::LogPrint("MessageFacility") << "Warning messages are shown.";
       mf::LogVerbatim("MessageFacility") << "Info messages are shown.";
       mf::LogTrace("MessageFacility") << "Debug messages are shown.";
-      LOG_TRACE("MessageFacility")
-        << "LOG_TRACE/LOG_DEBUG messages are not compiled away.";
+      MF_LOG_TRACE("MessageFacility")
+        << "MF_LOG_TRACE/MF_LOG_DEBUG messages are not compiled away.";
     } // if print message levels
     mf::LogInfo("MessageFacility") << "MessageFacility started.";
     mf::SetContextSinglet("main");

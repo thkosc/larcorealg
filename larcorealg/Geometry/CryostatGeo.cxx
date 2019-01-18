@@ -74,7 +74,7 @@ namespace geo{
     if(!fVolume)
       throw cet::exception("CryostatGeo") << "cannot find cryostat outline volume\n";
     
-    LOG_DEBUG("Geometry") << "cryostat  volume is " << fVolume->GetName();
+    MF_LOG_DEBUG("Geometry") << "cryostat  volume is " << fVolume->GetName();
 
     // set the bounding box
     InitCryoBoundaries();
