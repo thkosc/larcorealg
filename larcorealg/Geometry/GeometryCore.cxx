@@ -200,7 +200,7 @@ namespace geo {
   
   //......................................................................
   
-  std::vector<raw::ChannelID_t> const GeometryCore::ChannelsInTPC() const
+  std::vector<raw::ChannelID_t> GeometryCore::ChannelsInTPCs() const
   {
     std::vector<raw::ChannelID_t> channels;
     channels.reserve(fChannelMapAlg->Nchannels());

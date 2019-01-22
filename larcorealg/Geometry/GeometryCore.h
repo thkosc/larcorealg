@@ -4596,7 +4596,7 @@ namespace geo {
     unsigned int Nchannels(readout::ROPID const& ropid) const;
    
     /// @brief Returns an std::vector<ChannelID_t> in all TPCs in a TPCSet
-    std::vector<raw::ChannelID_t> const ChannelsInTPC() const;
+    std::vector<raw::ChannelID_t> ChannelsInTPCs() const;
     // 
     /**
      * @brief Returns a list of possible views in the detector.
