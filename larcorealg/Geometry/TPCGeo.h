@@ -591,6 +591,15 @@ namespace geo {
     void PrintTPCInfo
       (Stream&& out, std::string indent = "", unsigned int verbosity = 1) const;
     
+    /**
+     * @brief Returns a string with information about this TPC.
+     * @see `PrintTPCInfo()`
+     * 
+     * Arguments and provided information are the same as in `PrintTPCInfo()`.
+     */
+    std::string TPCInfo
+      (std::string indent = "", unsigned int verbosity = 1) const;
+    
     /// Maximum verbosity supported by `PrintTPCInfo()`.
     static constexpr unsigned int MaxVerbosity = 6;
     

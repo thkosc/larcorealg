@@ -19,6 +19,9 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "cetlib_except/exception.h"
 
+// C++ standard libraries
+#include <sstream> // std::ostringstream
+
 
 namespace geo{
   
@@ -96,6 +99,16 @@ namespace geo{
   //......................................................................
   geo::Length_t AuxDetSensitiveGeo::DistanceToPoint(double const* point) const
     { return DistanceToPoint(geo::vect::makePointFromCoords(point)); }
+  
+  
+  //......................................................................
+  std::string AuxDetSensitiveGeo::AuxDetInfo
+    (std::string indent /* = "" */, unsigned int verbosity /* = 1 */) const
+  {
+    std::ostringstream sstr;
+    PrintAuxDetInfo(sstr, indent, verbosity);
+    return sstr.str();
+  } // AuxDetSensitiveGeo::AuxDetInfo()
   
   
   //......................................................................

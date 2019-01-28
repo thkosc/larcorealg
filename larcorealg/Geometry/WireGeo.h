@@ -19,6 +19,7 @@
 
 // C/C++ libraries
 #include <vector>
+#include <string>
 #include <cmath> // std::sin(), ...
 
 
@@ -246,6 +247,14 @@ namespace geo {
     template <typename Stream>
     void PrintWireInfo
       (Stream&& out, std::string indent = "", unsigned int verbosity = 1) const;
+    
+    /**
+     * @brief Returns a string with all the information of the wire.
+     * @see `PrintWireInfo()`
+     * 
+     * All arguments are equivalent to the ones of `PrintWireInfo`.
+     */
+    std::string WireInfo(std::string indent = "", unsigned int verbosity = 1) const;
     
     /// Maximum verbosity supported by `PrintWireInfo()`.
     static constexpr unsigned int MaxVerbosity = 4;

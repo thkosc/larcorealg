@@ -116,6 +116,14 @@ namespace geo{
   double OpDetGeo::DistanceToPoint(double const* xyz) const
     { return DistanceToPoint(geo::vect::makeFromCoords<geo::Point_t>(xyz)); }
 
+  //......................................................................
+  std::string OpDetGeo::OpDetInfo
+    (std::string indent /* = "" */, unsigned int verbosity /* = 0 */) const
+  {
+    std::ostringstream sstr;
+    PrintOpDetInfo(sstr, indent, verbosity);
+    return sstr.str();
+  } // OpDetGeo::OpDetInfo()
 
   //......................................................................
   double OpDetGeo::CosThetaFromNormal(geo::Point_t const& point) const {

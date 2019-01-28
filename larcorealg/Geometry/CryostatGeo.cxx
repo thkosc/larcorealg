@@ -20,6 +20,7 @@
 #include "TClass.h"
 
 // C++ standard libraries
+#include <sstream> // std::ostringstream
 #include <limits> // std::numeric_limits<>
 #include <algorithm> // std::sort()
 
@@ -324,6 +325,15 @@ namespace geo{
   } // CryostatGeo::CryostatBoundaries(double*)
   
   
+  //......................................................................
+  std::string CryostatGeo::CryostatInfo
+    (std::string indent /* = "" */, unsigned int verbosity /* = 1 */) const
+  {
+    std::ostringstream sstr;
+    PrintCryostatInfo(sstr, indent, verbosity);
+    return sstr.str();
+  } // CryostatGeo::CryostatInfo()
+
   //......................................................................
   // Find the nearest opdet to point in this cryostat
 

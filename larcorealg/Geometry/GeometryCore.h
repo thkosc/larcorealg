@@ -1890,6 +1890,10 @@ namespace geo {
     template <typename Stream>
     void Print(Stream&& out, std::string indent = "  ") const;
     
+    /// @brief Returns a string with complete geometry information.
+    /// @see `Print()`
+    std::string Info(std::string indent = "  ") const;
+    
     /// @}
     // END Detector information
     

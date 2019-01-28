@@ -23,6 +23,7 @@
 #include "TGeoBBox.h"
 
 // C/C++ standard libraries
+#include <sstream> // std::ostringstream
 #include <cmath>
 #include <cassert>
 #include <map>
@@ -284,6 +285,15 @@ namespace geo{
   } // TPCGeo::UpdateAfterSorting()
   
   
+  //......................................................................
+  std::string TPCGeo::TPCInfo
+    (std::string indent /* = "" */, unsigned int verbosity /* = 1 */) const
+  {
+    std::ostringstream sstr;
+    PrintTPCInfo(sstr, indent, verbosity);
+    return sstr.str();
+  } // TPCGeo::TPCInfo()
+
   //......................................................................
   const PlaneGeo& TPCGeo::Plane(unsigned int iplane) const
   {

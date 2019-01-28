@@ -641,6 +641,18 @@ namespace geo {
     void PrintPlaneInfo
       (Stream&& out, std::string indent = "", unsigned int verbosity = 1) const;
     
+    
+    /**
+     * @brief Returns a string with plane information.
+     * @see `PrintPlaneInfo()`
+     * 
+     * The information is provided by `PrintPlaneInfo()`, and the arguments
+     * have the same meaning.
+     */
+    std::string PlaneInfo
+      (std::string indent = "", unsigned int verbosity = 1) const;
+    
+    
     /// Maximum value for print verbosity.
     static constexpr unsigned int MaxVerbosity = 6;
     

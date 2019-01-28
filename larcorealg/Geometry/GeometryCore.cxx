@@ -37,6 +37,7 @@
 #include <cstddef> // size_t
 #include <cctype> // ::tolower()
 #include <cmath> // std::abs() ...
+#include <sstream> // std::ostringstream
 #include <vector>
 #include <algorithm> // std::for_each(), std::transform()
 #include <iterator> // std::back_inserter()
@@ -1164,6 +1165,15 @@ namespace geo {
     return columnD;
   }
 
+  //......................................................................
+  std::string GeometryCore::Info(std::string indent /* = "" */) const {
+    std::ostringstream sstr;
+    Print(sstr, indent);
+    return sstr.str();
+  } // GeometryCore::Info()
+
+  
+  
   //......................................................................
   std::vector< geo::WireID > GeometryCore::ChannelToWire( raw::ChannelID_t channel ) const
   {

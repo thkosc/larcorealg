@@ -20,6 +20,7 @@
 #include "cetlib_except/exception.h"
 
 // C/C++ libraries
+#include <sstream> // std::ostringstream
 #include <limits>
 
 namespace geo{
@@ -182,6 +183,16 @@ namespace geo{
     return;
   }
 
+  //......................................................................  
+  std::string AuxDetGeo::AuxDetInfo
+    (std::string indent /* = "" */, unsigned int verbosity /* = 1 */) const
+  {
+    std::ostringstream sstr;
+    PrintAuxDetInfo(sstr, indent, verbosity);
+    return sstr.str();
+  } // AuxDetGeo::AuxDetInfo()
+  
+  
   //......................................................................  
   void AuxDetGeo::InitShapeSize() {
     // set the ends depending on whether the shape is a box or trapezoid
