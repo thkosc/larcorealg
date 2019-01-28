@@ -194,6 +194,7 @@ namespace geo {
     /// @{
     /// @name Plane size and coordinates
     
+    //@{
     /**
      * @brief Return the direction of plane width.
      * @tparam Vector the type of vector to return (current default: `TVector3`)
@@ -203,9 +204,12 @@ namespace geo {
      * GetNormalDirection() make a orthonormal base.
      * That base (width, depth, normal) is guaranteed to be positive defined.
      */
-    template <typename Vector = DefaultVector_t>
+    template <typename Vector>
     Vector WidthDir() const { return geo::vect::convertTo<Vector>(fDecompFrame.MainDir()); }
+    DefaultVector_t WidthDir() const { return WidthDir<DefaultVector_t>(); }
+    //@}
     
+    //@{
     /**
      * @brief Return the direction of plane depth.
      * @tparam Vector the type of vector to return (current default: `TVector3`)
@@ -215,8 +219,10 @@ namespace geo {
      * GetNormalDirection() make a orthonormal base.
      * That base (width, depth, normal) is guaranteed to be positive defined.
      */
-    template <typename Vector = DefaultVector_t>
+    template <typename Vector>
     Vector DepthDir() const { return geo::vect::convertTo<Vector>(fDecompFrame.SecondaryDir()); }
+    DefaultVector_t DepthDir() const { return DepthDir<DefaultVector_t>(); }
+    //@}
     
     /**
      * @brief Return the width of the plane.
@@ -377,6 +383,7 @@ namespace geo {
      */
     bool WireIDincreasesWithZ() const;
     
+    //@{
     /**
      * @brief Returns the direction normal to the plane.
      * @tparam Vector the type of vector to return (current default: `TVector3`)
@@ -393,9 +400,13 @@ namespace geo {
      *       in the opposite direction depending on the original geometry
      *       description.
      */
-    template <typename Vector = DefaultVector_t>
+    template <typename Vector>
     Vector GetNormalDirection() const { return geo::vect::convertTo<Vector>(fNormal); }
-
+    DefaultVector_t GetNormalDirection() const
+      { return GetNormalDirection<DefaultVector_t>(); }
+    //@}
+    
+    //@{
     /**
      * @brief Returns the direction of increasing wires.
      * @tparam Vector the type of vector to return (current default: `TVector3`)
@@ -404,11 +415,15 @@ namespace geo {
      * The versor is orthogonal to the wires (assumed parallel),
      * lies on the plane and its direction goes toward increasing wire IDs.
      */
-    template <typename Vector = DefaultVector_t>
+    template <typename Vector>
     Vector GetIncreasingWireDirection() const
       { return geo::vect::convertTo<Vector>(fDecompWire.SecondaryDir()); }
+    DefaultVector_t GetIncreasingWireDirection() const
+      { return GetIncreasingWireDirection<DefaultVector_t>(); }
+    //@}
     
     
+    //@{
     /**
      * @brief Returns the centre of the wire plane in world coordinates [cm]
      * @see GetBoxCenter()
@@ -422,10 +437,14 @@ namespace geo {
      * geometry does not place the wires, which define the drift distance, in
      * the plane in the middle of the box.
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point GetCenter() const
       { return geo::vect::convertTo<Point>(fCenter); }
+    DefaultPoint_t GetCenter() const { return GetCenter<DefaultPoint_t>(); }
+    //@}
     
+    
+    //@{
     /**
      * @brief Returns the centre of the box representing the plane.
      * @tparam Point type of point to be returned (current default: `TVector3`)
@@ -437,10 +456,14 @@ namespace geo {
      * This is rarely of any use, as most of the times `GetCenter()` delivers
      * the proper information, e.g. for simulation and reconstruction.
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point GetBoxCenter() const
       { return geo::vect::convertTo<Point>(toWorldCoords(LocalPoint_t{ 0.0, 0.0, 0.0 })); }
+    DefaultPoint_t GetBoxCenter() const
+      { return GetBoxCenter<DefaultPoint_t>(); }
+    //@}
     
+    //@{
     /**
      * @brief Returns the direction of the wires.
      * @tparam Vector the type of vector to return (current default: `TVector3`)
@@ -448,8 +471,11 @@ namespace geo {
      * 
      * All wires in the plane are assumed parallel.
      */
-    template <typename Vector = DefaultVector_t>
+    template <typename Vector>
     Vector GetWireDirection() const { return geo::vect::convertTo<Vector>(fDecompWire.MainDir()); }
+    DefaultVector_t GetWireDirection() const
+      { return GetWireDirection<DefaultVector_t>(); }
+    //@}
     
     
     //@{
@@ -733,7 +759,7 @@ namespace geo {
      * The point does not need to be on the plane, and the projection of the
      * point to the plane is considered.
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     double WireCoordinate(Point const& point) const
       { return PlaneCoordinate(point) / WirePitch(); }
     
@@ -760,6 +786,7 @@ namespace geo {
       
     //@}
     
+    //@{
     /**
      * @brief Returns the reference point used by `PointProjection()`.
      * @tparam Point the type of point to return (current default: `TVector3`)
@@ -767,9 +794,12 @@ namespace geo {
      * The returned point is such that its decomposition results in a null
      * projection and a 0 distance from the plane.
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point ProjectionReferencePoint() const
       { return geo::vect::convertTo<Point>(fDecompWire.ReferencePoint()); }
+    DefaultPoint_t ProjectionReferencePoint() const
+      { return ProjectionReferencePoint<DefaultPoint_t>(); }
+    //@}
     
     //@{
     /**
@@ -817,6 +847,7 @@ namespace geo {
       { return VectorProjection(geo::vect::toVector(v)); }
     //@}
     
+    //@{
     /**
      * @brief Returns the 3D vector from composition of projection and distance.
      * @tparam Point the type of point to return (current default: `TVector3`)
@@ -826,10 +857,14 @@ namespace geo {
      * 
      * See `ComposePoint(double, WireCoordProjection_t const&)` for details.
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point ComposePoint(WireDecomposedVector_t const& decomp) const
       { return geo::vect::convertTo<Point>(fDecompWire.ComposePoint(decomp)); }
+    DefaultPoint_t ComposePoint(WireDecomposedVector_t const& decomp) const
+      { return ComposePoint<DefaultPoint_t>(decomp); }
+    //@}
     
+    //@{
     /**
      * @brief Returns the 3D point from composition of projection and distance.
      * @tparam Point the type of point to return (current default: `TVector3`)
@@ -854,11 +889,14 @@ namespace geo {
      * vectors instead of points, that is, entities ignoring the reference
      * point.
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point ComposePoint
       (double distance, WireCoordProjection_t const& proj) const
       { return geo::vect::convertTo<Point>(fDecompWire.ComposePoint(distance, proj)); }
-    
+    DefaultPoint_t ComposePoint
+      (double distance, WireCoordProjection_t const& proj) const
+      { return ComposePoint<DefaultPoint_t>(distance, proj); }
+    //@}
     
     /// @}
     
@@ -1079,6 +1117,7 @@ namespace geo {
     TVector3 MovePointOverPlane(TVector3 const& point) const;
     //@}
     
+    //@{
     /**
      * @brief Returns the 3D vector from composition of projection and distance.
      * @tparam Point type of point to be produced (current default is `TVector3`)
@@ -1091,10 +1130,14 @@ namespace geo {
      * `ComposePointWidthDepth(double, DecomposedVector_t::Projection_t const&)`
      * for details.
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point ComposePoint(WDDecomposedVector_t const& decomp) const
       { return geo::vect::convertTo<Point>(fDecompFrame.ComposePoint(decomp)); }
+    DefaultPoint_t ComposePoint(WDDecomposedVector_t const& decomp) const
+      { return ComposePoint<DefaultPoint_t>(decomp); }
+    //@}
     
+    //@{
     /**
      * @brief Returns the 3D point from composition of projection and distance.
      * @tparam Point type of point to be produced (current default is `TVector3`)
@@ -1114,10 +1157,14 @@ namespace geo {
      * DecomposePointWidthDepth().
      * 
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point ComposePoint
       (double distance, WidthDepthProjection_t const& proj) const
       { return geo::vect::convertTo<Point>(fDecompFrame.ComposePoint(distance, proj)); }
+    DefaultPoint_t ComposePoint
+      (double distance, WidthDepthProjection_t const& proj) const
+      { return ComposePoint<DefaultPoint_t>(distance, proj); }
+    //@}
     
     
     /// @}

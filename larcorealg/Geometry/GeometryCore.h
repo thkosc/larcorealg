@@ -2747,13 +2747,19 @@ namespace geo {
      * which faces the negative _z_ direction, the first that a beam following
      * 
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point GetTPCFrontFaceCenter(geo::TPCID const& tpcid) const
       { return TPC(tpcid).GetFrontFaceCenter<Point>(); }
-    template <typename Point = DefaultPoint_t>
+    DefaultPoint_t GetTPCFrontFaceCenter(geo::TPCID const& tpcid) const
+      { return GetTPCFrontFaceCenter<DefaultPoint_t>(); }
+    
+    template <typename Point>
     Point GetTPCFrontFaceCenter
       (unsigned int tpc = 0, unsigned int cstat = 0) const
       { return GetTPCFrontFaceCenter<Point>(geo::TPCID(cstat, tpc)); }
+    DefaultPoint_t GetTPCFrontFaceCenter
+      (unsigned int tpc = 0, unsigned int cstat = 0) const
+      { return GetTPCFrontFaceCenter<DefaultPoint_t>(cstat, tpc); }
     //@}
     
     
@@ -3814,6 +3820,7 @@ namespace geo {
       ) const
       { WireEndPoints(geo::WireID(cstat, tpc, plane, wire), xyzStart, xyzEnd); }
     
+    //@{
     /**
      * @brief Returns a segment whose ends are the wire end points
      * @param wireid ID of the wire
@@ -3826,8 +3833,12 @@ namespace geo {
      * @deprecated use the wire ID interface instead (but note that it does not
      *             sort the ends)
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Segment<Point> WireEndPoints(geo::WireID const& wireID) const;
+    Segment<DefaultPoint_t> WireEndPoints(geo::WireID const& wireID) const
+      { return WireEndPoints<DefaultPoint_t>(wireID); }
+    
+    //@}
     
     //
     // closest wire
