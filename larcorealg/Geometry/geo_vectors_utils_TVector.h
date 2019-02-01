@@ -119,6 +119,60 @@ namespace geo {
     
   } // namespace vect
 } // namespace geo
+
+
+//------------------------------------------------------------------------------
+//---  STL specialization for ROOT vectors
+//------------------------------------------------------------------------------
+
+/// @name Overloads of STL C++ functions for ROOT vectors
+/// @{
+
+// in the golden global namespace, as in old ROOT tradition
+
+// --- BEGIN 2D vectors --------------------------------------------------------
+decltype(auto) begin(TVector2 const& v) { return geo::vect::vector_cbegin(v); }
+
+decltype(auto) cbegin(TVector2 const& v) { return geo::vect::vector_cbegin(v); }
+
+decltype(auto) end(TVector2 const& v) { return geo::vect::vector_cend(v); }
+
+decltype(auto) cend(TVector2 const& v) { return geo::vect::vector_cend(v); }
+
+// --- END 2D vectors ----------------------------------------------------------
+
+// --- BEGIN 3D vectors --------------------------------------------------------
+decltype(auto) begin(TVector3 const& v) { return geo::vect::vector_cbegin(v); }
+
+decltype(auto) cbegin(TVector3 const& v) { return geo::vect::vector_cbegin(v); }
+
+decltype(auto) end(TVector3 const& v) { return geo::vect::vector_cend(v); }
+
+decltype(auto) cend(TVector3 const& v) { return geo::vect::vector_cend(v); }
+
+// --- END 3D vectors ----------------------------------------------------------
+
+
+// --- BEGIN 4D vectors --------------------------------------------------------
+decltype(auto) begin(TLorentzVector const& v)
+  { return geo::vect::vector_cbegin(v); }
+
+decltype(auto) cbegin(TLorentzVector const& v)
+  { return geo::vect::vector_cbegin(v); }
+
+decltype(auto) end(TLorentzVector const& v)
+  { return geo::vect::vector_cend(v); }
+
+decltype(auto) cend(TLorentzVector const& v)
+  { return geo::vect::vector_cend(v); }
+
+// --- END 4D vectors ----------------------------------------------------------
+
+
+/// @}
+
+
+
 //------------------------------------------------------------------------------
 
 
