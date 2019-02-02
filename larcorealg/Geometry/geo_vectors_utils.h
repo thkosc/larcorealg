@@ -1623,327 +1623,321 @@ namespace ROOT::Math {
 //------------------------------------------------------------------------------
 //---  template specializations for standard geometry vectors
 //---
-namespace geo {
-  namespace vect {
-    
-    //--------------------------------------------------------------------------
-    template <>
-    inline auto norm(geo::Vector_t const& v) { return v.R(); }
-    
-    //--------------------------------------------------------------------------
-    
-  } // namespace vect
-} // namespace geo
+namespace geo::vect {
+  
+  //----------------------------------------------------------------------------
+  template <>
+  inline auto norm(geo::Vector_t const& v) { return v.R(); }
+  
+  //----------------------------------------------------------------------------
+  
+} // namespace geo::vect
 
 
 //------------------------------------------------------------------------------
 //---  template implementation
 
-namespace geo {
-  namespace vect {
-    namespace details {
+namespace geo::vect::details {
+  
+  //----------------------------------------------------------------------------
+  template <typename> struct AlwaysFalse: std::false_type {};
+  
+  
+  // constexpr variant of forward (from StackExchange)
+  template <typename T>
+  constexpr T&& constexpr_forward(std::remove_reference_t<T>& t) 
+    { return static_cast<T&&>(t); }
+  
+  template<typename T>
+  constexpr T&& constexpr_forward(std::remove_reference_t<T>&& t) 
+    {
+      static_assert(!std::is_lvalue_reference<T>(),
+        "template argument substituting T is an lvalue reference type");
+      return static_cast<T&&>(t);
+    }
+  
+  //----------------------------------------------------------------------------
+  /// Type of sequence of indices up to `Vector` size.
+  template <typename Vector>
+  using VectorIndices_t = std::make_index_sequence<dimension<Vector>()>;
+  
+  template <typename Vector>
+  constexpr auto makeVectorIndices() { return VectorIndices_t<Vector>{}; }
+  
+  template <typename Vector>
+  constexpr auto makeVectorIndices(Vector&&)
+    { return makeVectorIndices<Vector>(); }
+  
+  
+  template <typename T, T... Indices>
+  constexpr auto makeIndexSeqImpl(std::integer_sequence<T, Indices...>)
+    // BUG the double brace syntax is required to work around clang bug 21629
+    // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+    { return std::array<T, sizeof...(Indices)>{{ Indices... }}; }
+  
+  // fill a sequence object with the first `N` values of type `T`.
+  template <typename T, T N>
+  constexpr auto makeIndexSeq()
+    { return makeIndexSeqImpl<T>(std::make_integer_sequence<T, N>{}); }
+  
+  
+  //----------------------------------------------------------------------------
+  template <std::size_t I, typename Data>
+  constexpr auto accessElement(Data&& data) { return data[I]; }
+  
+  template <typename Vector, typename Coords, std::size_t... Indices>
+  constexpr Vector makeFromCoordsImpl
+    (Coords&& coords, std::index_sequence<Indices...>)
+    {
+      return
+        { accessElement<Indices>(constexpr_forward<Coords>(coords))... };
+    }
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename Vector>
+  constexpr CoordManager_t<Vector> NoCoordManager{ nullptr, nullptr };
+  
+  template <typename Vector, unsigned int Dim = dimension<Vector>()>
+  struct CoordManagerImpl;
+  
+  template <typename Vector>
+  struct CoordManagerImpl<Vector, 1U> {
+    static auto get(unsigned int n) noexcept
+      { return (n == 0)? XcoordManager<Vector>: NoCoordManager<Vector>; }
+  }; // CoordManagerImpl<1U>
+  
+  template <typename Vector>
+  struct CoordManagerImpl<Vector, 2U> {
+    static auto get(unsigned int n) noexcept
+      {
+        return (n == 1)
+          ? YcoordManager<Vector>: CoordManagerImpl<Vector, 1U>::get(n); 
+      }
+  }; // CoordManagerImpl<2U>
+  
+  template <typename Vector>
+  struct CoordManagerImpl<Vector, 3U> {
+    static auto get(unsigned int n) noexcept
+      {
+        return (n == 2)
+          ? ZcoordManager<Vector>: CoordManagerImpl<Vector, 2U>::get(n);
+      }
+  }; // CoordManagerImpl<3U>
+  
+  template <typename Vector>
+  struct CoordManagerImpl<Vector, 4U> {
+    static auto get(unsigned int n) noexcept
+      {
+        return (n == 3)
+          ? TcoordManager<Vector>: CoordManagerImpl<Vector, 3U>::get(n);
+      }
       
-      //------------------------------------------------------------------------
-      template <typename> struct AlwaysFalse: std::false_type {};
-      
-      
-      // constexpr variant of forward (from StackExchange)
-      template <typename T>
-      constexpr T&& constexpr_forward(std::remove_reference_t<T>& t) 
-        { return static_cast<T&&>(t); }
-      
-      template<typename T>
-      constexpr T&& constexpr_forward(std::remove_reference_t<T>&& t) 
-        {
-          static_assert(!std::is_lvalue_reference<T>(),
-            "template argument substituting T is an lvalue reference type");
-          return static_cast<T&&>(t);
-        }
-      
-      //------------------------------------------------------------------------
-      /// Type of sequence of indices up to `Vector` size.
-      template <typename Vector>
-      using VectorIndices_t = std::make_index_sequence<dimension<Vector>()>;
-      
-      template <typename Vector>
-      constexpr auto makeVectorIndices() { return VectorIndices_t<Vector>{}; }
-      
-      template <typename Vector>
-      constexpr auto makeVectorIndices(Vector&&)
-        { return makeVectorIndices<Vector>(); }
-      
-      
-      template <typename T, T... Indices>
-      constexpr auto makeIndexSeqImpl(std::integer_sequence<T, Indices...>)
+  }; // CoordManagerImpl<4U>
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename Vector, unsigned int N>
+  struct CoordManagersImplBase {
+    static constexpr unsigned int Dim = N;
+    
+    using Manager_t = decltype(XcoordManager<Vector>);
+    using Return_t = std::array<Manager_t, Dim>;
+    
+    static_assert(dimension<Vector>() == Dim, "Inconsistent vector size.");
+  }; // CoordManagersImplBase
+  
+  template <typename Vector, unsigned int N>
+  struct CoordManagersImpl;
+  
+  template <typename Vector>
+  struct CoordManagersImpl<Vector, 2U>
+    : private CoordManagersImplBase<Vector, 2U>
+  {
+    using Base_t = CoordManagersImplBase<Vector, 2U>;
+    using typename Base_t::Return_t;
+    static constexpr Return_t get()
+      {
         // BUG the double brace syntax is required to work around clang bug 21629
         // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-        { return std::array<T, sizeof...(Indices)>{{ Indices... }}; }
-      
-      // fill a sequence object with the first `N` values of type `T`.
-      template <typename T, T N>
-      constexpr auto makeIndexSeq()
-        { return makeIndexSeqImpl<T>(std::make_integer_sequence<T, N>{}); }
-      
-      
-      //------------------------------------------------------------------------
-      template <std::size_t I, typename Data>
-      constexpr auto accessElement(Data&& data) { return data[I]; }
-      
-      template <typename Vector, typename Coords, std::size_t... Indices>
-      constexpr Vector makeFromCoordsImpl
-        (Coords&& coords, std::index_sequence<Indices...>)
-        {
-          return
-            { accessElement<Indices>(constexpr_forward<Coords>(coords))... };
-        }
-      
-      
-      //------------------------------------------------------------------------
-      template <typename Vector>
-      constexpr CoordManager_t<Vector> NoCoordManager{ nullptr, nullptr };
-      
-      template <typename Vector, unsigned int Dim = dimension<Vector>()>
-      struct CoordManagerImpl;
-      
-      template <typename Vector>
-      struct CoordManagerImpl<Vector, 1U> {
-        static auto get(unsigned int n) noexcept
-          { return (n == 0)? XcoordManager<Vector>: NoCoordManager<Vector>; }
-      }; // CoordManagerImpl<1U>
-      
-      template <typename Vector>
-      struct CoordManagerImpl<Vector, 2U> {
-        static auto get(unsigned int n) noexcept
-          {
-            return (n == 1)
-              ? YcoordManager<Vector>: CoordManagerImpl<Vector, 1U>::get(n); 
-          }
-      }; // CoordManagerImpl<2U>
-      
-      template <typename Vector>
-      struct CoordManagerImpl<Vector, 3U> {
-        static auto get(unsigned int n) noexcept
-          {
-            return (n == 2)
-              ? ZcoordManager<Vector>: CoordManagerImpl<Vector, 2U>::get(n);
-          }
-      }; // CoordManagerImpl<3U>
-      
-      template <typename Vector>
-      struct CoordManagerImpl<Vector, 4U> {
-        static auto get(unsigned int n) noexcept
-          {
-            return (n == 3)
-              ? TcoordManager<Vector>: CoordManagerImpl<Vector, 3U>::get(n);
-          }
-          
-      }; // CoordManagerImpl<4U>
-      
-      
-      //------------------------------------------------------------------------
-      template <typename Vector, unsigned int N>
-      struct CoordManagersImplBase {
-        static constexpr unsigned int Dim = N;
-        
-        using Manager_t = decltype(XcoordManager<Vector>);
-        using Return_t = std::array<Manager_t, Dim>;
-        
-        static_assert(dimension<Vector>() == Dim, "Inconsistent vector size.");
-      }; // CoordManagersImplBase
-      
-      template <typename Vector, unsigned int N>
-      struct CoordManagersImpl;
-      
-      template <typename Vector>
-      struct CoordManagersImpl<Vector, 2U>
-        : private CoordManagersImplBase<Vector, 2U>
+        return {{
+            XcoordManager<Vector>
+          , YcoordManager<Vector>
+        }};
+      }
+  }; // CoordManagersImpl<2U>
+  
+  template <typename Vector>
+  struct CoordManagersImpl<Vector, 3U>
+    : private CoordManagersImplBase<Vector, 3U>
+  {
+    using Base_t = CoordManagersImplBase<Vector, 3U>;
+    using typename Base_t::Return_t;
+    static constexpr Return_t get()
       {
-        using Base_t = CoordManagersImplBase<Vector, 2U>;
-        using typename Base_t::Return_t;
-        static constexpr Return_t get()
-          {
-            // BUG the double brace syntax is required to work around clang bug 21629
-            // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-            return {{
-                XcoordManager<Vector>
-              , YcoordManager<Vector>
-            }};
-          }
-      }; // CoordManagersImpl<2U>
-      
-      template <typename Vector>
-      struct CoordManagersImpl<Vector, 3U>
-        : private CoordManagersImplBase<Vector, 3U>
+        // BUG the double brace syntax is required to work around clang bug 21629
+        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+        return {{
+            XcoordManager<Vector>
+          , YcoordManager<Vector>
+          , ZcoordManager<Vector>
+        }};
+      }
+  }; // CoordManagersImpl<3U>
+  
+  template <typename Vector>
+  struct CoordManagersImpl<Vector, 4U>
+    : private CoordManagersImplBase<Vector, 4U>
+  {
+    using Base_t = CoordManagersImplBase<Vector, 4U>;
+    using typename Base_t::Return_t;
+    static constexpr Return_t get()
       {
-        using Base_t = CoordManagersImplBase<Vector, 3U>;
-        using typename Base_t::Return_t;
-        static constexpr Return_t get()
-          {
-            // BUG the double brace syntax is required to work around clang bug 21629
-            // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-            return {{
-                XcoordManager<Vector>
-              , YcoordManager<Vector>
-              , ZcoordManager<Vector>
-            }};
-          }
-      }; // CoordManagersImpl<3U>
-      
-      template <typename Vector>
-      struct CoordManagersImpl<Vector, 4U>
-        : private CoordManagersImplBase<Vector, 4U>
+        // BUG the double brace syntax is required to work around clang bug 21629
+        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+        return {{
+            XcoordManager<Vector>
+          , YcoordManager<Vector>
+          , ZcoordManager<Vector>
+          , TcoordManager<Vector>
+        }};
+      }
+  }; // CoordManagersImpl<4U>
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename Vector, unsigned int N>
+  struct BindCoordManagersImplBase {
+    static constexpr unsigned int Dim = N;
+    
+    using Manager_t = decltype(Xcoord(std::declval<Vector>()));
+    using Return_t = std::array<Manager_t, Dim>;
+    
+    static_assert(dimension<Vector>() == Dim, "Inconsistent vector size.");
+  }; // CoordManagersImplBase
+  
+  template <typename Vector, unsigned int N>
+  struct BindCoordManagersImpl;
+  
+  template <typename Vector>
+  struct BindCoordManagersImpl<Vector, 2U>
+    : private BindCoordManagersImplBase<Vector, 2U>
+  {
+    using Base_t = CoordManagersImplBase<Vector, 2U>;
+    using typename Base_t::Return_t;
+    static Return_t bind(Vector& v)
       {
-        using Base_t = CoordManagersImplBase<Vector, 4U>;
-        using typename Base_t::Return_t;
-        static constexpr Return_t get()
-          {
-            // BUG the double brace syntax is required to work around clang bug 21629
-            // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-            return {{
-                XcoordManager<Vector>
-              , YcoordManager<Vector>
-              , ZcoordManager<Vector>
-              , TcoordManager<Vector>
-            }};
-          }
-      }; // CoordManagersImpl<4U>
-      
-      
-      //------------------------------------------------------------------------
-      template <typename Vector, unsigned int N>
-      struct BindCoordManagersImplBase {
-        static constexpr unsigned int Dim = N;
-        
-        using Manager_t = decltype(Xcoord(std::declval<Vector>()));
-        using Return_t = std::array<Manager_t, Dim>;
-        
-        static_assert(dimension<Vector>() == Dim, "Inconsistent vector size.");
-      }; // CoordManagersImplBase
-      
-      template <typename Vector, unsigned int N>
-      struct BindCoordManagersImpl;
-      
-      template <typename Vector>
-      struct BindCoordManagersImpl<Vector, 2U>
-        : private BindCoordManagersImplBase<Vector, 2U>
+        // BUG the double brace syntax is required to work around clang bug 21629
+        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+        return {{
+            Xcoord(v)
+          , Ycoord(v)
+        }};
+      }
+  }; // BindCoordManagersImpl<2U>
+  
+  template <typename Vector>
+  struct BindCoordManagersImpl<Vector, 3U>
+    : private BindCoordManagersImplBase<Vector, 3U>
+  {
+    using Base_t = BindCoordManagersImplBase<Vector, 3U>;
+    using typename Base_t::Return_t;
+    static Return_t bind(Vector& v)
       {
-        using Base_t = CoordManagersImplBase<Vector, 2U>;
-        using typename Base_t::Return_t;
-        static Return_t bind(Vector& v)
-          {
-            // BUG the double brace syntax is required to work around clang bug 21629
-            // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-            return {{
-                Xcoord(v)
-              , Ycoord(v)
-            }};
-          }
-      }; // BindCoordManagersImpl<2U>
-      
-      template <typename Vector>
-      struct BindCoordManagersImpl<Vector, 3U>
-        : private BindCoordManagersImplBase<Vector, 3U>
+        // BUG the double brace syntax is required to work around clang bug 21629
+        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+        return {{
+            Xcoord(v)
+          , Ycoord(v)
+          , Zcoord(v)
+        }};
+      }
+  }; // BindCoordManagersImpl<3U>
+  
+  template <typename Vector>
+  struct BindCoordManagersImpl<Vector, 4U>
+    : private BindCoordManagersImplBase<Vector, 4U>
+  {
+    using Base_t = BindCoordManagersImplBase<Vector, 4U>;
+    using typename Base_t::Return_t;
+    static Return_t bind(Vector& v)
       {
-        using Base_t = BindCoordManagersImplBase<Vector, 3U>;
-        using typename Base_t::Return_t;
-        static Return_t bind(Vector& v)
-          {
-            // BUG the double brace syntax is required to work around clang bug 21629
-            // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-            return {{
-                Xcoord(v)
-              , Ycoord(v)
-              , Zcoord(v)
-            }};
-          }
-      }; // BindCoordManagersImpl<3U>
-      
-      template <typename Vector>
-      struct BindCoordManagersImpl<Vector, 4U>
-        : private BindCoordManagersImplBase<Vector, 4U>
-      {
-        using Base_t = BindCoordManagersImplBase<Vector, 4U>;
-        using typename Base_t::Return_t;
-        static Return_t bind(Vector& v)
-          {
-            // BUG the double brace syntax is required to work around clang bug 21629
-            // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-            return {{
-                Xcoord(v)
-              , Ycoord(v)
-              , Zcoord(v)
-              , Tcoord(v)
-            }};
-          }
-      }; // BindCoordManagersImpl<4U>
-      
-      
-      //------------------------------------------------------------------------
-      template<typename Dest, typename Source>
-      struct ConvertToImplBase {
-        static_assert(dimension<Source>() == dimension<Dest>(),
-          "Source and destination vectors must have the same dimension.");
-      }; // struct ConvertToImplBase
-      
-      
-      // special pass-through case
-      template <typename Dest, typename Source, unsigned int Dim>
-      struct ConvertToImpl {
-        // trivial to do: open a feature request!
-        static_assert(
-          AlwaysFalse<Dest>(),
-          "This vector dimensionality is not implemented yet."
-          );
-      }; // struct ConvertToImpl
-      
-      template <typename Dest, typename Source>
-      struct ConvertToImpl<Dest, Source, 2U>
-        : private ConvertToImplBase<Dest, Source>
-      {
-        static Dest convert(Source const& v)
-          { return { Xcoord(v)(), Ycoord(v)() }; }
-      }; // struct ConvertToImpl<2U>
-      
-      template <typename Dest, typename Source>
-      struct ConvertToImpl<Dest, Source, 3U>
-        : private ConvertToImplBase<Dest, Source>
-      {
-        static Dest convert(Source const& v)
-          { return { Xcoord(v)(), Ycoord(v)(), Zcoord(v)() }; }
-      }; // struct ConvertToImpl<3U>
-      
-      template <typename Dest, typename Source>
-      struct ConvertToImpl<Dest, Source, 4U>
-        : private ConvertToImplBase<Dest, Source>
-      {
-        static Dest convert(Source const& v)
-          { return { Xcoord(v)(), Ycoord(v)(), Zcoord(v)(), Tcoord(v)() }; }
-      }; // struct ConvertToImpl<4U>
-      
-      
-      template
-        <typename Dest, typename Source, unsigned int Dim = dimension<Source>()>
-      struct ConvertToDispatcher: public ConvertToImpl<Dest, Source, Dim> {};
-      
-      // special pass-through case
-      template <typename Vector, unsigned int Dim>
-      struct ConvertToDispatcher<Vector, Vector, Dim> {
-        static_assert
-          (Dim == dimension<Vector>(), "Inconsistent vector dimension");
-        static constexpr Vector convert(Vector const& v) { return v; }
-      }; // struct ConvertToDispatcher<pass through>
-      
-      
-      //------------------------------------------------------------------------
-      template <typename Point, std::size_t... I>
-      bool isfiniteImpl(Point const& point, std::index_sequence<I...>)
-        { return extended_and(std::isfinite(coord(point, I).get())...); }
-      
-      //------------------------------------------------------------------------
-      
-    } // namespace details
-  } // namespace vect
-} // namespace geo
+        // BUG the double brace syntax is required to work around clang bug 21629
+        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+        return {{
+            Xcoord(v)
+          , Ycoord(v)
+          , Zcoord(v)
+          , Tcoord(v)
+        }};
+      }
+  }; // BindCoordManagersImpl<4U>
+  
+  
+  //----------------------------------------------------------------------------
+  template<typename Dest, typename Source>
+  struct ConvertToImplBase {
+    static_assert(dimension<Source>() == dimension<Dest>(),
+      "Source and destination vectors must have the same dimension.");
+  }; // struct ConvertToImplBase
+  
+  
+  // special pass-through case
+  template <typename Dest, typename Source, unsigned int Dim>
+  struct ConvertToImpl {
+    // trivial to do: open a feature request!
+    static_assert(
+      AlwaysFalse<Dest>(),
+      "This vector dimensionality is not implemented yet."
+      );
+  }; // struct ConvertToImpl
+  
+  template <typename Dest, typename Source>
+  struct ConvertToImpl<Dest, Source, 2U>
+    : private ConvertToImplBase<Dest, Source>
+  {
+    static Dest convert(Source const& v)
+      { return { Xcoord(v)(), Ycoord(v)() }; }
+  }; // struct ConvertToImpl<2U>
+  
+  template <typename Dest, typename Source>
+  struct ConvertToImpl<Dest, Source, 3U>
+    : private ConvertToImplBase<Dest, Source>
+  {
+    static Dest convert(Source const& v)
+      { return { Xcoord(v)(), Ycoord(v)(), Zcoord(v)() }; }
+  }; // struct ConvertToImpl<3U>
+  
+  template <typename Dest, typename Source>
+  struct ConvertToImpl<Dest, Source, 4U>
+    : private ConvertToImplBase<Dest, Source>
+  {
+    static Dest convert(Source const& v)
+      { return { Xcoord(v)(), Ycoord(v)(), Zcoord(v)(), Tcoord(v)() }; }
+  }; // struct ConvertToImpl<4U>
+  
+  
+  template
+    <typename Dest, typename Source, unsigned int Dim = dimension<Source>()>
+  struct ConvertToDispatcher: public ConvertToImpl<Dest, Source, Dim> {};
+  
+  // special pass-through case
+  template <typename Vector, unsigned int Dim>
+  struct ConvertToDispatcher<Vector, Vector, Dim> {
+    static_assert
+      (Dim == dimension<Vector>(), "Inconsistent vector dimension");
+    static constexpr Vector convert(Vector const& v) { return v; }
+  }; // struct ConvertToDispatcher<pass through>
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename Point, std::size_t... I>
+  bool isfiniteImpl(Point const& point, std::index_sequence<I...>)
+    { return extended_and(std::isfinite(coord(point, I).get())...); }
+  
+  //----------------------------------------------------------------------------
+  
+} // namespace geo::vect::details
 
 
 //------------------------------------------------------------------------------
