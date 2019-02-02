@@ -20,6 +20,10 @@
 #include "larcorealg/Geometry/PlaneGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"
 
+// support libraries
+#include "fhiclcpp/types/Table.h"
+#include "fhiclcpp/types/Atom.h"
+
 // ROOT libraries
 #include "TGeoNode.h"
 
@@ -102,7 +106,33 @@ namespace geo {
    */
   class GeometryBuilderStandard: public GeometryBuilder {
     
+      public:
+    
+    /// Configuration parameters.
+    struct Config {
+      
+      using Name = fhicl::Name;
+      using Comment = fhicl::Comment;
+      
+      fhicl::Atom<Path_t::Depth_t> maxDepth {
+        Name("maxDepth"),
+        Comment("maximum number of level of the geometry structure to descend"),
+        std::numeric_limits<Path_t::Depth_t>::max() // default
+        };
+      
+      fhicl::Atom<std::string> opDetGeoName {
+        Name("opDetGeoName"),
+        Comment("the start of the name of optical detector GDML nodes"),
+        "volOpDetSensitive" // default
+        };
+      
+    }; // struct Config
+    
+    GeometryBuilderStandard(Config const& config);
+    
+    //
     // we don't expand the public interface here
+    //
     
       protected:
     

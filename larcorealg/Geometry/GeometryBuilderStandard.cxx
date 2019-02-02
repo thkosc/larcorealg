@@ -36,6 +36,13 @@ namespace {
 
 
 //------------------------------------------------------------------------------
+geo::GeometryBuilderStandard::GeometryBuilderStandard(Config const& config)
+  : fMaxDepth(config.maxDepth())
+  , fOpDetGeoName(config.opDetGeoName())
+  {}
+
+
+//------------------------------------------------------------------------------
 geo::GeometryBuilderStandard::AuxDets_t
 geo::GeometryBuilderStandard::doExtractAuxiliaryDetectors(Path_t& path) {
   

@@ -43,6 +43,7 @@ namespace geo {
   // Constructor.
   AuxDetGeometryCore::AuxDetGeometryCore(fhicl::ParameterSet const& pset)
     : fDetectorName(pset.get< std::string >("Name"))
+    , fBuilderParameters(pset.get<fhicl::ParameterSet>("Builder", fhicl::ParameterSet()))
   {
     std::transform(fDetectorName.begin(), fDetectorName.end(), fDetectorName.begin(), ::tolower);
   } // AuxDetGeometryCore::AuxDetGeometryCore()
@@ -85,7 +86,11 @@ namespace geo {
       gGeoManager->LockGeometry();
     }
 
-    geo::GeometryBuilderStandard builder;
+    geo::GeometryBuilderStandard builder(
+      fhicl::Table<geo::GeometryBuilderStandard::Config>
+        (fBuilderParameters, { "tool_type" })
+        ()
+      );
     geo::GeoNodePath path{ gGeoManager->GetTopNode() };
     
     // channel mapping interface demands a vector of pointers to auxiliary

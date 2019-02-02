@@ -67,6 +67,8 @@ namespace geo {
     , fDetectorName     (pset.get< std::string       >("Name"                   ))
     , fMinWireZDist     (pset.get< double            >("MinWireZDist",     3.0  ))
     , fPositionWiggle   (pset.get< double            >("PositionEpsilon",  1.e-4))
+    , fBuilderParameters
+      (pset.get<fhicl::ParameterSet>("Builder", fhicl::ParameterSet()))
   {
     std::transform(fDetectorName.begin(), fDetectorName.end(),
       fDetectorName.begin(), ::tolower);
@@ -93,6 +95,7 @@ namespace geo {
   //......................................................................
   void GeometryCore::LoadGeometryFile(
     std::string gdmlfile, std::string rootfile,
+    geo::GeometryBuilder& builder,
     bool bForceReload /* = false*/
   ) {
     
@@ -117,7 +120,7 @@ namespace geo {
       gGeoManager->LockGeometry();
     }
 
-    BuildGeometry();
+    BuildGeometry(builder);
     
     fGDMLfile = gdmlfile;
     fROOTfile = rootfile;
@@ -126,6 +129,23 @@ namespace geo {
                                 << "\n\t" << fROOTfile 
                                 << "\n\t" << fGDMLfile << "\n";
     
+  } // GeometryCore::LoadGeometryFile()
+  
+  
+  //......................................................................
+  void GeometryCore::LoadGeometryFile(
+    std::string gdmlfile, std::string rootfile,
+    bool bForceReload /* = false*/
+  ) {
+    
+    fhicl::Table<geo::GeometryBuilderStandard::Config> builderConfig
+      (fBuilderParameters, { "tool_type" });
+    
+    // this is a wink to the understanding that we might be using a art-based
+    // service provider configuration sprinkled with tools.
+    std::unique_ptr<geo::GeometryBuilder> builder
+      = std::make_unique<geo::GeometryBuilderStandard>(builderConfig());
+    LoadGeometryFile(gdmlfile, rootfile, *builder, bForceReload);
   } // GeometryCore::LoadGeometryFile()
 
   //......................................................................
@@ -1042,9 +1062,7 @@ namespace geo {
  
  
   //......................................................................
-  void GeometryCore::BuildGeometry() {
-    
-    geo::GeometryBuilderStandard builder; // TODO propagate configuration
+  void GeometryCore::BuildGeometry(geo::GeometryBuilder& builder) {
     
     geo::GeoNodePath path{ gGeoManager->GetTopNode() };
     Cryostats()

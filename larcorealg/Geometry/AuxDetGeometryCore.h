@@ -321,6 +321,7 @@ namespace geo {
     std::string    fDetectorName;   ///< Name of the detector.
     std::string    fGDMLfile;       ///< path to geometry file used for Geant4 simulation
     std::string    fROOTfile;       ///< path to geometry file for geometry in GeometryCore
+    fhicl::ParameterSet fBuilderParameters; ///< Configuration of geometry builder.
     std::shared_ptr<const geo::AuxDetChannelMapAlg> fChannelMapAlg;  ///< Object containing the channel to wire mapping
   }; // class GeometryCore
   
