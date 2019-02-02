@@ -10,6 +10,7 @@
 #define LARCOREALG_GEOMETRY_OPDETGEO_H
 
 // LArSoft libraries
+#include "larcorealg/Geometry/TransformationMatrix.h"
 #include "larcorealg/Geometry/LocalTransformationGeo.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
 
@@ -60,8 +61,7 @@ namespace geo {
     
     ///@}
     
-    OpDetGeo(std::vector<const TGeoNode*>& path, 
-	    int depth);
+    OpDetGeo(TGeoNode const& node, geo::TransformationMatrix&& trans);
 
     void   GetCenter(double* xyz, double localz=0.0) const;
     geo::Point_t const& GetCenter() const { return fCenter; }
@@ -182,8 +182,8 @@ namespace geo {
     static constexpr unsigned int MaxVerbosity = 2;
     
   private:
-    using LocalTransformation_t
-      = geo::LocalTransformationGeo<TGeoHMatrix, LocalPoint_t, LocalVector_t>;
+    using LocalTransformation_t = geo::LocalTransformationGeo
+      <ROOT::Math::Transform3D, LocalPoint_t, LocalVector_t>;
     
     LocalTransformation_t fTrans; ///< Optical-detector-to-world transformation.
     const TGeoNode* fOpDetNode;  ///< Pointer to theopdet node

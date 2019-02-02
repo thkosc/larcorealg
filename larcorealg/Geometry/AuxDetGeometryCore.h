@@ -313,10 +313,6 @@ namespace geo {
     
   private:
     
-    void FindAuxDet(std::vector<const TGeoNode*>& path, unsigned int depth);
-    
-    void MakeAuxDet(std::vector<const TGeoNode*>& path, int depth);
-    
     /// Deletes the detector geometry structures
     void ClearGeometry();
     

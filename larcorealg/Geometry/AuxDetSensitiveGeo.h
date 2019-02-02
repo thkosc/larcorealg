@@ -10,6 +10,8 @@
 #define LARCOREALG_GEOMETRY_AUXDETSENSITIVEGEO_H
 
 // LArSoft libraries
+#include "larcorealg/Geometry/GeoVectorLocalTransformation.h"
+#include "larcorealg/Geometry/TransformationMatrix.h"
 #include "larcorealg/Geometry/LocalTransformationGeo.h"
 #include "larcorealg/CoreUtils/RealComparisons.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
@@ -21,6 +23,7 @@
 // C/C++ standard libraries
 #include <vector>
 #include <string>
+#include <type_traits>
 
 
 class TGeoNode;
@@ -58,10 +61,7 @@ namespace geo {
     
     ///@}
     
-    AuxDetSensitiveGeo(std::vector<const TGeoNode*> const& path, 
-		       int                           depth);
-    AuxDetSensitiveGeo(const TGeoVolume* volume, TGeoHMatrix const& rotation);
-    AuxDetSensitiveGeo(const TGeoVolume* volume, TGeoHMatrix&& rotation);
+    AuxDetSensitiveGeo(TGeoNode const& node, geo::TransformationMatrix&& trans);
     
     /**
      * @brief Return the center position of an AuxDet.
@@ -179,8 +179,8 @@ namespace geo {
     
   private:
     
-    using LocalTransformation_t
-      = geo::LocalTransformationGeo<TGeoHMatrix, LocalPoint_t, LocalVector_t>;
+    using LocalTransformation_t = geo::LocalTransformationGeo
+      <ROOT::Math::Transform3D, LocalPoint_t, LocalVector_t>;
     
     LocalTransformation_t 	  fTrans;       ///< Auxiliary detector-to-world transformation.
     const TGeoVolume*     	  fTotalVolume; ///< Total volume of AuxDet, called vol*		      
@@ -193,6 +193,9 @@ namespace geo {
     void InitShapeSize();
     
   }; // class AuxDetSensitiveGeo
+  
+  static_assert(std::is_move_assignable_v<geo::AuxDetSensitiveGeo>);
+  static_assert(std::is_move_constructible_v<geo::AuxDetSensitiveGeo>);
   
 } // namespace geo
 

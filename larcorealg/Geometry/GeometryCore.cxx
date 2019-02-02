@@ -16,6 +16,7 @@
 #include "larcorealg/Geometry/OpDetGeo.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
+#include "larcorealg/Geometry/GeometryBuilderStandard.h"
 #include "larcorealg/Geometry/Decomposer.h" // geo::vect::dot()
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect
 #include "larcorealg/Geometry/geo_vectors_utils_TVector.h" // geo::vect
@@ -116,10 +117,7 @@ namespace geo {
       gGeoManager->LockGeometry();
     }
 
-    std::vector<const TGeoNode*> path(MaxWireDepthInGDML);
-    path[0] = gGeoManager->GetTopNode();
-    FindCryostat(path, 0);
-    FindAuxDet(path, 0);
+    BuildGeometry();
     
     fGDMLfile = gdmlfile;
     fROOTfile = rootfile;
@@ -1044,67 +1042,27 @@ namespace geo {
  
  
   //......................................................................
-  void GeometryCore::FindCryostat(std::vector<const TGeoNode*>& path,
-                              unsigned int depth)
-  {
-    const char* nm = path[depth]->GetName();
-    if( (strncmp(nm, "volCryostat", 11) == 0) ){
-      this->MakeCryostat(path, depth);
-      return;
-    }
-      
-    //explore the next layer down
-    unsigned int deeper = depth+1;
-    if(deeper >= path.size()){
-      throw cet::exception("GeometryCore") << "exceeded maximum TGeoNode depth\n";
-    }
-
-    const TGeoVolume *v = path[depth]->GetVolume();
-    int nd = v->GetNdaughters();
-    for(int i = 0; i < nd; ++i){
-      path[deeper] = v->GetNode(i);
-      this->FindCryostat(path, deeper);
-    }
-
-  }
-
-  //......................................................................
-  void GeometryCore::MakeCryostat(std::vector<const TGeoNode*>& path, int depth) 
-  {
-    Cryostats().emplace_back(path, depth);
-  }
-
-  //......................................................................
-  void GeometryCore::FindAuxDet(std::vector<const TGeoNode*>& path,
-                            unsigned int depth)
-  {
-    const char* nm = path[depth]->GetName();
-    if( (strncmp(nm, "volAuxDet", 9) == 0) ){
-      this->MakeAuxDet(path, depth);
-      return;
-    }
+  void GeometryCore::BuildGeometry() {
     
-    //explore the next layer down
-    unsigned int deeper = depth+1;
-    if(deeper >= path.size()){
-      throw cet::exception("GeometryCore") << "exceeded maximum TGeoNode depth\n";
-    }
+    geo::GeometryBuilderStandard builder; // TODO propagate configuration
     
-    const TGeoVolume *v = path[depth]->GetVolume();
-    int nd = v->GetNdaughters();
-    for(int i = 0; i < nd; ++i){
-      path[deeper] = v->GetNode(i);
-      this->FindAuxDet(path, deeper);
-    }
+    geo::GeoNodePath path{ gGeoManager->GetTopNode() };
+    Cryostats()
+      = geo::GeometryBuilder::moveToColl(builder.extractCryostats(path));
+    // channel mapping interface demands a vector of pointers to auxiliary
+    // detectors for several methods; and Gianluca is not going to fix that
+    // this time; so we waste some time and health in conversions.
+    auto auxDets =
+      geo::GeometryBuilder::moveToColl(builder.extractAuxiliaryDetectors(path));
+    std::transform(
+      auxDets.begin(), auxDets.end(), std::back_inserter(AuxDets()),
+      [](geo::AuxDetGeo& auxDet)
+        { return new geo::AuxDetGeo(std::move(auxDet)); }
+      );
     
-  }
+  } // GeometryCore::BuildGeometry()
   
-  //......................................................................
-  void GeometryCore::MakeAuxDet(std::vector<const TGeoNode*>& path, int depth)
-  {
-    AuxDets().push_back(new AuxDetGeo(path, depth));
-  }
-
+  
   //......................................................................
   //
   // Return the total mass of the detector

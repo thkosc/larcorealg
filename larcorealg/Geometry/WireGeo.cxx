@@ -27,11 +27,11 @@
 namespace geo{
 
   //-----------------------------------------
-  WireGeo::WireGeo(GeoNodePath_t const& path, size_t depth) 
-    : fTrans(path, depth)
+  WireGeo::WireGeo(TGeoNode const& node, geo::TransformationMatrix&& trans)
+    : fWireNode(&node)
+    , fTrans(std::move(trans))
     , flipped(false)
   {
-    fWireNode = path[depth];
     fHalfL    = ((TGeoTube*)fWireNode->GetVolume()->GetShape())->GetDZ();
 
     // uncomment the following to check the paths to the wires
@@ -69,9 +69,7 @@ namespace geo{
   void WireGeo::GetCenter(double* xyz, double localz) const
   {
     if (localz == 0.) { // if no dislocation is requested, we already have it
-      xyz[0] = fCenter.X();
-      xyz[1] = fCenter.Y();
-      xyz[2] = fCenter.Z();
+      geo::vect::fillCoords(xyz, fCenter);
       return;
     }
     

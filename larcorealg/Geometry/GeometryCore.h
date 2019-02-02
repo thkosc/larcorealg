@@ -5370,13 +5370,8 @@ namespace geo {
     bool FindFirstVolume
       (std::string const& name, std::vector<const TGeoNode*>& path) const;
     
-    void FindCryostat(std::vector<const TGeoNode*>& path, unsigned int depth);
-    
-    void MakeCryostat(std::vector<const TGeoNode*>& path, int depth);
-    
-    void FindAuxDet(std::vector<const TGeoNode*>& path, unsigned int depth);
-    
-    void MakeAuxDet(std::vector<const TGeoNode*>& path, int depth);
+    /// Parses ROOT geometry nodes and builds LArSoft geometry representation.
+    void BuildGeometry();
     
     /// Wire ID check for WireIDsIntersect methods
     bool WireIDIntersectionCheck
