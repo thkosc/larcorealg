@@ -141,6 +141,16 @@ namespace geo {
     void PrintCryostatInfo
       (Stream&& out, std::string indent = "", unsigned int verbosity = 1) const;
     
+    /**
+     * @brief Returns a string with cryostat information.
+     * @see `PrintCryostatInfo()`
+     * 
+     * The arguments and provided information are the same as in
+     * `PrintCryostatInfo()`.
+     */
+    std::string CryostatInfo
+      (std::string indent = "", unsigned int verbosity = 1) const;
+    
     /// Maximum verbosity supported by `PrintCryostatInfo()`.
     static constexpr unsigned int MaxVerbosity = 3;
     

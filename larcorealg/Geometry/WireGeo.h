@@ -19,6 +19,7 @@
 
 // C/C++ libraries
 #include <vector>
+#include <string>
 #include <cmath> // std::sin(), ...
 
 
@@ -131,7 +132,8 @@ namespace geo {
     /// Fills the world coordinate of one end of the wire
     /// @deprecated Use the version returning a vector instead.
     void GetEnd(double* xyz) const { GetCenter(xyz, +fHalfL); }
-
+    
+    //@{
     /**
      * @brief Returns the position (world coordinate) of a point on the wire
      * @tparam Point type of vector to be returned (current default: `TVector3`)
@@ -146,10 +148,14 @@ namespace geo {
      * If the `localz` position would put the point outside the wire, the
      * returned position is the wire end closest to the requested position.
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point GetPositionFromCenter(double localz) const
       { return GetPositionFromCenterUnbounded<Point>(capLength(localz)); }
+    DefaultPoint_t GetPositionFromCenter(double localz) const
+      { return GetPositionFromCenter<DefaultPoint_t>(localz); }
+    //@}
     
+    //@{
     /**
      * @brief Returns the position (world coordinate) of a point on the wire
      * @tparam Point type of vector to be returned (current default: `TVector3`)
@@ -163,22 +169,37 @@ namespace geo {
      * If the `localz` position would put the point outside the wire, the
      * returned position will lie beyond the end of the wire.
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point GetPositionFromCenterUnbounded(double localz) const;
+    DefaultPoint_t GetPositionFromCenterUnbounded(double localz) const
+      { return GetPositionFromCenterUnbounded<DefaultPoint_t>(localz); }
+    //@}
     
+    //@{
     /// Returns the world coordinate of the center of the wire [cm]
-    template <typename Point = DefaultPoint_t>
+    /// @tparam Point type of the point being returned
+    template <typename Point>
     Point GetCenter() const { return geo::vect::convertTo<Point>(fCenter); }
+    DefaultPoint_t GetCenter() const { return GetCenter<DefaultPoint_t>(); }
+    //@}
     
+    //@{
     /// Returns the world coordinate of one end of the wire [cm]
-    template <typename Point = DefaultPoint_t>
+    /// @tparam Point type of the point being returned
+    template <typename Point>
     Point GetStart() const
       { return GetPositionFromCenterUnbounded<Point>(-HalfL()); }
+    DefaultPoint_t GetStart() const { return GetStart<DefaultPoint_t>(); }
+    //@}
     
+    //@{
     /// Returns the world coordinate of one end of the wire [cm]
-    template <typename Point = DefaultPoint_t>
+    /// @tparam Point type of the point being returned
+    template <typename Point>
     Point GetEnd() const
       { return GetPositionFromCenterUnbounded<Point>(+HalfL()); }
+    DefaultPoint_t GetEnd() const { return GetEnd<DefaultPoint_t>(); }
+    //@}
     
     /// Returns the wire length in centimeters
     double Length() const { return 2. * HalfL(); }
@@ -218,9 +239,13 @@ namespace geo {
           std::abs(std::abs(Direction<geo::Vector_t>().Dot(wire.Direction<geo::Vector_t>())) - 1.) < 1e-5;
       }
     
-    /// Returns the wire direction as a norm-one vector
-    template <typename Vector = DefaultVector_t>
+    //@{
+    /// Returns the wire direction as a norm-one vector.
+    /// @tparam Vector type of the vector being returned
+    template <typename Vector>
     Vector Direction() const;
+    DefaultVector_t Direction() const { return Direction<DefaultVector_t>(); }
+    //@}
     
     /**
      * @brief Prints information about this wire.
@@ -246,6 +271,14 @@ namespace geo {
     template <typename Stream>
     void PrintWireInfo
       (Stream&& out, std::string indent = "", unsigned int verbosity = 1) const;
+    
+    /**
+     * @brief Returns a string with all the information of the wire.
+     * @see `PrintWireInfo()`
+     * 
+     * All arguments are equivalent to the ones of `PrintWireInfo`.
+     */
+    std::string WireInfo(std::string indent = "", unsigned int verbosity = 1) const;
     
     /// Maximum verbosity supported by `PrintWireInfo()`.
     static constexpr unsigned int MaxVerbosity = 4;
@@ -373,7 +406,7 @@ Point geo::WireGeo::GetPositionFromCenterUnbounded(double localz) const {
 
 
 //------------------------------------------------------------------------------
-template <typename Vector /* = DefaultVector_t */>
+template <typename Vector>
 Vector geo::WireGeo::Direction() const {
   // maybe (GetCenter() - GetStart()) / HalfL() would be faster;
   // strangely, TVector3 does not implement operator/ (double).

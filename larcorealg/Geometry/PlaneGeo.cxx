@@ -29,6 +29,7 @@
 #include "TClass.h"
 
 // C/C++ standard library
+#include <sstream> // std::ostringstream
 #include <array>
 #include <functional> // std::less<>, std::greater<>, std::transform()
 #include <iterator> // std::back_inserter()
@@ -573,6 +574,16 @@ namespace geo{
     
     return { A.data(), B.data() };
   } // PlaneGeo::Coverage()
+  
+  
+  //......................................................................
+  std::string PlaneGeo::PlaneInfo
+    (std::string indent /* = "" */, unsigned int verbosity /* = 1 */) const
+  {
+    std::ostringstream sstr;
+    PrintPlaneInfo(sstr, indent, verbosity);
+    return sstr.str();
+  } // PlaneGeo::PlaneInfo()
   
   
   //......................................................................

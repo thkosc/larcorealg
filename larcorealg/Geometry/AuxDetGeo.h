@@ -20,6 +20,7 @@
 #include "TGeoMatrix.h" // TGeoHMatrix
 
 // C/C++ libraries
+#include <string>
 #include <vector>
 
 class TGeoNode;
@@ -188,6 +189,16 @@ namespace geo {
     template <typename Stream>
     void PrintAuxDetInfo
       (Stream&& out, std::string indent = "", unsigned int verbosity = 1) const;
+    
+    /**
+     * @brief Returns a string with auxiliary detector information.
+     * @see `PrintAuxDetInfo()`
+     * 
+     * The arguments and provided information are the same as in
+     * `PrintAuxDetInfo()`.
+     */
+    std::string AuxDetInfo
+      (std::string indent = "", unsigned int verbosity = 1) const;
     
     /// Maximum verbosity supported by `PrintAuxDetInfo()`.
     static constexpr unsigned int MaxVerbosity = 4;

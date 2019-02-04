@@ -20,6 +20,7 @@
 
 // C/C++ standard libraries
 #include <vector>
+#include <string>
 
 
 class TGeoNode;
@@ -162,6 +163,16 @@ namespace geo {
     template <typename Stream>
     void PrintAuxDetInfo
       (Stream&& out, std::string indent = "", unsigned int verbosity = 0) const;
+    
+    /**
+     * @brief Returns a string with auxiliary sensitive detector information.
+     * @see `PrintAuxDetInfo()`
+     * 
+     * The arguments and provided information are the same as in
+     * `PrintAuxDetInfo()`.
+     */
+    std::string AuxDetInfo
+      (std::string indent = "", unsigned int verbosity = 1) const;
     
     /// Maximum verbosity supported by `PrintAuxDetInfo()`.
     static constexpr unsigned int MaxVerbosity = 2;

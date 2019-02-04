@@ -21,6 +21,7 @@
 
 // C/C++ standard libraries
 #include <vector>
+#include <string>
 #include <array>
 
 
@@ -167,6 +168,15 @@ namespace geo {
     template <typename Stream>
     void PrintOpDetInfo
       (Stream&& out, std::string indent = "", unsigned int verbosity = 0) const;
+    
+    /**
+     * @brief Returns a string with optical detector information
+     * @see `PrintOpDetInfo()`
+     * 
+     * Arguments and provided information are the same as in `PrintOpDetInfo()`.
+     */
+    std::string OpDetInfo
+      (std::string indent = "", unsigned int verbosity = 0) const;
     
     /// Maximum verbosity supported by `PrintOpDetInfo()`.
     static constexpr unsigned int MaxVerbosity = 2;

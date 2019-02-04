@@ -112,23 +112,35 @@ namespace geo {
     const TGeoVolume* TotalVolume()                             const { return fTotalVolume;            }
     
     /// Returns the direction `Width()` is measured on.
-    template <typename Vector = DefaultVector_t>
+    template <typename Vector>
     decltype(auto)    WidthDir()                                const { return geo::vect::convertTo<Vector>(fWidthDir); }
     
+    /// Returns the direction `Width()` is measured on.
+    decltype(auto)    WidthDir()                                const { return WidthDir<DefaultVector_t>(); }
+    
     /// Returns the direction `Height()` is measured on.
-    template <typename Vector = DefaultVector_t>
+    template <typename Vector>
     decltype(auto)    HeightDir()                               const { return geo::vect::convertTo<Vector>(fHeightDir); }
     
+    /// Returns the direction `Height()` is measured on.
+    decltype(auto)    HeightDir()                               const { return HeightDir<DefaultVector_t>(); }
+    
     /// Returns the direction `Length()` is measured on.
-    template <typename Vector = DefaultVector_t>
+    template <typename Vector>
     decltype(auto)    LengthDir()                               const { return geo::vect::convertTo<Vector>(fLengthDir); }
+    
+    /// Returns the direction `Length()` is measured on.
+    decltype(auto)    LengthDir()                               const { return LengthDir<DefaultVector_t>(); }
     
     /// Returns an enumerator value describing the drift direction.
     DriftDirection_t  DriftDirection()                          const { return fDriftDirection;         }
     
     /// Returns the direction of the drift (vector pointing toward the planes).
-    template <typename Vector = DefaultVector_t>
+    template <typename Vector>
     Vector DriftDir()                                           const;
+    
+    /// Returns the direction of the drift (vector pointing toward the planes).
+    DefaultVector_t DriftDir()                                  const { return DriftDir<DefaultVector_t>(); }
     
     /// Drift distance is defined as the distance between the last anode plane
     /// and the opposite face of the TPC, in centimeters.
@@ -239,24 +251,40 @@ namespace geo {
     /// @name TPC geometry properties
     
     /// Returns the center of the TPC volume in world coordinates [cm]
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point GetCenter() const;
     
+    /// Returns the center of the TPC volume in world coordinates [cm]
+    DefaultPoint_t GetCenter() const { return GetCenter<DefaultPoint_t>(); }
+    
     /// Returns the center of the TPC active volume in world coordinates [cm]
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point GetActiveVolumeCenter() const
       { return geo::vect::convertTo<Point>(fActiveCenter); }
     
+    /// Returns the center of the TPC active volume in world coordinates [cm]
+    DefaultPoint_t GetActiveVolumeCenter() const
+      { return GetActiveVolumeCenter<DefaultPoint_t>(); }
+    
     /// Returns the center of the active volume face opposite to the wire planes
     /// [cm]
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point GetCathodeCenter() const
       { return geo::vect::convertTo<Point>(GetCathodeCenterImpl()); }
     
+    /// Returns the center of the active volume face opposite to the wire planes
+    /// [cm]
+    DefaultPoint_t GetCathodeCenter() const
+      { return GetCathodeCenter<DefaultPoint_t>(); }
+    
     /// Returns the center of the active TPC volume side facing negative _z_.
-    template <typename Point = geo::Point_t>
+    template <typename Point>
     Point GetFrontFaceCenter() const
       { return geo::vect::convertTo<Point>(GetFrontFaceCenterImpl()); }
+    
+    /// Returns the center of the active TPC volume side facing negative _z_.
+    geo::Point_t GetFrontFaceCenter() const
+      { return GetFrontFaceCenter<geo::Point_t>(); }
     
     /// Returns the bounding box of this TPC.
     geo::BoxBoundedGeo const& BoundingBox() const
@@ -302,6 +330,7 @@ namespace geo {
     geo::PlaneID const& ReferencePlaneID() const
       { return ReferencePlane().ID(); }
     
+    //@{
     /**
      * @brief Return the direction of reference plane width.
      * @tparam Vector type of vector to return (current default: `TVector3`)
@@ -312,9 +341,12 @@ namespace geo {
      * a vector opposite to DriftDir() make a orthonormal base.
      * That base (width, depth, normal) is guaranteed to be positive defined.
      */
-    template <typename Vector = DefaultPoint_t>
+    template <typename Vector>
     Vector RefWidthDir() const { return ReferencePlane().WidthDir<Vector>(); }
+    DefaultPoint_t RefWidthDir() const { return RefWidthDir<DefaultPoint_t>(); }
+    //@}
     
+    //@{
     /**
      * @brief Return the direction of reference plane depth.
      * @tparam Vector type of vector to return (current default: `TVector3`)
@@ -325,8 +357,10 @@ namespace geo {
      * a vector opposite to DriftDir() make a orthonormal base.
      * That base (width, depth, normal) is guaranteed to be positive defined.
      */
-    template <typename Vector = DefaultPoint_t>
+    template <typename Vector>
     Vector RefDepthDir() const { return ReferencePlane().DepthDir<Vector>(); }
+    DefaultPoint_t RefDepthDir() const { return RefDepthDir<DefaultPoint_t>(); }
+    //@}
     
     
     //@{
@@ -387,6 +421,7 @@ namespace geo {
       { return DecomposePoint(geo::vect::toPoint(point)); }
     //@}
     
+    //@{
     /**
      * @brief Returns the reference point used by `PointProjection()`.
      * @tparam Point type of point to be returned
@@ -394,9 +429,12 @@ namespace geo {
      * The returned point is such that its decomposition results in a null
      * projection and a 0 distance from the plane.
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point ProjectionReferencePoint() const
       { return ReferencePlane().GetCenter<Point>(); }
+    DefaultPoint_t ProjectionReferencePoint() const
+      { return ProjectionReferencePoint<DefaultPoint_t>(); }
+    //@}
     
     //@{
     /**
@@ -441,6 +479,7 @@ namespace geo {
       { return Projection(geo::vect::toVector(v)); }
     //@}
     
+    //@{
     /**
      * @brief Returns the 3D vector from composition of projection and distance.
      * @tparam Point type of point to be returned
@@ -454,10 +493,14 @@ namespace geo {
      * point (`ProjectionReferencePoint()`) by those components.
      * See `ComposePoint(double, Projection_t const&)` for more details.
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point ComposePoint(DecomposedVector_t const& decomp) const
       { return ReferencePlane().ComposePoint<Point>(decomp); }
+    DefaultPoint_t ComposePoint(DecomposedVector_t const& decomp) const
+      { return ComposePoint<DefaultPoint_t>(decomp); }
+    //@}
     
+    //@{
     /**
      * @brief Returns the 3D point from composition of projection and distance.
      * @tparam Point type of point to be returned
@@ -476,9 +519,12 @@ namespace geo {
      * used in `PointProjection()` and `DecomposePoint()`.
      * 
      */
-    template <typename Point = DefaultPoint_t>
+    template <typename Point>
     Point ComposePoint(double distance, Projection_t const& proj) const
       { return ReferencePlane().ComposePoint<Point>(distance, proj); }
+    DefaultPoint_t ComposePoint(double distance, Projection_t const& proj) const
+      { return ComposePoint<DefaultPoint_t>(distance, proj); }
+    //@}
     
     /// @}
     
@@ -591,6 +637,15 @@ namespace geo {
     void PrintTPCInfo
       (Stream&& out, std::string indent = "", unsigned int verbosity = 1) const;
     
+    /**
+     * @brief Returns a string with information about this TPC.
+     * @see `PrintTPCInfo()`
+     * 
+     * Arguments and provided information are the same as in `PrintTPCInfo()`.
+     */
+    std::string TPCInfo
+      (std::string indent = "", unsigned int verbosity = 1) const;
+    
     /// Maximum verbosity supported by `PrintTPCInfo()`.
     static constexpr unsigned int MaxVerbosity = 6;
     
@@ -683,13 +738,13 @@ namespace geo {
 //--- template implementation
 //---
 //------------------------------------------------------------------------------
-template <typename Vector /* = DefaultVector_t */>
+template <typename Vector>
 Vector geo::TPCGeo::DriftDir() const
   { return geo::vect::convertTo<Vector>(fDriftDir); }
 
 
 //------------------------------------------------------------------------------
-template <typename Point /* = DefaultPoint_t */>
+template <typename Point>
 Point geo::TPCGeo::GetCenter() const {
   
   // convert the origin (default constructed TVector)

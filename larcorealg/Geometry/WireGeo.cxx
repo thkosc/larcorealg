@@ -21,6 +21,7 @@
 
 // C/C++ libraries
 #include <cmath> // std::cos(), ...
+#include <sstream>
 
 
 namespace geo{
@@ -96,6 +97,16 @@ namespace geo{
   double WireGeo::ThetaZ(bool degrees) const
     { return degrees? util::RadiansToDegrees(fThetaZ): fThetaZ; }
 
+  //......................................................................
+  std::string WireGeo::WireInfo
+    (std::string indent /* = "" */, unsigned int verbosity /* = 1 */) const
+  {
+    std::ostringstream sstr;
+    PrintWireInfo(sstr, indent, verbosity);
+    return sstr.str();
+  } // WireGeo::WireInfo()
+
+  
   //......................................................................
   double WireGeo::DistanceFrom(geo::WireGeo const& wire) const {
     //
