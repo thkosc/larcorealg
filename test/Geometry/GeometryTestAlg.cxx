@@ -1974,8 +1974,8 @@ namespace geo{
 
           for (size_t j = 1; j < plane->Nwires(); ++j) {
 
-            const geo::WireGeo wire = plane->Wire(j);
-            const geo::WireGeo wireprev = plane->Wire(j-1);
+            geo::WireGeo const& wire = plane->Wire(j);
+            geo::WireGeo const& wireprev = plane->Wire(j-1);
 
             wire.GetCenter(xyz);
             wireprev.GetCenter(xyzprev);
@@ -2011,8 +2011,8 @@ namespace geo{
           const geo::PlaneGeo* plane = &tpc->Plane(i);
 
           for (size_t j = 1; j < plane->Nwires(); ++j) {
-            const geo::WireGeo wire = plane->Wire(j);
-            const geo::WireGeo wireprev = plane->Wire(j-1);
+            geo::WireGeo const& wire = plane->Wire(j);
+            geo::WireGeo const& wireprev = plane->Wire(j-1);
 
             wire.GetCenter(xyz);
             wireprev.GetCenter(xyzprev);

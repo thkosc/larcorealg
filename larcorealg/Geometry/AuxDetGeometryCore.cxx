@@ -10,6 +10,7 @@
 #include "larcorealg/Geometry/AuxDetGeometryCore.h"
 
 // lar includes
+#include "larcorealg/Geometry/GeometryBuilderStandard.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 
@@ -42,6 +43,7 @@ namespace geo {
   // Constructor.
   AuxDetGeometryCore::AuxDetGeometryCore(fhicl::ParameterSet const& pset)
     : fDetectorName(pset.get< std::string >("Name"))
+    , fBuilderParameters(pset.get<fhicl::ParameterSet>("Builder", fhicl::ParameterSet()))
   {
     std::transform(fDetectorName.begin(), fDetectorName.end(), fDetectorName.begin(), ::tolower);
   } // AuxDetGeometryCore::AuxDetGeometryCore()
@@ -84,9 +86,24 @@ namespace geo {
       gGeoManager->LockGeometry();
     }
 
-    std::vector<const TGeoNode*> path(8);
-    path[0] = gGeoManager->GetTopNode();
-    FindAuxDet(path, 0);
+    geo::GeometryBuilderStandard builder(
+      fhicl::Table<geo::GeometryBuilderStandard::Config>
+        (fBuilderParameters, { "tool_type" })
+        ()
+      );
+    geo::GeoNodePath path{ gGeoManager->GetTopNode() };
+    
+    // channel mapping interface demands a vector of pointers to auxiliary
+    // detectors for several methods; and Gianluca is not going to fix that
+    // this time; so we waste some time and health in conversions.
+    auto auxDets =
+      geo::GeometryBuilder::moveToColl(builder.extractAuxiliaryDetectors(path));
+    AuxDets().clear();
+    AuxDets().reserve(auxDets.size());
+    for (geo::AuxDetGeo& auxDet: auxDets) {
+      auto* pAuxDet = new geo::AuxDetGeo(std::move(auxDet));
+      AuxDets().push_back(pAuxDet);
+    }
     
     fGDMLfile = gdmlfile;
     fROOTfile = rootfile;
@@ -206,35 +223,5 @@ namespace geo {
   }
 
   //......................................................................
-  void AuxDetGeometryCore::FindAuxDet(std::vector<const TGeoNode*>& path,
-                            unsigned int depth)
-  {
-    const char* nm = path[depth]->GetName();
-    if( (strncmp(nm, "volAuxDet", 9) == 0) ){
-      this->MakeAuxDet(path, depth);
-      return;
-    }
-    
-    //explore the next layer down
-    unsigned int deeper = depth+1;
-    if(deeper >= path.size()){
-      throw cet::exception("AuxDetGeometryCore") << "exceeded maximum TGeoNode depth\n";
-    }
-    
-    const TGeoVolume *v = path[depth]->GetVolume();
-    int nd = v->GetNdaughters();
-    for(int i = 0; i < nd; ++i){
-      path[deeper] = v->GetNode(i);
-      this->FindAuxDet(path, deeper);
-    }
-    
-  }
-  
-  //......................................................................
-  void AuxDetGeometryCore::MakeAuxDet(std::vector<const TGeoNode*>& path, int depth)
-  {
-    AuxDets().push_back(new AuxDetGeo(path, depth));
-  }
-
   
 } // namespace geo

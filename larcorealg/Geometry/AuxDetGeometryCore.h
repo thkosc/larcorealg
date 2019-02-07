@@ -313,10 +313,6 @@ namespace geo {
     
   private:
     
-    void FindAuxDet(std::vector<const TGeoNode*>& path, unsigned int depth);
-    
-    void MakeAuxDet(std::vector<const TGeoNode*>& path, int depth);
-    
     /// Deletes the detector geometry structures
     void ClearGeometry();
     
@@ -325,6 +321,7 @@ namespace geo {
     std::string    fDetectorName;   ///< Name of the detector.
     std::string    fGDMLfile;       ///< path to geometry file used for Geant4 simulation
     std::string    fROOTfile;       ///< path to geometry file for geometry in GeometryCore
+    fhicl::ParameterSet fBuilderParameters; ///< Configuration of geometry builder.
     std::shared_ptr<const geo::AuxDetChannelMapAlg> fChannelMapAlg;  ///< Object containing the channel to wire mapping
   }; // class GeometryCore
   
