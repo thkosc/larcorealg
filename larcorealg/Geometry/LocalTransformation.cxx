@@ -29,11 +29,13 @@ namespace geo {
   TGeoHMatrix LocalTransformation<TGeoHMatrix>::transformationFromPath
     (std::vector<TGeoNode const*> const& path, size_t depth)
   {
+    
     TGeoHMatrix matrix = *(path[0]->GetMatrix());
-    for(size_t i = 1; i <= depth; ++i) matrix.Multiply(path[i]->GetMatrix());
+    for(size_t i = 1; i <= depth; ++i)
+      matrix.Multiply(path[i]->GetMatrix());
     return matrix;
     
-  } // geo::LocalTransformation<TGeoHMatrix>::transformationFromPath()
+  } // geo::LocalTransformation::transformationFromPath()
 
 
   //----------------------------------------------------------------------------
@@ -52,12 +54,7 @@ namespace geo {
       CLHEP::Hep3Vector(translation[0], translation[1], translation[2])
       );
     
-  } // geo::LocalTransformation<HepGeom::Transform3D>::transformationFromPath()
-  
-  
-  //----------------------------------------------------------------------------
-  
-  
+  } // geo::LocalTransformation::transformationFromPath()
 
 } // namespace geo
 

@@ -16,8 +16,8 @@
 
 // C/C++ standard libraries
 #include <vector>
-#include <utility> // std::move(), std::forward()
-#include <type_traits> // std::enable_if_t<>, std::decay_t<>
+#include <utility> // std::move()
+#include <type_traits> // std::enable_if_t<>
 #include <cstdlib> // std::size_t
 
 
@@ -26,12 +26,6 @@ class TGeoNode;
 
 
 namespace geo {
-  
-  namespace details {
-    template <typename Dest, typename Src>
-    struct TransformationMatrixConverter;
-  } // namespace details
-  
   
   /**
    * @brief Class to transform between world and local coordinates
@@ -56,15 +50,10 @@ namespace geo {
     
     //@{
     /**
-     * @brief Constructor: uses the specified local-to-world transformation.
+     * @brief Constructor: uses the specified transformation matrix
      * @param matrix the transformation matrix to be used
      * 
-     * The transformation `matrix` is used to transform vectors from the "local"
-     * to the "world" frame, while its inverse is used for transformations from
-     * the "world" to the "local" frame.
-     * 
-     * The specified matrix is copied into a local copy unless a R-value
-     * reference argument is specified (e.g. with `std::move()`).
+     * The specified matrix is copied into a local copy.
      */
     LocalTransformation(TransformationMatrix_t const& matrix)
       : fGeoMatrix(matrix) {}
@@ -73,42 +62,14 @@ namespace geo {
     //@}
     
     /**
-     * @brief Constructor: chains the transformations from the specified nodes.
+     * @brief Constructor: uses the specified transformation matrix
      * @param path the path of ROOT geometry nodes
      * @param depth the index in the path of the last node to be considered
      * 
-     * The resulting transformation is the sequence of transformations from
-     * `depth` nodes from the first on.
+     * The specified matrix is copied into a local copy.
      */
     LocalTransformation(std::vector<TGeoNode const*> const& path, size_t depth)
-      : fGeoMatrix
-        (transformationFromPath(path.begin(), path.begin() + depth + 1))
-      {}
-    
-    
-    /**
-     * @brief Constructor: chains the transformations from all specified nodes.
-     * @param path the path of ROOT geometry nodes
-     * 
-     * The resulting transformation is the sequence of transformations from
-     * the first to the last node of the path.
-     */
-    LocalTransformation(std::vector<TGeoNode const*> const& path)
-      : LocalTransformation(path, path.size()) {}
-    
-    /**
-     * @brief Constructor: sequence of transformations from a node path.
-     * @tparam ITER type of iterator to node pointers
-     * @param begin the begin iterator of the path of ROOT geometry nodes
-     * @param end the end iterator of the path of ROOT geometry nodes
-     * 
-     * The resulting transformation is the sequence of transformations from
-     * the one pointed by `begin` to the one before `end`.
-     */
-    template <typename ITER>
-    LocalTransformation(ITER begin, ITER end)
-      : fGeoMatrix(transformationFromPath(begin, end)) {}
-    
+      : fGeoMatrix(transformationFromPath(path, depth)) {}
     
     /**
      * @brief Transforms a point from local frame to world frame
@@ -287,13 +248,8 @@ namespace geo {
     
     
     /// Builds a matrix to go from local to world coordinates in one step
-    template <typename ITER>
-    static TransformationMatrix_t transformationFromPath(ITER begin, ITER end);
-    
-    /// Builds a matrix to go from local to world coordinates in one step
     static TransformationMatrix_t transformationFromPath
       (std::vector<TGeoNode const*> const& path, size_t depth);
-    //  { return transformationFromPath(path.begin(), path.begin() + depth); }
     
     
       protected:
@@ -314,16 +270,6 @@ namespace geo {
     DestVector WorldToLocalVectImpl(SrcVector const& world) const;
     
   }; // class LocalTransformation<>
-  
-  
-  /// Converts a transformation matrix into `Dest` format.
-  template <typename Dest, typename Src>
-  decltype(auto) convertTransformationMatrix(Src&& trans)
-    {
-      return details::TransformationMatrixConverter
-        <std::decay_t<Dest>, std::decay_t<Src>>::convert
-        (std::forward<Src>(trans));
-    }
   
   
 } // namespace geo

@@ -13,7 +13,6 @@
 #include "larcorealg/Geometry/OpDetGeo.h"
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
-#include "larcorealg/Geometry/TransformationMatrix.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h" // geo::Point_t
@@ -36,13 +35,10 @@ namespace geo {
   /// @ingroup Geometry
   class CryostatGeo: public geo::BoxBoundedGeo {
     
-      public:
-    
     /// Type used internally to store the TPCs.
-    using TPCList_t = std::vector<geo::TPCGeo>;
+    using TPCList_t = std::vector<TPCGeo>;
     
-    /// Type used internally to store the optical detectors.
-    using OpDetList_t = std::vector<geo::OpDetGeo>;
+      public:
     
     using GeoNodePath_t = geo::WireGeo::GeoNodePath_t;
     
@@ -75,10 +71,7 @@ namespace geo {
     
     
     /// Construct a representation of a single cryostat of the detector.
-    CryostatGeo(
-      TGeoNode const& node, geo::TransformationMatrix&& trans,
-      TPCList_t&& TPCs, OpDetList_t&& OpDets
-      );
+    CryostatGeo(std::vector<const TGeoNode*>& path, int depth);
     
     
     /// @{
@@ -419,12 +412,12 @@ namespace geo {
 
   private:
     
-    using LocalTransformation_t = geo::LocalTransformationGeo
-      <ROOT::Math::Transform3D, LocalPoint_t, LocalVector_t>;
+    using LocalTransformation_t
+      = geo::LocalTransformationGeo<TGeoHMatrix, LocalPoint_t, LocalVector_t>;
     
     LocalTransformation_t  fTrans;          ///< Cryostat-to-world transformation.
     TPCList_t              fTPCs;           ///< List of tpcs in this cryostat
-    OpDetList_t            fOpDets;         ///< List of opdets in this cryostat
+    std::vector<OpDetGeo>  fOpDets;         ///< List of opdets in this cryostat
     TGeoVolume*            fVolume;         ///< Total volume of cryostat, called volCryostat in GDML file
     std::string            fOpDetGeoName;   ///< Name of opdet geometry elements in gdml
     geo::CryostatID        fID;             ///< ID of this cryostat

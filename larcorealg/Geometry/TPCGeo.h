@@ -13,7 +13,6 @@
 #include "larcorealg/Geometry/WireGeo.h"
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
-#include "larcorealg/Geometry/TransformationMatrix.h"
 #include "larcorealg/Geometry/LocalTransformationGeo.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
@@ -42,7 +41,6 @@ namespace geo {
     
   public:
     
-    using PlaneCollection_t = std::vector<geo::PlaneGeo>;
     using GeoNodePath_t = geo::WireGeo::GeoNodePath_t;
     
     /// @{
@@ -79,10 +77,7 @@ namespace geo {
     
     
     // Construct a representation of a single plane of the detector
-    TPCGeo(
-      TGeoNode const& node, geo::TransformationMatrix&& trans,
-      PlaneCollection_t&& planes
-      );
+    TPCGeo(GeoNodePath_t& path, size_t depth);
     
     
     /// @{
@@ -684,12 +679,12 @@ namespace geo {
     void MakePlane(GeoNodePath_t& path, size_t depth);
     
   private:
-    using LocalTransformation_t = geo::LocalTransformationGeo
-      <ROOT::Math::Transform3D, LocalPoint_t, LocalVector_t>;
+    using LocalTransformation_t
+      = geo::LocalTransformationGeo<TGeoHMatrix, LocalPoint_t, LocalVector_t>;
     
     LocalTransformation_t              fTrans;          ///< TPC-to-world transformation.
     
-    PlaneCollection_t                  fPlanes;         ///< List of planes in this plane.
+    std::vector<PlaneGeo>              fPlanes;         ///< List of planes in this plane.
     TGeoVolume*                        fActiveVolume;   ///< Active volume of LAr, called volTPCActive in GDML file.
     TGeoVolume*                        fTotalVolume;    ///< Total volume of TPC, called volTPC in GDML file.
     DriftDirection_t                   fDriftDirection; ///< Direction of the electron drift in the TPC.

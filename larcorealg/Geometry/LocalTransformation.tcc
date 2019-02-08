@@ -22,9 +22,6 @@
 
 // CLHEP
 #include "CLHEP/Geometry/Transform3D.h"
-#include "CLHEP/Vector/Rotation.h" // CLHEP::HepRotation
-#include "CLHEP/Vector/RotationInterfaces.h" // CLHEP::HepRep3x3
-#include "CLHEP/Vector/ThreeVector.h" // CLHEP::Hep3Vector
 
 // C standard library
 #include <cassert>
@@ -34,14 +31,6 @@
 namespace geo {
   namespace details {
     
-    //--------------------------------------------------------------------------
-    template <typename Dest, typename Src>
-    struct TransformationMatrixConverter {
-      static decltype(auto) convert(Src const& trans);
-      static decltype(auto) convert(Src&& trans);
-    };
-  
-    //--------------------------------------------------------------------------
     template <typename T, std::size_t SrcN = 3, std::size_t DestN = SrcN>
     bool doBuffersOverlap(T const* src, T const* dest)
       { return (dest < (src + SrcN)) && (src < (dest + DestN)); }
@@ -56,8 +45,6 @@ namespace geo {
       }
       assert(!doBuffersOverlap(src, dest));
     } // checkVectorBufferOverlap()
-    
-    //--------------------------------------------------------------------------
     
   } // namespace details
 } // namespace geo
@@ -156,71 +143,19 @@ DestVector geo::LocalTransformation<Matrix>::LocalToWorldVectImpl
 
 
 //------------------------------------------------------------------------------
-// specialisations (template implementations)
+// specialisations (forward declarations)
 // 
 namespace geo {
   
-  //----------------------------------------------------------------------------
   template <>
   TGeoHMatrix LocalTransformation<TGeoHMatrix>::transformationFromPath
     (std::vector<TGeoNode const*> const& path, size_t depth);
-  
-  
-  template <>
-  template <typename ITER>
-  TGeoHMatrix LocalTransformation<TGeoHMatrix>::transformationFromPath
-    (ITER begin, ITER end)
-  {
-    if (begin == end) return { TGeoIdentity() };
-    auto iNode = begin;
-    TGeoHMatrix matrix = *((*iNode)->GetMatrix());
-    while (++iNode != end) matrix.Multiply((*iNode)->GetMatrix());
-    return matrix;
-    
-  } // geo::LocalTransformation<TGeoHMatrix>::transformationFromPath(ITER)
-  
-  
-  //----------------------------------------------------------------------------
+
   template <>
   HepGeom::Transform3D
   LocalTransformation<HepGeom::Transform3D>::transformationFromPath
     (std::vector<TGeoNode const*> const& path, size_t depth);
-  
-  
-  template <>
-  template <typename ITER>
-  HepGeom::Transform3D
-  LocalTransformation<HepGeom::Transform3D>::transformationFromPath
-    (ITER begin, ITER end)
-  {
-    
-    auto const mat =
-      geo::LocalTransformation<TGeoHMatrix>::transformationFromPath(begin, end);
-    const Double_t* translation = mat.GetTranslation();
-    return HepGeom::Transform3D(
-      CLHEP::HepRotation(CLHEP::HepRep3x3(mat.GetRotationMatrix())),
-      CLHEP::Hep3Vector(translation[0], translation[1], translation[2])
-      );
-    
-  } // geo::LocalTransformation<HepGeom::Transform3D>::transformationFromPath(ITER)
-  
-  
-  //----------------------------------------------------------------------------
-  namespace details {
-    
-    //--------------------------------------------------------------------------
-    template <typename Trans>
-    struct TransformationMatrixConverter<Trans, Trans> {
-      static Trans const& convert(Trans const& trans) { return trans; }
-      static Trans convert(Trans&& trans) { return trans; }
-    };
-    
-    //--------------------------------------------------------------------------
-      
-  } // namespace details
-  
-  //----------------------------------------------------------------------------
-  
+
 } // namespace geo
 
 //------------------------------------------------------------------------------

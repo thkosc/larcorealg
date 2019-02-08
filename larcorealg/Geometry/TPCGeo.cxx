@@ -36,14 +36,9 @@ namespace geo{
 
 
   //......................................................................
-  TPCGeo::TPCGeo(
-    TGeoNode const& node,
-    geo::TransformationMatrix&& trans,
-    PlaneCollection_t&& planes
-  )
+  TPCGeo::TPCGeo(GeoNodePath_t& path, size_t depth)
     : BoxBoundedGeo() // we initialize boundaries at the end of construction
-    , fTrans(std::move(trans))
-    , fPlanes(std::move(planes))
+    , fTrans(path, depth)
     , fActiveVolume(0)
     , fTotalVolume(0)
     , fDriftDirection(geo::kUnknownDrift)
@@ -55,7 +50,7 @@ namespace geo{
     
     // all planes are going to be contained in the volume named volTPC
     // now get the total volume of the TPC
-    TGeoVolume *vc = node.GetVolume();
+    TGeoVolume *vc = path[depth]->GetVolume();
     if(!vc){ 
       throw cet::exception("Geometry") << "cannot find detector outline volume - bail ungracefully\n";
     }
@@ -81,16 +76,19 @@ namespace geo{
                           << "\ndetector active volume is " << fActiveVolume->GetName();
 
     // compute the active volume transformation too
-    auto ActiveHMatrix(fTrans.Matrix());
-    if (pActiveVolNode) {
-      ActiveHMatrix
-        *= geo::makeTransformationMatrix(*(pActiveVolNode->GetMatrix()));
-    }
+    TGeoHMatrix ActiveHMatrix(fTrans.Matrix());
+    if (pActiveVolNode) ActiveHMatrix.Multiply(pActiveVolNode->GetMatrix());
     // we don't keep the active volume information... just store its center:
-    fActiveCenter
-      = geo::vect::toPoint(ActiveHMatrix(ROOT::Math::Transform3D::Point{}));
+    std::array<double, 3> localActiveCenter, worldActiveCenter;
+    localActiveCenter.fill(0.0);
+    ActiveHMatrix.LocalToMaster
+      (localActiveCenter.data(), worldActiveCenter.data());
+    fActiveCenter = geo::vect::makeFromCoords<geo::Point_t>(worldActiveCenter);
     
     
+    // find the wires for the plane so that you can use them later
+    this->FindPlane(path, depth);
+
     // set the width, height, and lengths
     fActiveHalfWidth  =     ((TGeoBBox*)fActiveVolume->GetShape())->GetDX();
     fActiveHalfHeight =     ((TGeoBBox*)fActiveVolume->GetShape())->GetDY();
@@ -104,42 +102,39 @@ namespace geo{
     // we need to change the width, height and length values;
     // the correspondence of these to x, y and z are not guaranteed to be
     // trivial, so we store the two independently (cartesian dimensions in the
-    // bounding boxes, the sizes in data members directly);
-    // TODO: there must be a more general way to do this...
-    double Rxx, Rxy, Rxz, Ryx, Ryy, Ryz, Rzx, Rzy, Rzz;
-    fTrans.Matrix().Rotation().GetComponents
-      (Rxx, Rxy, Rxz, Ryx, Ryy, Ryz, Rzx, Rzy, Rzz);
-    if(Rxx != 1) {
-      if(std::abs(Rxz) == 1) {
+    // bounding boxes, the sizes in data members directly)
+    double const* rotMatrix = fTrans.Matrix().GetRotationMatrix();
+    if(rotMatrix[0] != 1){
+      if(std::abs(rotMatrix[2]) == 1){
         fActiveHalfWidth = ((TGeoBBox*)fActiveVolume->GetShape())->GetDZ();
         fHalfWidth       = ((TGeoBBox*)fTotalVolume->GetShape())->GetDZ();
         fWidthDir        = Zaxis();
       }
-      if(std::abs(Rxy) == 1) {
+      if(std::abs(rotMatrix[1]) == 1){
         fActiveHalfWidth = ((TGeoBBox*)fActiveVolume->GetShape())->GetDY();
         fHalfWidth       = ((TGeoBBox*)fTotalVolume->GetShape())->GetDY();
         fWidthDir        = Yaxis();
       }
     }
-    if(Ryy != 1) {
-      if(std::abs(Rxy) == 1) {
+    if(rotMatrix[4] != 1){
+      if(std::abs(rotMatrix[3]) == 1){
         fActiveHalfHeight = ((TGeoBBox*)fActiveVolume->GetShape())->GetDX();
         fHalfHeight       = ((TGeoBBox*)fTotalVolume->GetShape())->GetDX();
         fHeightDir        = Xaxis();
       }
-      if(std::abs(Rzy) == 1) {
+      if(std::abs(rotMatrix[5]) == 1){
         fActiveHalfHeight = ((TGeoBBox*)fActiveVolume->GetShape())->GetDZ();
         fHalfHeight       = ((TGeoBBox*)fTotalVolume->GetShape())->GetDZ();
         fHeightDir        = Zaxis();
       }
     }
-    if(Rzz != 1) {
-      if(std::abs(Rzx) == 1) {
+    if(rotMatrix[8] != 1){
+      if(std::abs(rotMatrix[6]) == 1){
         fActiveLength = 2.*((TGeoBBox*)fActiveVolume->GetShape())->GetDX();
         fLength       = 2.*((TGeoBBox*)fTotalVolume->GetShape())->GetDX();
         fLengthDir    = Xaxis();
       }
-      if(std::abs(Ryz) == 1) {
+      if(std::abs(rotMatrix[7]) == 1){
         fActiveLength = 2.*((TGeoBBox*)fActiveVolume->GetShape())->GetDY();
         fLength       = 2.*((TGeoBBox*)fTotalVolume->GetShape())->GetDY();
         fLengthDir    = Yaxis();
@@ -150,8 +145,40 @@ namespace geo{
     ResetDriftDirection();
     
   } // TPCGeo::TPCGeo()
+
+  //......................................................................
+  void TPCGeo::FindPlane(GeoNodePath_t& path, size_t depth) 
+  {
+
+    const char* nm = path[depth]->GetName();
+    if( (strncmp(nm, "volTPCPlane", 11) == 0) ){
+      this->MakePlane(path,depth);
+      return;
+    }
+
+    //explore the next layer down
+    unsigned int deeper = depth+1;
+    if(deeper >= path.size()){
+      throw cet::exception("BadTGeoNode") << "exceeded maximum TGeoNode depth\n";
+    }
+
+    const TGeoVolume *v = path[depth]->GetVolume();
+    int nd = v->GetNdaughters();
+    for(int i = 0; i < nd; ++i){
+      path[deeper] = v->GetNode(i);
+      this->FindPlane(path, deeper);
+    }
   
-  
+  }
+
+
+  //......................................................................
+  void TPCGeo::MakePlane(GeoNodePath_t& path, size_t depth) 
+  {
+    fPlanes.emplace_back(path, depth);
+  }
+
+
   //......................................................................
   short int TPCGeo::DetectDriftDirection() const {
     

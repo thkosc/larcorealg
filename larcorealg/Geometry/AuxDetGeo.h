@@ -11,8 +11,6 @@
 
 // LArSoft libraries
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
-#include "larcorealg/Geometry/TransformationMatrix.h"
-#include "larcorealg/Geometry/GeoVectorLocalTransformation.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcorealg/CoreUtils/RealComparisons.h"
@@ -33,10 +31,6 @@ namespace geo {
   /// \ingroup Geometry
   class AuxDetGeo {
   public:
-    
-    /// Type of list of sensitive volumes.
-    using AuxDetSensitiveList_t = std::vector<geo::AuxDetSensitiveGeo>;
-    
     /// @{
     /**
      * @name Types for geometry-local reference vectors.
@@ -64,11 +58,10 @@ namespace geo {
     
     ///@}
     
-    AuxDetGeo(
-      TGeoNode const& node, geo::TransformationMatrix&& trans,
-      AuxDetSensitiveList_t&& sensitive
-      );
+    AuxDetGeo(std::vector<const TGeoNode*>& path, 
+              int                           depth);
     
+    ~AuxDetGeo();
     
     /**
      * @brief Return the center position of an AuxDet.
@@ -164,7 +157,7 @@ namespace geo {
     AuxDetSensitiveGeo const& PositionToSensitiveVolume
       (double const worldLoc[3], size_t& sv) const;
     //@}
-    AuxDetSensitiveGeo const& SensitiveVolume(size_t sv) const { return fSensitive[sv];   }
+    AuxDetSensitiveGeo const& SensitiveVolume(size_t sv) const { return *fSensitive[sv];   }
     size_t                    NSensitiveVolume()         const { return fSensitive.size(); }
     
     /// @}
@@ -213,24 +206,26 @@ namespace geo {
     
   private:
     
-    using LocalTransformation_t = geo::LocalTransformationGeo
-      <geo::TransformationMatrix, LocalPoint_t, LocalVector_t>;
+    using LocalTransformation_t
+      = geo::LocalTransformationGeo<TGeoHMatrix, LocalPoint_t, LocalVector_t>;
     
+    
+    void FindAuxDetSensitive(std::vector<const TGeoNode*>& path,
+                             unsigned int                  depth);
+    void MakeAuxDetSensitive(std::vector<const TGeoNode*>& path,
+                             int                           depth);
+
     const TGeoVolume*     	         fTotalVolume; ///< Total volume of AuxDet, called vol*
     LocalTransformation_t 	         fTrans;       ///< Auxiliary detector-to-world transformation.
     double                	         fLength;      ///< length of volume, along z direction in local
     double                	         fHalfWidth1;  ///< 1st half width of volume, at -z/2 in local coordinates
     double                	         fHalfWidth2;  ///< 2nd half width (width1==width2 for boxes), at +z/2
     double                	         fHalfHeight;  ///< half height of volume
-    std::vector<AuxDetSensitiveGeo> fSensitive;   ///< sensitive volumes in the detector
+    std::vector<AuxDetSensitiveGeo*> fSensitive;   ///< sensitive volumes in the detector
     
     /// Extracts the size of the detector from the geometry information.
     void InitShapeSize();
-  }; // class AuxDetGeo
-  
-  static_assert(std::is_move_assignable_v<geo::AuxDetGeo>);
-  static_assert(std::is_move_constructible_v<geo::AuxDetGeo>);
-  
+  };
 }
 
 

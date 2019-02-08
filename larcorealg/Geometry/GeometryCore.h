@@ -58,7 +58,6 @@
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
-#include "larcorealg/Geometry/GeometryBuilder.h"
 #include "larcorealg/Geometry/GeometryDataContainers.h" // geo::TPCDataContainer
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect namespace
 #include "larcorealg/CoreUtils/RealComparisons.h"
@@ -5302,7 +5301,6 @@ namespace geo {
      * @brief Loads the geometry information from the specified files
      * @param gdmlfile path to file to be used for Geant4 simulation
      * @param rootfile path to file for internal geometry representation
-     * @param builder algorithm to be used for the interpretation of geometry
      * @param bForceReload reload even if there is already a valid geometry
      * @see ApplyChannelMap()
      *
@@ -5321,23 +5319,6 @@ namespace geo {
      * be considered complete, but the geometry service provider is not fully
      * initialized yet, since it's still necessary to provide or update the
      * channel mapping.
-     */
-    void LoadGeometryFile(
-      std::string gdmlfile, std::string rootfile,
-      geo::GeometryBuilder& builder,
-      bool bForceReload = false
-      );
-    
-    /**
-     * @brief Loads the geometry information from the specified files
-     * @param gdmlfile path to file to be used for Geant4 simulation
-     * @param rootfile path to file for internal geometry representation
-     * @param bForceReload reload even if there is already a valid geometry
-     * @see ApplyChannelMap()
-     *
-     * This legacy version of `LoadGeometryFile()` uses a standard
-     * `geo::GeometryBuilder` implementation.
-     * Do not rely on it if you can avoid it.
      */
     void LoadGeometryFile
       (std::string gdmlfile, std::string rootfile, bool bForceReload = false);
@@ -5392,9 +5373,13 @@ namespace geo {
     bool FindFirstVolume
       (std::string const& name, std::vector<const TGeoNode*>& path) const;
     
-    /// Parses ROOT geometry nodes and builds LArSoft geometry representation.
-    /// @param builder the algorithm to be used
-    void BuildGeometry(geo::GeometryBuilder& builder);
+    void FindCryostat(std::vector<const TGeoNode*>& path, unsigned int depth);
+    
+    void MakeCryostat(std::vector<const TGeoNode*>& path, int depth);
+    
+    void FindAuxDet(std::vector<const TGeoNode*>& path, unsigned int depth);
+    
+    void MakeAuxDet(std::vector<const TGeoNode*>& path, int depth);
     
     /// Wire ID check for WireIDsIntersect methods
     bool WireIDIntersectionCheck
@@ -5430,10 +5415,6 @@ namespace geo {
     double         fMinWireZDist;   ///< Minimum distance in Z from a point in which
                                     ///< to look for the closest wire
     double         fPositionWiggle; ///< accounting for rounding errors when testing positions
-    
-    /// Configuration for the geometry builder
-    /// (needed since builder is created after construction).
-    fhicl::ParameterSet fBuilderParameters;
     std::shared_ptr<const geo::ChannelMapAlg> fChannelMapAlg;
                                     ///< Object containing the channel to wire mapping
     

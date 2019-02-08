@@ -23,7 +23,6 @@
 #include <sstream> // std::ostringstream
 #include <limits> // std::numeric_limits<>
 #include <algorithm> // std::sort()
-#include <utility> // std::move()
 
 
 namespace geo{
@@ -65,30 +64,31 @@ namespace geo{
   }
 
   //......................................................................
-  CryostatGeo::CryostatGeo(
-    TGeoNode const& node, geo::TransformationMatrix&& trans,
-    TPCList_t&& TPCs,
-    OpDetList_t&& OpDets
-    )
-    : fTrans(std::move(trans))
-    , fTPCs(std::move(TPCs))
-    , fOpDets(std::move(OpDets))
+  CryostatGeo::CryostatGeo(std::vector<const TGeoNode*>& path, int depth)
+    : fTrans(path, depth)
     , fVolume(nullptr)
   {
     
     // all planes are going to be contained in the volume named volCryostat
     // now get the total volume of the Cryostat
-    fVolume = node.GetVolume();
+    fVolume = path[depth]->GetVolume();
     if(!fVolume)
       throw cet::exception("CryostatGeo") << "cannot find cryostat outline volume\n";
     
     MF_LOG_DEBUG("Geometry") << "cryostat  volume is " << fVolume->GetName();
-    
+
     // set the bounding box
     InitCryoBoundaries();
     
+    // find the tpcs for the cryostat so that you can use them later
+    this->FindTPC(path, depth);
+
+
     // Set OpDetName;
     fOpDetGeoName = "volOpDetSensitive";
+    
+    // find the opdets for the cryostat so that you can use them later
+    this->FindOpDet(path, depth);
     
     // sort the OpDets according to xyz position
     // 600 intended to separate dune10kt geometry from others when sorting
@@ -102,6 +102,39 @@ namespace geo{
   }
 
 
+  //......................................................................
+  void CryostatGeo::FindTPC(std::vector<const TGeoNode*>& path,
+			    unsigned int depth) 
+  {
+
+    const char* nm = path[depth]->GetName();
+    if( (strncmp(nm, "volTPC", 6) == 0) ){
+      this->MakeTPC(path,depth);
+      return;
+    }
+
+    //explore the next layer down
+    unsigned int deeper = depth+1;
+    if(deeper >= path.size()){
+      throw cet::exception("BadTGeoNode") << "exceeded maximum TGeoNode depth\n";
+    }
+
+    const TGeoVolume *v = path[depth]->GetVolume();
+    int nd = v->GetNdaughters();
+    for(int i = 0; i < nd; ++i){
+      path[deeper] = v->GetNode(i);
+      this->FindTPC(path, deeper);
+    }
+  
+  }
+
+  //......................................................................
+  void CryostatGeo::MakeTPC(std::vector<const TGeoNode*>& path, int depth) 
+  {
+    fTPCs.emplace_back(path, depth);
+  }
+
+  
   //......................................................................
   // sort the TPCGeo objects, and the PlaneGeo objects inside
   void CryostatGeo::SortSubVolumes(geo::GeoObjectSorter const& sorter)
@@ -151,6 +184,38 @@ namespace geo{
   }
 
 
+
+  //......................................................................
+  void CryostatGeo::FindOpDet(std::vector<const TGeoNode*>& path,
+			      unsigned int depth) 
+  {
+
+    const char* nm = path[depth]->GetName();
+    if( (strncmp(nm, OpDetGeoName().c_str(), 6) == 0) ){
+      this->MakeOpDet(path,depth);
+      return;
+    }
+
+    //explore the next layer down
+    unsigned int deeper = depth+1;
+    if(deeper >= path.size()){
+      throw cet::exception("BadTGeoNode") << "exceeded maximum TGeoNode depth\n";
+    }
+
+    const TGeoVolume *v = path[depth]->GetVolume();
+    int nd = v->GetNdaughters();
+    for(int i = 0; i < nd; ++i){
+      path[deeper] = v->GetNode(i);
+      this->FindOpDet(path, deeper);
+    }
+  
+  }
+
+  //......................................................................
+  void CryostatGeo::MakeOpDet(std::vector<const TGeoNode*>& path, int depth) 
+  {
+    fOpDets.emplace_back(path, depth);
+  }
 
   //......................................................................
   const OpDetGeo& CryostatGeo::OpDet(unsigned int iopdet) const

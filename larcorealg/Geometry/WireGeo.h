@@ -10,18 +10,16 @@
 #define LARCOREALG_GEOMETRY_WIREGEO_H
 
 // LArSoft
-#include "larcorealg/Geometry/TransformationMatrix.h"
 #include "larcorealg/Geometry/LocalTransformationGeo.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect
 
 // ROOT
 #include "TVector3.h"
-#include "Math/GenVector/Transform3D.h"
+#include "TGeoMatrix.h" // TGeoHMatrix
 
 // C/C++ libraries
 #include <vector>
 #include <string>
-#include <type_traits> // std::is_nothrow_move_constructible<>
 #include <cmath> // std::sin(), ...
 
 
@@ -96,19 +94,7 @@ namespace geo {
     
     ///@}
     
-    /**
-     * @brief Constructor from a ROOT geometry node and a transformation.
-     * @param node ROOT geometry node
-     * @param trans transformation matrix (local to world)
-     * 
-     * The node describes the shape of the wire (the only relevant information
-     * is in fact the length), while the transformation described its
-     * positioning in the world (both position and orientation).
-     * 
-     * A pointer to the node and a copy of the transformation matrix are kept
-     * in the `WireGeo` object.
-     */
-    WireGeo(TGeoNode const& node, geo::TransformationMatrix&& trans);
+    WireGeo(GeoNodePath_t const& path, size_t depth);
     
     
     /// @{
@@ -373,8 +359,8 @@ namespace geo {
       { return std::abs(w2.DistanceFrom(w1)); }
     
   private:
-    using LocalTransformation_t = geo::LocalTransformationGeo
-      <ROOT::Math::Transform3D, LocalPoint_t, LocalVector_t>;
+    using LocalTransformation_t
+      = geo::LocalTransformationGeo<TGeoHMatrix, LocalPoint_t, LocalVector_t>;
     
     const TGeoNode*    fWireNode;  ///< Pointer to the wire node
     double             fThetaZ;    ///< angle of the wire with respect to the z direction
@@ -404,12 +390,8 @@ namespace geo {
     
     static double gausSum(double a, double b) { return std::sqrt(a*a + b*b); }
     
-  }; // class WireGeo
-  
-  static_assert(std::is_move_assignable_v<geo::WireGeo>);
-  static_assert(std::is_move_constructible_v<geo::WireGeo>);
-  
-} // namespace geo
+  };
+}
 
 
 //------------------------------------------------------------------------------

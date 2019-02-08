@@ -12,7 +12,6 @@
 #include "larcorealg/CoreUtils/DereferenceIterator.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "larcorealg/Geometry/SimpleGeo.h"
-#include "larcorealg/Geometry/TransformationMatrix.h"
 #include "larcorealg/Geometry/LocalTransformationGeo.h"
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
 #include "larcorealg/Geometry/Decomposer.h"
@@ -83,7 +82,6 @@ namespace geo {
     
   public:
     
-    using WireCollection_t = std::vector<geo::WireGeo>;
     using GeoNodePath_t = std::vector<TGeoNode const*>;
     
     /// @{
@@ -163,11 +161,7 @@ namespace geo {
     
     
     /// Construct a representation of a single plane of the detector
-    PlaneGeo(
-      TGeoNode const& node,
-      geo::TransformationMatrix&& trans,
-      WireCollection_t&& wires
-      );
+    PlaneGeo(GeoNodePath_t& path, size_t depth);
     
     
     /// @{
@@ -366,7 +360,7 @@ namespace geo {
      * (note that all data types here can be replaced with `auto`).
      * 
      */
-    auto IterateWires() const -> WireCollection_t const&
+    auto IterateWires() const
       { return fWire; }
     
     /// @}
@@ -1261,6 +1255,9 @@ namespace geo {
     
   private:
     
+    void FindWire(GeoNodePath_t& path, size_t depth);
+    void MakeWire(GeoNodePath_t& path, size_t depth);
+    
     /// Sets the geometry directions.
     void DetectGeometryDirections();
     
@@ -1307,9 +1304,10 @@ namespace geo {
     bool shouldFlipWire(geo::WireGeo const& wire) const;
     
   private:
+    using WireCollection_t = std::vector<geo::WireGeo>;
     
     using LocalTransformation_t
-      = geo::LocalTransformationGeo<ROOT::Math::Transform3D, LocalPoint_t, LocalVector_t>;
+      = geo::LocalTransformationGeo<TGeoHMatrix, LocalPoint_t, LocalVector_t>;
     
     struct RectSpecs {
       double halfWidth;

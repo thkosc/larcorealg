@@ -12,7 +12,7 @@
 #include "larcorealg/Geometry/WireGeo.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect::convertTo()
 #include "larcorealg/CoreUtils/RealComparisons.h"
-#include "larcorealg/CoreUtils/SortByPointers.h"
+#include "larcorealg/CoreUtils/SortByPointers.h" // util::makePointerVector()
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi()
 
 // Framework includes
@@ -433,16 +433,11 @@ namespace geo{
   //----------------------------------------------------------------------------
   //---  geo::PlaneGeo
   //---
-  PlaneGeo::PlaneGeo(
-    TGeoNode const& node,
-    geo::TransformationMatrix&& trans,
-    WireCollection_t&& wires
-    )
-    : fTrans(std::move(trans))
-    , fVolume(node.GetVolume())
+  PlaneGeo::PlaneGeo(GeoNodePath_t& path, size_t depth)
+    : fTrans(path, depth)
+    , fVolume(path[depth]->GetVolume())
     , fView(geo::kUnknown)
     , fOrientation(geo::kVertical)
-    , fWire(std::move(wires))
     , fWirePitch(0.)
     , fSinPhiZ(0.)
     , fCosPhiZ(0.)
@@ -453,11 +448,15 @@ namespace geo{
     assert(depth < path.size());
     
     if (!fVolume) {
+      TGeoNode const* pNode = path[depth];
       throw cet::exception("PlaneGeo")
-        << "Plane geometry node " << node.IsA()->GetName()
-        << "[" << node.GetName() << ", #" << node.GetNumber()
+        << "Plane geometry node " << pNode->IsA()->GetName()
+        << "[" << pNode->GetName() << ", #" << pNode->GetNumber()
         << "] has no volume!\n";
     }
+    
+    // find the wires for the plane so that you can use them later
+    FindWire(path, depth);
     
     // view is now set at TPC level with SetView
     
@@ -514,6 +513,38 @@ namespace geo{
     return *pWire;
   } // PlaneGeo::Wire(int)
   
+  //......................................................................
+
+  void PlaneGeo::FindWire(GeoNodePath_t& path, size_t depth) 
+  {
+    // Check if the current node is a wire
+    const char* wireLabel = "volTPCWire";
+    auto const labelLength = strlen(wireLabel);
+    if(strncmp(path[depth]->GetName(), wireLabel, labelLength) == 0){
+      MakeWire(path, depth);
+      return;
+    }
+  
+    // Explore the next layer down
+    unsigned int deeper = depth+1;
+    if (deeper>=path.size()) {
+      throw cet::exception("ExceededMaxDepth") << "Exceeded maximum depth\n";
+    }
+    const TGeoVolume* v = path[depth]->GetVolume();
+    int nd = v->GetNdaughters();
+    for (int i=0; i<nd; ++i) {
+      path[deeper] = v->GetNode(i);
+      FindWire(path, deeper);
+    }
+  }
+
+  //......................................................................
+
+  void PlaneGeo::MakeWire(GeoNodePath_t& path, size_t depth) 
+  {
+    fWire.emplace_back(path, depth);
+  }
+
   //......................................................................
 
   // sort the WireGeo objects
