@@ -26,41 +26,12 @@
 namespace geo{
   
   //-----------------------------------------
-  AuxDetSensitiveGeo::AuxDetSensitiveGeo(std::vector<const TGeoNode*> const& path, int depth)
-    : fTrans(path, depth)
+  AuxDetSensitiveGeo::AuxDetSensitiveGeo
+    (TGeoNode const& node, geo::TransformationMatrix&& trans)
+    : fTrans(std::move(trans))
+    , fTotalVolume(node.GetVolume())
   {
     
-    fTotalVolume = path[depth]->GetVolume();
-    if(!fTotalVolume){
-      throw cet::exception("AuxDetSensitiveGeo") << "cannot find AuxDetSensitive volume\n";
-    }
-    
-    MF_LOG_DEBUG("Geometry") << "detector sensitive total  volume is " << fTotalVolume->GetName();
-    
-    InitShapeSize();
-
-  }
-
-  //-----------------------------------------
-  AuxDetSensitiveGeo::AuxDetSensitiveGeo(const TGeoVolume* volume, 
-					 TGeoHMatrix const& rotation)
-    : fTrans(rotation)
-    , fTotalVolume(volume)
-  {
-    assert(fTotalVolume);
-    MF_LOG_DEBUG("Geometry") << "detector sensitive total  volume is " << fTotalVolume->GetName();
-    
-    InitShapeSize();
-
-  }
-  
-  //-----------------------------------------
-  AuxDetSensitiveGeo::AuxDetSensitiveGeo(const TGeoVolume* volume, 
-					 TGeoHMatrix&& rotation)
-    : fTrans(std::move(rotation))
-    , fTotalVolume(volume)
-  {
-    assert(fTotalVolume);
     MF_LOG_DEBUG("Geometry") << "detector sensitive total  volume is " << fTotalVolume->GetName();
     
     InitShapeSize();

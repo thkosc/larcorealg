@@ -10,6 +10,7 @@
 
 // LArSoft libraries
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect namespace
+#include "larcorealg/CoreUtils/SortByPointers.h"
 
 // ROOT
 #include "TGeoTrd2.h"
@@ -21,73 +22,35 @@
 
 // C/C++ libraries
 #include <sstream> // std::ostringstream
+#include <utility> // std::move()
 #include <limits>
 
 namespace geo{
   
   //-----------------------------------------
-  AuxDetGeo::AuxDetGeo(std::vector<const TGeoNode*>& path, int depth)
-    : fTotalVolume(nullptr)
-    , fTrans(path, depth)
+  AuxDetGeo::AuxDetGeo(
+    TGeoNode const& node, geo::TransformationMatrix&& trans,
+    AuxDetSensitiveList_t&& sensitive
+    )
+    : fTotalVolume(node.GetVolume())
+    , fTrans(std::move(trans))
+    , fSensitive(std::move(sensitive))
   {
     
-    TGeoVolume *vc = path[depth]->GetVolume();
-    if(vc){
-      fTotalVolume = vc;
-      if(!fTotalVolume)
-        throw cet::exception("AuxDetGeo") << "cannot find AuxDet volume\n";
-      
-    }// end if found volume
+    if(!fTotalVolume)
+      throw cet::exception("AuxDetGeo") << "cannot find AuxDet volume\n";
     
     MF_LOG_DEBUG("Geometry") << "detector total  volume is " << fTotalVolume->GetName();
     
-    // look for sensitive volumes - if there are none then this aux det 
+    // if there are no sensitive volumes then this aux det
     // could be from an older gdml file than the introduction of AuxDetSensitiveGeo
     // in that case assume the full AuxDetGeo is sensitive and copy its information
     // into a single AuxDetSensitive
-    this->FindAuxDetSensitive(path, depth);
     if (fSensitive.empty())
-      fSensitive.push_back(new AuxDetSensitiveGeo(fTotalVolume, fTrans.Matrix()));
+      fSensitive.emplace_back(node, geo::TransformationMatrix(fTrans.Matrix()));
     
     InitShapeSize();
     
-  }
-  
-  //......................................................................
-  AuxDetGeo::~AuxDetGeo() {
-    for (auto const* sdet: fSensitive) delete sdet;
-  }
-  
-  
-  //......................................................................
-  void AuxDetGeo::FindAuxDetSensitive(std::vector<const TGeoNode*>& path,
-				      unsigned int depth) 
-  {
-    // Check if the current node is a senstive volume - we already know
-    // we are in an Auxiliary detector
-    std::string pathName(path[depth]->GetName());
-    if( pathName.find("Sensitive") != std::string::npos){
-      this->MakeAuxDetSensitive(path, depth);
-      return;
-    }
-  
-    // Explore the next layer down
-    unsigned int deeper = depth+1;
-    if (deeper>=path.size()) {
-      throw cet::exception("ExceededMaxDepth") << "Exceeded maximum depth\n";
-    }
-    const TGeoVolume* v = path[depth]->GetVolume();
-    int nd = v->GetNdaughters();
-    for (int i=0; i<nd; ++i) {
-      path[deeper] = v->GetNode(i);
-      this->FindAuxDetSensitive(path, deeper);
-    }
-  }
-
-  //......................................................................
-  void AuxDetGeo::MakeAuxDetSensitive(std::vector<const TGeoNode*>& path, int depth) 
-  {
-    fSensitive.push_back(new AuxDetSensitiveGeo(path, depth));
   }
   
   //......................................................................
@@ -178,9 +141,10 @@ namespace geo{
   //......................................................................  
   void AuxDetGeo::SortSubVolumes(GeoObjectSorter const& sorter)
   {
-    sorter.SortAuxDetSensitive(fSensitive);
-
-    return;
+    // the sorter interface requires a vector of pointers;
+    // sorting is faster, but some gymnastics is required:
+    util::SortByPointers
+      (fSensitive, [&sorter](auto& coll){ sorter.SortAuxDetSensitive(coll); });
   }
 
   //......................................................................  
