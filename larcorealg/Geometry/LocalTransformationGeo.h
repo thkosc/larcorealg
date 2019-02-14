@@ -11,6 +11,7 @@
 
 // LArSoft libraries
 #include "larcorealg/Geometry/LocalTransformation.h"
+#include "larcorealg/Geometry/GeoVectorLocalTransformation.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h" // geo::Point_t...
 
 

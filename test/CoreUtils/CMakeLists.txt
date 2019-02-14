@@ -25,6 +25,7 @@ cet_test( DumpUtils_test
   USE_BOOST_UNIT
   )
 cet_test( SortByPointers_test USE_BOOST_UNIT )
+cet_test( span_test USE_BOOST_UNIT )
 
 # test quiet_Math_Functor.h
 get_property(IncludeDirectories DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
