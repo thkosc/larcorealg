@@ -1028,63 +1028,6 @@ namespace geo {
 
 
   //......................................................................
-  class ROOTGeoPathBuilder {
-      public:
-    using PathIndex_t = std::vector<std::size_t>;
-    using Path_t = std::vector<TGeoNode const*>;
-    
-    ROOTGeoPathBuilder(TGeoNode const* rootNode): pRoot(rootNode) {}
-    
-    Path_t toPath(PathIndex_t const& pathIndex) const
-      { return toPath(pRoot, pathIndex); }
-    
-    static PathIndex_t toPathIndex(Path_t const& path)
-      {
-        assert(!path.empty());
-        PathIndex_t indices;
-        auto itParent = path.begin();
-        auto itDaughter = itParent;
-        while (++itDaughter != path.end()) {
-          indices.push_back(findDaughterIndex(*itDaughter, *itParent));
-          itParent = itDaughter;
-        }
-        return indices;
-      } // toPathIndex()
-    
-    static Path_t toPath
-      (TGeoNode const* rootNode, PathIndex_t const& pathIndex)
-      {
-         Path_t path;
-         path.push_back(rootNode);
-         TGeoNode const* pCurrentNode = path.back();
-         for (std::size_t daughterIndex: pathIndex) {
-           pCurrentNode = pCurrentNode->GetVolume()->GetNode(daughterIndex);
-           path.push_back(pCurrentNode);
-         }
-         return path;
-      } // toPath()
-    
-    static PathIndex_t emptyPathIndex() { return {}; }
-    static Path_t emptyPath() { return {}; }
-    
-      private:
-    TGeoNode const* pRoot = nullptr;
-
-    static std::size_t findDaughterIndex
-      (TGeoNode const* pDaughter, TGeoNode const* pParent)
-      {
-         assert(pParent);
-         std::size_t n = pParent->GetNdaughters();
-         for (std::size_t i = 0U; i < n; ++i) {
-           if (pParent->GetDaughter(i) == pDaughter) return i;
-         }
-         throw std::runtime_error("Node is not daughter of specified parent!");
-      } // findDaughterIndex()
-    
-  }; // class ROOTGeoPathBuilder
- 
- 
-  //......................................................................
   void GeometryCore::BuildGeometry(geo::GeometryBuilder& builder) {
     
     geo::GeoNodePath path{ gGeoManager->GetTopNode() };

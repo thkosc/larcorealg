@@ -450,7 +450,6 @@ namespace geo{
     , fDecompFrame()
     , fCenter()
   {
-    assert(depth < path.size());
     
     if (!fVolume) {
       throw cet::exception("PlaneGeo")

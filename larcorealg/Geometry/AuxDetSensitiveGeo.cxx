@@ -31,7 +31,7 @@ namespace geo{
     : fTrans(std::move(trans))
     , fTotalVolume(node.GetVolume())
   {
-    assert(fTotalVolume);
+    
     MF_LOG_DEBUG("Geometry") << "detector sensitive total  volume is " << fTotalVolume->GetName();
     
     InitShapeSize();
