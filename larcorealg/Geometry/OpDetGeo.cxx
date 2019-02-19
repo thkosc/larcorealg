@@ -29,10 +29,10 @@ namespace {
 namespace geo{
 
   //-----------------------------------------
-  OpDetGeo::OpDetGeo(std::vector<const TGeoNode*>& path, int depth)
-    : fTrans(path, depth)
+  OpDetGeo::OpDetGeo(TGeoNode const& node, geo::TransformationMatrix&& trans)
+    : fTrans(std::move(trans))
   {
-    fOpDetNode = path[depth];
+    fOpDetNode = &node;
     
     fCenter = toWorldCoords(geo::origin<LocalPoint_t>());
     

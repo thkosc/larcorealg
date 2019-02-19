@@ -20,6 +20,16 @@
 #include "TVector3.h"
 #include "TLorentzVector.h"
 
+// C/C++ standard library
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <array>
+#include <vector>
+#include <numeric> // std::iota()
+#include <type_traits> // std::is_same, std::decay_t
+#include <stdexcept> // std::runtime_error
+#include <cmath> // std::nan
 
 
 //------------------------------------------------------------------------------
@@ -1000,6 +1010,56 @@ struct VectorTraitsTester {
 
 
 //------------------------------------------------------------------------------
+template <typename Vector>
+void test_CoordConstIterator() {
+  
+  using Vector_t = Vector;
+  using Coord_t = geo::vect::coordinate_t<Vector_t>;
+  
+  std::array<Coord_t, geo::vect::dimension<Vector_t>()> expected;
+  std::iota(expected.begin(), expected.end(), Coord_t(1));
+  auto const v = geo::vect::makeFromCoords<Vector_t>(expected);
+  
+  unsigned int index = 0;
+  for (Coord_t c: geo::vect::iterateCoords(v)) {
+    BOOST_CHECK_EQUAL(c, expected[index]);
+    ++index;
+  } // for
+  
+  // same test as above,
+  // but implicitly using ROOT::Math::cbegin()/cend() we provide
+  index = 0;
+  for (Coord_t c: v) {
+    BOOST_CHECK_EQUAL(c, expected[index]);
+    ++index;
+  } // for
+  
+} // test_CoordConstIterator()
+
+
+//------------------------------------------------------------------------------
+template <typename Vector>
+void test_fillCoords() {
+  
+  using Vector_t = Vector;
+  using Coord_t = geo::vect::coordinate_t<Vector_t>;
+  
+  std::array<Coord_t, geo::vect::dimension<Vector_t>()> expected;
+  std::iota(expected.begin(), expected.end(), Coord_t(1));
+  auto const v = geo::vect::makeFromCoords<Vector_t>(expected);
+  
+  Coord_t coords[geo::vect::dimension<Vector_t>()];
+  auto const dim = geo::vect::fillCoords(coords, v);
+  
+  BOOST_CHECK_EQUAL(dim, expected.size());
+  
+  for (unsigned int index = 0; index < dim; ++index)
+    BOOST_CHECK_EQUAL(coords[index], expected[index]);
+  
+} // test_fillCoords()
+
+
+//------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(MiddlePointAccumulator_test) {
   test_MiddlePointAccumulator_defaultConstructor();
   test_MiddlePointAccumulator_sequenceConstructor();
@@ -1074,5 +1134,22 @@ BOOST_AUTO_TEST_CASE(vectorConversion_test) {
   test_vector4Dconvert<TLorentzVector, TLorentzVector>();
   
 } // BOOST_AUTO_TEST_CASE(vectorAccess_test)
+
+//------------------------------------------------------------------------------
+BOOST_AUTO_TEST_CASE(vectorCoordinateIteration_test) {
+  
+  test_CoordConstIterator<TVector2      >();
+  test_CoordConstIterator<TVector3      >();
+  test_CoordConstIterator<geo::Point_t  >();
+  test_CoordConstIterator<geo::Vector_t >();
+  test_CoordConstIterator<TLorentzVector>();
+  
+  test_fillCoords<TVector2      >();
+  test_fillCoords<TVector3      >();
+  test_fillCoords<geo::Point_t  >();
+  test_fillCoords<geo::Vector_t >();
+  test_fillCoords<TLorentzVector>();
+  
+} // BOOST_AUTO_TEST_CASE(vectorCoordinateIteration_test)
 
 //------------------------------------------------------------------------------
