@@ -94,11 +94,11 @@ namespace geo{
     // 600 intended to separate dune10kt geometry from others when sorting
     ///\todo: remove the hard-coded 600 in favor of selecting sorting the same way as in ChannelMapAlgs
     /// (LArSoft issue #16812)
-    auto sorter = (fOpDets.size() != 600)? opdet_sort: DUNE_opdet_sort;
+  /*  auto sorter = (fOpDets.size() != 600)? opdet_sort: DUNE_opdet_sort;
     util::SortByPointers(fOpDets,
       [&sorter](auto& coll){ std::sort(coll.begin(), coll.end(), sorter); }
       );
-    
+    */
   }
 
 
@@ -154,6 +154,10 @@ namespace geo{
     //
     
     // sorting of optical detectors happens elsewhere
+    util::SortByPointers(fOpDets,
+      [&sorter](auto& coll){ sorter.SortOpDets(coll); }
+      );
+    
     
   } // CryostatGeo::SortSubVolumes()
 
