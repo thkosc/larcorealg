@@ -6,10 +6,11 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "larcorealg/Geometry/GeoObjectSorter.h"
+#include "larcorealg/Geometry/OpDetGeo.h"
 
 namespace geo{
 
-    static bool sortorderOpDets     (const OpDetGeo* t1, const OpDetGeo* t2) const
+    static bool sortorderOpDets     (const OpDetGeo* t1, const OpDetGeo* t2)
     {
       double xyz1[3] = {0.}, xyz2[3] = {0.};
       double local[3] = {0.};
@@ -26,5 +27,6 @@ namespace geo{
 
     void GeoObjectSorter::SortOpDets(std::vector<geo::OpDetGeo*> & opdet) const {
       std::sort(opdet.begin(), opdet.end(), sortorderOpDets);
+      return;
     }
 }

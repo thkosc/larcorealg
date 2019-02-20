@@ -28,42 +28,6 @@
 
 namespace geo{
 
-
-  //......................................................................
-  // Define sort order for detector tpcs.
-  static bool opdet_sort(const OpDetGeo* t1, const OpDetGeo* t2) 
-  {
-    double xyz1[3] = {0.}, xyz2[3] = {0.};
-    double local[3] = {0.};
-    t1->LocalToWorld(local, xyz1);
-    t2->LocalToWorld(local, xyz2);
-
-    if(xyz1[2]!=xyz2[2])
-      return xyz1[2]>xyz2[2];
-    else if(xyz1[1]!=xyz2[1])
-      return xyz1[1]>xyz2[1];
-    else
-      return xyz1[0]>xyz2[0];
-  }
-
-  // DUNE specific sorting originally intended for 10kt
-  // executed when there are 600+ opdets. -talion
-  ///\todo: move dune opdet sorting to appropriate place in dunetpc 
-  static bool DUNE_opdet_sort(const OpDetGeo* t1, const OpDetGeo* t2)
-  {
-    double xyz1[3] = {0.}, xyz2[3] = {0.};
-    double local[3] = {0.};
-    t1->LocalToWorld(local, xyz1);
-    t2->LocalToWorld(local, xyz2);
-
-    if(xyz1[0]!=xyz2[0])
-      return xyz1[0]>xyz2[0];
-    else if(xyz1[2]!=xyz2[2])
-      return xyz1[2]>xyz2[2];
-    else
-    return xyz1[1]>xyz2[1];
-  }
-
   //......................................................................
   CryostatGeo::CryostatGeo(
     TGeoNode const& node, geo::TransformationMatrix&& trans,
@@ -119,11 +83,8 @@ namespace geo{
     //
     // optical detectors
     //
-    
-    // sorting of optical detectors happens elsewhere
-    util::SortByPointers(fOpDets,
-      [&sorter](auto& coll){ sorter.SortOpDets(coll); }
-      );
+    util::SortByPointers
+      (fOpDets, [&sorter](auto& coll){ sorter.SortOpDets(coll); });
     
     
   } // CryostatGeo::SortSubVolumes()
