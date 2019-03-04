@@ -37,7 +37,7 @@ namespace geo{
     virtual void SortPlanes   	    (std::vector<geo::PlaneGeo*>       	  & pgeo, 		 
 			      	     geo::DriftDirection_t     	    const & driftDir) const = 0;
     virtual void SortWires    	    (std::vector<geo::WireGeo*>     	  & wgeo)     const = 0;
-    void SortOpDets        (std::vector<geo::OpDetGeo*>          & opdet) const; 
+    virtual void SortOpDets        (std::vector<geo::OpDetGeo*>          & opdet) const; 
   private:
     
   };
