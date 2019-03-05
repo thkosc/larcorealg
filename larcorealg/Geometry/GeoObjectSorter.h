@@ -22,7 +22,7 @@ namespace geo{
   class TPCGeo;
   class PlaneGeo;
   class WireGeo;
-  
+  class OpDetGeo;
   /// @ingroup Geometry
   class GeoObjectSorter {
 
@@ -37,7 +37,7 @@ namespace geo{
     virtual void SortPlanes   	    (std::vector<geo::PlaneGeo*>       	  & pgeo, 		 
 			      	     geo::DriftDirection_t     	    const & driftDir) const = 0;
     virtual void SortWires    	    (std::vector<geo::WireGeo*>     	  & wgeo)     const = 0;
-    
+    virtual void SortOpDets        (std::vector<geo::OpDetGeo*>          & opdet) const; 
   private:
     
   };

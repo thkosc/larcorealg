@@ -28,42 +28,6 @@
 
 namespace geo{
 
-
-  //......................................................................
-  // Define sort order for detector tpcs.
-  static bool opdet_sort(const OpDetGeo* t1, const OpDetGeo* t2) 
-  {
-    double xyz1[3] = {0.}, xyz2[3] = {0.};
-    double local[3] = {0.};
-    t1->LocalToWorld(local, xyz1);
-    t2->LocalToWorld(local, xyz2);
-
-    if(xyz1[2]!=xyz2[2])
-      return xyz1[2]>xyz2[2];
-    else if(xyz1[1]!=xyz2[1])
-      return xyz1[1]>xyz2[1];
-    else
-      return xyz1[0]>xyz2[0];
-  }
-
-  // DUNE specific sorting originally intended for 10kt
-  // executed when there are 600+ opdets. -talion
-  ///\todo: move dune opdet sorting to appropriate place in dunetpc 
-  static bool DUNE_opdet_sort(const OpDetGeo* t1, const OpDetGeo* t2)
-  {
-    double xyz1[3] = {0.}, xyz2[3] = {0.};
-    double local[3] = {0.};
-    t1->LocalToWorld(local, xyz1);
-    t2->LocalToWorld(local, xyz2);
-
-    if(xyz1[0]!=xyz2[0])
-      return xyz1[0]>xyz2[0];
-    else if(xyz1[2]!=xyz2[2])
-      return xyz1[2]>xyz2[2];
-    else
-    return xyz1[1]>xyz2[1];
-  }
-
   //......................................................................
   CryostatGeo::CryostatGeo(
     TGeoNode const& node, geo::TransformationMatrix&& trans,
@@ -90,15 +54,6 @@ namespace geo{
     // Set OpDetName;
     fOpDetGeoName = "volOpDetSensitive";
     
-    // sort the OpDets according to xyz position
-    // 600 intended to separate dune10kt geometry from others when sorting
-    ///\todo: remove the hard-coded 600 in favor of selecting sorting the same way as in ChannelMapAlgs
-    /// (LArSoft issue #16812)
-    auto sorter = (fOpDets.size() != 600)? opdet_sort: DUNE_opdet_sort;
-    util::SortByPointers(fOpDets,
-      [&sorter](auto& coll){ std::sort(coll.begin(), coll.end(), sorter); }
-      );
-    
   }
 
 
@@ -119,8 +74,9 @@ namespace geo{
     //
     // optical detectors
     //
+    util::SortByPointers
+      (fOpDets, [&sorter](auto& coll){ sorter.SortOpDets(coll); });
     
-    // sorting of optical detectors happens elsewhere
     
   } // CryostatGeo::SortSubVolumes()
 
