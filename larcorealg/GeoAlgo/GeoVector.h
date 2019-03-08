@@ -201,7 +201,6 @@ namespace geoalgo {
 }
 
 // Define a pointer comparison                                                                                                                     
-#ifndef __GCCXML__
 namespace std {
   template <>
   class less<geoalgo::Vector*>
@@ -211,8 +210,6 @@ namespace std {
     { return (*lhs) < (*rhs); }
   };
 }
-#endif
 
 #endif
 /** @} */ // end of doxygen group 
-
