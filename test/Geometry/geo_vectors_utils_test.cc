@@ -1115,23 +1115,33 @@ BOOST_AUTO_TEST_CASE(vectorProcessing_test) {
 //------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(vectorConversion_test) {
   // 2D
-  test_vector2Dconvert<TVector2     , TVector2>();
+  test_vector2Dconvert<TVector2              , TVector2              >();
+  test_vector2Dconvert<std::array<double, 2U>, TVector2              >();
+  test_vector2Dconvert<double[2U]            , TVector2              >();
   
   // 3D
-  test_vector3Dconvert<TVector3     , TVector3>();
-  test_vector3Dconvert<geo::Point_t , TVector3>();
-  test_vector3Dconvert<geo::Vector_t, TVector3>();
-  test_vector3Dconvert<TVector3     , geo::Point_t >();
-  test_vector3Dconvert<geo::Point_t , geo::Point_t >();
-  test_vector3Dconvert<geo::Vector_t, geo::Point_t >();
-  test_vector3Dconvert<TVector3     , geo::Vector_t>();
-  test_vector3Dconvert<geo::Point_t , geo::Vector_t>();
-  test_vector3Dconvert<geo::Vector_t, geo::Vector_t>();
+  test_vector3Dconvert<std::array<double, 3U>, TVector3     >();
+  test_vector3Dconvert<double[3U]            , TVector3     >();
+  test_vector3Dconvert<TVector3              , TVector3     >();
+  test_vector3Dconvert<geo::Point_t          , TVector3     >();
+  test_vector3Dconvert<geo::Vector_t         , TVector3     >();
+  test_vector3Dconvert<std::array<double, 3U>, geo::Point_t >();
+  test_vector3Dconvert<double[3U]            , geo::Point_t >();
+  test_vector3Dconvert<TVector3              , geo::Point_t >();
+  test_vector3Dconvert<geo::Point_t          , geo::Point_t >();
+  test_vector3Dconvert<geo::Vector_t         , geo::Point_t >();
+  test_vector3Dconvert<std::array<double, 3U>, geo::Vector_t>();
+  test_vector3Dconvert<double[3U]            , geo::Vector_t>();
+  test_vector3Dconvert<TVector3              , geo::Vector_t>();
+  test_vector3Dconvert<geo::Point_t          , geo::Vector_t>();
+  test_vector3Dconvert<geo::Vector_t         , geo::Vector_t>();
   
   test_transform<TVector3>();
   
   // 4D
-  test_vector4Dconvert<TLorentzVector, TLorentzVector>();
+  test_vector4Dconvert<TLorentzVector        , TLorentzVector>();
+  test_vector4Dconvert<std::array<double, 4U>, TLorentzVector>();
+  test_vector4Dconvert<double[4U]            , TLorentzVector>();
   
 } // BOOST_AUTO_TEST_CASE(vectorAccess_test)
 

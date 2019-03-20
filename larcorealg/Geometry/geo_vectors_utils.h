@@ -143,15 +143,13 @@ namespace geo {
       constexpr bool HasZ() { return HasGetter<Vector>::Z; }
       template <typename Vector>
       constexpr bool HasT() { return HasGetter<Vector>::T; }
-
+      
+      template <typename Vector, typename = void>
+      struct DimensionImpl;
+      
       template <typename Vector>
-      constexpr unsigned int dimension() {
-        return HasT<Vector>()? 4U
-          : HasZ<Vector>()? 3U
-          : HasY<Vector>()? 2U
-          : HasX<Vector>()? 1U
-          : 0U;
-      } // dimension()
+      constexpr unsigned int dimension()
+        { return DimensionImpl<Vector>::value; }
       
       
       /// A STL array suitable to contain all coordinate values of a `Vector`.
@@ -1657,6 +1655,30 @@ namespace geo::vect::details {
     }
   
   //----------------------------------------------------------------------------
+  template <typename Vector, typename /* = void */>
+  struct DimensionImpl
+    : public std::integral_constant<
+      unsigned int,
+      HasT<Vector>()? 4U
+        : HasZ<Vector>()? 3U
+        : HasY<Vector>()? 2U
+        : HasX<Vector>()? 1U
+        : 0U
+      >
+    {};
+  
+  template <typename Array>
+  struct DimensionImpl<Array, std::enable_if_t<(std::extent_v<Array> > 0)>>
+    : public std::integral_constant<unsigned int, std::extent_v<Array>>
+    {};
+  
+  template <typename T, std::size_t Dim>
+  struct DimensionImpl<std::array<T, Dim>, void>
+    : public std::integral_constant<unsigned int, Dim>
+    {};
+  
+  
+  //----------------------------------------------------------------------------
   /// Type of sequence of indices up to `Vector` size.
   template <typename Vector>
   using VectorIndices_t = std::make_index_sequence<dimension<Vector>()>;
@@ -1882,51 +1904,87 @@ namespace geo::vect::details {
   }; // struct ConvertToImplBase
   
   
-  // special pass-through case
   template <typename Dest, typename Source, unsigned int Dim>
-  struct ConvertToImpl {
+  struct ConvertArrayTo: private ConvertToImplBase<Dest, Source>
+  {
+    static_assert
+      (std::is_arithmetic_v<std::decay_t<decltype(std::declval<Source>()[0])>>);
+    static Dest convert(Source const& v)
+      { return geo::vect::makeFromCoords<Dest>(v); }
+  }; // struct ConvertArrayTo
+  
+  
+  // will handle cases with specific dimensionality
+  template <typename Dest, typename Source, unsigned int Dim>
+  struct ConvertToImplDim;
+  
+  
+  template <typename Dest, typename Source>
+  struct ConvertToImpl
+    : public ConvertToImplDim<Dest, Source, dimension<Source>()>
+    {};
+  
+  
+  template <typename Dest, typename T, std::size_t Dim>
+  struct ConvertToImpl<Dest, std::array<T, Dim>>
+    : public ConvertArrayTo<Dest, std::array<T, Dim>, Dim> 
+    {};
+  
+  template <typename Dest, typename T, std::size_t Dim>
+  struct ConvertToImpl<Dest, T[Dim]>
+    : public ConvertArrayTo<Dest, T[Dim], Dim> 
+    {};
+  
+  // special special implementation for T*, since we can't guess its dimension
+  template <typename Dest, typename T>
+  struct ConvertToImpl<Dest, T*> {
+    static_assert(std::is_arithmetic_v<T>);
+    static Dest convert(T* v) { return geo::vect::makeFromCoords<Dest>(v); }
+  }; // struct ConvertToImpl<T*>
+  
+  
+  // handled cases with specific dimensionality
+  template <typename Dest, typename Source, unsigned int Dim>
+  struct ConvertToImplDim {
     // trivial to do: open a feature request!
     static_assert(
       AlwaysFalse<Dest>(),
       "This vector dimensionality is not implemented yet."
       );
-  }; // struct ConvertToImpl
+  }; // struct ConvertToImplDim
   
   template <typename Dest, typename Source>
-  struct ConvertToImpl<Dest, Source, 2U>
+  struct ConvertToImplDim<Dest, Source, 2U>
     : private ConvertToImplBase<Dest, Source>
   {
     static Dest convert(Source const& v)
       { return { Xcoord(v)(), Ycoord(v)() }; }
-  }; // struct ConvertToImpl<2U>
+  }; // struct ConvertToImplDim<2U>
   
   template <typename Dest, typename Source>
-  struct ConvertToImpl<Dest, Source, 3U>
+  struct ConvertToImplDim<Dest, Source, 3U>
     : private ConvertToImplBase<Dest, Source>
   {
     static Dest convert(Source const& v)
       { return { Xcoord(v)(), Ycoord(v)(), Zcoord(v)() }; }
-  }; // struct ConvertToImpl<3U>
+  }; // struct ConvertToImplDim<3U>
   
   template <typename Dest, typename Source>
-  struct ConvertToImpl<Dest, Source, 4U>
+  struct ConvertToImplDim<Dest, Source, 4U>
     : private ConvertToImplBase<Dest, Source>
   {
     static Dest convert(Source const& v)
       { return { Xcoord(v)(), Ycoord(v)(), Zcoord(v)(), Tcoord(v)() }; }
-  }; // struct ConvertToImpl<4U>
+  }; // struct ConvertToImplDim<4U>
   
   
-  template
-    <typename Dest, typename Source, unsigned int Dim = dimension<Source>()>
-  struct ConvertToDispatcher: public ConvertToImpl<Dest, Source, Dim> {};
+  template <typename Dest, typename Source>
+  struct ConvertToDispatcher: public ConvertToImpl<Dest, Source> {};
   
   // special pass-through case
-  template <typename Vector, unsigned int Dim>
-  struct ConvertToDispatcher<Vector, Vector, Dim> {
-    static_assert
-      (Dim == dimension<Vector>(), "Inconsistent vector dimension");
-    static constexpr Vector convert(Vector const& v) { return v; }
+  template <typename Vector>
+  struct ConvertToDispatcher<Vector, Vector> {
+    static constexpr decltype(auto) convert(Vector const& v) { return v; }
   }; // struct ConvertToDispatcher<pass through>
   
   
