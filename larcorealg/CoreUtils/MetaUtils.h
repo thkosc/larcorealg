@@ -25,6 +25,7 @@
 
 
 // C/C++ standard libraries
+#include <array>
 #include <type_traits>
 
 
@@ -246,6 +247,35 @@ namespace util {
   //--- END MetaprogrammingBase ------------------------------------------------
   
   
+  //--- BEGIN Type identification ----------------------------------------------
+  /**
+   * @defgroup MetaprogrammingTypeIdentification Determination of specific types
+   * @brief Traits to identify specific types.
+   * @ingroup Metaprogramming
+   */
+  /// @{
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Identifies whether the specified type is a STL array.
+   * @tparam T the type to be tested
+   * @see `util::is_STLarray_v`
+   */
+  template <typename>
+  struct is_STLarray: public std::false_type {};
+  
+  /**
+   * @brief A constant describing whether the specified type is a STL array.
+   * @tparam T the type to be tested
+   * @see `util::is_STLarray`
+   */
+  template <typename T>
+  constexpr bool is_STLarray_v = is_STLarray<T>::value;
+  
+  
+  /// @}
+  //--- END Type identification ------------------------------------------------
+  
 } // namespace util
 
 
@@ -272,6 +302,11 @@ namespace util {
   //----------------------------------------------------------------------------
   template <typename T>
   void staticDumpClassName() { (void) details::ClassNameStaticDumper<T>(); }
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename T, std::size_t N>
+  struct is_STLarray<std::array<T, N>>: public std::true_type {};
   
   
   //----------------------------------------------------------------------------
