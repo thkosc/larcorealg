@@ -26,6 +26,7 @@
 
 // C/C++ standard libraries
 #include <array>
+#include <functional> // std::reference_wrapper<>
 #include <type_traits>
 
 
@@ -273,8 +274,103 @@ namespace util {
   constexpr bool is_STLarray_v = is_STLarray<T>::value;
   
   
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Identifies whether the specified type is a `std::reference_wrapper`.
+   * @tparam T the type to be tested
+   * @see `util::is_reference_wrapper_v`
+   */
+  template <typename T>
+  struct is_reference_wrapper;
+  
+  /**
+   * @brief A constant describing whether the specified type is a
+   *        `std::reference_wrapper`.
+   * @tparam T the type to be tested
+   * @see `util::is_STLarray`
+   */
+  template <typename T>
+  constexpr bool is_reference_wrapper_v = is_reference_wrapper<T>::value;
+  
+  
   /// @}
   //--- END Type identification ------------------------------------------------
+  
+  
+  //--- BEGIN Type manipulation ------------------------------------------------
+  /**
+   * @defgroup MetaprogrammingTypeManipulation Manipulation of types
+   * @brief Traits to change types.
+   * @ingroup Metaprogramming
+   */
+  /// @{
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Trait with type `Base`, plus the constantness as in `Key`.
+   * @tparam Base the basic type being returned
+   * @tparam Key a type expressing the constantness wanted for `Base`
+   * 
+   * The `type` member of this trait is:
+   * * the type `Base` with constantness removed, if `Key` is non-constant type
+   * * the type `Base` with constantness added, if `Key` is a constant type
+   * 
+   * This trait passes through references. Both `Base` and `Key` are treated as
+   * they were no references (e.g. a `int const&` is treated as a `int const`).
+   * The referenceness of the type in the trait is the same as the one of
+   * `Base`.
+   * 
+   * Therefore, for example:
+   * * `with_const_as<int const, double>` yields `int`;
+   * * `with_const_as<int const, double const>` yields `int const`;
+   * * `with_const_as<int const&, double>` yields `int&`;
+   * * `with_const_as<int, double const&>` yields `int const`.
+   * 
+   * R-value references are likewise taken into account.
+   */
+  template <typename Base, typename Key>
+  struct with_const_as;
+  
+  /**
+   * @brief The type `Base`, plus the constantness as in `Key`.
+   * @tparam Base the basic type being returned
+   * @tparam Key a type expressing the constantness wanted for `Base`
+   * @see `util::with_const_as`
+   */
+  template <typename Base, typename Key>
+  using with_const_as_t = typename with_const_as<Base, Key>::type;
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Trait with type `T` stripped of all known reference types.
+   * @tparam T type to remove referenceness from
+   * 
+   * In addition of the standard C++ references, this trait also removes all
+   * pseudo-referenceness known (to it).
+   * That currently includes:
+   * * C++ l-value and r-value reference
+   * * `std::reference_wrapper`
+   * 
+   * The implementation removes all references recursively.
+   */
+  template <typename T>
+  struct strip_referenceness_type;
+  
+  /**
+   * @brief The type `T` stripped of all known reference types.
+   * @tparam T type to remove referenceness from
+   * @see `util::strip_referenceness_type`
+   */
+  template <typename T>
+  using strip_referenceness_t = typename strip_referenceness_type<T>::type;
+  
+  
+  //----------------------------------------------------------------------------
+  
+  
+  /// @}
+  //--- END Type manipulation --------------------------------------------------
   
 } // namespace util
 
@@ -287,6 +383,7 @@ namespace util {
   //----------------------------------------------------------------------------
   namespace details {
     
+    //--------------------------------------------------------------------------
     /// Implementation detail of `staticDumpClassName()`.
     template <typename T>
     struct ClassNameStaticDumper {
@@ -295,6 +392,103 @@ namespace util {
         "ClassNameStaticDumper<T>: look for T in the error message context"
         );
     }; // struct ClassNameStaticDumper
+    
+    //--------------------------------------------------------------------------
+    // implementation for `with_const_as`
+    
+    // - final implementation:
+    template <typename Base, typename /* Key */, typename = void>
+    struct with_const_as_impl
+      { using type = std::remove_const_t<Base>; };
+    
+    template <typename Base, typename Key>
+    struct with_const_as_impl
+      <Base, Key, std::enable_if_t<std::is_const_v<Key>>>
+      { using type = std::add_const_t<Base>; };
+    
+    // - implementation dispatcher for reference types
+    //   - pass through for not-reference types
+    template <typename Base, typename Key, typename = void>
+    struct with_const_as_dispatch_ref: with_const_as_impl<Base, Key> {};
+    //   - lvalue reference
+    template <typename Base, typename Key>
+    struct with_const_as_dispatch_ref
+      <Base, Key, std::enable_if_t<std::is_lvalue_reference_v<Base>>>
+    {
+      using type = std::add_lvalue_reference_t
+        <typename with_const_as_impl<std::remove_reference_t<Base>, Key>::type>;
+    };
+    //   - rvalue reference
+    template <typename Base, typename Key>
+    struct with_const_as_dispatch_ref
+      <Base, Key, std::enable_if_t<std::is_rvalue_reference_v<Base>>>
+    {
+      using type = std::add_rvalue_reference_t
+        <typename with_const_as_impl<std::remove_reference_t<Base>, Key>::type>;
+    };
+    
+    // - key management
+    template <typename Base, typename Key>
+    struct with_const_as_dispatch_keyref
+      : with_const_as_dispatch_ref<Base, std::remove_reference_t<Key>> {};
+    
+    // - top level implementation dispatcher
+    template <typename Base, typename Key>
+    struct with_const_as_dispatcher: with_const_as_dispatch_keyref<Base, Key> {};
+    
+    
+    //--------------------------------------------------------------------------
+    //--- implementation of `is_reference_wrapper`
+    template <typename T>
+    struct is_reference_wrapper_impl: std::false_type {};
+    
+    template <typename T>
+    struct is_reference_wrapper_impl<std::reference_wrapper<T>>
+      : public std::true_type
+    {};
+  
+  
+    //--------------------------------------------------------------------------
+    //--- implementation of `strip_referenceness_type`
+    
+    template <typename T>
+    struct strip_referenceness_type_impl;
+    
+    // implementation layer dealing with `std::reference_wrapper`
+    template <typename T, typename = void>
+    struct strip_referenceness_type_impl_wrapref
+      { using type = T; }; // exit here
+    
+    // - handle any constantness and volatility
+    template <typename T>
+    struct strip_referenceness_type_impl_wrapref<
+      T,
+      std::enable_if_t<util::is_reference_wrapper_v<std::remove_cv_t<T>>>
+      >
+      : strip_referenceness_type_impl<typename T::type> // back to square one
+    {}; 
+    
+    // implementation layer dealing with C++ references
+    template <typename T>
+    struct strip_referenceness_type_impl_ref
+      : strip_referenceness_type_impl_wrapref<T> {};
+    
+    template <typename T>
+    struct strip_referenceness_type_impl_ref<T&>
+      : strip_referenceness_type_impl_wrapref<T> {};
+    
+    template <typename T>
+    struct strip_referenceness_type_impl_ref<T&&>
+      : strip_referenceness_type_impl_wrapref<T> {};
+    
+    // entry point: start by dealing with C++ references
+    template <typename T>
+    struct strip_referenceness_type_impl: strip_referenceness_type_impl_ref<T>
+    {};
+    
+    
+    //--------------------------------------------------------------------------
+    
     
   } // namespace details
   
@@ -308,6 +502,23 @@ namespace util {
   template <typename T, std::size_t N>
   struct is_STLarray<std::array<T, N>>: public std::true_type {};
   
+  
+  //----------------------------------------------------------------------------
+  template <typename T>
+  struct is_reference_wrapper:
+    details::is_reference_wrapper_impl<std::decay_t<std::remove_reference_t<T>>>
+    {};
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename Base, typename Key>
+  struct with_const_as: public details::with_const_as_dispatcher<Base, Key> {};
+  
+  //----------------------------------------------------------------------------
+  template <typename T>
+  struct strip_referenceness_type
+    : public details::strip_referenceness_type_impl<T>
+  {};
   
   //----------------------------------------------------------------------------
   
