@@ -14,7 +14,9 @@
 
 // C/C++ standard libraries
 #include <iterator> // std::begin(), std::cbegin()
+#include <functional> // std::reference_wrapper<>
 #include <utility> // std::declval()
+#include <type_traits> // std::enable_if_t<>
 
 
 namespace util {
@@ -55,10 +57,7 @@ namespace util {
   //----------------------------------------------------------------------------
   /// Trait of value contained in the template collection `Coll`.
   template <typename Coll>
-  struct collection_value_type {
-    using type = typename Coll::value_type;
-    using value_type = type;
-  }; // struct collection_value_type
+  struct collection_value_type;
   
   /// Type contained in the collection `Coll`.
   template <typename Coll>
@@ -68,15 +67,7 @@ namespace util {
   //----------------------------------------------------------------------------
   /// Trait of type obtained by access to element of collection `Coll`.
   template <typename Coll>
-  struct collection_value_access_type {
-      private:
-    static auto getBegin(Coll&& coll) { using std::begin; return begin(coll); }
-    
-      public:
-    using type = decltype(*getBegin(std::declval<Coll>()));
-    using value_type = collection_value_t<Coll>;
-    
-  }; // struct collection_value_access_type
+  struct collection_value_access_type;
   
   /// Type obtained by constant access to element of collection `Coll`.
   template <typename Coll>
@@ -87,16 +78,7 @@ namespace util {
   //----------------------------------------------------------------------------
   /// Trait of type obtained by constant access to element of collection `Coll`.
   template <typename Coll>
-  struct collection_value_constant_access_type {
-      private:
-    static auto getCBegin(Coll&& coll)
-      { using std::cbegin; return cbegin(coll); }
-    
-      public:
-    using type = decltype(*getCBegin(std::declval<Coll>()));
-    using value_type = collection_value_t<Coll>;
-    
-  }; // struct collection_value_constant_access_type
+  struct collection_value_constant_access_type;
   
   /// Type obtained by constant access to element of collection `Coll`.
   template <typename Coll>
@@ -107,6 +89,99 @@ namespace util {
   /// @}
   //--- END ContainerMetaprogramming -------------------------------------------
   
+  
+} // namespace util
+
+
+//------------------------------------------------------------------------------
+//--- template implementation
+//------------------------------------------------------------------------------
+namespace util {
+  
+  namespace details {
+    
+    //--------------------------------------------------------------------------
+    //--- collection_value_XXXX
+    //--------------------------------------------------------------------------
+    template <typename Coll>
+    struct collection_value_type_impl {
+      using type = typename Coll::value_type;
+      using value_type = type;
+    }; // struct collection_value_type_impl
+    
+    template <typename T>
+    struct collection_value_type_impl<T*> {
+      using type = T;
+      using value_type = type;
+    }; // struct collection_value_type_impl<T*>
+    
+    template <typename T, std::size_t N>
+    struct collection_value_type_impl<T[N]>: collection_value_type_impl<T*> {};
+    
+    
+    //--------------------------------------------------------------------------
+    template <typename Coll>
+    struct collection_value_access_type_impl {
+        private:
+      static auto getBegin(Coll&& coll)
+        { using std::begin; return begin(coll); }
+      
+        public:
+      using type = decltype(*getBegin(std::declval<Coll>()));
+      using value_type = collection_value_t<Coll>;
+      
+    }; // struct collection_value_access_type_impl
+    
+    
+    //--------------------------------------------------------------------------
+    template <typename Coll>
+    struct collection_value_constant_access_type_impl {
+        private:
+      static auto getCBegin(Coll&& coll)
+        { using std::cbegin; return cbegin(coll); }
+      
+        public:
+      using type = decltype(*getCBegin(std::declval<Coll>()));
+      using value_type = collection_value_t<Coll>;
+      
+    }; // struct collection_value_constant_access_type_impl
+    
+    
+    //--------------------------------------------------------------------------
+    
+  } // namespace details
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename Coll>
+  struct collection_value_type {
+    // remove all referenceness, constantness etc. from `Coll`;
+    // also remove all referenceness from the result
+    using type = util::strip_referenceness_t<
+      typename details::collection_value_type_impl
+        <util::strip_referenceness_t<Coll>>::type
+      >
+      ;
+  };
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename Coll>
+  struct collection_value_access_type
+    : public details::collection_value_access_type_impl
+      <util::strip_referenceness_t<Coll>>
+  {};
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename Coll>
+  struct collection_value_constant_access_type
+    : public details::collection_value_constant_access_type_impl
+      <util::strip_referenceness_t<Coll>>
+  {};
+  
+  
+  //----------------------------------------------------------------------------
   
 } // namespace util
 
