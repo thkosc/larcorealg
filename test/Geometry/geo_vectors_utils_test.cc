@@ -14,6 +14,7 @@
 // LArSoft libraries
 #include "larcorealg/Geometry/geo_vectors_utils_TVector.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h"
+#include "larcorealg/CoreUtils/MetaUtils.h"
 
 // ROOT libraries
 #include "TVector2.h"
@@ -758,7 +759,16 @@ void test_vector2Dconvert() {
   // BUG the double brace syntax is required to work around clang bug 21629
   // (https://bugs.llvm.org/show_bug.cgi?id=21629)
   std::array<double, 4U> srcData {{ 1.0, 5.0, 9.0, 16.0 }};
-  Source const src{ srcData[0], srcData[1] };
+
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  // Source const src{ srcData[0], srcData[1] };
+  Source srcForClangBug;
+  if constexpr (util::is_STLarray_v<Source>)
+    srcForClangBug = Source{{ srcData[0], srcData[1] }};
+  else
+    srcForClangBug = Source{ srcData[0], srcData[1] };
+  Source const src { srcForClangBug };
   
   auto dest = geo::vect::convertTo<Dest>(src);
   
@@ -778,7 +788,16 @@ void test_vector3Dconvert() {
   // BUG the double brace syntax is required to work around clang bug 21629
   // (https://bugs.llvm.org/show_bug.cgi?id=21629)
   std::array<double, 4U> srcData {{ 1.0, 5.0, 9.0, 16.0 }};
-  Source const src{ srcData[0], srcData[1], srcData[2] };
+  
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  // Source const src{ srcData[0], srcData[1], srcData[2] };
+  Source srcForClangBug;
+  if constexpr (util::is_STLarray_v<Source>)
+    srcForClangBug = Source{{ srcData[0], srcData[1], srcData[2] }};
+  else
+    srcForClangBug = Source{ srcData[0], srcData[1], srcData[2] };
+  Source const src { srcForClangBug };
   
   auto dest = geo::vect::convertTo<Dest>(src);
   
@@ -799,7 +818,17 @@ void test_vector4Dconvert() {
   // BUG the double brace syntax is required to work around clang bug 21629
   // (https://bugs.llvm.org/show_bug.cgi?id=21629)
   std::array<double, 4U> srcData {{ 1.0, 5.0, 9.0, 16.0 }};
-  Source const src{ srcData[0], srcData[1], srcData[2], srcData[3] };
+  
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  // Source const src{ srcData[0], srcData[1], srcData[2], srcData[3] };
+  Source srcForClangBug;
+  if constexpr (util::is_STLarray_v<Source>)
+    srcForClangBug = Source{{ srcData[0], srcData[1], srcData[2], srcData[3] }};
+  else
+    srcForClangBug = Source{ srcData[0], srcData[1], srcData[2], srcData[3] };
+  Source const src { srcForClangBug };
+  
   
   auto dest = geo::vect::convertTo<Dest>(src);
   
@@ -1114,24 +1143,45 @@ BOOST_AUTO_TEST_CASE(vectorProcessing_test) {
 
 //------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(vectorConversion_test) {
+  // BUG until clang bug 21629 is fixed, the amount of work to make the *test*
+  //     work on double[N] vectors is not worth; HERE are some things to restore
+  //     when the bug is fixed:
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  
   // 2D
-  test_vector2Dconvert<TVector2     , TVector2>();
+  test_vector2Dconvert<TVector2              , TVector2              >();
+  test_vector2Dconvert<std::array<double, 2U>, TVector2              >();
+  // HERE
+  // test_vector2Dconvert<double[2U]            , TVector2              >();
   
   // 3D
-  test_vector3Dconvert<TVector3     , TVector3>();
-  test_vector3Dconvert<geo::Point_t , TVector3>();
-  test_vector3Dconvert<geo::Vector_t, TVector3>();
-  test_vector3Dconvert<TVector3     , geo::Point_t >();
-  test_vector3Dconvert<geo::Point_t , geo::Point_t >();
-  test_vector3Dconvert<geo::Vector_t, geo::Point_t >();
-  test_vector3Dconvert<TVector3     , geo::Vector_t>();
-  test_vector3Dconvert<geo::Point_t , geo::Vector_t>();
-  test_vector3Dconvert<geo::Vector_t, geo::Vector_t>();
+  test_vector3Dconvert<std::array<double, 3U>, TVector3     >();
+  
+  // HERE
+  // test_vector3Dconvert<double[3U]            , TVector3     >();
+  test_vector3Dconvert<TVector3              , TVector3     >();
+  test_vector3Dconvert<geo::Point_t          , TVector3     >();
+  test_vector3Dconvert<geo::Vector_t         , TVector3     >();
+  test_vector3Dconvert<std::array<double, 3U>, geo::Point_t >();
+  // HERE
+  // test_vector3Dconvert<double[3U]            , geo::Point_t >();
+  test_vector3Dconvert<TVector3              , geo::Point_t >();
+  test_vector3Dconvert<geo::Point_t          , geo::Point_t >();
+  test_vector3Dconvert<geo::Vector_t         , geo::Point_t >();
+  test_vector3Dconvert<std::array<double, 3U>, geo::Vector_t>();
+  // HERE
+  // test_vector3Dconvert<double[3U]            , geo::Vector_t>();
+  test_vector3Dconvert<TVector3              , geo::Vector_t>();
+  test_vector3Dconvert<geo::Point_t          , geo::Vector_t>();
+  test_vector3Dconvert<geo::Vector_t         , geo::Vector_t>();
   
   test_transform<TVector3>();
   
   // 4D
-  test_vector4Dconvert<TLorentzVector, TLorentzVector>();
+  test_vector4Dconvert<TLorentzVector        , TLorentzVector>();
+  test_vector4Dconvert<std::array<double, 4U>, TLorentzVector>();
+  // HERE
+  // test_vector4Dconvert<double[4U]            , TLorentzVector>();
   
 } // BOOST_AUTO_TEST_CASE(vectorAccess_test)
 
