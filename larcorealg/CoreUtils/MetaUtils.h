@@ -26,6 +26,7 @@
 
 // C/C++ standard libraries
 #include <array>
+#include <memory> // std::addressof()
 #include <functional> // std::reference_wrapper<>
 #include <type_traits>
 
@@ -83,8 +84,9 @@ namespace util {
    *   using type = typename std::vector<T>::reference;
    * };
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   * In this example, using `std::false_type` might have tipped the compiler to
-   * trigger the assertion failure even if the class is not instantiated.
+   * In this example, using `std::false_type` instead of
+   * `util::always_false_type` might have tripped the compiler to trigger the
+   * assertion failure even if the class is not instantiated.
    */
   template <typename>
   struct always_false_type: public std::false_type {};
@@ -257,13 +259,47 @@ namespace util {
   /// @{
   
   //----------------------------------------------------------------------------
+  
+  /**
+   * @brief Trait describing whether `T` is a template instance of `Template`.
+   * @tparam Template template class to be detected
+   * @tparam T type to be tested
+   * 
+   * This trait is true if the type `T` is an instance of template class
+   * `Template`, that is, if `T` is `Template<...>`, with the ellipsis
+   * represents any template argument. Before being tested, `T` is stripped
+   * of reference and constantness qualifiers, so that for example the answer
+   * will be the same for `std::vector<int>` as for `std::vector<int> const`,
+   * `std::vector<int> volatile&`, etc.
+   * 
+   * @bug The limitation of this implementation is that only `Template` types
+   *      taking only type arguments can be used. For example, attempting to
+   *      use it with `std::array`, which contains a non-type argument (of type
+   *      `std::size_t`), will cause a compilation error. For example, GCC 7.2
+   *      reports:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * error: type/value mismatch at argument 1 in template parameter list for ‘template<template<class ...> class Template, class T> constexpr const bool util::is_instance_of_v<Template, T>’
+   * static_assert(util::is_instance_of_v<std::array, std::array<int, 2U>>);
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * 
+   */
+  template <template <typename...> typename Template, typename T>
+  struct is_instance_of;
+  
+  /// A constant describing whether `T` is a template instance of `Template`.
+  /// @see `util::is_instance_of`
+  template <template <typename...> typename Template, typename T>
+  constexpr bool is_instance_of_v = is_instance_of<Template, T>::value;
+  
+  
+  //----------------------------------------------------------------------------
   /**
    * @brief Identifies whether the specified type is a STL array.
    * @tparam T the type to be tested
    * @see `util::is_STLarray_v`
    */
-  template <typename>
-  struct is_STLarray: public std::false_type {};
+  template <typename T>
+  struct is_STLarray;
   
   /**
    * @brief A constant describing whether the specified type is a STL array.
@@ -281,16 +317,35 @@ namespace util {
    * @see `util::is_reference_wrapper_v`
    */
   template <typename T>
-  struct is_reference_wrapper;
+  using is_reference_wrapper = is_instance_of<std::reference_wrapper, T>;
   
   /**
    * @brief A constant describing whether the specified type is a
    *        `std::reference_wrapper`.
    * @tparam T the type to be tested
-   * @see `util::is_STLarray`
+   * @see `util::is_reference_wrapper`
    */
   template <typename T>
   constexpr bool is_reference_wrapper_v = is_reference_wrapper<T>::value;
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Identifies whether the specified type is a `std::unique_ptr`.
+   * @tparam T the type to be tested
+   * @see `util::is_unique_ptr_v`
+   */
+  template <typename T>
+  using is_unique_ptr = is_instance_of<std::unique_ptr, T>;
+  
+  /**
+   * @brief A constant describing whether the specified type is a
+   *        `std::unique_ptr`.
+   * @tparam T the type to be tested
+   * @see `util::is_unique_ptr`
+   */
+  template <typename T>
+  constexpr bool is_unique_ptr_v = is_unique_ptr<T>::value;
   
   
   /// @}
@@ -367,6 +422,64 @@ namespace util {
   
   
   //----------------------------------------------------------------------------
+  /**
+   * @brief Returns the address of the referenced object.
+   * @tparam Ref type of reference
+   * @param ref reference
+   * @return a pointer to the referenced object
+   * 
+   * This function also manages `std::reference_wrapper` arguments, by returning
+   * the address of the object they reference.
+   * In all other cases, the return value is simply `std::addressof(obj)`.
+   */
+  template <typename Ref>
+  auto referenced_address(Ref&& ref);
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Trait with type `T` into `std::reference_wrapper` if reference.
+   * @tparam T type to be wrapped
+   * @see `util::lvalue_reference_into_wrapper()`
+   * 
+   * If the argument type `T` is a l-value reference, the corresponding `type`
+   * will be a `std::reference_wrapper` object wrapping the type `T` references
+   * (constantness will be preserved).
+   * If the argument is already a `std::reference_wrapper` (possibly constant,
+   * possibly any reference), no action is taken and `type` is the same as `T`
+   * except for no reference.
+   * Otherwise, `type` will be `T` itself with any reference removed.
+   */
+  template <typename T>
+  struct lvalue_reference_into_wrapper_type;
+  
+  /**
+   * @brief The type `T` stripped of all known reference types.
+   * @tparam T type to remove referenceness from
+   * @see `util::lvalue_reference_into_wrapper_type`
+   */
+  template <typename T>
+  using lvalue_reference_into_wrapper_t
+    = typename lvalue_reference_into_wrapper_type<T>::type;
+  
+  
+  /**
+   * @brief Converts a l-value reference object into a `std::reference_wrapper`.
+   * @tparam T type of the object to be converted
+   * @param obj object to be converted
+   * @return either `obj` or a `std::reference_wrapper` around it
+   * @see `util::lvalue_reference_into_wrapper_type`
+   * 
+   * This function operates on a fashion similar to
+   * `util::lvalue_reference_into_wrapper_type`, but it performs the conversion
+   * of an instantiated object rather than just reporting a type.
+   */
+  template <typename T>
+  auto lvalue_reference_into_wrapper(T&& obj)
+    { return util::lvalue_reference_into_wrapper_t<T>(obj); }
+  
+  
+  //----------------------------------------------------------------------------
   
   
   /// @}
@@ -438,15 +551,14 @@ namespace util {
     
     
     //--------------------------------------------------------------------------
-    //--- implementation of `is_reference_wrapper`
-    template <typename T>
-    struct is_reference_wrapper_impl: std::false_type {};
+    //--- implementation of `is_instance_of`
+    template <template <typename...> typename Template, typename T>
+    struct is_instance_of_impl: std::false_type {};
     
-    template <typename T>
-    struct is_reference_wrapper_impl<std::reference_wrapper<T>>
-      : public std::true_type
-    {};
-  
+    
+    template <template <typename...> typename Template, typename... Args>
+    struct is_instance_of_impl<Template, Template<Args...>>: std::true_type {};
+    
   
     //--------------------------------------------------------------------------
     //--- implementation of `strip_referenceness_type`
@@ -488,27 +600,79 @@ namespace util {
     
     
     //--------------------------------------------------------------------------
+    //--- implementation of `referenced_address()`
+    
+    template <typename T, typename = void>
+    struct referenced_address_impl {
+      static auto addressof(T& obj) { return std::addressof(obj); }
+    };
+    
+    template <typename T>
+    struct referenced_address_impl
+      <T, std::enable_if_t<util::is_reference_wrapper_v<T>>>
+    {
+      static auto addressof(T& obj) { return std::addressof(obj.get()); }
+    };
+    
+    
+    //--------------------------------------------------------------------------
+    //--- implementation of `lvalue_reference_into_wrapper_type`
+    /*
+     * The implementation develops across levels:
+     *  1. any kind of `std::reference_wrapper` is handled
+     *  2. l-value references are handled
+     */
+    template <typename T>
+    struct lvalue_reference_into_wrapper_type_impl_final {
+      using type = std::remove_reference_t<T>;
+    };
+    
+    template <typename T>
+    struct lvalue_reference_into_wrapper_type_impl_final<T&> {
+      using type = std::reference_wrapper<T>;
+    };
+    
+    template <typename T, typename = void>
+    struct lvalue_reference_into_wrapper_type_impl_wrapper {
+      using type
+        = typename lvalue_reference_into_wrapper_type_impl_final<T>::type;
+    };
+    
+    template <typename T>
+    struct lvalue_reference_into_wrapper_type_impl_wrapper
+      <T, std::enable_if_t<util::is_reference_wrapper_v<T>>>
+    {
+      using type = std::remove_reference_t<T>;
+    };
+    
+    template <typename T>
+    struct lvalue_reference_into_wrapper_type_impl
+      : lvalue_reference_into_wrapper_type_impl_wrapper<T>
+    {};
+    
+    
+    //--------------------------------------------------------------------------
     
     
   } // namespace details
   
   
   //----------------------------------------------------------------------------
+  template <template <typename...> typename Template, typename T>
+  struct is_instance_of
+    : details::is_instance_of_impl<Template, std::decay_t<T>>
+  {};
+  
+  //----------------------------------------------------------------------------
   template <typename T>
   void staticDumpClassName() { (void) details::ClassNameStaticDumper<T>(); }
   
-  
   //----------------------------------------------------------------------------
+  template <typename>
+  struct is_STLarray: public std::false_type {};
+  
   template <typename T, std::size_t N>
   struct is_STLarray<std::array<T, N>>: public std::true_type {};
-  
-  
-  //----------------------------------------------------------------------------
-  template <typename T>
-  struct is_reference_wrapper:
-    details::is_reference_wrapper_impl<std::decay_t<std::remove_reference_t<T>>>
-    {};
-  
   
   //----------------------------------------------------------------------------
   template <typename Base, typename Key>
@@ -519,6 +683,17 @@ namespace util {
   struct strip_referenceness_type
     : public details::strip_referenceness_type_impl<T>
   {};
+  
+  //----------------------------------------------------------------------------
+  template <typename T>
+  struct lvalue_reference_into_wrapper_type
+    : public details::lvalue_reference_into_wrapper_type_impl<T>
+  {};
+  
+  //----------------------------------------------------------------------------
+  template <typename Ref>
+  auto referenced_address(Ref&& ref)
+    { return details::referenced_address_impl<Ref>::addressof(ref); }
   
   //----------------------------------------------------------------------------
   
