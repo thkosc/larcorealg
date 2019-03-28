@@ -257,6 +257,84 @@ namespace lar::debug {
     );
   
   //----------------------------------------------------------------------------
+  /**
+   * @brief Class triggering a `static_assert` failure.
+   * @tparam T type accompanying the assertion
+   * @tparam Enable assertion will fail only if `Enable` expands to `true`
+   * @addtogroup MetaprogrammingBase
+   * 
+   * Instantiating this class anywhere (where it's legit) will trigger a static
+   * assertion failure. Since the error message emitted by the compiler usually
+   * contains an expansion of the template parameters, it is then possible to
+   * see the "value" of type `T` that was used when the assertion failed.
+   * The argument `Enable` allows to tune when the assertion should fail.
+   * 
+   * For the following example, we want to investigate the value of the type
+   * `element_type`, which is provided, among others, by `std::unique_ptr`.
+   * We want to find out the exact type `element_type` of the collection type
+   * passed to `OurClass`, but only when the collection type is, say, not
+   * constant:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * template <typename Coll>
+   * struct OurClass {
+   *   
+   *   using Collection_t = Coll;
+   *   
+   *   using value_type = typename Collection_t::element_type;
+   *   
+   *   // DEBUG: have the compiler print `value_type`
+   *   lar::debug::static_assert_on
+   *     <value_type, std::is_const_v<std::remove_reference_t<Coll>>>
+   *     debugVar;
+   *   
+   * }; // struct OurClass
+   *
+   *
+   * // this should never trigger a static assertion failure:
+   * OurClass<std::unique_ptr<double>> doubleData;
+   *   
+   * // this triggers a static assertion failure:
+   * OurClass<std::unique_ptr<double[4]> const fourVectorData;
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * (a working example is provided in `DebugUtils_test.h`).
+   * The output with GCC 7.2 is similar to the following:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * In file included from larcorealg/test/CoreUtils/DebugUtils_test.cc:17:0:
+   * larcorealg/larcorealg/CoreUtils/DebugUtils.h: In instantiation of ‘struct lar::debug::details::THE_TYPE_IS<int [10]>’:
+   * larcorealg/larcorealg/CoreUtils/DebugUtils.h:476:29:   required from ‘struct lar::debug::static_assert_on<int [10], true>’
+   * larcorealg/test/CoreUtils/DebugUtils_test.cc:49:5:   required from ‘struct OurClass<const std::unique_ptr<int [10]> >’
+   * larcorealg/test/CoreUtils/DebugUtils_test.cc:61:51:   required from here
+   * larcorealg/larcorealg/CoreUtils/DebugUtils.h:467:7: error: static assertion failed: static_assert_on<T>: check the error message ("THE_TYPE_IS<>") for expansion of type `T`.
+   *        static_assert(::util::always_false_v<T>,
+   *        ^~~~~~~~~~~~~
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * The message of the assertion points to the key string ("THE_TYPE_IS"), and
+   * it can be seen in the second line of this excerpt that the information is
+   * printed as `struct lar::debug::details::THE_TYPE_IS<int [10]>`.
+   * This is Clang 5.0:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * In file included from larcorealg/test/CoreUtils/DebugUtils_test.cc:17:
+   * larcorealg/larcorealg/CoreUtils/DebugUtils.h:451:7: error: static_assert failed "static_assert_on<T>: check the error message (\"THE_TYPE_IS<>\") for expansion of type `T`."
+   *       static_assert(::util::always_false_v<T>,
+   *       ^             ~~~~~~~~~~~~~~~~~~~~~~~~~
+   * larcorealg/larcorealg/CoreUtils/DebugUtils.h:460:29: note: in instantiation of template class 'lar::debug::details::THE_TYPE_IS<int [10]>' requested here
+   *     details::THE_TYPE_IS<T> _;
+   *                             ^
+   * larcorealg/test/CoreUtils/DebugUtils_test.cc:49:5: note: in instantiation of template class 'lar::debug::static_assert_on<int [10], true>' requested here
+   *     debugVar;
+   *     ^
+   * larcorealg/test/CoreUtils/DebugUtils_test.cc:61:10: note: in instantiation of template class 'OurClass<const std::__1::unique_ptr<int [10], std::__1::default_delete<int [10]> > >' requested here
+   *   (void) OurClass<std::unique_ptr<int[10]> const>();
+   *          ^
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * where the type can be read in the message of the first note.
+   */
+  template <typename T, bool Enable /* = true */>
+  struct static_assert_on;
+  
+  
+  //----------------------------------------------------------------------------
+  
   
 } // namespace lar::debug
 
@@ -377,6 +455,29 @@ namespace lar::debug {
     if (callInfoOptions) options.callInfoOptions = *callInfoOptions;
     printBacktrace(std::forward<Stream>(out), options);
   }
+  
+  
+  //----------------------------------------------------------------------------
+  namespace details {
+    
+    template <typename T>
+    struct THE_TYPE_IS {
+      // if the assertion condition didn't depend on a template parameters,
+      // the assertion failure error would *always* be triggered
+      static_assert(::util::always_false_v<T>,
+        "static_assert_on<T>: check the error message (\"THE_TYPE_IS<>\") for expansion of type `T`."
+        );
+    }; // THE_TYPE_IS<>
+    
+  } // namespace details
+  
+  template <typename T, bool Enable = true>
+  struct static_assert_on {
+    details::THE_TYPE_IS<T> _;
+  }; // static_assert_on<>
+  
+  template <typename T>
+  struct static_assert_on<T, false> {};
   
   
   //----------------------------------------------------------------------------
