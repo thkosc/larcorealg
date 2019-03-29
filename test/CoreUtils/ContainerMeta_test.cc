@@ -136,6 +136,8 @@ void make_collection_reference_test() {
    */
   constexpr std::size_t Size = 10U;
   
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
   std::list<O> list        {{ O{} }};
   O            array       [Size];
   O*           ptr         = array;
@@ -170,9 +172,62 @@ void make_collection_reference_test() {
 
 
 //------------------------------------------------------------------------------
+void collection_from_reference_test() {
+  
+  constexpr std::size_t Size = 10U;
+  
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  std::list<O>        list        {{ O{} }};
+  std::list<O>      & ref         = list;
+  std::list<O> const& cref        = list;
+  auto                refw        = std::ref(list);
+  auto                crefw       = std::cref(list);
+  
+  O                   array       [Size];
+  O*                  ptr         = array;
+  O const*            cptr        = ptr;
+  
+  auto const          uptr        = std::unique_ptr<O>(new O[Size]);
+  auto                array_uptr  = std::unique_ptr<O[Size]>();
+  auto                garray_uptr = std::unique_ptr<O[]>(new O[Size]);
+  
+  static_assert(std::is_same_v<decltype(util::collection_from_reference(list       )), decltype(ref )>);
+  static_assert(std::is_same_v<decltype(util::collection_from_reference(ref        )), decltype(ref )>);
+  static_assert(std::is_same_v<decltype(util::collection_from_reference(cref       )), decltype(cref)>);
+  static_assert(std::is_same_v<decltype(util::collection_from_reference(refw       )), decltype(ref )>);
+  static_assert(std::is_same_v<decltype(util::collection_from_reference(crefw      )), decltype(cref)>);
+  
+  static_assert(std::is_same_v<decltype(util::collection_from_reference(array      )), O      *      >);
+  static_assert(std::is_same_v<decltype(util::collection_from_reference(ptr        )), O      *      >);
+  static_assert(std::is_same_v<decltype(util::collection_from_reference(cptr       )), O const*      >);
+  
+  static_assert(std::is_same_v<decltype(util::collection_from_reference(uptr       )), O      *     >);
+  static_assert(std::is_same_v<decltype(util::collection_from_reference(array_uptr )), O(*)[Size]   >);
+  static_assert(std::is_same_v<decltype(util::collection_from_reference(garray_uptr)), O      *     >);
+  
+  BOOST_CHECK_EQUAL(&util::collection_from_reference(list       ), &list            );
+  BOOST_CHECK_EQUAL(&util::collection_from_reference(ref        ), &list            );
+  BOOST_CHECK_EQUAL(&util::collection_from_reference(cref       ), &list            );
+  BOOST_CHECK_EQUAL(&util::collection_from_reference(refw       ), &list            );
+  BOOST_CHECK_EQUAL(&util::collection_from_reference(crefw      ), &list            );
+  
+  BOOST_CHECK_EQUAL( util::collection_from_reference(array      ), array            );
+  BOOST_CHECK_EQUAL( util::collection_from_reference(ptr        ), ptr              );
+  BOOST_CHECK_EQUAL( util::collection_from_reference(cptr       ), cptr             );
+  
+  BOOST_CHECK_EQUAL( util::collection_from_reference(uptr       ), uptr.get()       );
+  BOOST_CHECK_EQUAL( util::collection_from_reference(array_uptr ), array_uptr.get() );
+  BOOST_CHECK_EQUAL( util::collection_from_reference(garray_uptr), garray_uptr.get());
+  
+} // collection_from_reference_test()
 
-BOOST_AUTO_TEST_CASE(NothingTestCase) {
+
+//------------------------------------------------------------------------------
+
+BOOST_AUTO_TEST_CASE(CollectionReferenceTestCase) {
   make_collection_reference_test();
-} // BOOST_AUTO_TEST_CASE(NothingTestCase)
+  collection_from_reference_test();
+} // BOOST_AUTO_TEST_CASE(CollectionReferenceTestCase)
 
 //------------------------------------------------------------------------------

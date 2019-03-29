@@ -112,8 +112,9 @@ namespace util {
   
   /**
    * @brief Returns an object referencing to the data contained in `coll`.
-   * @tparam Cont type of collection of the data
+   * @tparam Coll type of collection of the data
    * @return an object referencing to the data contained in `coll`
+   * @see `util::collection_from_reference()`
    * 
    * The criteria, as well as the type of the returned object, are similar to
    * `util::collection_reference_type`.
@@ -125,6 +126,23 @@ namespace util {
    */
   template <typename Coll>
   auto make_collection_reference(Coll&& coll);
+  
+  /**
+   * @brief Returns the object referenced by `collRef` as a C++ reference.
+   * @tparam CollRef type of collection of the data
+   * @return a reference to the object referenced by `collRef`
+   * @see `util::make_collection_reference()`
+   * 
+   * The criteria, as well as the type of the returned object, are similar to
+   * `util::collection_reference_type`.
+   * Therefore, for example a C pointer is returned unchanged, while a
+   * `std::vector` is returned wrapped into a `std::reference_wrapper`.
+   * A `std::unique_ptr` is returned as bare pointer, given that the returned
+   * object does not own the data.
+   * 
+   */
+  template <typename CollRef>
+  decltype(auto) collection_from_reference(CollRef& collRef);
   
   /// @}
   //--- END ContainerMetaprogramming -------------------------------------------
@@ -324,6 +342,51 @@ namespace util {
     
     
     //--------------------------------------------------------------------------
+    //--- util::collection_from_reference
+    
+    template <typename CollRef, typename = void>
+    struct collection_from_reference_impl {
+      using type
+        = std::add_lvalue_reference_t<std::remove_reference_t<CollRef>>;
+      static CollRef& get(CollRef& coll) { return coll; }
+    }; // collection_from_reference_impl
+    
+    template <typename CollRef>
+    struct collection_from_reference_impl
+      <CollRef, std::enable_if_t<util::is_reference_wrapper_v<CollRef>>>
+    {
+      using type = std::add_lvalue_reference_t<typename CollRef::type>;
+      static type get(CollRef& refw) { return refw.get(); }
+    }; // collection_from_reference_impl<std::reference_wrapper>
+    
+    template <typename CollRef>
+    struct collection_from_reference_impl
+      <CollRef, std::enable_if_t<util::is_unique_ptr_v<CollRef>>>
+    {
+      using type = typename CollRef::pointer;
+      static type get(CollRef& uptr) { return uptr.get(); }
+    }; // collection_from_reference_impl<std::unique_ptr>
+    
+    template <typename T>
+    struct collection_from_reference_impl<T*> {
+      using type = T*;
+      static type get(T* ptr) { return ptr; }
+    }; // collection_from_reference_impl<T*>
+    
+    template <typename T>
+    struct collection_from_reference_impl<T[]> {
+      using type = T*;
+      static type get(T ptr[]) { return ptr; }
+    }; // collection_from_reference_impl<T[]>
+    
+    template <typename T, std::size_t N>
+    struct collection_from_reference_impl<T[N]> {
+      using type = T*;
+      static type get(T ptr[N]) { return ptr; }
+    }; // collection_from_reference_impl<T[N]>
+    
+    
+    //--------------------------------------------------------------------------
     
   } // namespace details
   
@@ -370,6 +433,11 @@ namespace util {
      ::make(coll)
      ;
   }
+
+  //----------------------------------------------------------------------------
+  template <typename CollRef>
+  decltype(auto) collection_from_reference(CollRef& collRef)
+   { return details::collection_from_reference_impl<CollRef>::get(collRef); }
 
   //----------------------------------------------------------------------------
   
