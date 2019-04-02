@@ -8,7 +8,7 @@
  */
 
 // our header
-#include "LocalTransformation.h"
+#include "larcorealg/Geometry/LocalTransformation.h"
 
 // ROOT
 #include "TGeoMatrix.h" // TGeoHMatrix
@@ -63,4 +63,3 @@ namespace geo {
 
 
 //------------------------------------------------------------------------------
-  

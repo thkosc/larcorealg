@@ -194,7 +194,7 @@ namespace util {
    * 
    * An example of usage:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-   * #include "MetaUtils.h"
+   * #include "larcorealg/CoreUtils/MetaUtils.h"
    * 
    * void f() {
    *   constexpr auto v = 5U - 6U; // which type is `v` of?
@@ -317,4 +317,3 @@ namespace util {
 //------------------------------------------------------------------------------
 
 #endif // LARCOREALG_COREUTILS_METAUTILS_H
-

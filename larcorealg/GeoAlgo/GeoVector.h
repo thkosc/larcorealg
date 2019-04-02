@@ -14,8 +14,8 @@
 #ifndef BASICTOOL_GEOVECTOR_H
 #define BASICTOOL_GEOVECTOR_H
 
-#include "GeoAlgoConstants.h"
-#include "GeoAlgoException.h"
+#include "larcorealg/GeoAlgo/GeoAlgoConstants.h"
+#include "larcorealg/GeoAlgo/GeoAlgoException.h"
 #include <TVector3.h>
 #include <TLorentzVector.h>
 

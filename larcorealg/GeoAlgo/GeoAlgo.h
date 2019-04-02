@@ -15,13 +15,13 @@
 #define BASICTOOL_GEOALGO_H
 
 #include <algorithm> // used for std::find
-#include "GeoLine.h"
-#include "GeoHalfLine.h"
-#include "GeoLineSegment.h"
-#include "GeoTrajectory.h"
-#include "GeoCone.h"
-#include "GeoAABox.h"
-#include "GeoSphere.h"
+#include "larcorealg/GeoAlgo/GeoLine.h"
+#include "larcorealg/GeoAlgo/GeoHalfLine.h"
+#include "larcorealg/GeoAlgo/GeoLineSegment.h"
+#include "larcorealg/GeoAlgo/GeoTrajectory.h"
+#include "larcorealg/GeoAlgo/GeoCone.h"
+#include "larcorealg/GeoAlgo/GeoAABox.h"
+#include "larcorealg/GeoAlgo/GeoSphere.h"
 
 namespace geoalgo {
 

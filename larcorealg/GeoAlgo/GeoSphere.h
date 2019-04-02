@@ -14,7 +14,7 @@
 #ifndef BASICTOOL_GEOSPHERE_H
 #define BASICTOOL_GEOSPHERE_H
 
-#include "GeoVector.h"
+#include "larcorealg/GeoAlgo/GeoVector.h"
 
 namespace geoalgo {
   /**

@@ -1,7 +1,7 @@
 #ifndef BASICTOOL_GEOHALFLINE_CXX
 #define BASICTOOL_GEOHALFLINE_CXX
 
-#include "GeoHalfLine.h"
+#include "larcorealg/GeoAlgo/GeoHalfLine.h"
 namespace geoalgo {
 
   HalfLine::HalfLine()

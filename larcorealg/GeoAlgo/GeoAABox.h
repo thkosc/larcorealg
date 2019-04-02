@@ -14,7 +14,7 @@
 #ifndef BASICTOOL_GEOAABOX_H
 #define BASICTOOL_GEOAABOX_H
 
-#include "GeoHalfLine.h"
+#include "larcorealg/GeoAlgo/GeoHalfLine.h"
 
 namespace geoalgo {
   /**

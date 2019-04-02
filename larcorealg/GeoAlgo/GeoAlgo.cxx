@@ -1,7 +1,7 @@
 #ifndef BASICTOOL_GEOALGO_CXX
 #define BASICTOOL_GEOALGO_CXX
 
-#include "GeoAlgo.h"
+#include "larcorealg/GeoAlgo/GeoAlgo.h"
 
 namespace geoalgo {
 

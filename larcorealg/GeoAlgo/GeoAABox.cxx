@@ -1,7 +1,7 @@
 #ifndef BASICTOOL_GEOAABOX_CXX
 #define BASICTOOL_GEOAABOX_CXX
 
-#include "GeoAABox.h"
+#include "larcorealg/GeoAlgo/GeoAABox.h"
 
 namespace geoalgo {
 

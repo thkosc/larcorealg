@@ -6,15 +6,15 @@
 #define BASICTOOL_GEOALGO_TYPEDEF_H
 
 // Header files included here
-#include "GeoAlgoConstants.h"
-#include "GeoAlgoException.h"
-#include "GeoVector.h"
-#include "GeoTrajectory.h"
-#include "GeoHalfLine.h"
-#include "GeoLine.h"
-#include "GeoLineSegment.h"
-#include "GeoAABox.h"
-#include "GeoAlgo.h"
+#include "larcorealg/GeoAlgo/GeoAlgoConstants.h"
+#include "larcorealg/GeoAlgo/GeoAlgoException.h"
+#include "larcorealg/GeoAlgo/GeoVector.h"
+#include "larcorealg/GeoAlgo/GeoTrajectory.h"
+#include "larcorealg/GeoAlgo/GeoHalfLine.h"
+#include "larcorealg/GeoAlgo/GeoLine.h"
+#include "larcorealg/GeoAlgo/GeoLineSegment.h"
+#include "larcorealg/GeoAlgo/GeoAABox.h"
+#include "larcorealg/GeoAlgo/GeoAlgo.h"
 
 //ADD_NEW_HEADER ... do not change this comment line
 

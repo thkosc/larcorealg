@@ -14,7 +14,7 @@
 #ifndef BASICTOOL_GEODIRECTEDLINE_H
 #define BASICTOOL_GEODIRECTEDLINE_H
 
-#include "GeoLine.h"
+#include "larcorealg/GeoAlgo/GeoLine.h"
 
 namespace geoalgo {
   /**

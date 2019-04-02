@@ -1,7 +1,7 @@
 #ifndef BASICTOOL_GEOLINESEGMENT_CXX
 #define BASICTOOL_GEOLINESEGMENT_CXX
 
-#include "GeoLineSegment.h"
+#include "larcorealg/GeoAlgo/GeoLineSegment.h"
 
 namespace geoalgo {
 

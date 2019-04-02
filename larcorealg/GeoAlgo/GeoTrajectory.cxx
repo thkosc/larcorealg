@@ -1,7 +1,7 @@
 #ifndef BASICTOOL_GEOTRAJECTORY_CXX
 #define BASICTOOL_GEOTRAJECTORY_CXX
 
-#include "GeoTrajectory.h"
+#include "larcorealg/GeoAlgo/GeoTrajectory.h"
 #include <sstream>
 namespace geoalgo {
 

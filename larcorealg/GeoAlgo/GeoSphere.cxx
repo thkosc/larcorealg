@@ -1,7 +1,7 @@
 #ifndef BASICTOOL_GEOSPHERE_CXX
 #define BASICTOOL_GEOSPHERE_CXX
 
-#include "GeoSphere.h"
+#include "larcorealg/GeoAlgo/GeoSphere.h"
 
 namespace geoalgo {
 
