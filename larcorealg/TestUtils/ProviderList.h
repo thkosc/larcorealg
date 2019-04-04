@@ -43,7 +43,7 @@ namespace testing {
        * @brief A class containing an owned object
        * @tparam T type of the contained object
        * 
-       * Differently from boost::any, `T` does not have to be copiable nor
+       * Differently from std::any, `T` does not have to be copiable nor
        * movable. The price is that the object is dynamically allocated.
        * 
        * Given that we don't require T to be movable and we don't require it to
@@ -159,7 +159,7 @@ namespace testing {
     */
    class ProviderList {
       // Sparse implementation notes:
-      // - we use MovableClassWrapperBase in place of boost::any because our
+      // - we use MovableClassWrapperBase in place of std::any because our
       //   providers are recommended to be not copiable
       
       /// type of smart pointer we use to store elements
