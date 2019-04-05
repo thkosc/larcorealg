@@ -13,6 +13,7 @@
 #include "larcorealg/Geometry/TransformationMatrix.h"
 #include "larcorealg/Geometry/LocalTransformationGeo.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_types.h" // geo::OpDetID
 
 // ROOT libraries
 #include "TGeoMatrix.h" // TGeoHMatrix
@@ -62,7 +63,10 @@ namespace geo {
     ///@}
     
     OpDetGeo(TGeoNode const& node, geo::TransformationMatrix&& trans);
-
+    
+    /// Returns the geometry ID of this optical detector.
+    geo::OpDetID const& ID() const { return fID; }
+    
     void   GetCenter(double* xyz, double localz=0.0) const;
     geo::Point_t const& GetCenter() const { return fCenter; }
     double RMin() const;
@@ -146,6 +150,11 @@ namespace geo {
     /// Returns whether the detector shape is a bar (`TGeoBBox`).
     bool isBar() const { return (asBox() != nullptr) && !isTube(); }
     
+    
+    /// Performs all updates after cryostat has sorted the optical detectors.
+    void UpdateAfterSorting(geo::OpDetID opdetid);
+    
+    
     /**
      * @brief Prints information about this optical detector.
      * @tparam Stream type of output stream to use
@@ -189,6 +198,8 @@ namespace geo {
     const TGeoNode* fOpDetNode;  ///< Pointer to theopdet node
     geo::Point_t fCenter; ///< Stored geometric center of the optical detector.
     
+    geo::OpDetID fID; ///< Identifier of this optical detector.
+    
     /// Returns the geometry object as `TGeoTube`, `nullptr` if not a tube.
     TGeoTube const* asTube() const
       { return dynamic_cast<TGeoTube const*>(Shape()); }
@@ -213,7 +224,7 @@ void geo::OpDetGeo::PrintOpDetInfo(
 ) const {
   
   //----------------------------------------------------------------------------
-  out << "centered at " << GetCenter() << " cm";
+  out << "optical detector " << ID() << " centered at " << GetCenter() << " cm";
   
   if (verbosity-- <= 0) return; // 0
   

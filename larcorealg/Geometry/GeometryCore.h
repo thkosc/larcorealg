@@ -4398,6 +4398,18 @@ namespace geo {
      * @name Optical detector geometry access and information
      * @anchor GeometryCoreOpDetGeometry
      * @see @ref GeometryCoreOpDetChannel "optical detector channel information"
+     * 
+     * There are a number of ways to identify an optical detector or channel:
+     * 
+     * * geometric:
+     *     * cryostat (e.g. `geo::CryostatID`) and relative optical detector
+     *       number within it
+     *     * unique optical detector number
+     * * readout:
+     *     * optical detector channel
+     *     * "hardware" channel
+     * 
+     * And they all should be better documented!
      */
     /// @{
     
@@ -4412,11 +4424,19 @@ namespace geo {
     //
     // access
     //
-    //@{
-    /// Access the OpDetGeo object by OpDet or Channel Number
+    /**
+     * @brief Returns the `geo::OpDetGeo` object for the given channel number.
+     * @param OpChannel optical detector unique channel number
+     * @see GeometryCoreOpDetGeometry "optical detector identification"
+     */
     OpDetGeo const& OpDetGeoFromOpChannel(unsigned int OpChannel) const;
+    
+    /**
+     * @brief Returns the `geo::OpDetGeo` object for the given detector number.
+     * @param OpDet optical detector unique number
+     * @see GeometryCoreOpDetGeometry "optical detector identification"
+     */
     OpDetGeo const& OpDetGeoFromOpDet(unsigned int OpDet) const;
-    //@}
     
     
     //@{
