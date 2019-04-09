@@ -1,6 +1,3 @@
-#ifndef BASICTOOL_GEOHALFLINE_CXX
-#define BASICTOOL_GEOHALFLINE_CXX
-
 #include "larcorealg/GeoAlgo/GeoHalfLine.h"
 namespace geoalgo {
 
@@ -52,6 +49,3 @@ namespace geoalgo {
     _dir /= l;
   }
 }
-#endif
-
-

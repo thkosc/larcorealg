@@ -1,6 +1,3 @@
-#ifndef BASICTOOL_GEOAABOX_CXX
-#define BASICTOOL_GEOAABOX_CXX
-
 #include "larcorealg/GeoAlgo/GeoAABox.h"
 
 namespace geoalgo {
@@ -39,6 +36,3 @@ namespace geoalgo {
 	      );
   }
 }
-#endif
-
-

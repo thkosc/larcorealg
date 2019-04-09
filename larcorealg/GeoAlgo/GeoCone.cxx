@@ -1,6 +1,3 @@
-#ifndef BASICTOOL_GEOCONE_CXX
-#define BASICTOOL_GEOCONE_CXX
-
 #include "larcorealg/GeoAlgo/GeoCone.h"
 #include <sstream>
 namespace geoalgo {
@@ -63,6 +60,3 @@ namespace geoalgo {
   
   void Cone::Radius(const double r) { _radius = r; _angle = atan(_radius/_length); }
 }
-#endif
-
-

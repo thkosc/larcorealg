@@ -1,6 +1,3 @@
-#ifndef BASICTOOL_GEOALGO_CXX
-#define BASICTOOL_GEOALGO_CXX
-
 #include "larcorealg/GeoAlgo/GeoAlgo.h"
 
 namespace geoalgo {
@@ -1112,4 +1109,3 @@ namespace geoalgo {
   }
   
 }
-#endif
