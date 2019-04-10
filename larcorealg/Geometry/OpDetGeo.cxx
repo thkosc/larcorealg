@@ -133,6 +133,15 @@ namespace geo{
   double OpDetGeo::CosThetaFromNormal(double const* xyz) const
     { return CosThetaFromNormal(geo::vect::makeFromCoords<geo::Point_t>(xyz)); }
 
+  //......................................................................
+  void OpDetGeo::UpdateAfterSorting(geo::OpDetID opdetid) {
+    
+    fID = opdetid;
+    
+  } // OpDetGeo::UpdateAfterSorting()
+  
+  
+  //......................................................................
 
 }
 ////////////////////////////////////////////////////////////////////////
