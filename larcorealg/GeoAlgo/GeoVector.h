@@ -14,8 +14,8 @@
 #ifndef BASICTOOL_GEOVECTOR_H
 #define BASICTOOL_GEOVECTOR_H
 
-#include "GeoAlgoConstants.h"
-#include "GeoAlgoException.h"
+#include "larcorealg/GeoAlgo/GeoAlgoConstants.h"
+#include "larcorealg/GeoAlgo/GeoAlgoException.h"
 #include <TVector3.h>
 #include <TLorentzVector.h>
 
@@ -201,7 +201,6 @@ namespace geoalgo {
 }
 
 // Define a pointer comparison                                                                                                                     
-#ifndef __GCCXML__
 namespace std {
   template <>
   class less<geoalgo::Vector*>
@@ -211,8 +210,6 @@ namespace std {
     { return (*lhs) < (*rhs); }
   };
 }
-#endif
 
 #endif
 /** @} */ // end of doxygen group 
-

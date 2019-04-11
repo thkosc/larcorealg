@@ -1,7 +1,4 @@
-#ifndef BASICTOOL_GEOLINE_CXX
-#define BASICTOOL_GEOLINE_CXX
-
-#include "GeoLine.h"
+#include "larcorealg/GeoAlgo/GeoLine.h"
 
 namespace geoalgo {
 
@@ -48,6 +45,4 @@ namespace geoalgo {
   }
 
 }
-#endif
 /** @} */ // end of doxygen group 
-

@@ -1,7 +1,4 @@
-#ifndef BASICTOOL_GEOSPHERE_CXX
-#define BASICTOOL_GEOSPHERE_CXX
-
-#include "GeoSphere.h"
+#include "larcorealg/GeoAlgo/GeoSphere.h"
 
 namespace geoalgo {
 
@@ -370,7 +367,3 @@ namespace geoalgo {
   { if(r<0) throw GeoAlgoException("Only positive value allowed for radius"); }
   
 }
-
-#endif
-
-

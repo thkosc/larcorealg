@@ -87,6 +87,10 @@ namespace geo{
     // update the cryostat ID
     fID = cryoid;
     
+    // trigger all the optical detectors to update
+    for (unsigned int opdet = 0; opdet < NOpDet(); ++opdet)
+      fOpDets[opdet].UpdateAfterSorting(geo::OpDetID(fID, opdet));
+    
     // trigger all the TPCs to update as well
     for (unsigned int tpc = 0; tpc < NTPC(); ++tpc)
       fTPCs[tpc].UpdateAfterSorting(geo::TPCID(fID, tpc));

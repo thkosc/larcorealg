@@ -14,8 +14,8 @@
 #ifndef BASICTOOL_GEOCONE_H
 #define BASICTOOL_GEOCONE_H
 
-#include "GeoVector.h"
-#include "GeoHalfLine.h"
+#include "larcorealg/GeoAlgo/GeoVector.h"
+#include "larcorealg/GeoAlgo/GeoHalfLine.h"
 namespace geoalgo {
   /**
      \class Cone

@@ -14,7 +14,7 @@
 #ifndef BASICTOOL_GEOLINESEGMENT_H
 #define BASICTOOL_GEOLINESEGMENT_H
 
-#include "GeoVector.h"
+#include "larcorealg/GeoAlgo/GeoVector.h"
 
 namespace geoalgo {
   /**

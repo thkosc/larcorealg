@@ -14,7 +14,7 @@
 #ifndef BASICTOOL_GEOHALFLINE_H
 #define BASICTOOL_GEOHALFLINE_H
 
-#include "GeoVector.h"
+#include "larcorealg/GeoAlgo/GeoVector.h"
 namespace geoalgo {
   /**
      \class HalfLine

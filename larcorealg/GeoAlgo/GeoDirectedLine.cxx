@@ -1,7 +1,4 @@
-#ifndef BASICTOOL_GEODIRECTEDLINE_CXX
-#define BASICTOOL_GEODIRECTEDLINE_CXX
-
-#include "GeoDirectedLine.h"
+#include "larcorealg/GeoAlgo/GeoDirectedLine.h"
 
 namespace geoalgo {
 
@@ -25,6 +22,3 @@ namespace geoalgo {
   { return _pt2 - _pt1; }
   
 }
-#endif
-
-

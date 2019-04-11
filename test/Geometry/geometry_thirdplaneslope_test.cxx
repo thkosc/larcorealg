@@ -19,7 +19,6 @@
 #include "larcorealg/Geometry/ChannelMapStandardAlg.h"
 
 // utility libraries
-#include "messagefacility/MessageLogger/MessageLogger.h"
 
 // C/C++ standard libraries
 #include <string>

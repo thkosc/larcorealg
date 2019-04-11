@@ -14,8 +14,8 @@
 #ifndef BASICTOOL_GEOCYLINDER_H
 #define BASICTOOL_GEOCYLINDER_H
 
-#include "GeoAlgo.h"
-#include "GeoLine.h"
+#include "larcorealg/GeoAlgo/GeoAlgo.h"
+#include "larcorealg/GeoAlgo/GeoLine.h"
 
 namespace geoalgo {
   /**

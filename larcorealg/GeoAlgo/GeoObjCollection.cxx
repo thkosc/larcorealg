@@ -1,7 +1,4 @@
-#ifndef BASICTOOL_GEOOBJCOLLECTION_CXX
-#define BASICTOOL_GEOOBJCOLLECTION_CXX
-
-#include "GeoObjCollection.h"
+#include "larcorealg/GeoAlgo/GeoObjCollection.h"
 
 namespace geoalgo {
 
@@ -105,5 +102,3 @@ namespace geoalgo {
   }
 
 }
-
-#endif

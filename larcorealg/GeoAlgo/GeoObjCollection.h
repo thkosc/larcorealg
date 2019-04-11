@@ -15,13 +15,13 @@
 #define BASICTOOL_GEOOBJCOLLECTION_H
 
 #include <iostream>
-#include "GeoTrajectory.h"
-#include "GeoAABox.h"
-#include "GeoLineSegment.h"
-#include "GeoHalfLine.h"
-#include "GeoCone.h"
-#include "GeoSphere.h"
-#include "GeoAlgoException.h"
+#include "larcorealg/GeoAlgo/GeoTrajectory.h"
+#include "larcorealg/GeoAlgo/GeoAABox.h"
+#include "larcorealg/GeoAlgo/GeoLineSegment.h"
+#include "larcorealg/GeoAlgo/GeoHalfLine.h"
+#include "larcorealg/GeoAlgo/GeoCone.h"
+#include "larcorealg/GeoAlgo/GeoSphere.h"
+#include "larcorealg/GeoAlgo/GeoAlgoException.h"
 #include <map>
 namespace geoalgo {
 

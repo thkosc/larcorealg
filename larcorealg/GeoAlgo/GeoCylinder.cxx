@@ -1,7 +1,4 @@
-#ifndef BASICTOOL_GEOCYLINDER_CXX
-#define BASICTOOL_GEOCYLINDER_CXX
-
-#include "GeoCylinder.h"
+#include "larcorealg/GeoAlgo/GeoCylinder.h"
 
 namespace geoalgo {
 
@@ -61,6 +58,3 @@ namespace geoalgo {
 
   }
 }
-#endif
-
-

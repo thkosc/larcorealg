@@ -1,7 +1,4 @@
-#ifndef BASICTOOL_GEOLINESEGMENT_CXX
-#define BASICTOOL_GEOLINESEGMENT_CXX
-
-#include "GeoLineSegment.h"
+#include "larcorealg/GeoAlgo/GeoLineSegment.h"
 
 namespace geoalgo {
 
@@ -47,6 +44,3 @@ namespace geoalgo {
   void LineSegment::DirReset() { _dir = _end - _start; }
 
 }
-
-#endif
-

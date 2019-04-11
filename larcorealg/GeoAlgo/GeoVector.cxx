@@ -1,7 +1,4 @@
-#ifndef BASICTOOL_GEOVECTOR_CXX
-#define BASICTOOL_GEOVECTOR_CXX
-
-#include "GeoVector.h"
+#include "larcorealg/GeoAlgo/GeoVector.h"
 #include <iostream>
 #include <iomanip>
 #include <vector>
@@ -184,7 +181,3 @@ namespace geoalgo {
 
 
 }
-
-#endif
-
-
