@@ -16,7 +16,6 @@
 #include <cetlib/quiet_unit_test.hpp>
 
 // C/C++ standard libraries
-#include <string>
 #include <type_traits>
 
 

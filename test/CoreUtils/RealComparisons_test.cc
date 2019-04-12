@@ -15,7 +15,6 @@
 #include "larcorealg/CoreUtils/RealComparisons.h"
 
 // C/C++ standard libraries
-#include <string>
 #include <ostream>
 #include <cmath>
 

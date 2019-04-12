@@ -21,7 +21,6 @@
 // utility libraries
 
 // C/C++ standard libraries
-#include <string>
 
 //------------------------------------------------------------------------------
 //---  The test environment
