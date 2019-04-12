@@ -10,25 +10,25 @@ namespace geoalgo {
 
   Vector::Vector(const double x, const double y) : Vector(2)
   { (*this)[0] = x; (*this)[1] = y; }
-  
+
   Vector::Vector(const double x, const double y, const double z) : Vector(3)
   { (*this)[0] = x; (*this)[1] = y; (*this)[2] = z; }
-  
+
   Vector::Vector(const TVector3 &pt) : Vector(3)
   { (*this)[0] = pt[0]; (*this)[1] = pt[1]; (*this)[2] = pt[2]; }
-  
+
   Vector::Vector(const TLorentzVector &pt) : Vector(3)
   { (*this)[0] = pt[0]; (*this)[1] = pt[1]; (*this)[2] = pt[2]; }
 
   bool Vector::IsValid() const {
-    
+
     for (auto const &v : (*this)){
       // if any point is different from kINVALID_DOUBLE
       // then the point is valid
       if (v != kINVALID_DOUBLE)
 	return true;
     }
-    
+
     return false;
   }
 
@@ -40,33 +40,33 @@ namespace geoalgo {
 
   double Vector::Length() const
   { return sqrt(SqLength()); }
-  
+
   double Vector::SqDist(const Vector &obj) const {
     compat(obj);
     return _SqDist_(obj);
   }
 
-  double Vector::Dist(const Vector& obj) const 
+  double Vector::Dist(const Vector& obj) const
   { return sqrt(SqDist(obj)); }
 
   double Vector::Dot(const Vector &obj) const {
     compat(obj);
     return _Dot_(obj);
   }
-    
+
   Vector Vector::Cross(const Vector &obj) const {
-    
+
     if(size()!=3 || obj.size()!=3)
-      
+
       throw GeoAlgoException("<<Cross>> only possible for 3-dimensional vectors!");
-    
+
     return _Cross_(obj);
   }
 
   double Vector::Phi() const {
     return (*this)[0] == 0.0 && (*this)[1] == 0.0 ? 0.0 : atan2((*this)[1],(*this)[0]);
   }
-  
+
   double Vector::Theta() const {
     if ( size() != 3 )
       throw GeoAlgoException("<<Theta>> Only possible for 3-dimensional vectors!");
@@ -80,7 +80,7 @@ namespace geoalgo {
       throw GeoAlgoException("<<Angle>> only possible for 2 or 3-dimensional vectors!");
     return _Angle_(obj);
   }
-  
+
   TLorentzVector Vector::ToTLorentzVector() const {
     if(size()!=3)
       throw GeoAlgoException("<<ToTLorentsVector>> only possible for 3-dimensional vectors!");
@@ -94,11 +94,11 @@ namespace geoalgo {
     res /= res.Length();
     return res;
   }
-      
+
   void Vector::compat(const Vector& obj) const {
     if(size() != obj.size()) {
       std::ostringstream msg;
-	msg << "<<" << __FUNCTION__ << ">>" 
+	msg << "<<" << __FUNCTION__ << ">>"
 	    << " size mismatch: "
 	    << size() << " != " << obj.size()
 	    << std::endl;
@@ -126,24 +126,24 @@ namespace geoalgo {
     res[1] = (*this)[2] * obj[0] - obj[2] * (*this)[0];
     res[2] = (*this)[0] * obj[1] - obj[0] * (*this)[1];
     return res;
-  }    
+  }
 
   double Vector::_Angle_(const Vector& obj) const
   { return acos( _Dot_(obj) / Length() / obj.Length() ); }
-  
+
 
   void Vector::RotateX(const double& theta)
   {
 
     double c = cos(theta);
     double s = sin(theta);
-    
+
     double ynew = (*this)[1] * c - (*this)[2] * s;
     double znew = (*this)[1] * s + (*this)[2] * c;
 
     (*this)[1] = ynew;
     (*this)[2] = znew;
-    
+
     return;
   }
 
@@ -153,10 +153,10 @@ namespace geoalgo {
 
     double c = cos(theta);
     double s = sin(theta);
-    
+
     double xnew =   (*this)[0] * c + (*this)[2] * s;
     double znew = - (*this)[0] * s + (*this)[2] * c;
-    
+
     (*this)[0] = xnew;
     (*this)[2] = znew;
 
@@ -169,13 +169,13 @@ namespace geoalgo {
 
     double c = cos(theta);
     double s = sin(theta);
-    
+
     double xnew = (*this)[0] * c - (*this)[1] * s;
     double ynew = (*this)[0] * s + (*this)[1] * c;
 
     (*this)[0] = xnew;
     (*this)[1] = ynew;
-    
+
     return;
   }
 

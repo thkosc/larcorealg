@@ -38,7 +38,7 @@
 
 
 namespace geo {
-  
+
   //......................................................................
   // Constructor.
   AuxDetGeometryCore::AuxDetGeometryCore(fhicl::ParameterSet const& pset)
@@ -47,10 +47,10 @@ namespace geo {
   {
     std::transform(fDetectorName.begin(), fDetectorName.end(), fDetectorName.begin(), ::tolower);
   } // AuxDetGeometryCore::AuxDetGeometryCore()
-  
-  
+
+
   //......................................................................
-  AuxDetGeometryCore::~AuxDetGeometryCore() 
+  AuxDetGeometryCore::~AuxDetGeometryCore()
   {
     ClearGeometry();
   } // AuxDetGeometryCore::~AuxDetGeometryCore()
@@ -66,19 +66,19 @@ namespace geo {
   //......................................................................
   void AuxDetGeometryCore::LoadGeometryFile(std::string gdmlfile, std::string rootfile)
   {
-    
+
     if (gdmlfile.empty()) {
       throw cet::exception("AuxDetGeometryCore") << "No GDML Geometry file specified!\n";
     }
-    
+
     if (rootfile.empty()) {
       throw cet::exception("AuxDetGeometryCore") << "No ROOT Geometry file specified!\n";
     }
-    
+
     ClearGeometry();
 
     // Open the GDML file, and convert it into ROOT TGeoManager format.
-    // try to be efficient - if the GeometryCore object already imported 
+    // try to be efficient - if the GeometryCore object already imported
     // the file, then the gGeoManager will be non-null.  If not, import it.
     // Then lock the gGeoManager to prevent future imports.
     if( !gGeoManager ){
@@ -92,7 +92,7 @@ namespace geo {
         ()
       );
     geo::GeoNodePath path{ gGeoManager->GetTopNode() };
-    
+
     // channel mapping interface demands a vector of pointers to auxiliary
     // detectors for several methods; and Gianluca is not going to fix that
     // this time; so we waste some time and health in conversions.
@@ -104,23 +104,23 @@ namespace geo {
       auto* pAuxDet = new geo::AuxDetGeo(std::move(auxDet));
       AuxDets().push_back(pAuxDet);
     }
-    
+
     fGDMLfile = gdmlfile;
     fROOTfile = rootfile;
-    
+
     mf::LogInfo("AuxDetGeometryCore") << "New detector geometry loaded from "
-				      << "\n\t" << fROOTfile 
+				      << "\n\t" << fROOTfile
 				      << "\n\t" << fGDMLfile << "\n";
-    
+
   } // AuxDetGeometryCore::LoadGeometryFile()
 
   //......................................................................
-  void AuxDetGeometryCore::ClearGeometry() 
+  void AuxDetGeometryCore::ClearGeometry()
   {
     // auxiliary detectors
     std::for_each(AuxDets().begin(), AuxDets().end(), std::default_delete<AuxDetGeo>());
     AuxDets().clear();
-    
+
   } // AuxDetGeometryCore::ClearGeometry()
 
 
@@ -128,7 +128,7 @@ namespace geo {
   unsigned int AuxDetGeometryCore::NAuxDetSensitive(size_t const& aid) const
   {
     if( aid > NAuxDets() - 1)
-      throw cet::exception("Geometry") << "Requested AuxDet index " << aid 
+      throw cet::exception("Geometry") << "Requested AuxDet index " << aid
 				       << " is out of range: " << NAuxDets();
 
     return AuxDets()[aid]->NSensitiveVolume();
@@ -149,24 +149,24 @@ namespace geo {
     throw cet::exception("AuxDetGeometryCore") << "AuxDet "
 					       << ad
 					       << " does not exist\n";
-    
+
     return *(AuxDets()[ad]);
   }
-  
-  
+
+
   //......................................................................
   unsigned int AuxDetGeometryCore::FindAuxDetAtPosition(double const  worldPos[3]) const
   {
     return fChannelMapAlg->NearestAuxDet(worldPos, AuxDets());
   } // AuxDetGeometryCore::FindAuxDetAtPosition()
-  
+
   //......................................................................
   const AuxDetGeo& AuxDetGeometryCore::PositionToAuxDet(double const  worldLoc[3],
 							unsigned int &ad) const
-  {    
+  {
     // locate the desired Auxiliary Detector
     ad = this->FindAuxDetAtPosition(worldLoc);
-    
+
     return this->AuxDet(ad);
   }
 
@@ -180,14 +180,14 @@ namespace geo {
 
     return;
   } // AuxDetGeometryCore::FindAuxDetAtPosition()
-  
+
   //......................................................................
   const AuxDetSensitiveGeo& AuxDetGeometryCore::PositionToAuxDetSensitive(double const worldLoc[3],
 									  size_t      &ad,
 									  size_t      &sv) const
-  {    
+  {
     // locate the desired Auxiliary Detector
-    this->FindAuxDetSensitiveAtPosition(worldLoc, ad, sv);    
+    this->FindAuxDetSensitiveAtPosition(worldLoc, ad, sv);
     return this->AuxDet(ad).SensitiveVolume(sv);
   }
 
@@ -195,17 +195,17 @@ namespace geo {
   uint32_t AuxDetGeometryCore::PositionToAuxDetChannel(double const worldLoc[3],
 							     size_t      &ad,
 							     size_t      &sv) const
-  {    
+  {
     return fChannelMapAlg->PositionToAuxDetChannel(worldLoc, AuxDets(), ad, sv);
   }
 
   //......................................................................
   TVector3 AuxDetGeometryCore::AuxDetChannelToPosition(uint32_t    const& channel,
 							     std::string const& auxDetName) const
-  {    
+  {
     return fChannelMapAlg->AuxDetChannelToPosition(channel, auxDetName, AuxDets());
   }
-  
+
   //......................................................................
   const AuxDetGeo& AuxDetGeometryCore::ChannelToAuxDet(std::string const& auxDetName,
 						       uint32_t    const& channel) const
@@ -223,5 +223,5 @@ namespace geo {
   }
 
   //......................................................................
-  
+
 } // namespace geo

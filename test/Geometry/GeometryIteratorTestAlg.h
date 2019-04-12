@@ -14,26 +14,26 @@ namespace fhicl {
 }
 
 namespace geo {
-  
+
   class GeometryCore; // forward declaration
-  
+
   //----------------------------------------------------------------------------
-  
+
   class GeometryIteratorTestAlg {
       public:
-    
+
     /// Constructor: reads configuration, does nothing
     GeometryIteratorTestAlg(fhicl::ParameterSet const& /* pset */) {}
-    
+
     /// Virtual destructor
     virtual ~GeometryIteratorTestAlg() = default;
-    
+
     /// Algorithm set up
     virtual void Setup(geo::GeometryCore const& new_geo) { geom = &new_geo; }
-    
+
     /// Executes the test
     virtual unsigned int Run() const;
-   
+
     /// @{
     /// @name ID iterator tests
     void CryostatIDIteratorsTest() const;
@@ -43,7 +43,7 @@ namespace geo {
     void TPCsetIDIteratorsTest() const;
     void ROPIDIteratorsTest() const;
     /// @}
-    
+
     /// @{
     /// @name Element iterator tests
     void CryostatIteratorsTest() const;
@@ -51,12 +51,12 @@ namespace geo {
     void PlaneIteratorsTest() const;
     void WireIteratorsTest() const;
     /// @}
-    
+
       protected:
     GeometryCore const* geom = nullptr; ///< pointer to the geometry description
-    
+
   }; // class GeometryIteratorTestAlg
-  
+
 
 } // namespace geo
 

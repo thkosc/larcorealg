@@ -36,58 +36,58 @@ namespace geo {
   /// @brief Geometry information for a single TPC.
   /// @ingroup Geometry
   class TPCGeo: public BoxBoundedGeo {
-    
+
     using DefaultVector_t = TVector3; // ... not for long
     using DefaultPoint_t = TVector3; // ... not for long
-    
+
   public:
-    
+
     using PlaneCollection_t = std::vector<geo::PlaneGeo>;
     using GeoNodePath_t = geo::WireGeo::GeoNodePath_t;
-    
+
     /// @{
     /**
      * @name Types for geometry-local reference vectors.
-     * 
+     *
      * These types represents points and displacement vectors in the reference
      * frame defined in the TPC geometry box from the GDML geometry
      * description.
-     * 
+     *
      * No alias is explicitly defined for the LArSoft global vector types,
      * `geo::Point_t` and `geo::Vector_t`.
-     * 
+     *
      * Remember the `LocalPoint_t` and `LocalVector_t` vectors from different
      * instances of `geo::TPCGeo` have the same type but are not compatible.
      */
-    
+
     /// Tag for vectors in the "local" GDML coordinate frame of the TPC.
     struct TPCGeoCoordinatesTag {};
-    
+
     /// Type of points in the local GDML TPC frame.
     using LocalPoint_t = geo::Point3DBase_t<TPCGeoCoordinatesTag>;
-    
+
     /// Type of displacement vectors in the local GDML TPC frame.
     using LocalVector_t = geo::Vector3DBase_t<TPCGeoCoordinatesTag>;
-    
+
     ///@}
-    
+
     /// Type of 2D vector projection on a plane.
     using Projection_t = geo::PlaneGeo::WidthDepthProjection_t;
-    
+
     /// Data structure with plane and drift projections of a 3D vector.
     using DecomposedVector_t = geo::PlaneGeo::WDDecomposedVector_t;
-    
-    
+
+
     // Construct a representation of a single plane of the detector
     TPCGeo(
       TGeoNode const& node, geo::TransformationMatrix&& trans,
       PlaneCollection_t&& planes
       );
-    
-    
+
+
     /// @{
     /// @name TPC properties
-    
+
     /// Half width (associated with x coordinate) of active TPC volume [cm].
     double            ActiveHalfWidth()                         const { return fActiveHalfWidth;        }
     /// Width (associated with x coordinate) of active TPC volume [cm].
@@ -115,54 +115,54 @@ namespace geo {
     double            ActiveMass()                              const { return fActiveVolume->Weight(); }
     const TGeoVolume* ActiveVolume()                            const { return fActiveVolume;           }
     const TGeoVolume* TotalVolume()                             const { return fTotalVolume;            }
-    
+
     /// Returns the direction `Width()` is measured on.
     template <typename Vector>
     decltype(auto)    WidthDir()                                const { return geo::vect::convertTo<Vector>(fWidthDir); }
-    
+
     /// Returns the direction `Width()` is measured on.
     decltype(auto)    WidthDir()                                const { return WidthDir<DefaultVector_t>(); }
-    
+
     /// Returns the direction `Height()` is measured on.
     template <typename Vector>
     decltype(auto)    HeightDir()                               const { return geo::vect::convertTo<Vector>(fHeightDir); }
-    
+
     /// Returns the direction `Height()` is measured on.
     decltype(auto)    HeightDir()                               const { return HeightDir<DefaultVector_t>(); }
-    
+
     /// Returns the direction `Length()` is measured on.
     template <typename Vector>
     decltype(auto)    LengthDir()                               const { return geo::vect::convertTo<Vector>(fLengthDir); }
-    
+
     /// Returns the direction `Length()` is measured on.
     decltype(auto)    LengthDir()                               const { return LengthDir<DefaultVector_t>(); }
-    
+
     /// Returns an enumerator value describing the drift direction.
     DriftDirection_t  DriftDirection()                          const { return fDriftDirection;         }
-    
+
     /// Returns the direction of the drift (vector pointing toward the planes).
     template <typename Vector>
     Vector DriftDir()                                           const;
-    
+
     /// Returns the direction of the drift (vector pointing toward the planes).
     DefaultVector_t DriftDir()                                  const { return DriftDir<DefaultVector_t>(); }
-    
+
     /// Drift distance is defined as the distance between the last anode plane
     /// and the opposite face of the TPC, in centimeters.
     double            DriftDistance()                           const { return ComputeDriftDistance();  }
-    
+
     /// @}
-    
-    
+
+
     /// @{
     /// @name Plane access
-    
+
     //@{
     /// Number of planes in this tpc
     unsigned int    Nplanes()                                   const { return fPlanes.size();   }
     unsigned int    NElements()                                 const { return fPlanes.size();   }
     //@}
-    
+
     //@{
     /**
      * @brief Returns whether a plane with index iplane is present in this TPC
@@ -172,7 +172,7 @@ namespace geo {
     bool HasPlane(unsigned int iplane) const { return iplane < Nplanes(); }
     bool HasElement(unsigned int iplane) const { return HasPlane(iplane); }
     //@}
-    
+
     //@{
     /**
      * @brief Returns whether the plane in planeid is present in this TPC
@@ -187,15 +187,15 @@ namespace geo {
     bool HasElement(geo::PlaneID const& planeid) const
       { return HasPlane(planeid); }
     //@}
-    
+
     /// Return the plane in the tpc with View_t view.
     PlaneGeo const&     Plane(geo::View_t  view)                const;
-    
-    
+
+
     /// Return the iplane'th plane in the TPC.
     /// @throws cet::exception (category "PlaneOutOfRange")  if no such plane
     PlaneGeo const&     Plane(unsigned int iplane)              const;
-    
+
     //@{
     /**
      * @brief Returns the plane in planeid from this TPC
@@ -211,7 +211,7 @@ namespace geo {
     const PlaneGeo&     GetElement(PlaneID const& planeid)            const
       { return Plane(planeid); }
     //@}
-    
+
     /**
      * @brief Returns the plane number iplane from this TPC
      * @param iplane the number of local plane
@@ -219,7 +219,7 @@ namespace geo {
      */
     PlaneGeo const*     PlanePtr(unsigned int iplane)                const
       { return HasPlane(iplane)? &(fPlanes[iplane]): nullptr; }
-    
+
     //@{
     /**
      * @brief Returns the plane in planeid from this TPC
@@ -234,88 +234,88 @@ namespace geo {
     PlaneGeo const*     GetElementPtr(PlaneID const& planeid)            const
       { return PlanePtr(planeid); }
     //@}
-    
+
     /// Returns the wire plane with the smallest surface
     geo::PlaneGeo const& SmallestPlane() const;
-    
+
     /// Returns the first wire plane (the closest to TPC center).
     geo::PlaneGeo const& FirstPlane() const { return fPlanes[0]; }
-    
+
     /// Returns the last wire plane (the farther from TPC center).
     geo::PlaneGeo const& LastPlane() const { return fPlanes[Nplanes() - 1]; }
-    
+
     /// @brief Returns the largest number of wires among the planes in this TPC
     unsigned int MaxWires() const;
-    
+
     /// Returns a set of all views covered in this TPC.
     std::set<geo::View_t> Views() const;
-    
+
     /// @}
-    
+
     /// @{
     /// @name TPC geometry properties
-    
+
     /// Returns the center of the TPC volume in world coordinates [cm]
     template <typename Point>
     Point GetCenter() const;
-    
+
     /// Returns the center of the TPC volume in world coordinates [cm]
     DefaultPoint_t GetCenter() const { return GetCenter<DefaultPoint_t>(); }
-    
+
     /// Returns the center of the TPC active volume in world coordinates [cm]
     template <typename Point>
     Point GetActiveVolumeCenter() const
       { return geo::vect::convertTo<Point>(fActiveCenter); }
-    
+
     /// Returns the center of the TPC active volume in world coordinates [cm]
     DefaultPoint_t GetActiveVolumeCenter() const
       { return GetActiveVolumeCenter<DefaultPoint_t>(); }
-    
+
     /// Returns the center of the active volume face opposite to the wire planes
     /// [cm]
     template <typename Point>
     Point GetCathodeCenter() const
       { return geo::vect::convertTo<Point>(GetCathodeCenterImpl()); }
-    
+
     /// Returns the center of the active volume face opposite to the wire planes
     /// [cm]
     DefaultPoint_t GetCathodeCenter() const
       { return GetCathodeCenter<DefaultPoint_t>(); }
-    
+
     /// Returns the center of the active TPC volume side facing negative _z_.
     template <typename Point>
     Point GetFrontFaceCenter() const
       { return geo::vect::convertTo<Point>(GetFrontFaceCenterImpl()); }
-    
+
     /// Returns the center of the active TPC volume side facing negative _z_.
     geo::Point_t GetFrontFaceCenter() const
       { return GetFrontFaceCenter<geo::Point_t>(); }
-    
+
     /// Returns the bounding box of this TPC.
     geo::BoxBoundedGeo const& BoundingBox() const
       { return *this; }
-    
+
     /// Returns the box of the active volume of this TPC.
     geo::BoxBoundedGeo const& ActiveBoundingBox() const
       { return fActiveBox; }
-    
-    
+
+
     /// Returns the coordinates of the center of the specified plane [cm]
-    const double*     PlaneLocation(unsigned int p)             const; 
+    const double*     PlaneLocation(unsigned int p)             const;
     double            Plane0Pitch(unsigned int p)               const;
     double            PlanePitch(unsigned int p1=0,
                                  unsigned int p2=1)             const;
     double WirePitch(unsigned plane = 0) const;
-    
+
     /// Returns the identifier of this TPC
     geo::TPCID const& ID() const { return fID; }
-    
+
     /// @}
-    
-    
+
+
     /// @{
     /// @name Projection on a wire plane
-    /// 
+    ///
     /// These methods deal with projection of points and vectors on a plane,
     /// using a geometric reference base which is not dependent on the wire
     /// direction. Technically, the objects are projected on the reference
@@ -326,21 +326,21 @@ namespace geo {
     /// used directly (but note that geo::PlaneGeo defines _two_ different
     /// frames, and the names of the frame equivalent to the one used here are
     /// different).
-    /// 
-    
+    ///
+
     /// Returns the plane used for reference by projection methods.
     geo::PlaneGeo const& ReferencePlane() const { return FirstPlane(); }
-    
+
     /// Returns the ID of the plane used for reference by projection methods.
     geo::PlaneID const& ReferencePlaneID() const
       { return ReferencePlane().ID(); }
-    
+
     //@{
     /**
      * @brief Return the direction of reference plane width.
      * @tparam Vector type of vector to return (current default: `TVector3`)
      * @see RefDepthDir(), DriftDir()
-     * 
+     *
      * The precise definition of the vector is arbitrary, but it is defined
      * to lie on the wire plane and so that RefWidthDir(), RefDepthDir() and
      * a vector opposite to DriftDir() make a orthonormal base.
@@ -350,13 +350,13 @@ namespace geo {
     Vector RefWidthDir() const { return ReferencePlane().WidthDir<Vector>(); }
     DefaultPoint_t RefWidthDir() const { return RefWidthDir<DefaultPoint_t>(); }
     //@}
-    
+
     //@{
     /**
      * @brief Return the direction of reference plane depth.
      * @tparam Vector type of vector to return (current default: `TVector3`)
      * @see RefWidthDir(), DriftDir()
-     * 
+     *
      * The precise definition of the vector is arbitrary, but it is defined
      * to lie on the wire plane and so that RefWidthDir(), RefDepthDir() and
      * a vector opposite to DriftDir() make a orthonormal base.
@@ -366,17 +366,17 @@ namespace geo {
     Vector RefDepthDir() const { return ReferencePlane().DepthDir<Vector>(); }
     DefaultPoint_t RefDepthDir() const { return RefDepthDir<DefaultPoint_t>(); }
     //@}
-    
-    
+
+
     //@{
     /**
      * @brief Returns the distance of the specified point from reference plane.
      * @param point a point in world coordinates [cm]
      * @return the signed distance from the plane
-     * 
+     *
      * The distance is defined positive if the point lies in the inner side
      * with respect to the reference plane.
-     * 
+     *
      * It should match the drift distance from that plane.
      */
     double DistanceFromReferencePlane(geo::Point_t const& point) const
@@ -384,15 +384,15 @@ namespace geo {
     double DistanceFromReferencePlane(TVector3 const& point) const
       { return DistanceFromReferencePlane(geo::vect::toPoint(point)); }
     //@}
-    
-    
+
+
     //@{
     /**
      * @brief Shifts the position of an electron drifted by a distance.
      * @param position _(modified)_ the position of the electron
      * @param distance drift distance to shift the electron by [cm]
      * @see geo::Plane::DriftPoint(), ReferencePlane()
-     * 
+     *
      * This operation is delegated to the reference plane
      * (see `geo::Plane::DriftPoint()`).
      */
@@ -401,20 +401,20 @@ namespace geo {
     void DriftPoint(TVector3& position, double distance) const
       { ReferencePlane().DriftPoint(position, distance); }
     //@}
-    
-    
+
+
     //@{
     /**
      * @brief Decomposes a 3D point in two components.
      * @param point the point to be decomposed
      * @return the two components of point, on the plane and orthogonal to it
-     * 
+     *
      * The point is decomposed in:
-     * 
+     *
      * 1. a component orthogonal to the reference plane, expressed as a signed
      *    real number
      * 2. a component lying on the reference plane, expressed as a 2D vector
-     * 
+     *
      * The distance is from the reference plane
      * (`DistanceFromReferencePlane()`).
      * The projection on the plane is obtained following the same convention
@@ -425,12 +425,12 @@ namespace geo {
     DecomposedVector_t DecomposePoint(TVector3 const& point) const
       { return DecomposePoint(geo::vect::toPoint(point)); }
     //@}
-    
+
     //@{
     /**
      * @brief Returns the reference point used by `PointProjection()`.
      * @tparam Point type of point to be returned
-     * 
+     *
      * The returned point is such that its decomposition results in a null
      * projection and a 0 distance from the plane.
      */
@@ -440,13 +440,13 @@ namespace geo {
     DefaultPoint_t ProjectionReferencePoint() const
       { return ProjectionReferencePoint<DefaultPoint_t>(); }
     //@}
-    
+
     //@{
     /**
      * @brief Returns the projection of the specified point on the plane.
      * @param point the 3D point to be projected, in world coordinates
      * @return a 2D vector representing the projection of point on the plane
-     * 
+     *
      * The returned vector is a 2D vector expressing the projection of the point
      * (from world coordinates) on the reference plane.
      * The vector is expressed as @f$ ( w, d ) @f$, components following the
@@ -462,13 +462,13 @@ namespace geo {
     Projection_t PointProjection(TVector3 const& point) const
       { return Projection(geo::vect::toPoint(point)); }
     //@}
-    
+
     //@{
     /**
      * @brief Returns the projection of the specified vector on the plane.
      * @param v the 3D vector to be projected, in world units [cm]
      * @return a 2D vector representing the projection of v on the plane
-     * 
+     *
      * The returned vector is a 2D vector expressing the projection of the
      * vector (from world units) on the reference plane.
      * The vector is expressed as @f$ ( w, d ) @f$, components following the
@@ -483,7 +483,7 @@ namespace geo {
     Projection_t VectorProjection(TVector3 const& v) const
       { return Projection(geo::vect::toVector(v)); }
     //@}
-    
+
     //@{
     /**
      * @brief Returns the 3D vector from composition of projection and distance.
@@ -491,7 +491,7 @@ namespace geo {
      * @param decomp decomposed point
      * @return the 3D vector from composition of projection and distance
      * @see DecomposePoint(), ComposePoint(double, Projection_t const&)
-     * 
+     *
      * This is the "inverse" operation respect to `DecomposePoint()`.
      * The argument stores the two components, orthogonal and parallel to the
      * plane, and compose them into a 3D point which departs from the reference
@@ -504,7 +504,7 @@ namespace geo {
     DefaultPoint_t ComposePoint(DecomposedVector_t const& decomp) const
       { return ComposePoint<DefaultPoint_t>(decomp); }
     //@}
-    
+
     //@{
     /**
      * @brief Returns the 3D point from composition of projection and distance.
@@ -513,16 +513,16 @@ namespace geo {
      * @param proj projection of the target point on the reference plane
      * @return the 3D point from composition of projection and distance
      * @see DecomposePoint()
-     * 
+     *
      * The returned point is the reference point, translated by two 3D vectors:
-     * 
+     *
      * 1. a vector parallel to the plane normal, with norm the input distance
      * 2. a vector lying on the plane, whose projection via `PointProjection()`
      *    gives the input projection
-     * 
+     *
      * The choice of the projection reference point embodies the same convention
      * used in `PointProjection()` and `DecomposePoint()`.
-     * 
+     *
      */
     template <typename Point>
     Point ComposePoint(double distance, Projection_t const& proj) const
@@ -530,69 +530,69 @@ namespace geo {
     DefaultPoint_t ComposePoint(double distance, Projection_t const& proj) const
       { return ComposePoint<DefaultPoint_t>(distance, proj); }
     //@}
-    
+
     /// @}
-    
-    
+
+
     /// @{
     /// @name Coordinate transformation
-    
+
     /// Transform point from local TPC frame to world frame.
     void LocalToWorld(const double* tpc, double* world) const
       { fTrans.LocalToWorld(tpc, world); }
-      
+
     /// Transform point from local TPC frame to world frame.
     TVector3 LocalToWorld(const TVector3& local) const
       { return fTrans.LocalToWorld<TVector3>(local); }
-    
+
     /// Transform point from local TPC frame to world frame.
     geo::Point_t toWorldCoords(LocalPoint_t const& local) const
       { return fTrans.toWorldCoords(local); }
-    
+
     /// Transform direction vector from local to world.
     void LocalToWorldVect(const double* tpc, double* world) const
       { fTrans.LocalToWorldVect(tpc, world); }
-    
+
     /// Transform direction vector from local to world.
     TVector3 LocalToWorldVect(const TVector3& local) const
       { return fTrans.LocalToWorldVect<TVector3>(local); }
-    
+
     /// Transform direction vector from local to world.
     geo::Vector_t toWorldCoords(LocalVector_t const& local) const
       { return fTrans.toWorldCoords(local); }
-    
+
     /// Transform point from world frame to local TPC frame.
     void WorldToLocal(const double* world, double* tpc) const
       { fTrans.WorldToLocal(world, tpc); }
-    
+
     /// Transform point from world frame to local TPC frame.
     TVector3 WorldToLocal(TVector3 const& world) const
       { return fTrans.WorldToLocal<TVector3>(world); }
-    
+
     /// Transform point from world frame to local TPC frame.
     LocalPoint_t toLocalCoords(geo::Point_t const& world) const
       { return fTrans.toLocalCoords(world); }
-    
+
     /// Transform direction vector from world to local.
     void WorldToLocalVect(const double* world, double* tpc) const
       { fTrans.WorldToLocalVect(world, tpc); }
-    
+
     /// Transform direction vector from world to local.
     TVector3 WorldToLocalVect(TVector3 const& world) const
       { return fTrans.WorldToLocalVect<TVector3>(world); }
-    
+
     /// Transform direction vector from world to local.
     LocalVector_t toLocalCoords(geo::Vector_t const& world) const
       { return fTrans.toLocalCoords(world); }
-    
+
     /// @}
-    
-    
+
+
     /**
      * @brief Returns the expected drift direction based on geometry
-     * 
+     *
      * The return value is coded as follow:
-     * 
+     *
      * * +1: positive x
      * * +2: positive y
      * * +3: positive z
@@ -600,61 +600,61 @@ namespace geo {
      * * -2: negative y
      * * -3: negative z
      * *  0: other (or algorithm failed)
-     * 
+     *
      * The current implementation is based on the assumption that electrons in
      * the middle of TPC will drift toward the wire planes, and it "never
      * fails".
      */
     short int DetectDriftDirection() const;
-    
-    
-    
+
+
+
     /// Apply sorting to the PlaneGeo objects
     void              SortSubVolumes(geo::GeoObjectSorter const& sorter);
-    
+
     /// Performs all updates after cryostat has sorted TPCs
     void UpdateAfterSorting(geo::TPCID tpcid);
-    
-    
+
+
     /**
      * @brief Prints information about this TPC.
      * @tparam Stream type of output stream to use
      * @param out stream to send the information to
      * @param indent prepend each line with this string
      * @param verbosity amount of information printed
-     * 
+     *
      * Note that the first line out the output is _not_ indented.
-     * 
+     *
      * Verbosity levels
      * -----------------
-     * 
+     *
      * * 0: only TPC ID
      * * 1 _(default)_: also center and size
      * * 2: also drift direction, cathode position and number of planes
      * * 3: also maximum number of wires per plane
      * * 4: also information on main direction
      * * 5: also information on bounding box
-     * 
+     *
      * The constant `MaxVerbosity` is set to the highest supported verbosity
      * level.
      */
     template <typename Stream>
     void PrintTPCInfo
       (Stream&& out, std::string indent = "", unsigned int verbosity = 1) const;
-    
+
     /**
      * @brief Returns a string with information about this TPC.
      * @see `PrintTPCInfo()`
-     * 
+     *
      * Arguments and provided information are the same as in `PrintTPCInfo()`.
      */
     std::string TPCInfo
       (std::string indent = "", unsigned int verbosity = 1) const;
-    
+
     /// Maximum verbosity supported by `PrintTPCInfo()`.
     static constexpr unsigned int MaxVerbosity = 6;
-    
-    
+
+
     /**
      * @brief Returns whether the specified coordinate is in a range
      * @param c the coordinate
@@ -672,23 +672,23 @@ namespace geo {
         return (c >= (min > 0? min / wiggle: min * wiggle))
           && (c <= (max < 0? max / wiggle: max * wiggle));
       } // CoordinateContained()
-    
+
     static bool CoordinateContained
       (double c, double const* range, double wiggle = 1.)
       { return CoordinateContained(c, range[0], range[1], wiggle); }
-    
-    
+
+
   private:
-    
+
     void FindPlane(GeoNodePath_t& path, size_t depth);
     void MakePlane(GeoNodePath_t& path, size_t depth);
-    
+
   private:
     using LocalTransformation_t = geo::LocalTransformationGeo
       <ROOT::Math::Transform3D, LocalPoint_t, LocalVector_t>;
-    
+
     LocalTransformation_t              fTrans;          ///< TPC-to-world transformation.
-    
+
     PlaneCollection_t                  fPlanes;         ///< List of planes in this plane.
     TGeoVolume*                        fActiveVolume;   ///< Active volume of LAr, called volTPCActive in GDML file.
     TGeoVolume*                        fTotalVolume;    ///< Total volume of TPC, called volTPC in GDML file.
@@ -708,33 +708,33 @@ namespace geo {
     geo::Vector_t fHeightDir; ///< Direction height refers to.
     geo::Vector_t fLengthDir; ///< Direction length refers to.
     geo::Vector_t fDriftDir; ///< Direction electrons drift along.
-    
+
     geo::BoxBoundedGeo                 fActiveBox;      ///< Box of the active volume.
-    
+
     geo::TPCID                         fID;             ///< ID of this TPC.
-    
+
     /// Index of the plane for each view (InvalidID if none).
     std::vector<geo::PlaneID::PlaneID_t> fViewToPlaneNumber;
-  
+
     /// Recomputes the drift direction; needs planes to have been initialised.
     void ResetDriftDirection();
-    
+
     /// Computes the distance between the cathode and the last wire plane
     /// (last respect to the sorting order).
     double ComputeDriftDistance() const;
-    
+
     /// Refills the plane vs. view cache of the TPC.
     void UpdatePlaneViewCache();
-    
+
     /// Recomputes the TPC boundary.
     void InitTPCBoundaries();
-    
+
     /// Sorts (in place) the specified `PlaneGeo` objects by drift distance.
     void SortPlanes(std::vector<geo::PlaneGeo>&) const;
 
     geo::Point_t GetFrontFaceCenterImpl() const;
     geo::Point_t GetCathodeCenterImpl() const;
-  
+
   };
 }
 
@@ -751,10 +751,10 @@ Vector geo::TPCGeo::DriftDir() const
 //------------------------------------------------------------------------------
 template <typename Point>
 Point geo::TPCGeo::GetCenter() const {
-  
+
   // convert the origin (default constructed TVector)
   return geo::vect::convertTo<Point>(toWorldCoords(LocalPoint_t{ 0.0, 0.0, 0.0 }));
-  
+
 } // geo::TPCGeo::GetCenter()
 
 
@@ -765,36 +765,36 @@ void geo::TPCGeo::PrintTPCInfo(
   std::string indent /* = "" */,
   unsigned int verbosity /* = 1 */
 ) const {
-  
+
   //----------------------------------------------------------------------------
   out << "TPC " << std::string(ID());
-  
+
   if (verbosity-- <= 0) return; // 0
-  
+
   //----------------------------------------------------------------------------
   out
     << " (" << Width() << " x " << Height() << " x " << Length() << ") cm^3 at "
       << GetCenter<geo::Point_t>();
-  
+
   if (verbosity-- <= 0) return; // 1
-  
+
   //----------------------------------------------------------------------------
-  
+
   out << "\n" << indent
     << "drift direction " << DriftDir<geo::Vector_t>()
       << " from cathode around " << GetCathodeCenter<geo::Point_t>()
       << " through " << DriftDistance() << " cm toward "
       << Nplanes() << " wire planes"
     ;
-  
+
   if (verbosity-- <= 0) return; // 2
-  
+
   //----------------------------------------------------------------------------
   out << "\n" << indent
     << "maximum wires on any plane: " << MaxWires();
-    
+
   if (verbosity-- <= 0) return; // 3
-  
+
   //----------------------------------------------------------------------------
   out << "\n" << indent
     << "active volume ("
@@ -806,25 +806,25 @@ void geo::TPCGeo::PrintTPCInfo(
       << " height " << HeightDir<geo::Vector_t>()
       << " length " << LengthDir<geo::Vector_t>()
     ;
-    
+
   if (verbosity-- <= 0) return; // 4
-  
+
   //----------------------------------------------------------------------------
   // print also the containing box
   geo::BoxBoundedGeo const& box = BoundingBox();
   out << "\n" << indent
     << "bounding box: " << box.Min() << " -- " << box.Max();
-  
+
 //  if (verbosity-- <= 0) return; // 5
-  
+
   //----------------------------------------------------------------------------
   // print also the active box
   geo::BoxBoundedGeo const& activeBox = ActiveBoundingBox();
   out << "\n" << indent
     << "active volume box: " << activeBox.Min() << " -- "  << activeBox.Max();
-  
+
 //  if (verbosity-- <= 0) return; // 6
-  
+
   //----------------------------------------------------------------------------
 } // geo::TPCGeo::PrintTPCInfo()
 

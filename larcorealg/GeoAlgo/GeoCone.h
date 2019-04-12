@@ -2,7 +2,7 @@
  * \file GeoCone.h
  *
  * \ingroup GeoAlgo
- * 
+ *
  * \brief Class def header for a class HalfLine
  *
  * @author David Caratelli
@@ -22,12 +22,12 @@ namespace geoalgo {
      @brief Representation of a 3D semi-infinite line.
      Defines a 3D cone with the following properties:                                           \n
      Start point (or vertex), Direction, Length (or Length), Radius, opening angle              \n
-     When 2 of Length, Radius, opening angle are defined the third is automatically set         
+     When 2 of Length, Radius, opening angle are defined the third is automatically set
   */
   class Cone : public HalfLine {
-    
+
   public:
-    
+
     /// Default constructor
     Cone();
 
@@ -72,9 +72,9 @@ namespace geoalgo {
     {}
 
   };
-  
+
   typedef Cone Cone_t;
 }
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

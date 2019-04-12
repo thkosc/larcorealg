@@ -17,28 +17,28 @@ namespace geo
   bool BoxBoundedGeo::ContainsPosition
     (TVector3 const& point, double wiggle /* = 1.0 */) const
     { return ContainsPosition(geo::vect::toPoint(point), wiggle); }
-  
+
   //----------------------------------------------------------------------------
   bool BoxBoundedGeo::ContainsPosition
     (double const* point, double wiggle /* = 1.0 */) const
     { return ContainsPosition(geo::vect::makePointFromCoords(point), wiggle); }
-  
+
   //----------------------------------------------------------------------------
   std::vector<geo::Point_t> BoxBoundedGeo::GetIntersections(
     geo::Point_t const& TrajectoryStart,
     geo::Vector_t const& TrajectoryDirect
   ) const {
-  
+
     std::vector<geo::Point_t> IntersectionPoints;
     std::vector<double> LineParameters;
-    
+
     // Generate normal vectors and offsets for every plane of the box
     // All normal vectors are headed outwards
     // BUG the double brace syntax is required to work around clang bug 21629
     // (https://bugs.llvm.org/show_bug.cgi?id=21629)
     static std::array<geo::Vector_t, 6U> const NormalVectors = {{
       -geo::Xaxis<geo::Vector_t>(), geo::Xaxis<geo::Vector_t>(), // anode, cathode,
-      -geo::Yaxis<geo::Vector_t>(), geo::Yaxis<geo::Vector_t>(), // bottom, top, 
+      -geo::Yaxis<geo::Vector_t>(), geo::Yaxis<geo::Vector_t>(), // bottom, top,
       -geo::Zaxis<geo::Vector_t>(), geo::Zaxis<geo::Vector_t>()  // upstream, downstream
     }};
     // BUG the double brace syntax is required to work around clang bug 21629
@@ -51,8 +51,8 @@ namespace geo
       geo::Point_t{ Min().X(), Min().Y(), Min().Z() }, // upstream
       geo::Point_t{ Min().X(), Min().Y(), Max().Z() }  // downstream
     }};
-    
-    // Loop over all surfaces of the box 
+
+    // Loop over all surfaces of the box
     for(unsigned int face_no = 0; face_no < NormalVectors.size(); face_no++)
     {
       // Check if trajectory and surface are not parallel
@@ -63,13 +63,13 @@ namespace geo
 				/ NormalVectors[face_no].Dot(TrajectoryDirect) );
       }
       else continue;
-      
+
       // Calculate intersection point using the line parameter
       IntersectionPoints.push_back( TrajectoryStart + LineParameters.back()*TrajectoryDirect );
-      
+
       // Coordinate which should be ignored when checking for limits added by Christoph Rudolf von Rohr 05/21/2016
       unsigned int NoCheckCoord;
-      
+
       // Calculate NoCheckCoord out of the face_no
       if(face_no % 2)
       {
@@ -81,7 +81,7 @@ namespace geo
 	  // Convert even face number to coordinate
 	  NoCheckCoord = face_no/2;
       }
-      
+
       // Loop over all three space coordinates
       unsigned int coord = 0;
       for(auto extractCoord: geo::vect::coordReaders<geo::Point_t>())
@@ -89,7 +89,7 @@ namespace geo
         auto const lastPointCoord = geo::vect::bindCoord(IntersectionPoints.back(), extractCoord);
         auto const minCoord = geo::vect::bindCoord(c_min, extractCoord);
         auto const maxCoord = geo::vect::bindCoord(c_max, extractCoord);
-        
+
 	// Changed by Christoph Rudolf von Rohr 05/21/2016
 	// Then check if point is not within the surface limits at this coordinate, without looking
 	// at the plane normal vector coordinate. We can assume, that our algorithm already found this coordinate correctily.
@@ -103,13 +103,13 @@ namespace geo
 	}
       }// coordinate loop
     }// Surcaces loop
-    
+
     // sort points according to their parameter value (first is entry, second is exit)
     if(LineParameters.size() == 2 && LineParameters.front() > LineParameters.back())
     {
       std::swap(IntersectionPoints.front(),IntersectionPoints.back());
     }
-    
+
     return IntersectionPoints;
   } // GetIntersections()
 
@@ -125,7 +125,7 @@ namespace geo
 
   //----------------------------------------------------------------------------
   void BoxBoundedGeo::SortCoordinates() {
-    
+
     for (auto coordMan: geo::vect::coordManagers<geo::Point_t>()) {
       auto min = geo::vect::bindCoord(c_min, coordMan);
       auto max = geo::vect::bindCoord(c_max, coordMan);
@@ -135,11 +135,11 @@ namespace geo
         max = temp;
       }
     } // for
-    
+
   } // BoxBoundedGeo::SortCoordinates()
 
   //----------------------------------------------------------------------------
 
 
 } // namespace geo
- 
+

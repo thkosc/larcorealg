@@ -15,7 +15,7 @@
 #include "fhiclcpp/ParameterSet.h"
 
 namespace geo{
-  
+
   class AuxDetGeo;
   class AuxDetSensitiveGeo;
   class CryostatGeo;
@@ -34,12 +34,12 @@ namespace geo{
     virtual void SortAuxDetSensitive(std::vector<geo::AuxDetSensitiveGeo*> & adsgeo)  const = 0;
     virtual void SortCryostats      (std::vector<geo::CryostatGeo*>        & cgeo)    const = 0;
     virtual void SortTPCs     	    (std::vector<geo::TPCGeo*>      	  & tgeo)     const = 0;
-    virtual void SortPlanes   	    (std::vector<geo::PlaneGeo*>       	  & pgeo, 		 
+    virtual void SortPlanes   	    (std::vector<geo::PlaneGeo*>       	  & pgeo,
 			      	     geo::DriftDirection_t     	    const & driftDir) const = 0;
     virtual void SortWires    	    (std::vector<geo::WireGeo*>     	  & wgeo)     const = 0;
-    virtual void SortOpDets        (std::vector<geo::OpDetGeo*>          & opdet) const; 
+    virtual void SortOpDets        (std::vector<geo::OpDetGeo*>          & opdet) const;
   private:
-    
+
   };
 
 }

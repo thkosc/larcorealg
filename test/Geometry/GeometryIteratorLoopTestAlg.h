@@ -14,31 +14,31 @@ namespace fhicl {
 }
 
 namespace geo {
-  
+
   class GeometryCore; // forward declaration
-  
+
   //----------------------------------------------------------------------------
-  
+
   class GeometryIteratorLoopTestAlg {
       public:
-    
+
     /// Constructor: reads configuration, does nothing
     GeometryIteratorLoopTestAlg(fhicl::ParameterSet const& /* pset */) {}
-    
+
     /// Virtual destructor
     virtual ~GeometryIteratorLoopTestAlg() = default;
-    
+
     /// Algorithm set up
     virtual void Setup(geo::GeometryCore const& new_geo) { geom = &new_geo; }
-    
+
     /// Executes the test
     virtual unsigned int Run();
-    
+
       protected:
     GeometryCore const* geom = nullptr; ///< pointer to the geometry description
-    
+
   }; // class GeometryIteratorLoopTestAlg
-  
+
 
 } // namespace geo
 

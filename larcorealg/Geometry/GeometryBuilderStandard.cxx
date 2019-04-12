@@ -20,17 +20,17 @@
 
 
 namespace {
-  
+
   //------------------------------------------------------------------------------
   template <typename Dest, typename Src>
   Dest& extendCollection(Dest& dest, Src&& src) {
     std::move(src.begin(), src.end(), std::back_inserter(dest));
     return dest;
   } // extend()
-  
-  
+
+
   //------------------------------------------------------------------------------
-  
+
 } // local namespace
 
 
@@ -45,25 +45,25 @@ geo::GeometryBuilderStandard::GeometryBuilderStandard(Config const& config)
 //------------------------------------------------------------------------------
 geo::GeometryBuilderStandard::AuxDets_t
 geo::GeometryBuilderStandard::doExtractAuxiliaryDetectors(Path_t& path) {
-  
+
   return doExtractGeometryObjects<
     geo::AuxDetGeo,
     &geo::GeometryBuilderStandard::isAuxDetNode,
     &geo::GeometryBuilderStandard::doMakeAuxDet
     >
     (path);
-  
+
 } // geo::GeometryBuilderStandard::doExtractAuxiliaryDetectors()
 
 
 //------------------------------------------------------------------------------
 geo::AuxDetGeo geo::GeometryBuilderStandard::doMakeAuxDet(Path_t& path) {
-  
+
   return geo::AuxDetGeo(
     path.current(), path.currentTransformation<geo::TransformationMatrix>(),
     geo::GeometryBuilder::moveToColl(extractAuxDetSensitive(path))
     );
-  
+
 } // geo::GeometryBuilderStandard::doMakeAuxDet()
 
 
@@ -91,26 +91,26 @@ geo::AuxDetSensitiveGeo geo::GeometryBuilderStandard::doMakeAuxDetSensitive
 //------------------------------------------------------------------------------
 geo::GeometryBuilderStandard::Cryostats_t
 geo::GeometryBuilderStandard::doExtractCryostats(Path_t& path) {
-  
+
   return doExtractGeometryObjects<
     geo::CryostatGeo,
     &geo::GeometryBuilderStandard::isCryostatNode,
     &geo::GeometryBuilderStandard::makeCryostat
     >
     (path);
-  
+
 } // geo::GeometryBuilderStandard::doExtractCryostats()
 
 
 //------------------------------------------------------------------------------
 geo::CryostatGeo geo::GeometryBuilderStandard::doMakeCryostat(Path_t& path) {
-  
+
   return geo::CryostatGeo(
     path.current(), path.currentTransformation<geo::TransformationMatrix>(),
     geo::GeometryBuilder::moveToColl(extractTPCs(path)),
     geo::GeometryBuilder::moveToColl(extractOpDets(path))
     );
-  
+
 } // geo::GeometryBuilderStandard::doMakeCryostat()
 
 
@@ -143,7 +143,7 @@ geo::GeometryBuilderStandard::TPCs_t geo::GeometryBuilderStandard::doExtractTPCs
     &geo::GeometryBuilderStandard::makeTPC
     >
     (path);
-  
+
 } // geo::GeometryBuilderStandard::doExtractTPCs()
 
 
@@ -166,7 +166,7 @@ geo::GeometryBuilderStandard::doExtractPlanes(Path_t& path)
     &geo::GeometryBuilderStandard::makePlane
     >
     (path);
-  
+
 } // geo::GeometryBuilderStandard::doExtractPlanes()
 
 
@@ -189,16 +189,16 @@ geo::GeometryBuilderStandard::doExtractWires(Path_t& path)
     &geo::GeometryBuilderStandard::makeWire
     >
     (path);
-  
+
 } // geo::GeometryBuilderStandard::doExtractWires()
 
 
 //------------------------------------------------------------------------------
 geo::WireGeo geo::GeometryBuilderStandard::doMakeWire(Path_t& path) {
-  
+
   return geo::WireGeo
     (path.current(), path.currentTransformation<geo::TransformationMatrix>());
-  
+
 } // geo::GeometryBuilderStandard::doMakeWire()
 
 
@@ -263,9 +263,9 @@ geo::GeometryBuilder::GeoPtrColl_t<ObjGeo>
 geo::GeometryBuilderStandard::doExtractGeometryObjects(
   Path_t& path
 ) {
-  
+
   geo::GeometryBuilder::GeoPtrColl_t<ObjGeo> objs;
-  
+
   //
   // if this is a wire, we are set
   //
@@ -273,12 +273,12 @@ geo::GeometryBuilderStandard::doExtractGeometryObjects(
     objs.emplace_back(std::make_unique<ObjGeo>((this->*MakeObj)(path)));
     return objs;
   }
-  
+
   //
   // descend into the next layer down, concatenate the results and return them
   //
   if (path.depth() >= fMaxDepth) return objs; // yep, this is empty
-  
+
   TGeoVolume const& volume = *(path.current().GetVolume());
   int const n = volume.GetNdaughters();
   for (int i = 0; i < n; ++i) {
@@ -286,9 +286,9 @@ geo::GeometryBuilderStandard::doExtractGeometryObjects(
     extendCollection(objs, doExtractGeometryObjects<ObjGeo, IsObj, MakeObj>(path));
     path.pop();
   } // for
-  
+
   return objs;
-  
+
 } // geo::GeometryBuilderStandard::doExtractGeometryObjects()
 
 

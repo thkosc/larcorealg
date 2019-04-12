@@ -15,10 +15,10 @@
 #include "fhiclcpp/ParameterSet.h"
 
 namespace geo{
-  
+
   class AuxDetGeo;
   class AuxDetSensitiveGeo;
-  
+
   /// \ingroup Geometry
   class AuxDetGeoObjectSorter {
 
@@ -28,9 +28,9 @@ namespace geo{
 
     virtual void SortAuxDets        (std::vector<geo::AuxDetGeo*>          & adgeo)   const = 0;
     virtual void SortAuxDetSensitive(std::vector<geo::AuxDetSensitiveGeo*> & adsgeo)  const = 0;
-    
+
   private:
-    
+
   };
 
 }

@@ -4,9 +4,9 @@
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   June 22, 2017
  * @ingroup Geometry
- * 
+ *
  * The main entry point for initializing the geometry is `SetupGeometry()`.
- * 
+ *
  */
 
 
@@ -33,9 +33,9 @@
 #include <memory> // std::make_unique(), std::make_shared()
 
 namespace lar {
-  
+
   namespace standalone {
-    
+
     // --- BEGIN Geometry group ------------------------------------------------
     /// @ingroup Geometry
     /// @{
@@ -47,30 +47,30 @@ namespace lar {
      * @param channelMap channel mapping object to be used, already constructed
      * @return the geometry object, fully initialized
      * @see SetupGeometry()
-     * 
+     *
      * This function creates, sets up and returns a geometry object using the
      * specified channel mapping.
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
      * // create a channel mapping algorithm
      * std::make_shared<geo::StandardChannelMapAlg> channelMap
      *   (pset.get<fhicl::ParameterSet>("SortingParameters"));
-     * 
+     *
      * std::unique_ptr<geo::GeometryCore> geom
      *   = SetupGeometryWithChannelMapping(pset, channelMap);
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * If no set up is required for channel mapping after construction, the use
      * of `SetupGeometry()` is preferred over this function.
-     * 
-     * 
+     *
+     *
      * Configuration parameters
      * =========================
-     * 
+     *
      * It is expected that a standard `geo::Geometry` service configuration will
      * correctly set up the geometry.
-     * 
+     *
      * In addition to the parameters documented in `geo::GeometryCore`, the
      * following parameters are supported:
-     * 
+     *
      * - *RelativePath* (string, default: no path): this path is prepended to
      *   the geometry file names before searching from them; the path string
      *   does not affect the file name
@@ -100,8 +100,8 @@ namespace lar {
       fhicl::ParameterSet const& pset,
       std::shared_ptr<geo::ChannelMapAlg> channelMap
       );
-  
-  
+
+
     //--------------------------------------------------------------------------
     /**
      * @brief  Initializes a LArSoft geometry object.
@@ -110,7 +110,7 @@ namespace lar {
      * @param pset complete set of parameters for geometry configuration
      * @param args arguments to the channel mapping object constructor
      * @return the geometry object, fully initialized
-     * 
+     *
      * This function creates, sets up and returns a geometry object using the
      * specified channel mapping.
      * This is a simplified version of `SetupGeometryWithChannelMapping()`,
@@ -122,11 +122,11 @@ namespace lar {
      * fhicl::ParameterSet pset;
      * cet::filepath_lookup_after1 policy("FHICL_FILE_PATH");
      * fhicl::make_ParameterSet(configPath, policy, pset);
-     * 
+     *
      * // set up message facility
      * mf::StartMessageFacility
      *   (pset.get<fhicl::ParameterSet>("services.message"));
-     * 
+     *
      * // geometry setup
      * std::unique_ptr<geo::GeometryCore> geom
      *   = SetupGeometry<geo::StandardChannelMapAlg>(pset);
@@ -134,14 +134,14 @@ namespace lar {
      * Note that this function constructs the channel mapping object using a
      * constructor with arguments a parameter set and in addition, optionally,
      * any other argument specified in `args`.
-     * 
+     *
      */
     template <typename ChannelMapClass, typename... Args>
     std::unique_ptr<geo::GeometryCore> SetupGeometry
       (fhicl::ParameterSet const& pset, Args&&... args);
-    
+
     //--------------------------------------------------------------------------
-    
+
     // --- END Geometry group --------------------------------------------------
     /// @}
 
@@ -151,19 +151,19 @@ namespace lar {
 
 //------------------------------------------------------------------------------
 //---  template implementation
-//---  
+//---
 template <typename ChannelMapClass, typename... Args>
 std::unique_ptr<geo::GeometryCore> lar::standalone::SetupGeometry
   (fhicl::ParameterSet const& pset, Args&&... args)
 {
   auto SortingParameters
     = pset.get<fhicl::ParameterSet>("SortingParameters", fhicl::ParameterSet());
-  
+
   auto channelMap = std::make_shared<ChannelMapClass>
     (SortingParameters, std::forward<Args>(args)...);
-  
+
   return SetupGeometryWithChannelMapping(pset, channelMap);
-  
+
 } // lar::standalone::SetupGeometry()
 
 //------------------------------------------------------------------------------

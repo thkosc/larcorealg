@@ -3,13 +3,13 @@
  * @brief  Test for geometry iterator loops on a standard detector
  * @date   May 7th, 2015
  * @author petrillo@fnal.gov
- * 
+ *
  * Usage:
  *   geometry_iterator_loop_test  [ConfigurationFile [GeometryTestParameterSet]]
- * 
+ *
  * By default, an internal configuration is used or GeometryTestParameterSet is
  * set to "physics.analysers.geotest".
- * 
+ *
  * This unit test uses geometry_unit_test_base.h to build an environment with a
  * geometry set up.
  * For an example of use with Boost unit test module, see
@@ -58,7 +58,7 @@ using StandardGeometryTestEnvironment
  * @param argv arguments to the function
  * @return number of detected errors (0 on success)
  * @throw cet::exception most of error situations throw
- * 
+ *
  * The arguments in argv are:
  * 0. name of the executable ("Geometry_test")
  * 1. path to the FHiCL configuration file
@@ -66,52 +66,52 @@ using StandardGeometryTestEnvironment
  *    (default: physics.analysers.geotest)
  * 3. FHiCL path to the configuration of the geometry
  *    (default: services.Geometry)
- * 
+ *
  */
 //------------------------------------------------------------------------------
 int main(int argc, char const** argv) {
-  
+
   StandardGeometryConfiguration config("geometry_iterator_loop_test");
-  
+
   //
   // parameter parsing
   //
   int iParam = 0;
-  
+
   // first argument: configuration file (mandatory)
   if (++iParam < argc) config.SetConfigurationPath(argv[iParam]);
-  
+
   // second argument: path of the parameter set for geometry test configuration
   // (optional; default: "physics.analysers.geotest")
   if (++iParam < argc) config.SetMainTesterParameterSetPath(argv[iParam]);
-  
+
   // third argument: path of the parameter set for geometry configuration
   // (optional; default: "services.Geometry" from the inherited object)
   if (++iParam < argc) config.SetGeometryParameterSetPath(argv[iParam]);
-  
+
   //
   // testing environment setup
   //
   StandardGeometryTestEnvironment TestEnvironment(config);
-  
+
   //
   // run the test algorithm
   //
-  
+
   // 1. we initialize it from the configuration in the environment,
   geo::GeometryIteratorLoopTestAlg Tester(TestEnvironment.TesterParameters());
-  
+
   // 2. we set it up with the geometry from the environment
   Tester.Setup(*(TestEnvironment.Provider<geo::GeometryCore>()));
-  
+
   // 3. then we run it!
   unsigned int nErrors = Tester.Run();
-  
+
   // 4. And finally we cross fingers.
   if (nErrors > 0) {
     mf::LogError("geometry_iterator_loop_test")
       << nErrors << " errors detected!";
   }
-  
+
   return nErrors;
 } // main()

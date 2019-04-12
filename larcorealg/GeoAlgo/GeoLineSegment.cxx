@@ -7,7 +7,7 @@ namespace geoalgo {
     , _end(3)
     , _dir(3)
   {DirReset();}
-    
+
   LineSegment::LineSegment(const double start_x, const double start_y, const double start_z,
 			   const double end_x,   const double end_y,   const double end_z   )
     : _start ( start_x, start_y, start_z )
@@ -19,7 +19,7 @@ namespace geoalgo {
     : _start ( start )
     , _end   ( end   )
     , _dir   (3)
-  { 
+  {
     if(start.size()!=3 || end.size()!=3)
       throw GeoAlgoException("LineSegment ctor accepts only 3D Point!");
     DirReset();
@@ -32,15 +32,15 @@ namespace geoalgo {
   const Vector_t LineSegment::Dir() const { return _dir; }
 
   void LineSegment::Start(const double x, const double y, const double z)
-  { _start[0] = x; _start[1] = y; _start[2] = z; 
+  { _start[0] = x; _start[1] = y; _start[2] = z;
     DirReset();
   }
 
   void LineSegment::End(const double x, const double y, const double z)
-  { _end[0] = x; _end[1] = y; _end[2] = z; 
+  { _end[0] = x; _end[1] = y; _end[2] = z;
     DirReset();
   }
-  
+
   void LineSegment::DirReset() { _dir = _end - _start; }
 
 }

@@ -2,7 +2,7 @@
  * \file GeoCylinder.h
  *
  * \ingroup GeoAlgo
- * 
+ *
  * \brief Class def header for a class Cylinder
  *
  * @author david caratelli
@@ -28,23 +28,23 @@ namespace geoalgo {
      * a radius, defining the radius of the cylinder
   */
   class Cylinder : public Line {
-    
+
   public:
-    
+
     /// Default constructor
     Cylinder();
 
     /// Default destructor
     virtual ~Cylinder(){};
-    
+
     /// Alternative ctor (0)
     Cylinder(const double x_min, const double y_min, const double z_min,
 	     const double x_max, const double y_max, const double z_max,
 	     const double radius);
-    
+
     /// Altenartive ctor (1)
     Cylinder(const Point_t& min, const Vector_t& max, const double radius);
-    
+
     /// Containment evaluation
     bool Contain(const Point_t &pt) const; ///< Test if a point is contained within the box
 
@@ -52,9 +52,9 @@ namespace geoalgo {
     double GetRadius() { return _radius; }
     /// Setters
     void SetRadius(double r) { _radius = r; }
-    
+
   protected:
-    
+
     double  _radius; ///< Radius of the cylinder
 
     // geoalgo utility
@@ -65,5 +65,5 @@ namespace geoalgo {
   typedef Cylinder Cylinder_t;
 }
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

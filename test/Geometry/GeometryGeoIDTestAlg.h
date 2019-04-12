@@ -14,23 +14,23 @@ namespace fhicl {
 }
 
 namespace geo {
-  
+
   class GeometryCore; // forward declaration
-  
+
   //----------------------------------------------------------------------------
-  
+
   class GeometryGeoIDTestAlg {
       public:
-    
+
     /// Constructor: reads configuration, does nothing
     GeometryGeoIDTestAlg(fhicl::ParameterSet const& /* pset */) {}
-    
+
     /// Algorithm set up
     void Setup(geo::GeometryCore const& new_geo) { geom = &new_geo; }
-    
+
     /// Executes the test
     unsigned int Run() const;
-   
+
     /// @name All the ID iterator tests
     /// @{
     void CryostatGeoIDTest() const;
@@ -38,13 +38,13 @@ namespace geo {
     void PlaneGeoIDTest() const;
     void WireGeoIDTest() const;
     /// @}
-    
-    
+
+
       protected:
     GeometryCore const* geom = nullptr; ///< pointer to the geometry description
-    
+
   }; // class GeometryGeoIDTestAlg
-  
+
 
 } // namespace geo
 

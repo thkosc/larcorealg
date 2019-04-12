@@ -2,7 +2,7 @@
 
 namespace geoalgo {
 
-  Line::Line() 
+  Line::Line()
     : _pt1(3)
     , _pt2(3)
   {}
@@ -17,32 +17,32 @@ namespace geoalgo {
     : _pt1 ( pt1 )
     , _pt2 ( pt2 )
   { check_and_raise(pt1,pt2); }
-  
+
   const Point_t& Line::Pt1() const { return _pt1; }
   const Point_t& Line::Pt2() const { return _pt2; }
-    
+
   void Line::Pt1(const double x, const double y, const double z)
-  { 
-    _pt1[0] = x; 
-    _pt1[1] = y; 
-    _pt1[2] = z; 
+  {
+    _pt1[0] = x;
+    _pt1[1] = y;
+    _pt1[2] = z;
     check_and_raise(_pt1,_pt2);
   }
 
   void Line::Pt2(const double x, const double y, const double z)
-  { 
-    _pt2[0] = x; 
-    _pt2[1] = y; 
-    _pt2[2] = z; 
+  {
+    _pt2[0] = x;
+    _pt2[1] = y;
+    _pt2[2] = z;
     check_and_raise(_pt1,_pt2);
   }
 
   void Line::check_and_raise(const Point_t& p1, const Point_t& p2) const
-  { 
+  {
     if(p1.size()!=3) throw GeoAlgoException("<<check_and_raise>> Pt1 is not 3 dimensional point!");
     if(p2.size()!=3) throw GeoAlgoException("<<check_and_raise>> Pt2 is not 3 dimensional point!");
-    if(p1 == p2) throw GeoAlgoException("<<check_and_raise>> Two identical points not allowed for Line ctor!"); 
+    if(p1 == p2) throw GeoAlgoException("<<check_and_raise>> Two identical points not allowed for Line ctor!");
   }
 
 }
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group

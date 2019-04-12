@@ -20,22 +20,22 @@
 
 
 namespace geo {
-  
+
   /**
    * @brief Type of transformation matrix used in geometry.
-   * 
+   *
    * This type is used for storing the transformation matrices of the various
    * geometry description objects (e.g. `geo::WireGeo`, `geo::OpDetGeo`, ...).
    */
   using TransformationMatrix = ROOT::Math::Transform3D;
-  
-  
+
+
   /// Converts a transformation matrix into a `geo::TransformationMatrix`.
   template <typename Trans>
   decltype(auto) makeTransformationMatrix(Trans&& trans)
     { return convertTransformationMatrix<geo::TransformationMatrix>(trans); }
-  
-  
+
+
 } // namespace geo
 
 

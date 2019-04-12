@@ -2,7 +2,7 @@
  * \file GeoAlgo.h
  *
  * \ingroup GeoAlgo
- * 
+ *
  * \brief Class def header for a class GeoAlgo
  *
  * @author kazuhiro
@@ -40,12 +40,12 @@ namespace geoalgo {
      Ref: http://realtimecollisiondetection.net
   */
   class GeoAlgo{
-    
+
   public:
-    
+
     /// Default constructor
     GeoAlgo(){}
-    
+
     /// Default destructor
     virtual ~GeoAlgo(){}
 
@@ -83,7 +83,7 @@ namespace geoalgo {
     /// Get Trajectory inside box given some input trajectory -> now assumes trajectory cannot exit and re-enter box
     Trajectory_t BoxOverlap(const Trajectory_t& trj, const AABox_t& box) const
     { return BoxOverlap(box, trj); }
-        
+
 
     //************************************************
     //CLOSEST APPROACH BETWEEN POINT AND INFINITE LINE
@@ -111,7 +111,7 @@ namespace geoalgo {
     // Closest approach between two infinite line segments - don't keep track of closest approach points
     double SqDist(const Line_t& l1, const Line_t& l2) const
     { Point_t L1; Point_t L2; return SqDist(l1, l2, L1, L2); }
-    
+
 
     //************************************************
     //CLOSEST APPROACH BETWEEN TWO HALF-INFINITE LINES
@@ -228,12 +228,12 @@ namespace geoalgo {
     /// Point_t & Trajectory_t distance - don't keep track
     double SqDist(const std::vector<geoalgo::Trajectory_t> &trj, const Point_t& pt) const
     { int trackIdx; return SqDist(pt, trj, trackIdx); }
-    /// Point_t & Trajectory_t closest point - keep track of which track is closest 
+    /// Point_t & Trajectory_t closest point - keep track of which track is closest
     Point_t ClosestPt(const Point_t& pt, const std::vector<geoalgo::Trajectory_t> &trj, int &trackIdx) const;
     /// Point_t & Trajectory_t closest point - keep track of which track is closest
     Point_t ClosestPt(const std::vector<geoalgo::Trajectory_t> &trj, const Point_t& pt, int &trackIdx) const
     { return ClosestPt(pt, trj, trackIdx); }
-    /// Point_t & Trajectory_t closest point - don't keep track of which track is closest 
+    /// Point_t & Trajectory_t closest point - don't keep track of which track is closest
     Point_t ClosestPt(const Point_t& pt, const std::vector<geoalgo::Trajectory_t> &trj) const
     { int trackIdx; return ClosestPt(pt, trj, trackIdx); }
     /// Point_t & Trajectory_t closest point - don't keep track of which track is closest
@@ -256,7 +256,7 @@ namespace geoalgo {
     /// Point & LineSegment closest point
     Point_t ClosestPt(const LineSegment_t& line, const Point_t& pt) const
     { return ClosestPt(pt,line); }
-    
+
     //********************************************
     //CLOSEST APPROACH BETWEEN POINT AND HALF LINE
     //********************************************
@@ -282,13 +282,13 @@ namespace geoalgo {
     { hline.Start().compat(seg.Start()); return _SqDist_(hline, seg, L1, L2); }
     // half-line and line-segment. keep track of closest approach points
     double SqDist(const LineSegment_t& seg, const HalfLine_t& hline, Point_t& L1, Point_t& L2) const
-    { return SqDist(hline,seg, L2, L1); }  
+    { return SqDist(hline,seg, L2, L1); }
     // half-line and line-segment. Do not keep track of closest approach points
     double SqDist(const HalfLine_t& hline, const LineSegment_t& seg) const
     { Point_t L1; Point_t L2; return SqDist(hline, seg, L1, L2); }
     // half-line and line-segment. Do not keep track of closest approach points
     double SqDist(const LineSegment_t& seg, const HalfLine_t& hline) const
-    { return SqDist(hline,seg); }  
+    { return SqDist(hline,seg); }
 
     //***************************************************
     //CLOSEST APPROACH BETWEEN POINT AND AXIS ALIGNED BOX
@@ -475,5 +475,5 @@ namespace geoalgo {
 }
 
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

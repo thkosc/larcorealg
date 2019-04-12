@@ -52,31 +52,31 @@ namespace geo{
     , fLengthDir(geo::Zaxis())
     , fDriftDir() // null until known
   {
-    
+
     // all planes are going to be contained in the volume named volTPC
     // now get the total volume of the TPC
     TGeoVolume *vc = node.GetVolume();
-    if(!vc){ 
+    if(!vc){
       throw cet::exception("Geometry") << "cannot find detector outline volume - bail ungracefully\n";
     }
-    
+
     fTotalVolume = vc;
-    
+
     // loop over the daughters of this node and look for the active volume
     int nd = vc->GetNdaughters();
     TGeoNode const* pActiveVolNode = nullptr;
     for(int i = 0; i < nd; ++i){
       if(strncmp(vc->GetNode(i)->GetName(), "volTPCActive", 12) != 0) continue;
-      
+
       pActiveVolNode = vc->GetNode(i);
       TGeoVolume *vca = pActiveVolNode->GetVolume();
       if(vca) fActiveVolume = vca;
       break;
-      
+
     }// end loop over daughters of the volume
-    
+
     if(!fActiveVolume) fActiveVolume = fTotalVolume;
-    
+
     MF_LOG_DEBUG("Geometry") << "detector total  volume is " << fTotalVolume->GetName()
                           << "\ndetector active volume is " << fActiveVolume->GetName();
 
@@ -89,8 +89,8 @@ namespace geo{
     // we don't keep the active volume information... just store its center:
     fActiveCenter
       = geo::vect::toPoint(ActiveHMatrix(ROOT::Math::Transform3D::Point{}));
-    
-    
+
+
     // set the width, height, and lengths
     fActiveHalfWidth  =     ((TGeoBBox*)fActiveVolume->GetShape())->GetDX();
     fActiveHalfHeight =     ((TGeoBBox*)fActiveVolume->GetShape())->GetDY();
@@ -145,25 +145,25 @@ namespace geo{
         fLengthDir    = Yaxis();
       }
     }
-    
+
     InitTPCBoundaries();
     ResetDriftDirection();
-    
+
   } // TPCGeo::TPCGeo()
-  
-  
+
+
   //......................................................................
   short int TPCGeo::DetectDriftDirection() const {
-    
+
     //
     // 1. determine the drift axis
     // 2. determine the drift direction on it
-    // 
+    //
     // We assume that all the planes cover most of the TPC face; therefore,
     // the centre of the plane and the one of the TPC should be very close
     // to each other, when projected on the same drift plane.
     // Here we find which is the largest coordinate difference.
-    
+
     if (Nplanes() == 0) {
       // chances are that we get this because stuff is not initialised yet,
       // and then even the ID might be wrong
@@ -171,12 +171,12 @@ namespace geo{
         << "DetectDriftDirection(): no planes in TPC " << std::string(ID())
         << "\n";
     }
-    
+
     auto const TPCcenter = GetCenter();
     auto const PlaneCenter = Plane(0).GetBoxCenter(); // any will do
-    
+
     auto const driftVector = PlaneCenter - TPCcenter; // approximation!
-    
+
     if ((std::abs(driftVector.X()) > std::abs(driftVector.Y()))
       && (std::abs(driftVector.X()) > std::abs(driftVector.Z())))
     {
@@ -192,17 +192,17 @@ namespace geo{
       // z is the winner
       return (driftVector.Z() > 0)? +3: -3;
     }
-    
+
   } // TPCGeo::DetectDriftDirection()
-  
+
   //......................................................................
-  // sort the PlaneGeo objects and the WireGeo objects inside 
+  // sort the PlaneGeo objects and the WireGeo objects inside
   void TPCGeo::SortSubVolumes(geo::GeoObjectSorter const& sorter)
   {
     SortPlanes(fPlanes);
-    
+
     double origin[3] = {0.};
- 
+
     // set the plane pitch for this TPC
     double xyz[3]  = {0.};
     fPlanes[0].LocalToWorld(origin,xyz);
@@ -232,32 +232,32 @@ namespace geo{
       fViewToPlaneNumber[(size_t) fPlanes[p].View()] = p;
 
     for(size_t p = 0; p < fPlanes.size(); ++p) fPlanes[p].SortWires(sorter);
-    
+
   }
 
 
   //......................................................................
   void TPCGeo::UpdateAfterSorting(geo::TPCID tpcid) {
-    
+
     // reset the ID
     fID = tpcid;
-    
+
     // ask the planes to update; also check
-    
+
     for (unsigned int plane = 0; plane < Nplanes(); ++plane) {
       fPlanes[plane].UpdateAfterSorting(geo::PlaneID(fID, plane), *this);
-      
+
       // check that the plane normal is opposite to the TPC drift direction
       assert(lar::util::makeVector3DComparison(1e-5)
         .equal(-(fPlanes[plane].GetNormalDirection()), DriftDir()));
-      
+
     } // for
-    
+
     UpdatePlaneViewCache();
-    
+
   } // TPCGeo::UpdateAfterSorting()
-  
-  
+
+
   //......................................................................
   std::string TPCGeo::TPCInfo
     (std::string indent /* = "" */, unsigned int verbosity /* = 1 */) const
@@ -290,14 +290,14 @@ namespace geo{
     return fPlanes[p];
   } // TPCGeo::Plane(geo::View_t)
 
-  
+
   //......................................................................
   geo::PlaneGeo const& TPCGeo::SmallestPlane() const {
-    
+
     //
     // Returns the plane with the smallest width x depth. No nonsense here.
     //
-    
+
     auto iPlane = fPlanes.begin(), pend = fPlanes.end();
     auto smallestPlane = iPlane;
     double smallestSurface = smallestPlane->Width() * smallestPlane->Depth();
@@ -308,10 +308,10 @@ namespace geo{
       smallestPlane = iPlane;
     } // while
     return *smallestPlane;
-    
+
   } // TPCGeo::SmallestPlane()
-  
-  
+
+
   //......................................................................
   unsigned int TPCGeo::MaxWires() const {
     unsigned int maxWires = 0;
@@ -321,8 +321,8 @@ namespace geo{
     } // for
     return maxWires;
   } // TPCGeo::MaxWires()
-  
-  
+
+
   //......................................................................
   std::set<geo::View_t> TPCGeo::Views() const {
     std::set<geo::View_t> views;
@@ -330,11 +330,11 @@ namespace geo{
       std::inserter(views, views.begin()), std::mem_fn(&geo::PlaneGeo::View));
     return views;
   } // TPCGeo::Views()
-  
-  
+
+
   //......................................................................
-  // returns distance between plane 0 to each of the remaining planes 
-  // not the distance between two consecutive planes  
+  // returns distance between plane 0 to each of the remaining planes
+  // not the distance between two consecutive planes
   double TPCGeo::Plane0Pitch(unsigned int p) const
   {
     return fPlane0Pitch[p];
@@ -342,12 +342,12 @@ namespace geo{
 
   //......................................................................
   geo::Point_t TPCGeo::GetCathodeCenterImpl() const {
-    
+
     //
     // 1. find the center of the face of the TPC opposite to the anode
     // 2. compute the distance of it from the last wire plane
     //
-    
+
     //
     // find the cathode center
     //
@@ -380,17 +380,17 @@ namespace geo{
           << DetectDriftDirection() << ")\n";
     } // switch
     return cathodeCenter;
-    
+
   } // TPCGeo::GetCathodeCenterImpl()
-  
-  
+
+
   //......................................................................
   geo::Point_t TPCGeo::GetFrontFaceCenterImpl() const {
     auto const& activeBox = ActiveBoundingBox();
     return { activeBox.CenterX(), activeBox.CenterY(), activeBox.MinZ() };
   } // TPCGeo::GetFrontFaceCenterImpl()
-  
-  
+
+
   //......................................................................
   // returns xyz location of planes in TPC
   const double* TPCGeo::PlaneLocation(unsigned int p) const
@@ -399,7 +399,7 @@ namespace geo{
   }
 
   //......................................................................
-  double TPCGeo::PlanePitch(unsigned int p1, 
+  double TPCGeo::PlanePitch(unsigned int p1,
                             unsigned int p2) const
   {
     return std::abs(fPlane0Pitch[p2] - fPlane0Pitch[p1]);
@@ -408,13 +408,13 @@ namespace geo{
   //......................................................................
   // This method returns the distance between wires in the given plane.
   double TPCGeo::WirePitch(unsigned plane) const
-  { 
+  {
     return this->Plane(plane).WirePitch();
   }
 
   //......................................................................
   void TPCGeo::ResetDriftDirection() {
-    
+
     auto const driftDirCode = DetectDriftDirection();
     switch (driftDirCode) {
       case +1:
@@ -444,49 +444,49 @@ namespace geo{
       default:
         // TPC ID is likely not yet set
         fDriftDirection = kUnknownDrift;
-        
+
         // we estimate the drift direction roughly from the geometry
         fDriftDir = Plane(0).GetBoxCenter() - GetCenter();
-        
+
         mf::LogError("TPCGeo")
           << "Unable to detect drift direction (result: " << driftDirCode
           << ", drift: ( " << fDriftDir.X() << " ; " << fDriftDir.Y() << " ; "
           << fDriftDir.Z() << " )";
         break;
     } // switch
-    
+
     geo::vect::round01(fDriftDir, 1e-4);
-    
+
   } // TPCGeo::ResetDriftDirection()
-  
-  
+
+
   //......................................................................
   double TPCGeo::ComputeDriftDistance() const {
-    
+
     //
     // 1. find the center of the face of the TPC opposite to the anode
     // 2. compute the distance of it from the last wire plane
     //
-    
+
     geo::PlaneGeo const& plane = fPlanes.back();
     return std::abs(plane.DistanceFromPlane(GetCathodeCenter()));
-    
+
   } // TPCGeo::ComputeDriftDistance()
-  
-  
+
+
   //......................................................................
   void TPCGeo::InitTPCBoundaries() {
     // note that this assumes no rotations of the TPC
     // (except for rotations of a flat angle around one of the three main axes);
     // to avoid this, we should transform the six vertices
     // rather than just the centre
-    
+
     // we rely on the asumption that the center of TPC is at the local origin
     SetBoundaries(
       toWorldCoords(LocalPoint_t(-HalfWidth(), -HalfHeight(), -HalfLength())),
       toWorldCoords(LocalPoint_t(+HalfWidth(), +HalfHeight(), +HalfLength()))
       );
-    
+
     // the center of the active volume may be elsewhere than the local origin:
     auto const& activeCenter = GetActiveVolumeCenter<geo::Point_t>();
     fActiveBox.SetBoundaries(
@@ -495,13 +495,13 @@ namespace geo{
       activeCenter.Z() - ActiveHalfLength(), activeCenter.Z() + ActiveHalfLength()
       );
 
-    
+
   } // CryostatGeo::InitTPCBoundaries()
 
   //......................................................................
-  
+
   void TPCGeo::UpdatePlaneViewCache() {
-    
+
     // the PlaneID_t cast convert InvalidID into a rvalue (non-reference);
     // leaving it a reference would cause C++ to treat it as such,
     // that can't be because InvalidID is a static member constant without an address
@@ -511,23 +511,23 @@ namespace geo{
       (1U + (size_t) geo::kUnknown, (geo::PlaneID::PlaneID_t) geo::PlaneID::InvalidID);
     for(size_t p = 0; p < Nplanes(); ++p)
       fViewToPlaneNumber[(size_t) fPlanes[p].View()] = p;
-    
+
   } // TPCGeo::UpdatePlaneViewCache()
-  
+
 
   //......................................................................
   void TPCGeo::SortPlanes(std::vector<geo::PlaneGeo>& planes) const {
     //
     // Sort planes by increasing drift distance.
-    // 
+    //
     // This function should work in bootstrap mode, relying on least things as
     // possible. Therefore we compute here a proxy of the drift axis.
     //
-    
+
     //
     // determine the drift axis (or close to): from TPC center to plane center
-    // 
-    
+    //
+
     // Instead of using the plane center, which might be not available yet,
     // we use the plane box center, which only needs the geometry description
     // to be available.
@@ -535,17 +535,17 @@ namespace geo{
     auto const TPCcenter = GetCenter();
     auto const driftAxis
       = geo::vect::normalize(planes[0].GetBoxCenter() - TPCcenter);
-    
+
     auto by_distance = [&TPCcenter, &driftAxis](auto const& a,
                                                 auto const& b) {
       return geo::vect::dot(a.GetBoxCenter() - TPCcenter, driftAxis) <
              geo::vect::dot(b.GetBoxCenter() - TPCcenter, driftAxis);
     };
     cet::sort_all(planes, by_distance);
-    
+
   } // TPCGeo::SortPlanes()
-  
+
   //......................................................................
-  
+
 }
 ////////////////////////////////////////////////////////////////////////

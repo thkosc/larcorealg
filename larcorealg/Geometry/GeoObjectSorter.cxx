@@ -23,7 +23,7 @@ namespace geo{
         return xyz1[1]>xyz2[1];
       else
         return xyz1[0]>xyz2[0];
-    } 
+    }
 
     void GeoObjectSorter::SortOpDets(std::vector<geo::OpDetGeo*> & opdet) const {
       std::sort(opdet.begin(), opdet.end(), sortorderOpDets);

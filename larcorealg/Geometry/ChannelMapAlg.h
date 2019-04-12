@@ -30,16 +30,16 @@
 
 
 namespace geo{
-  
+
   // forward-declaration from geometry
   struct GeometryData_t;
   class AuxDetGeo;
-  
-  
+
+
   /**
    * @brief Interface for a class providing readout channel mapping to geometry
    * @ingroup Geometry
-   * 
+   *
    * @note A number of methods react specifically when provided with invalid IDs
    * as arguments. An invalid ID is an ID with the `isValid` flag unset, or, in
    * case of channel IDs, an ID with value `raw::InvalidChannelID`.
@@ -53,53 +53,53 @@ namespace geo{
    * methods still reminds of this.
    */
   class ChannelMapAlg{
- 
+
   public:
-    
+
     /// Virtual destructor
     virtual ~ChannelMapAlg() = default;
-    
-    
+
+
     //--------------------------------------------------------------------------
     /// @{
     /// @name Geometry and mapping initialization and management
-    
+
     /// Geometry initialisation
     virtual void Initialize(GeometryData_t const& geodata) = 0;
-    
+
     /// Deconfiguration: prepare for a following call of Initialize()
     virtual void Uninitialize() = 0;
-    
-    
+
+
     /// @}
-    
-    
+
+
     //--------------------------------------------------------------------------
     /// @{
     /// @name TPC channel mapping
-    
+
     /// Returns the total number of channels present (not necessarily contiguous)
     virtual unsigned int Nchannels() const = 0;
-    
+
     /// @brief Returns the number of channels in the specified ROP
     /// @return number of channels in the specified ROP, 0 if non-existent
     virtual unsigned int Nchannels(readout::ROPID const& ropid) const = 0;
-    
+
     /// @brief Returns whether the specified channel is valid
     /// This default implementation assumes all channels up to Nchannels() valid.
     virtual bool HasChannel(raw::ChannelID_t channel) const
       { return raw::isValidChannelID(channel)? channel < Nchannels(): false; }
-    
+
     /// Returns a list of TPC wires connected to the specified readout channel ID
     /// @throws cet::exception (category: "Geometry") if non-existent channel
     virtual std::vector<WireID> ChannelToWire
       (raw::ChannelID_t channel) const = 0;
-    
+
     /**
      * @brief Return the signal type of the specified channel
      * @param channel ID of the channel
      * @return signal type of the channel, or geo::kMysteryType if not known
-     * 
+     *
      * On any type of error (e.g., invalid or unknown channel ID),
      * geo::kMysteryType is returned.
      */
@@ -116,18 +116,18 @@ namespace geo{
      * geo::kMysteryType is returned.
      */
     virtual geo::SigType_t SignalTypeForChannelImpl(raw::ChannelID_t const channel) const = 0;
-    
+
   public:
 
     /**
      * @brief Return the signal type on the specified readout plane
      * @param ropid ID of the readout plane
      * @return signal type on the plane, or geo::kMysteryType if not known
-     * 
+     *
      * If the readout plane ID is marked invalid, geo::kMysteryType is returned.
      * If the readout plane is not marked invalid, but it does not match an
      * existing readout plane, the result is undefined.
-     * 
+     *
      * The default implementation uses readout plane to channel mapping.
      * Other implementation may decide to do the opposite.
      */
@@ -153,23 +153,23 @@ namespace geo{
 
     /// Returns a list of the plane IDs in the whole detector
     virtual std::set<geo::PlaneID> const& PlaneIDs() const = 0;
-    
+
     /**
      * @brief Returns the channel ID a wire is connected to
      * @param wireID ID of the wire
      * @return the ID of the channel
      * @see PlaneWireToChannel(geo::WireID const&)
-     * 
+     *
      * Behaviour on an invalid or not present wires is undefined.
-     * 
+     *
      * @deprecated Use the version with `geo::WireID`
      */
     virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const
-      { 
+      {
         return PlaneWireToChannel
           (wireID.Plane, wireID.Wire, wireID.TPC, wireID.Cryostat);
       }
-    
+
     /**
      * @brief Returns the channel ID a wire is connected to
      * @param plane number of plane
@@ -178,30 +178,30 @@ namespace geo{
      * @param cstat number of cryostat
      * @return the ID of the channel
      * @see PlaneWireToChannel(geo::WireID const&)
-     * 
+     *
      * @deprecated Use the version with `geo::WireID`
      */
     virtual raw::ChannelID_t PlaneWireToChannel(unsigned int plane,
                                                 unsigned int wire,
                                                 unsigned int tpc,
                                                 unsigned int cstat) const = 0;
-    
+
     /// @}
-    
-    
+
+
     //--------------------------------------------------------------------------
     /// @{
     /// @name Optical detector channel mapping
-      
+
     /**
      * @brief Returns the number of optical channels contained in some detectors
      * @param NOpDets number of optical detectors
      * @return optical channels contained in NOpDets detectors
-     * 
+     *
      * This function returns how many channels can be expected to be present
      * in a detector with NOpDets optical detectors. This is an upper limit, as
      * not all channels have necessarily to be present.
-     * 
+     *
      * For example: if a detector has four channels per optical detector, the
      * returned value will be four times the argument NOpDets. If there is a
      * single channel on each optical detector, the return value will be the
@@ -211,12 +211,12 @@ namespace geo{
      * the number of channels.
      */
     virtual unsigned int NOpChannels(unsigned int NOpDets) const;
-    
+
     /**
      * @brief Returns the number of optical channels contained in some detectors
      * @param NOpDets number of optical detectors
      * @return optical channels contained in NOpDets detectors
-     * 
+     *
      * This function returns the first optical channel ID larger than the last
      * channel ID in a detector with NOpDets optical detectors (with the same
      * logic as `NOpChannels()`).
@@ -227,15 +227,15 @@ namespace geo{
      * this function would return 48.
      */
     virtual unsigned int MaxOpChannel(unsigned int NOpDets) const;
-    
+
     /**
      * @brief Returns the number of channels in the specified optical detectors
      * @param opDet ID of the chosen optical detector
      * @return optical channels contained in optical detector with ID opDet
-     * 
+     *
      * This function returns how many channels are actually present in the
      * optical detector with the specified ID.
-     * 
+     *
      * For example: if a detector has four channels per optical detector, the
      * returned value will be four, regardless opDet, and . If there is a
      * single channel on each optical detector, the return value will be 1,
@@ -243,12 +243,12 @@ namespace geo{
      * each optical detector can have anywhere between 2 and 12 channels, the
      * returned value will be 2, 12, etc., that is the exact number of channels
      * in opDet.
-     * 
+     *
      * Although implementations are encouraged to return 0 on invalid optical
      * detectors, the actual return value in that case is undefined.
      */
     virtual unsigned int NOpHardwareChannels(unsigned int opDet) const;
-    
+
     /**
      * @brief Returns whether the ID identifies a valid optical detector channel
      * @param opChannel channel number
@@ -260,45 +260,45 @@ namespace geo{
      */
     virtual bool IsValidOpChannel
       (unsigned int opChannel, unsigned int NOpDets) const;
-    
+
     /**
      * @brief Returns the channel ID of the specified hardware channel
      * @param detNum optical detector ID
      * @param hwchannel hardware channel within the specified optical detector
      * @return ID of the channel identified by detector and hardware channel IDs
-     * 
+     *
      * If the input IDs identify a non-existing channel, the result is
      * undefined.
      */
     virtual unsigned int OpChannel
       (unsigned int detNum, unsigned int hwchannel = 0) const;
-    
+
     /**
      * @brief Returns the optical detector the specified optical channel belongs
      * @param opChannel the optical detector channel being queried
      * @return the optical detector the specified optical channel belongs to
-     * 
+     *
      * If the specified optical channel is invalid, behaviour is undefined.
      */
     virtual unsigned int OpDetFromOpChannel(unsigned int opChannel) const;
-    
+
     /**
      * @brief Returns the hardware channel number of specified optical channel
      * @param opChannel the optical detector channel being queried
      * @return the optical detector the specified optical channel belongs to
-     * 
+     *
      * If the specified optical channel is invalid, behaviour is undefined.
      */
     virtual unsigned int HardwareChannelFromOpChannel
       (unsigned int opChannel) const;
- 
+
     /// @}
-    
-    
+
+
     //--------------------------------------------------------------------------
     /// @{
     /// @name Mapping of position to wires
-    
+
     /**
      * @brief Returns the index of the wire nearest to the specified position
      * @param YPos y coordinate on the wire plane
@@ -310,7 +310,7 @@ namespace geo{
      * Respect to NearestWireID(), this method returns a real number,
      * representing a continuous coordinate in the wire axis, with the round
      * values corresponding to the actual wires.
-     * 
+     *
      * The plane is required to be valid and exist in the detector. Otherwise,
      * the behaviour is undefined.
      */
@@ -321,7 +321,7 @@ namespace geo{
         return WireCoordinate
           (YPos, ZPos, planeID.Plane, planeID.TPC, planeID.Cryostat);
       }
-    
+
     /**
      * @brief Returns the index of the wire nearest to the specified position
      * @param YPos y coordinate on the wire plane
@@ -339,16 +339,16 @@ namespace geo{
                                   unsigned int PlaneNo,
                                   unsigned int TPCNo,
                                   unsigned int cstat) const = 0;
-    
-    
+
+
     /**
      * @brief Returns the ID of the wire nearest to the specified position
      * @param worldPos position to be tested
-     * @param planeID plane containing the wire 
+     * @param planeID plane containing the wire
      * @return the ID of the wire closest to worldPos in the specified plane
      * @throw InvalidWireIDError the ID found is not present in the detector
      * @see WireCoordinate(double, double, geo::PlaneID const&)
-     * 
+     *
      * The plane is required to be valid and exist in the detector. Otherwise,
      * the behaviour is undefined.
      * An exception is thrown if the wire that would be the closest is actually
@@ -363,13 +363,13 @@ namespace geo{
         return
           NearestWireID(worldPos, planeID.Plane, planeID.TPC, planeID.Cryostat);
       }
-    
+
     /**
      * @brief Returns the ID of the wire nearest to the specified position
      * @param worldPos position to be tested
-     * @param PlaneNo number of plane containing the wire 
-     * @param TPCNo number of TPC containing the wire 
-     * @param cstat number of cryostat containing the wire 
+     * @param PlaneNo number of plane containing the wire
+     * @param TPCNo number of TPC containing the wire
+     * @param cstat number of cryostat containing the wire
      * @return the ID of the wire closest to worldPos in the specified plane
      * @see NearestWireID(const TVector3&, geo::PlaneID const&)
      *
@@ -379,11 +379,11 @@ namespace geo{
                                       unsigned int    PlaneNo,
                                       unsigned int    TPCNo,
                                       unsigned int    cstat)   const = 0;
-    
+
     /**
      * @brief Returns the index of the wire nearest to the specified position
      * @param worldPos position to be tested
-     * @param planeID plane containing the wire 
+     * @param planeID plane containing the wire
      * @return the ID of the wire closest to worldPos in the specified plane
      * @see NearestWireID(const TVector3&, geo::PlaneID const&)
      *
@@ -392,13 +392,13 @@ namespace geo{
      */
     unsigned int                     NearestWire(const TVector3& worldPos,
                                             geo::PlaneID const& planeID)  const;
-    
+
     /**
      * @brief Returns the index of the wire nearest to the specified position
      * @param worldPos position to be tested
-     * @param PlaneNo number of plane containing the wire 
-     * @param TPCNo number of TPC containing the wire 
-     * @param cstat number of cryostat containing the wire 
+     * @param PlaneNo number of plane containing the wire
+     * @param TPCNo number of TPC containing the wire
+     * @param cstat number of cryostat containing the wire
      * @return the ID of the wire closest to worldPos in the specified plane
      * @see NearestWireID(const TVector3&, geo::PlaneID const&)
      *
@@ -410,14 +410,14 @@ namespace geo{
                              unsigned int    TPCNo,
                              unsigned int    cstat) const
       { return NearestWire(worldPos, geo::PlaneID(cstat, TPCNo, PlaneNo)); }
-    
+
     /// @}
-    
-    
+
+
     //--------------------------------------------------------------------------
     /// @{
     /// @name Auxiliary detectors
- 
+
     /**
      * @brief Returns the auxiliary detector closest to the specified point
      * @param point coordinates of the position to be investigated (x, y, z)
@@ -426,7 +426,7 @@ namespace geo{
      */
     virtual size_t NearestAuxDet
       (const double* point, std::vector<geo::AuxDetGeo*> const& auxDets) const;
-    
+
     /**
      * @brief Returns sensitive auxiliary detector closest to specified point
      * @param point coordinates of the position to be investigated (x, y, z)
@@ -435,14 +435,14 @@ namespace geo{
      */
     virtual size_t NearestSensitiveAuxDet
       (const double* point, std::vector<geo::AuxDetGeo*> const& auxDets) const;
-    
+
     /**
      * @brief Returns the index of the detector containing the specified channel
      * @param auxDets list of the auxiliary detectors
      * @param detName name of the auxiliary detector being investigated
      * @param channel number of the channel within that auxiliary detector
      * @return index of the sought auxiliary detector within auxDets
-     * 
+     *
      * @bug This function is somehow broken in that it ignores the `auxDets`
      *      in the arguments and instead relies on a cache that is never filled
      *      by this class (derived classes can fill it though).
@@ -451,7 +451,7 @@ namespace geo{
                                    std::string                  const& detName,
                                    uint32_t                     const& channel
                                    ) const;
-    
+
     /**
      * @brief Returns the index of the sensitive detector containing the channel
      * @param auxDets list of the sensitive auxiliary detectors
@@ -464,10 +464,10 @@ namespace geo{
       std::string                  const& detName,
       uint32_t                     const& channel
       ) const;
-    
+
     /// @}
-     
-   
+
+
     //--------------------------------------------------------------------------
     /// @name TPC set mapping
     /// @{
@@ -477,17 +477,17 @@ namespace geo{
      * @return number of TPC sets in the cryostat, or 0 if no cryostat found
      */
     virtual unsigned int NTPCsets(readout::CryostatID const& cryoid) const = 0;
-    
+
     /// Returns the largest number of TPC sets any cryostat in the detector has
     virtual unsigned int MaxTPCsets() const = 0;
-    
+
     /// Returns whether we have the specified TPC set
     /// @return whether the TPC set is valid and exists
     virtual bool HasTPCset(readout::TPCsetID const& tpcsetid) const = 0;
-    
+
     /// Returns the ID of the TPC set tpcid belongs to
     virtual readout::TPCsetID TPCtoTPCset(geo::TPCID const& tpcid) const = 0;
-    
+
     /**
      * @brief Returns a list of ID of TPCs belonging to the specified TPC set
      * @param tpcsetid ID of the TPC set to convert into TPC IDs
@@ -500,14 +500,14 @@ namespace geo{
      */
     virtual std::vector<geo::TPCID> TPCsetToTPCs
       (readout::TPCsetID const& tpcsetid) const = 0;
-    
+
     /// Returns the ID of the first TPC belonging to the specified TPC set
     virtual geo::TPCID FirstTPCinTPCset
       (readout::TPCsetID const& tpcsetid) const = 0;
-    
+
     /// @} TPC set mapping
-    
-    
+
+
     //--------------------------------------------------------------------------
     /// @name Readout plane mapping
     /// @{
@@ -515,30 +515,30 @@ namespace geo{
      * @brief Returns the total number of ROP in the specified TPC set
      * @param tpcsetid TPC set ID
      * @return number of readout planes in the TPC set, or 0 if no TPC set found
-     * 
+     *
      * Note that this methods explicitly check the existence of the TPC set.
      */
     virtual unsigned int NROPs(readout::TPCsetID const& tpcsetid) const = 0;
-    
+
     /// Returns the largest number of ROPs a TPC set in the detector has
     virtual unsigned int MaxROPs() const = 0;
-    
+
     /// Returns whether we have the specified ROP
     /// @return whether the readout plane is valid and exists
     virtual bool HasROP(readout::ROPID const& ropid) const = 0;
-    
+
     /// Returns the ID of the ROP planeid belongs to
     virtual readout::ROPID WirePlaneToROP
       (geo::PlaneID const& planeid) const = 0;
-    
+
     /// Returns a list of ID of planes belonging to the specified ROP
     virtual std::vector<geo::PlaneID> ROPtoWirePlanes
       (readout::ROPID const& ropid) const = 0;
-    
+
     /// Returns the ID of the first plane belonging to the specified ROP
     virtual geo::PlaneID FirstWirePlaneInROP
       (readout::ROPID const& ropid) const = 0;
-    
+
     /**
      * @brief Returns a list of ID of TPCs the specified ROP spans
      * @param ropid ID of the readout plane
@@ -551,23 +551,23 @@ namespace geo{
      */
     virtual std::vector<geo::TPCID> ROPtoTPCs
       (readout::ROPID const& ropid) const = 0;
-    
+
     /**
      * @brief Returns the ID of the ROP the channel belongs to
      * @return the ID of the ROP the channel belongs to (invalid if channel is)
      * @see HasChannel()
-     * 
+     *
      * The channel must exist, or be the invalid channel value.
      * With a channel that is not present in the mapping and that is not the
      * invalid channel (`raw::InvalidChannelID`), the result is undefined.
      */
     virtual readout::ROPID ChannelToROP(raw::ChannelID_t channel) const = 0;
-    
+
     /**
      * @brief Returns the ID of the first channel in the specified readout plane
      * @param ropid ID of the readout plane
      * @return ID of first channel, or raw::InvalidChannelID if ID is invalid
-     * 
+     *
      * Note that this check is performed on the validity of the readout plane
      * ID, that does not necessarily imply that the readout plane specified by
      * the ID actually exists. Check if the ROP exists with HasROP().
@@ -575,10 +575,10 @@ namespace geo{
      */
     virtual raw::ChannelID_t FirstChannelInROP
       (readout::ROPID const& ropid) const = 0;
-    
+
     /// @}
-    
-    
+
+
     //--------------------------------------------------------------------------
     /// Returns the object to sort geometry with
     virtual geo::GeoObjectSorter const& Sorter() const = 0;
@@ -586,36 +586,36 @@ namespace geo{
     //--------------------------------------------------------------------------
     /// @{
     /// @name Testing (not in the interface)
-    
+
     /// Retrieve the private fFirstChannelInNextPlane vector for testing.
     const std::vector<std::vector<std::vector<raw::ChannelID_t>>> FirstChannelInNextPlane() const
       { return fFirstChannelInThisPlane; }
-    
+
     /// Retrieve the private fFirstChannelInThisPlane vector for testing.
     const std::vector<std::vector<std::vector<raw::ChannelID_t>>> FirstChannelInThisPlane() const
       { return fFirstChannelInNextPlane; }
-    
+
     /// @}
-    
+
     //--------------------------------------------------------------------------
-    
+
  protected:
 
    /// Data type for per-TPC information
    template <typename T>
    using TPCInfoMap_t = std::vector<std::vector<T>>;
-   
+
    /// Data type for per-plane information
    template <typename T>
    using PlaneInfoMap_t = TPCInfoMap_t<std::vector<T>>;
-   
+
    // These 3D vectors are used in initializing the Channel map.
    // Only a 1D vector is really needed so far, but these are more general.
    PlaneInfoMap_t<raw::ChannelID_t> fFirstChannelInThisPlane;
    PlaneInfoMap_t<raw::ChannelID_t> fFirstChannelInNextPlane;
-   
+
    std::map<std::string, size_t>          fADNameToGeo;             ///< map the names of the dets to the AuxDetGeo objects
-   std::map<size_t, std::vector<size_t> > fADChannelToSensitiveGeo; ///< map the AuxDetGeo index to a vector of 
+   std::map<size_t, std::vector<size_t> > fADChannelToSensitiveGeo; ///< map the AuxDetGeo index to a vector of
                                                                     ///< indices corresponding to the AuxDetSensitiveGeo index
 
    /**
@@ -626,19 +626,19 @@ namespace geo{
     * They are strictly internal.
     */
    /// @{
-   
+
    /// Returns the specified element of the TPC map
    template <typename T>
    T const& AccessElement
      (TPCInfoMap_t<T> const& map, geo::TPCID const& id) const
      { return map[id.Cryostat][id.TPC]; }
-   
+
    /// Returns the number of elements in the specified cryostat of the TPC map
    template <typename T>
    size_t AccessElementSize
      (TPCInfoMap_t<T> const& map, geo::CryostatID const& id) const
      { return map[id.Cryostat].size(); }
-   
+
    //@{
    /// Returns whether the ID specifies a valid entry
    template <typename T>
@@ -652,20 +652,20 @@ namespace geo{
          && (id.TPC < map[id.Cryostat].size());
      }
    //@}
-   
-   
+
+
    /// Returns the specified element of the plane map
    template <typename T>
    T const& AccessElement
      (PlaneInfoMap_t<T> const& map, geo::PlaneID const& id) const
      { return map[id.Cryostat][id.TPC][id.Plane]; }
-   
+
    /// Returns the number of elements in the specified TPC of the plane map
    template <typename T>
    size_t AccessElementSize
      (PlaneInfoMap_t<T> const& map, geo::TPCID const& id) const
      { return map[id.Cryostat][id.TPC].size(); }
-   
+
    //@{
    /// Returns whether the ID specifies a valid entry
    template <typename T>
@@ -686,7 +686,7 @@ namespace geo{
          && (id.Plane < AccessSize(map, id.asTPCID()));
      }
    //@}
-   
+
    /// Returns a pointer to the specified element, or nullptr if invalid
    template <typename T>
    T const* GetElementPtr
@@ -700,9 +700,9 @@ namespace geo{
        auto const& plane_map = TPC_map[id.Plane];
        return &plane_map;
      } // GetElementPtr()
-   
+
    ///@} Internal structure data access
-   
+
  };
 }
 #endif // GEO_CHANNELMAPALG_H

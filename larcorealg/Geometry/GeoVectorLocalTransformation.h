@@ -27,7 +27,7 @@ class TGeoHMatrix;
 
 
 namespace geo {
-  
+
   //----------------------------------------------------------------------------
   //---  template specialization forward declarations
   //----------------------------------------------------------------------------
@@ -72,29 +72,29 @@ namespace geo {
   DestPoint
   LocalTransformation<ROOT::Math::Transform3D>::LocalToWorldImpl
     (SrcPoint const& local) const;
-  
+
   //......................................................................
   template <>
   template <typename DestVector, typename SrcVector>
   DestVector
   LocalTransformation<ROOT::Math::Transform3D>::LocalToWorldVectImpl
     (SrcVector const& local) const;
-  
+
   //------------------------------------------------------------------------------
   template <>
   ROOT::Math::Transform3D
   LocalTransformation<ROOT::Math::Transform3D>::transformationFromPath
     (std::vector<TGeoNode const*> const& path, size_t depth);
-  
+
   //------------------------------------------------------------------------------
   template <>
   template <typename ITER>
   ROOT::Math::Transform3D
   LocalTransformation<ROOT::Math::Transform3D>::transformationFromPath
     (ITER begin, ITER end);
-  
+
   //------------------------------------------------------------------------------
-  
+
 } // namespace geo
 
 

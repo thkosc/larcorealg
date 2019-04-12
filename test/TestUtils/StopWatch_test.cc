@@ -4,13 +4,13 @@
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   July 3, 2016
  * @see    StopWatch.h
- * 
+ *
  * This test instantiates a stopwatch and makes some queries.
- * 
+ *
  * It is not an actual test in that there is no automatic verification of the
  * results (which would be somehow problematic given that times are not
  * completely reproducible).
- * 
+ *
  */
 
 // our libraries

@@ -26,28 +26,28 @@ namespace geo {
   /**
    * @brief A base class aware of world box coordinates
    * @ingroup Geometry
-   * 
+   *
    * An object describing a simple shape can inherit from this one to gain
    * access to a common boundary checking interface.
-   * 
+   *
    * The boundary is a simple box with axes parallel to the coordinate system.
    */
   class BoxBoundedGeo {
       public:
     using Coords_t = geo::Point_t; ///< Type of the coordinate triplet.
     using Coord_t = Coords_t::Scalar; ///< Type of the coordinate.
-    
+
     /**
      * @brief Default constructor: sets an empty volume
      * @see SetBoundaries
-     * 
+     *
      * We allow for a default construction since the derived object might need
      * some specific action before being aware of its boundaries.
      * In that case, SetBoundaries() will set the boundaries.
      */
     BoxBoundedGeo() = default;
-    
-    
+
+
     /**
      * @brief Constructor: sets the boundaries in world coordinates as specified
      * @param x_min lower x coordinate
@@ -57,7 +57,7 @@ namespace geo {
      * @param z_min lower z coordinate
      * @param z_max upper z coordinate
      * @see `SetBoundaries()`
-     * 
+     *
      * Note that is assumed that each minimum is larger than its maximum,
      * and no check is performed.
      */
@@ -68,99 +68,99 @@ namespace geo {
       ):
       c_min{ x_min, y_min, z_min }, c_max{ x_max, y_max, z_max }
       { SortCoordinates(); }
-    
+
     /**
      * @brief Constructor: sets the boundaries in world coordinates as specified
      * @param lower lower coordinates (x, y, z)
      * @param upper upper coordinates (x, y, z)
      * @see `SetBoundaries()`
-     * 
+     *
      * Note that is assumed that each minimum is larger than its maximum,
      * and no check is performed.
      */
     BoxBoundedGeo(Coords_t lower, Coords_t upper):
       c_min(lower), c_max(upper)
       { SortCoordinates(); }
-    
-    
+
+
     /// @{
     /// @name Dimension queries
-    
+
     /// Returns the world x coordinate of the start of the box.
     double MinX() const { return c_min.X(); }
-    
+
     /// Returns the world x coordinate of the end of the box.
     double MaxX() const { return c_max.X(); }
-    
+
     /// Returns the world x coordinate of the center of the box.
     double CenterX() const { return (MinX() + MaxX()) / 2.; }
-    
+
     /// Returns the full size in the X dimension.
     double SizeX() const { return MaxX() - MinX(); }
-    
+
     /// Returns the size from the center to the border on X dimension.
     double HalfSizeX() const { return SizeX() / 2.0; }
-    
+
     /// Returns the world y coordinate of the start of the box.
     double MinY() const { return c_min.Y(); }
-    
+
     /// Returns the world y coordinate of the end of the box.
     double MaxY() const { return c_max.Y(); }
-    
+
     /// Returns the world y coordinate of the center of the box.
     double CenterY() const { return (MinY() + MaxY()) / 2.; }
-    
+
     /// Returns the full size in the Y dimension.
     double SizeY() const { return MaxY() - MinY(); }
-    
+
     /// Returns the size from the center to the border on Y dimension.
     double HalfSizeY() const { return SizeY() / 2.0; }
-    
+
     /// Returns the world z coordinate of the start of the box.
     double MinZ() const { return c_min.Z(); }
-    
+
     /// Returns the world z coordinate of the end of the box.
     double MaxZ() const { return c_max.Z(); }
-    
+
     /// Returns the world z coordinate of the center of the box.
     double CenterZ() const { return (MinZ() + MaxZ()) / 2.; }
-    
+
     /// Returns the full size in the Z dimension.
     double SizeZ() const { return MaxZ() - MinZ(); }
-    
+
     /// Returns the size from the center to the border on Z dimension.
     double HalfSizeZ() const { return SizeZ() / 2.0; }
-    
+
     /// Returns the corner point with the smallest coordinates.
     geo::Point_t Min() const { return c_min; }
-    
+
     /// Returns the corner point with the largest coordinates.
     geo::Point_t Max() const { return c_max; }
-    
+
     /// Returns the center point of the box.
     geo::Point_t Center() const
       { return { CenterX(), CenterY(), CenterZ() }; }
-    
+
     /// @}
-    
-    
-    
+
+
+
     /// @name Containment in the full volume
     /// @{
-    
+
     /**
      * @brief Returns whether this TPC contains the specified world x coordinate
      * @param x the absolute ("world") coordinate x
      * @param wiggle expansion factor for the range (see ContainsPosition())
      * @return whether the specified coordinate is in this TPC
      * @see ContainsPosition()
-     * 
+     *
      * Note that x is by definition the drift direction, and a reconstructed x
      * typically depends on an assumption respect to the event time.
      */
     bool ContainsX(double x, double const wiggle = 1) const
       { return CoordinateContained(x, MinX(), MaxX(), wiggle); }
-    
+
     /**
      * @brief Returns whether this TPC contains the specified world y coordinate
      * @param y the absolute ("world") coordinate y
@@ -170,7 +170,7 @@ namespace geo {
      */
     bool ContainsY(double y, double const wiggle = 1) const
       { return CoordinateContained(y, MinY(), MaxY(), wiggle); }
-    
+
     /**
      * @brief Returns whether this TPC contains the specified world z coordinate
      * @param z the absolute ("world") coordinate z
@@ -180,7 +180,7 @@ namespace geo {
      */
     bool ContainsZ(double z, double const wiggle = 1) const
       { return CoordinateContained(z, MinZ(), MaxZ(), wiggle); }
-    
+
     /**
      * @brief Returns if TPC contains the specified world y and z coordinates
      * @param y the absolute ("world") coordinate y
@@ -191,8 +191,8 @@ namespace geo {
      */
     bool ContainsYZ(double y, double z, double const wiggle = 1) const
       { return ContainsY(y, wiggle) && ContainsZ(z, wiggle); }
-    
-    
+
+
     /**
      * @brief Returns whether this volume contains the specified point.
      * @param point the point [cm]
@@ -213,11 +213,11 @@ namespace geo {
     bool ContainsPosition(TVector3 const& point, double wiggle = 1.0) const;
     /// @see `ContainsPosition(geo::Point_t const&, double) const`.
     bool ContainsPosition(double const* point, double wiggle = 1.0) const;
-    
-    
+
+
     /// @}
-    
-    
+
+
     /// @name Containment in a fiducial volume
     /// @{
     /**
@@ -226,12 +226,12 @@ namespace geo {
      * @param neg_margin how far within the TPC the fiducial region starts
      * @param pos_margin how far before the TPC the fiducial region ends
      * @return whether the specified coordinate is in this TPC fiducial volume
-     * 
+     *
      * The fiducial volume is defined by the specified margins, that denote how
      * much of the coordinate is not fiducial. For example,
-     *     
+     *
      *     bool bWithin = tpc->InFiducialX(x, 5., 8.);
-     *     
+     *
      * on a TPC with x from 0 to 100 (cm, presumably) will return true for all
      * `x` between 5 and 92.
      * If positive margin is not specified, it's assumed to be the same as the
@@ -247,24 +247,24 @@ namespace geo {
     /**
      * @brief Returns whether TPC fiducial volume contains world x coordinate.
      * @see `InFiducialX(double, double, double) const`
-     * 
+     *
      * Margins are symmetric.
      */
     bool InFiducialX(double x, double margin) const
       { return InFiducialX(x, margin, margin); }
-    
+
     /**
      * @brief Returns whether TPC fiducial volume contains world y coordinate
      * @param y the absolute ("world") coordinate y
      * @param neg_margin how far within the TPC the fiducial region starts
      * @param pos_margin how far before the TPC the fiducial region ends
      * @return whether the specified coordinate is in this TPC fiducial volume
-     * 
+     *
      * The fiducial volume is defined by the specified margins, that denote how
      * much of the coordinate is not fiducial. For example,
-     *     
+     *
      *     bool bWithin = tpc->InFiducialY(y, 5., 8.);
-     *     
+     *
      * on a TPC with y from 0 to 100 (cm, presumably) will return true for all
      * `y` between 5 and 92.
      * If positive margin is not specified, it's assumed to be the same as the
@@ -278,24 +278,24 @@ namespace geo {
     /**
      * @brief Returns whether TPC fiducial volume contains world y coordinate.
      * @see `InFiducialY(double, double, double) const`
-     * 
+     *
      * Margins are symmetric.
      */
     bool InFiducialY(double y, double margin) const
       { return InFiducialY(y, margin, margin); }
-    
+
     /**
      * @brief Returns whether TPC fiducial volume contains world z coordinate
      * @param z the absolute ("world") coordinate y
      * @param neg_margin how far within the TPC the fiducial region starts
      * @param pos_margin how far before the TPC the fiducial region ends
      * @return whether the specified coordinate is in this TPC fiducial volume
-     * 
+     *
      * The fiducial volume is defined by the specified margins, that denote how
      * much of the coordinate is not fiducial. For example,
-     *     
+     *
      *     bool bWithin = tpc->InFiducialZ(z, 5., 8.);
-     *     
+     *
      * on a TPC with z from 0 to 100 (cm, presumably) will return true for all
      * `z` between 5 and 92.
      * If positive margin is not specified, it's assumed to be the same as the
@@ -309,15 +309,15 @@ namespace geo {
     /**
      * @brief Returns whether TPC fiducial volume contains world z coordinate.
      * @see `InFiducialZ(double, double, double) const`
-     * 
+     *
      * Margins are symmetric.
      */
     bool InFiducialZ(double z, double margin) const
       { return InFiducialZ(z, margin, margin); }
-    
+
     /// @}
-    
-    
+
+
     /**
      * @brief Returns whether the specified coordinate is in a range
      * @param c the coordinate
@@ -335,7 +335,7 @@ namespace geo {
         return (c >= (min > 0? min / wiggle: min * wiggle))
           && (c <= (max < 0? max / wiggle: max * wiggle));
       } // CoordinateContained()
-    
+
     /**
      * @brief Returns whether the specified coordinate is in a range
      * @param c the coordinate
@@ -350,11 +350,11 @@ namespace geo {
     static bool CoordinateContained
       (double c, double const* range, double wiggle = 1.)
       { return CoordinateContained(c, range[0], range[1], wiggle); }
-    
-    
+
+
     /// @{
     /// @name Setting dimensions
-    
+
     /**
      * @brief Sets the boundaries in world coordinates as specified.
      * @param x_min lower x coordinate
@@ -382,7 +382,7 @@ namespace geo {
      */
     void SetBoundaries(Coords_t lower, Coords_t upper)
       { c_min = lower; c_max = upper; SortCoordinates(); }
-    
+
     /**
      * @brief Extends the current box to also include the specified point.
      * @param x x coordinate of the point to include
@@ -391,21 +391,21 @@ namespace geo {
      */
     void ExtendToInclude(Coord_t x, Coord_t y, Coord_t z)
       { ExtendToInclude(geo::Point_t(x, y, z)); }
-    
+
     /**
      * @brief Extends the current box to also include the specified point.
      * @param point coordinates of the point to include
      */
     void ExtendToInclude(geo::Point_t const& point)
-      { 
+      {
         set_min(c_min, point);
         set_max(c_max, point);
       }
-    
+
     /**
      * @brief Extends the current box to also include the specified one
      * @param box the box to include
-     * 
+     *
      * It is assumed that the box has its boundaries properly sorted.
      */
     void ExtendToInclude(BoxBoundedGeo const& box)
@@ -413,10 +413,10 @@ namespace geo {
         set_min(c_min, box.Min());
         set_max(c_max, box.Max());
       } // ExtendToInclude()
-    
+
     /// @}
-    
-    
+
+
     //@{
     /**
      * @brief Calculates the entry and exit points of a trajectory on the box surface
@@ -436,16 +436,16 @@ namespace geo {
     std::vector<geo::Point_t> GetIntersections
       (geo::Point_t const& TrajectoryStart, geo::Vector_t const& TrajectoryDirect) const;
     //@}
-    
-    
+
+
     /// Sets var to value if value is smaller than the current var value.
     static void set_min(Coord_t& var, Coord_t value)
       { if (value < var) var = value; }
-    
+
     /// Sets var to value if value is larger than the current var value.
     static void set_max(Coord_t& var, Coord_t value)
       { if (value > var) var = value; }
-    
+
     /// Sets each coordinate of var to the one in value if the latter is smaller.
     static void set_min(Coords_t& var, geo::Point_t const& value)
       {
@@ -453,7 +453,7 @@ namespace geo {
         if (value.Y() < var.Y()) var.SetY(value.Y());
         if (value.Z() < var.Z()) var.SetZ(value.Z());
       }
-    
+
     /// Sets each coordinate of var to the one in value if the latter is larger.
     static void set_max(Coords_t& var, geo::Point_t const& value)
       {
@@ -461,18 +461,18 @@ namespace geo {
         if (value.Y() > var.Y()) var.SetY(value.Y());
         if (value.Z() > var.Z()) var.SetZ(value.Z());
       }
-    
-    
+
+
       private:
     // we don't allow the derived classes to mess with the boundaries
     Coords_t c_min; ///< minimum coordinates (x, y, z)
     Coords_t c_max; ///< maximum coordinates (x, y, z)
-    
+
     /// Makes sure each coordinate of the minimum point is smaller than maximum.
     void SortCoordinates();
-    
+
   }; // class BoxBoundedGeo
-  
+
 } // namespace geo
 
 

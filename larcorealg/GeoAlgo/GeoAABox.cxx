@@ -2,25 +2,25 @@
 
 namespace geoalgo {
 
-  AABox::AABox() 
+  AABox::AABox()
     : _min(3)
     , _max(3)
   {}
-    
+
   AABox::AABox(const double x_min, const double y_min, const double z_min,
 	       const double x_max, const double y_max, const double z_max)
     : _min ( x_min, y_min, z_min )
     , _max ( x_max, y_max, z_max )
   {}
-    
+
   AABox::AABox(const Point_t& min, const Vector_t& max)
     : _min ( min )
     , _max ( max   )
-  { 
+  {
     if(min.size()!=3 || max.size()!=3)
       throw GeoAlgoException("AABox ctor accepts only 3D Point!");
   }
-  
+
   const Point_t& AABox::Min() const { return _min; }
   const Point_t& AABox::Max() const { return _max; }
 

@@ -2,7 +2,7 @@
  * \file GeoHalfLine.h
  *
  * \ingroup GeoAlgo
- * 
+ *
  * \brief Class def header for a class HalfLine
  *
  * @author kazuhiro
@@ -24,9 +24,9 @@ namespace geoalgo {
      protecting the dimensionality.
   */
   class HalfLine {
-    
+
   public:
-    
+
     /// Default constructor
     HalfLine();
 
@@ -39,10 +39,10 @@ namespace geoalgo {
 
     /// Altenartive ctor (2)
     HalfLine(const Point_t& start, const Vector_t& dir);
-    
+
     const Point_t&  Start () const; ///< Start getter
     const Vector_t& Dir   () const; ///< Direction getter
-    
+
     void Start(const double x, const double y, const double z); ///< Start setter
     void Dir  (const double x, const double y, const double z); ///< Dir setter
 
@@ -59,7 +59,7 @@ namespace geoalgo {
 
     //
     // Template
-    // 
+    //
 
     /// Alternative ctor using template (3)
     template <class T, class U> HalfLine(const T& start, const U& dir)
@@ -69,24 +69,24 @@ namespace geoalgo {
     /// Start setter template
     template<class T>
     void Start(const T& pos)
-    { 
-      _start = Point_t(pos); 
-      if(_start.size()!=3) throw GeoAlgoException("<<Start>> Only 3 dimensional start point allowed!"); 
+    {
+      _start = Point_t(pos);
+      if(_start.size()!=3) throw GeoAlgoException("<<Start>> Only 3 dimensional start point allowed!");
     }
-    
+
     /// Dir setter template
     template<class T>
     void Dir(const T& dir)
-    { 
+    {
       _dir = Vector_t(dir);
-      if(_dir.size()!=3) throw GeoAlgoException("<<Start>> Only 3 dimensional start point allowed!"); 
+      if(_dir.size()!=3) throw GeoAlgoException("<<Start>> Only 3 dimensional start point allowed!");
       Normalize();
     }
 
   };
-  
+
   typedef HalfLine HalfLine_t;
 }
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 
