@@ -14,13 +14,13 @@
 
 
 namespace testing {
-  
+
   //----------------------------------------------------------------------------
   //--- testing::NameSelector
   //----------------------------------------------------------------------------
   NameSelector::Name_t const NameSelector::DefaultName = "*";
   NameSelector::Name_t const NameSelector::ClearAllName = "!";
-  
+
   //----------------------------------------------------------------------------
   void NameSelector::ParseName(Name_t name) {
     ProcessItem(known_names, name);
@@ -32,8 +32,8 @@ namespace testing {
     ++(query_registry[name]);
     return LookupResponse(name);
   } // NameSelector::Query()
-  
-  
+
+
   //----------------------------------------------------------------------------
   bool NameSelector::Accepted(Name_t name) const {
     Response_t response = Query(name);
@@ -43,17 +43,17 @@ namespace testing {
     }
     return response == rsAccepted;
   } // NameSelector::Accepted()
-  
-  
+
+
   //----------------------------------------------------------------------------
   void NameSelector::PrintConfiguration(std::ostream& out) const {
-    
+
     // resort the known elements
     std::map<Response_t, Names_t> elements;
     for (KnownNames_t::value_type const& element: known_names)
       if (element.first != DefaultName)
         elements[element.second.response].insert(element.first);
-    
+
     size_t nKnownElements = 0;
     if (!elements[rsAccepted].empty()) {
       auto const& selected_elements = elements[rsAccepted];
@@ -93,31 +93,31 @@ namespace testing {
       default:         out << " I don't know";
     } // switch
   } // NameSelector::PrintConfiguration()
-  
-  
+
+
   //----------------------------------------------------------------------------
   NameSelector::Response_t NameSelector::LookupResponse(Name_t name) const {
     KnownNames_t::const_iterator iResponse = known_names.find(name);
     return (iResponse == known_names.end())?
       DefaultResponse(): iResponse->second.response;
   } // NameSelector::LookupResponse()
-  
-  
+
+
   //----------------------------------------------------------------------------
   template <>
   void NameSelector::AddFirstName<>(KnownNames_t& name_set, Name_t name) {
     ProcessItem(name_set, name);
   } // NameSelector::AddFirstName<>()
-  
-  
+
+
   //----------------------------------------------------------------------------
   void NameSelector::InsertItem
     (KnownNames_t& name_set, Name_t item, Response_t response) const
   {
     name_set[item] = { response };
   } // NameSelector::InsertItem()
-  
-  
+
+
   //----------------------------------------------------------------------------
   void NameSelector::InsertItem
     (KnownNames_t& name_set, KnownNames_t::value_type item, Response_t response)
@@ -145,8 +145,8 @@ namespace testing {
     } // switch response
     InsertItem(name_set, item.first, final_response);
   } // NameSelector::InsertItem(KnownNames_t::value_type)
-  
-  
+
+
   //----------------------------------------------------------------------------
   void NameSelector::ProcessItem(KnownNames_t& name_set, Name_t item) const {
     // special: if this name is actually a directive to clear all
@@ -162,8 +162,8 @@ namespace testing {
         InsertItem(name_set, element, response);
     }
   } // NameSelector::ProcessItem()
-  
-  
+
+
   //----------------------------------------------------------------------------
   NameSelector::Definitions_t::const_iterator NameSelector::FindDefinition
     (Name_t& item) const
@@ -182,8 +182,8 @@ namespace testing {
     }
     return iDefinition;
   } // NameSelector::FindDefinition()
-  
-  
+
+
   //----------------------------------------------------------------------------
   void NameSelector::ClearNameSet(KnownNames_t& name_set) const {
     KnownNames_t::iterator iName = name_set.begin(), nend = name_set.end();
@@ -192,8 +192,8 @@ namespace testing {
       else iName = name_set.erase(iName);
     } // while
   } // NameSelector::ClearNameSet()
-  
-  
+
+
   //----------------------------------------------------------------------------
   NameSelector::Names_t NameSelector::QueriedWithStatus
     (Response_t answer) const
@@ -206,8 +206,8 @@ namespace testing {
     } // for
     return names;
   } // NameSelector::QueriedWithStatus()
-  
-  
+
+
   //----------------------------------------------------------------------------
   bool NameSelector::DoCheckQueryRegistry
     (std::ostream* out /* = nullptr */) const
@@ -225,8 +225,8 @@ namespace testing {
     }
     return missing.empty();
   } // NameSelector::CheckQueryRegistry()
-  
-  
+
+
   //----------------------------------------------------------------------------
   NameSelector::Response_t NameSelector::ParseMode
     (Name_t& item, Response_t default_mode /* = rsAccepted */)
@@ -241,8 +241,8 @@ namespace testing {
     }
     return default_mode;
   } // NameSelector::ParseMode()
-  
-  
+
+
   //----------------------------------------------------------------------------
-  
+
 } // namespace testing

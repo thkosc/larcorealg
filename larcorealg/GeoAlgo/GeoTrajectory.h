@@ -2,7 +2,7 @@
  * \file GeoTrajectory.h
  *
  * \ingroup GeoAlgo
- * 
+ *
  * \brief Class def header for a class Trajectory
  *
  * @author kazuhiro
@@ -27,7 +27,7 @@ namespace geoalgo {
   class Trajectory : public std::vector<geoalgo::Vector> {
 
   public:
-    
+
     /// Default ctor to specify # points and dimension of each point
     Trajectory(size_t npoints=0, size_t ndimension=0);
 
@@ -50,7 +50,7 @@ namespace geoalgo {
     //
     // Setters
     //
-    void push_back(const Point_t& obj); ///< push_back overrie w/ dimensionality check 
+    void push_back(const Point_t& obj); ///< push_back overrie w/ dimensionality check
 
     inline Trajectory& operator+=(const Point_t& rhs)
     { push_back(rhs); return *this; }
@@ -73,7 +73,7 @@ namespace geoalgo {
     //
     /// push_back template
     template <class T>
-    void push_back(const T& obj) 
+    void push_back(const T& obj)
     { Point_t pt(obj); push_back(pt); }
 
   public:
@@ -95,5 +95,5 @@ namespace geoalgo {
 }
 
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

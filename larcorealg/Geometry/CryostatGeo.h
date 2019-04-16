@@ -35,55 +35,55 @@ namespace geo {
   /// @brief Geometry information for a single cryostat.
   /// @ingroup Geometry
   class CryostatGeo: public geo::BoxBoundedGeo {
-    
+
       public:
-    
+
     /// Type used internally to store the TPCs.
     using TPCList_t = std::vector<geo::TPCGeo>;
-    
+
     /// Type used internally to store the optical detectors.
     using OpDetList_t = std::vector<geo::OpDetGeo>;
-    
+
     using GeoNodePath_t = geo::WireGeo::GeoNodePath_t;
-    
+
     /// @{
     /**
      * @name Types for geometry-local reference vectors.
-     * 
+     *
      * These types represents points and displacement vectors in the reference
      * frame defined in the cryostat geometry box from the GDML geometry
      * description.
-     * 
+     *
      * No alias is explicitly defined for the LArSoft global vector types,
      * `geo::Point_t` and `geo::Vector_t`.
-     * 
+     *
      * Remember the `LocalPoint_t` and `LocalVector_t` vectors from different
      * instances of `geo::CryostatGeo` have the same type but are not
      * compatible.
      */
-    
+
     /// Tag for vectors in the "local" GDML coordinate frame of the cryostat.
     struct CryostatGeoCoordinatesTag {};
-    
+
     /// Type of points in the local GDML cryostat frame.
     using LocalPoint_t = geo::Point3DBase_t<CryostatGeoCoordinatesTag>;
-    
+
     /// Type of displacement vectors in the local GDML cryostat frame.
     using LocalVector_t = geo::Vector3DBase_t<CryostatGeoCoordinatesTag>;
-    
+
     ///@}
-    
-    
+
+
     /// Construct a representation of a single cryostat of the detector.
     CryostatGeo(
       TGeoNode const& node, geo::TransformationMatrix&& trans,
       TPCList_t&& TPCs, OpDetList_t&& OpDets
       );
-    
-    
+
+
     /// @{
     /// @name Cryostat geometry information
-    
+
     /// Half width of the cryostat [cm]
     double            HalfWidth()                               const;
     /// Half height of the cryostat [cm]
@@ -100,89 +100,89 @@ namespace geo {
     double            Mass()                                    const { return fVolume->Weight(); }
     /// Pointer to ROOT's volume descriptor
     const TGeoVolume* Volume()                                  const { return fVolume;           }
-    
+
     /// @brief Returns boundaries of the cryostat (in centimetres).
     /// @return boundaries in a geo::BoxBoundedGeo
     geo::BoxBoundedGeo const& Boundaries() const
       { return BoundingBox(); }
-    
+
     /// @brief Fills boundaries of the cryostat (in centimetres).
     /// @param boundaries filled as: [0] -x [1] +x [2] -y [3] +y [4] -z [5] +z
     void Boundaries(double* boundaries) const;
-    
-    
+
+
     /// Returns the geometrical center of the cryostat.
     geo::Point_t GetCenter() const
       { return Boundaries().Center(); }
-    
+
     /// Returns the bounding box of this cryostat.
     geo::BoxBoundedGeo const& BoundingBox() const
       { return static_cast<geo::BoxBoundedGeo const&>(*this); }
-    
+
     /// Returns the identifier of this cryostat.
     geo::CryostatID const& ID() const { return fID; }
-    
-    
+
+
     /**
      * @brief Prints information about this cryostat.
      * @tparam Stream type of output stream to use
      * @param out stream to send the information to
      * @param indent prepend each line with this string
      * @param verbosity amount of information printed
-     * 
+     *
      * Note that the first line out the output is _not_ indented.
-     * 
+     *
      * Verbosity levels
      * -----------------
-     * 
+     *
      * * 0: only cryostat ID
      * * 1 _(default)_: also center and size
      * * 2: also number of TPCs, optical detectors, and maximum wires per plane
      * *    and of planes for TPC
      * * 3: also information on bounding box
-     * 
+     *
      * The constant `MaxVerbosity` is set to the highest supported verbosity
      * level.
      */
     template <typename Stream>
     void PrintCryostatInfo
       (Stream&& out, std::string indent = "", unsigned int verbosity = 1) const;
-    
+
     /**
      * @brief Returns a string with cryostat information.
      * @see `PrintCryostatInfo()`
-     * 
+     *
      * The arguments and provided information are the same as in
      * `PrintCryostatInfo()`.
      */
     std::string CryostatInfo
       (std::string indent = "", unsigned int verbosity = 1) const;
-    
+
     /// Maximum verbosity supported by `PrintCryostatInfo()`.
     static constexpr unsigned int MaxVerbosity = 3;
-    
+
     /// @}
-    
-    
+
+
     // BEGIN TPC access --------------------------------------------------------
     /// @{
     /// @name TPC access
-    
+
     /// Number of TPCs in this cryostat.
     unsigned int      NTPC()                                    const { return fTPCs.size();      }
     /// Alias for `NTPC()`.
     unsigned int      NElements()                               const { return fTPCs.size();      }
-    
+
     /**
      * @brief Returns whether a TPC with index itpc is present in this cryostat.
      * @param itpc index of TPC in this cryostat
      * @return whether the TPC with index itpc is present in this cryostat
      */
     bool HasTPC(unsigned int itpc) const { return itpc < NTPC(); }
-    
+
     /// Alias for `HasTPC()`.
     bool HasElement(unsigned int itpc) const { return HasTPC(itpc); }
-    
+
     /**
      * @brief Returns whether the TPC in tpcid is present in this cryostat
      * @param tpcid full TPC ID
@@ -194,11 +194,11 @@ namespace geo {
     bool HasTPC(geo::TPCID const& tpcid) const { return HasTPC(tpcid.TPC); }
     /// Alias for `HasTPC(geo::TPCID const&)`
     bool HasElement(geo::TPCID const& tpcid) const { return HasTPC(tpcid); }
-    
+
     /// @brief Return the itpc'th TPC in the cryostat.
     /// @throws cet::exception (category "TPCOutOfRange") if no such TPC
     const TPCGeo&     TPC(unsigned int itpc)                    const;
-    
+
     /**
      * @brief Returns the TPC in tpcid from this cryostat
      * @param tpcid full TPC ID
@@ -213,19 +213,19 @@ namespace geo {
     /// Alias for `TPC()`.
     const TPCGeo&     GetElement(TPCID const& tpcid)            const
       { return TPC(tpcid); }
-    
-    
+
+
     /**
      * @brief Returns a container with references to all TPCs.
      * @return a container with references to all TPCs
-     * 
+     *
      * The returned value can be used in a range-for loop like:
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
      * for (geo::TPCGeo const& tpc: cryo.TPCs()) { ... }
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
     auto const& TPCs() const { return fTPCs; }
-    
+
     /**
      * @brief Returns the TPC number itpc from this cryostat.
      * @param itpc the number of local TPC
@@ -233,7 +233,7 @@ namespace geo {
      */
     TPCGeo const*     TPCPtr(unsigned int itpc)                    const
       { return HasTPC(itpc)? &(fTPCs[itpc]): nullptr; }
-    
+
     /**
      * @brief Returns the TPC in tpcid from this cryostat.
      * @param tpcid full TPC ID
@@ -247,7 +247,7 @@ namespace geo {
     /// Alias for `TPCPtr()`.
     TPCGeo const*     GetElementPtr(TPCID const& tpcid)            const
       { return TPCPtr(tpcid); }
-    
+
     /**
      * @brief Returns the index of the TPC at specified location
      * @param worldLoc 3D coordinates of the point (world reference frame)
@@ -257,7 +257,7 @@ namespace geo {
      */
     geo::TPCID::TPCID_t FindTPCAtPosition
       (double const worldLoc[3], double const wiggle) const;
-    
+
     /**
      * @brief Returns the ID of the TPC at specified location.
      * @param point 3D coordinates of the point (world reference frame)
@@ -266,7 +266,7 @@ namespace geo {
      */
     geo::TPCID PositionToTPCID
       (geo::Point_t const& point, double wiggle) const;
-    
+
     /**
      * @brief Returns the ID of the TPC at specified location.
      * @param point the location (world reference frame)
@@ -284,7 +284,7 @@ namespace geo {
     TPCGeo const& PositionToTPC
       (double const  worldLoc[3], double wiggle) const
       { return PositionToTPC(geo::vect::makePointFromCoords(worldLoc), wiggle); }
-    
+
     /**
      * @brief Returns a pointer to the TPC at specified location.
      * @param point position in space [cm]
@@ -293,51 +293,51 @@ namespace geo {
      */
     geo::TPCGeo const* PositionToTPCptr
       (geo::Point_t const& point, double wiggle) const;
-    
+
     /// Returns the largest number of planes among the TPCs in this cryostat
     unsigned int MaxPlanes() const;
-    
+
     /// Returns the largest number of wires among the TPCs in this cryostat
     unsigned int MaxWires() const;
-    
+
     /// @}
     // END TPC access ----------------------------------------------------------
-    
-    
+
+
     // BEGIN Optical detector access -------------------------------------------
     /// @{
     /// @name Optical detector access
-    
+
     /// Number of optical detectors in this TPC
     unsigned int      NOpDet()                                  const { return fOpDets.size();    }
-    
+
     /// Return the iopdet'th optical detector in the cryostat
     const OpDetGeo&   OpDet(unsigned int iopdet)                const;
-    
+
     /// Returns the index of the optical detector in this cryostat closest to
     /// `point`.
     unsigned int GetClosestOpDet(geo::Point_t const& point) const;
     /// @see `GetClosestOpDet(geo::Point_t const&) const`
     unsigned int GetClosestOpDet(double const* point) const;
-    
+
     /// Returns the optical detector det in this cryostat nearest to `point`.
     /// If there are no optical detectors, `nullptr` is returned.
     geo::OpDetGeo const* GetClosestOpDetPtr(geo::Point_t const& point) const;
-    
+
     /// Get name of opdet geometry element
     std::string  OpDetGeoName()                                 const { return fOpDetGeoName; }
 
     /// @}
     // END Optical detector access ---------------------------------------------
-    
+
     // BEGIN Coordinate transformation -----------------------------------------
     /// @{
     /// @name Coordinate transformation
-    
+
     /// Transform point from local cryostat frame to world frame.
     void LocalToWorld(const double* cryo, double* world) const
       { fTrans.LocalToWorld(cryo, world); }
-      
+
     /// Transform point from local cryostat frame to world frame.
     /// @deprecated This method breaks the distinction between local and global
     ///             vectors, since input and output vectors share the same type;
@@ -349,23 +349,23 @@ namespace geo {
     [[deprecated("use toWorldCoords() instead")]]
     Point LocalToWorld(Point const& local) const
       { return fTrans.LocalToWorld(local); }
-    
+
     /// Transform point from local cryostat frame to world frame.
     geo::Point_t toWorldCoords(LocalPoint_t const& local) const
       { return fTrans.toWorldCoords(local); }
-    
+
     /// Transform direction vector from local to world.
     void LocalToWorldVect(const double* cryo, double* world) const
       { fTrans.LocalToWorldVect(cryo, world); }
-    
+
     /// Transform direction vector from local to world.
     geo::Vector_t toWorldCoords(LocalVector_t const& local) const
       { return fTrans.toWorldCoords(local); }
-    
+
     /// Transform point from world frame to local cryostat frame.
     void WorldToLocal(const double* world, double* cryo) const
       { fTrans.WorldToLocal(world, cryo); }
-    
+
     /// Transform point from world frame to local cryostat frame.
     /// @deprecated This method breaks the distinction between local and global
     ///             vectors, since input and output vectors share the same type;
@@ -377,37 +377,37 @@ namespace geo {
     [[deprecated("use toLocalCoords() instead")]]
     Point WorldToLocal(Point const& world) const
       { return fTrans.WorldToLocal(world); }
-    
+
     /// Transform point from world frame to local cryostat frame.
     LocalPoint_t toLocalCoords(geo::Point_t const& world) const
       { return fTrans.toLocalCoords(world); }
-    
+
     /// Transform direction vector from world to local.
     void WorldToLocalVect(const double* world, double* cryo) const
       { fTrans.WorldToLocalVect(world, cryo); }
-    
+
     /// Transform direction vector from world to local.
     LocalVector_t toLocalCoords(geo::Vector_t const& world) const
       { return fTrans.toLocalCoords(world); }
-    
+
     /// @}
     // END Coordinate transformation -------------------------------------------
-    
-    
+
+
     /// Method to sort TPCGeo objects
     void              SortSubVolumes(geo::GeoObjectSorter const& sorter);
 
-    
+
     /// Performs all needed updates after geometry has sorted the cryostats
     void UpdateAfterSorting(geo::CryostatID cryoid);
-    
+
   private:
 
     void FindTPC(std::vector<const TGeoNode*>& path,
 		 unsigned int depth);
     void MakeTPC(std::vector<const TGeoNode*>& path,
 		 int depth);
-    
+
     void FindOpDet(std::vector<const TGeoNode*>& path,
 		   unsigned int depth);
     void MakeOpDet(std::vector<const TGeoNode*>& path,
@@ -415,20 +415,20 @@ namespace geo {
 
     /// Fill the boundary information of the cryostat
     void InitCryoBoundaries();
-    
+
 
   private:
-    
+
     using LocalTransformation_t = geo::LocalTransformationGeo
       <ROOT::Math::Transform3D, LocalPoint_t, LocalVector_t>;
-    
+
     LocalTransformation_t  fTrans;          ///< Cryostat-to-world transformation.
     TPCList_t              fTPCs;           ///< List of tpcs in this cryostat
     OpDetList_t            fOpDets;         ///< List of opdets in this cryostat
     TGeoVolume*            fVolume;         ///< Total volume of cryostat, called volCryostat in GDML file
     std::string            fOpDetGeoName;   ///< Name of opdet geometry elements in gdml
     geo::CryostatID        fID;             ///< ID of this cryostat
-    
+
   };
 }
 
@@ -442,37 +442,37 @@ void geo::CryostatGeo::PrintCryostatInfo(
   std::string indent /* = "" */,
   unsigned int verbosity /* = 1 */
 ) const {
-  
+
   //----------------------------------------------------------------------------
   out << "Cryostat " << std::string(ID());
-  
+
   if (verbosity-- <= 0) return; // 0
-  
+
   //----------------------------------------------------------------------------
   out
     << " (" << Width() << " x " << Height() << " x " << Length() << ") cm^3 at "
       << GetCenter();
-  
+
   if (verbosity-- <= 0) return; // 1
-  
+
   //----------------------------------------------------------------------------
-  
+
   out << "\n" << indent
     << "hosts " << NTPC() << " TPCs (largest number of planes: " << MaxPlanes()
       << ", of wires: " << MaxWires() << ") and "
       << NOpDet() << " optical detectors"
     ;
-  
+
   if (verbosity-- <= 0) return; // 2
-  
+
   //----------------------------------------------------------------------------
   // print also the containing box
   geo::BoxBoundedGeo const& box = BoundingBox();
   out << "\n" << indent
     << "bounding box: " << box.Min() << " -- " << box.Max();
-  
+
 //  if (verbosity-- <= 0) return; // 3
-  
+
   //----------------------------------------------------------------------------
 } // geo::CryostatGeo::PrintCryostatInfo()
 

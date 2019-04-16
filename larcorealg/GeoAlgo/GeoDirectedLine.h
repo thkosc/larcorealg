@@ -2,7 +2,7 @@
  * \file GeoDirectedLine.h
  *
  * \ingroup GeoAlgo
- * 
+ *
  * \brief Class def header for a class DirectedLine
  *
  * @author David Caratelli
@@ -35,7 +35,7 @@ namespace geoalgo {
     /// Alternative ctor (1)
     DirectedLine(const double x, const double y, const double z,
 		 const double dirx, const double diry, const double dirz);
-    
+
     /// Altenartive ctor (2)
     DirectedLine(const Point_t& pt, const Vector_t& dir);
 
@@ -46,13 +46,13 @@ namespace geoalgo {
     template <class T, class U> DirectedLine(const T& pt, const U& dir)
       : Line(Point_t(pt), Point_t(pt+dir))
     {}
-    
+
     Vector_t Dir() const;
-    
+
   };
 
   typedef DirectedLine DirectedLine_t;
 }
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

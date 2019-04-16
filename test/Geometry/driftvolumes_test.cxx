@@ -3,11 +3,11 @@
  * @brief  Test for neighbourhood discovery in simple geometries.
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   July 13, 2017
- * 
+ *
  * Usage:
- *     
+ *
  *     driftvolumes_test configuration.fcl
- *     
+ *
  * The configuration file must contain a geometry service provider configuration
  * under `services.Geometry`, That geometry configuration must use the standard
  * channel mapping.
@@ -55,55 +55,55 @@ using StandardGeometryTestEnvironment
  * @param argv arguments to the function
  * @return number of detected errors (0 on success)
  * @throw cet::exception most of error situations throw
- * 
+ *
  * The arguments in argv are:
  * 0. name of the executable ("Geometry_test")
  * 1. path to the FHiCL configuration file
  * 2. FHiCL path to the configuration of the geometry
  *    (default: services.Geometry)
- * 
+ *
  */
 //------------------------------------------------------------------------------
 int main(int argc, char const** argv) {
-  
+
   StandardGeometryConfiguration config("driftvolumes_test");
-  
+
   //
   // parameter parsing
   //
   int iParam = 0;
-  
+
   // first argument: configuration file (mandatory)
   if (++iParam < argc) config.SetConfigurationPath(argv[iParam]);
-  
+
   // second argument: path of the parameter set for geometry configuration
   // (optional; default: "services.Geometry" from the inherited object)
   if (++iParam < argc) config.SetGeometryParameterSetPath(argv[iParam]);
-  
+
   //
   // testing environment setup
   //
   StandardGeometryTestEnvironment TestEnvironment(config);
   auto const& geom = *(TestEnvironment.Provider<geo::GeometryCore>());
-  
+
   //
   // run the test algorithm
   //
-  
+
   unsigned int nErrors = 0;
   for (auto const& cryo: geom.IterateCryostats()) {
     auto partition = geo::buildDriftVolumes(cryo);
     mf::LogVerbatim("driftvolumes_test")
       << "Partition for cryostat " << cryo.ID() << ":";
     partition.print(mf::LogVerbatim("driftvolumes_test"));
-    
+
     //
     // test that the partition topology is correct
     //
     for (geo::TPCGeo const& TPC: geom.IterateTPCs(cryo.ID())) {
-      
+
       auto const& center = TPC.GetCenter<geo::Point_t>();
-      
+
       auto where = partition.TPCat(center);
       if (!where) {
         mf::LogProblem("driftvolumes_test")
@@ -119,7 +119,7 @@ int main(int argc, char const** argv) {
         where->PrintTPCInfo(log, "  ", /* verbosity */ 5);
         ++nErrors;
       }
-      
+
       //
       // test ownership of a uniform distribution of points inside the TPC
       //
@@ -133,7 +133,7 @@ int main(int argc, char const** argv) {
           double const y = center.Y() + ys * ystep;
           for (int zs = -nZsteps; zs <= nZsteps; ++zs) {
             double const z = center.Z() + zs * zstep;
-            
+
             auto where = partition.TPCat({ x, y, z});
             if (!where) {
               mf::LogProblem("driftvolumes_test")
@@ -151,20 +151,20 @@ int main(int argc, char const** argv) {
               where->PrintTPCInfo(log, "  ", /* verbosity */ 5);
               ++nErrors;
             }
-            
+
           } // for zs
         } // for ys
       } // for xs
-      
+
     } // for TPCs
-    
+
   } // for
-  
+
   // 4. And finally we cross fingers.
   if (nErrors > 0) {
     mf::LogError("geometry_test") << nErrors << " errors detected!";
   }
-  
+
   return nErrors;
 } // main()
 

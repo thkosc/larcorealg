@@ -17,7 +17,7 @@
 
 //------------------------------------------------------------------------------
 geo::GeoNodePath::operator std::string() const {
-  
+
   std::string s = "[";
   auto it = fNodes.cbegin(), end = fNodes.cend();
   if (it != end) {
@@ -28,7 +28,7 @@ geo::GeoNodePath::operator std::string() const {
     }
   } // if
   return s + "]";
-  
+
 } // operator std::string()
 
 

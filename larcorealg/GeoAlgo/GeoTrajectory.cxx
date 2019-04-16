@@ -2,7 +2,7 @@
 #include <sstream>
 namespace geoalgo {
 
-  Trajectory::Trajectory(size_t npoints, size_t ndimension) 
+  Trajectory::Trajectory(size_t npoints, size_t ndimension)
     : std::vector<geoalgo::Point_t>(npoints, Point_t(ndimension))
   {}
 
@@ -29,12 +29,12 @@ namespace geoalgo {
 
     // if length < 2, no length
     if(size()<2) return 0;
-    
+
     double length = 0;
     for(size_t i=start_step; i<end_step; ++i)
-      
+
       length += (*this)[i]._Dist_((*this)[i+1]);
-    
+
     return length;
   }
 
@@ -50,20 +50,20 @@ namespace geoalgo {
       if(length > ref) return true;
     }
 
-    return false;    
+    return false;
   }
 
   void Trajectory::push_back(const Point_t& obj) {
-    compat(obj); 
+    compat(obj);
     if (!(size() && obj == (*rbegin())))
       std::vector<geoalgo::Point_t>::push_back(obj);
   }
 
   void Trajectory::compat(const Point_t& obj) const {
-    
+
     if(!size()) return;
     if( (*(this->begin())).size() != obj.size() ) {
-      
+
       std::ostringstream msg;
       msg << "<<" << __FUNCTION__ << ">>"
 	  << " size mismatch: "
@@ -73,22 +73,22 @@ namespace geoalgo {
   }
 
   void Trajectory::compat(const Trajectory &obj) const {
-    
+
     if(!size() || !(obj.size())) return;
-    
+
     if( (*(this->begin())).size() != (*obj.begin()).size() ) {
-      
+
       std::ostringstream msg;
       msg << "<<" << __FUNCTION__ << ">>"
 	  << " size mismatch: "
 	  << (*(this->begin())).size() << " != " << (*obj.begin()).size() << std::endl;
       throw GeoAlgoException(msg.str());
-      
+
     }
   }
 
   Vector Trajectory::Dir(size_t i) const {
-    
+
     if(size() < (i+2)) {
       std::ostringstream msg;
       msg << "<<" << __FUNCTION__ << ">>"
@@ -97,10 +97,10 @@ namespace geoalgo {
     }
     return _Dir_(i);
   }
-  
+
   Vector Trajectory::_Dir_(size_t i) const {
 
     return ((*this)[i+1] - (*this)[i]);
-    
+
   }
 }

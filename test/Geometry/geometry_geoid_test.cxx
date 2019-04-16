@@ -3,7 +3,7 @@
  * @brief  Unit test for geometry ID consistency on a standard detector
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   October 31, 2016
- * 
+ *
  * Usage: just run the executable.
  * Or plug a FHiCL file in the command line.
  */
@@ -22,7 +22,6 @@
 // utility libraries
 
 // C/C++ standard libraries
-#include <string>
 
 //------------------------------------------------------------------------------
 //---  The test environment
@@ -51,11 +50,11 @@ struct StandardGeometryConfiguration:
  * - `Tester()`, returning a configured instance of the test algorithm;
  * - `GlobalTester()`, (static) returning a global configured instance of the
  *   test algorithm.
- * 
+ *
  * The testing::TestSharedGlobalResource<> facility provides a singleton
  * instance of the tester algorithm, shared through the whole program and with
  * this object too.
- * 
+ *
  * This sharing allows the fixture to be used either as global or as per-suite.
  * In the former case, the BOOST_AUTO_TEST_CASE's will access the global test
  * algorithm instance through the static call to
@@ -68,11 +67,11 @@ class GeometryGeoIDTestFixture:
   private testing::GeometryTesterEnvironment<StandardGeometryConfiguration>
 {
   using Tester_t = geo::GeometryGeoIDTestAlg;
-  
+
   using TesterRegistry_t = testing::TestSharedGlobalResource<Tester_t>;
 
     public:
-  
+
   /// Constructor: initialize the tester with the Geometry from base class
   GeometryGeoIDTestFixture()
     {
@@ -82,13 +81,13 @@ class GeometryGeoIDTestFixture:
       // if no tester is default yet, share ours:
       TesterRegistry_t::ProvideDefaultSharedResource(tester_ptr);
     }
-  
+
   /// Retrieves the local tester
   Tester_t& Tester() { return *(tester_ptr.get()); }
-  
+
   /// Retrieves the global tester
   static Tester_t& GlobalTester() { return TesterRegistry_t::Resource(); }
-  
+
     private:
   std::shared_ptr<Tester_t> tester_ptr; ///< our tester (may be shared)
 }; // class GeometryGeoIDTestFixture

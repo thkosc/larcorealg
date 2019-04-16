@@ -15,16 +15,16 @@ namespace geoalgo {
   HalfLine::HalfLine(const Point_t& start, const Vector_t& dir)
     : _start ( start )
     , _dir   ( dir   )
-  { 
+  {
     if(start.size()!=3 || dir.size()!=3)
       throw GeoAlgoException("HalfLine ctor accepts only 3D Point!");
     Normalize();
   }
 
   const Point_t& HalfLine::Start() const { return _start; }
-  
+
   const Vector_t& HalfLine::Dir() const { return _dir; }
-  
+
   void HalfLine::Start(const double x, const double y, const double z)
   { _start[0] = x; _start[1] = y; _start[2] = z; }
 
@@ -42,7 +42,7 @@ namespace geoalgo {
     auto l = _dir.Length();
     if(!l)
       throw GeoAlgoException("<<Normalize>> cannot normalize 0-length direction vector!");
-    
+
     // inf check commented out till compatible solution found... --kazu
     //if(isnan(l))
     //throw GeoAlgoException("<<Normalize>> cannot normalize inf-length direction vector!");

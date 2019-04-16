@@ -3,7 +3,7 @@
  * @brief  Simple unit test on a standard detector
  * @date   June 2nd, 2015
  * @author petrillo@fnal.gov
- * 
+ *
  * Usage: just run the executable.
  * Boost unit testing environment keeps the arguments secret anyway.
  */
@@ -21,7 +21,6 @@
 // utility libraries
 
 // C/C++ standard libraries
-#include <string>
 
 //------------------------------------------------------------------------------
 //---  The test environment
@@ -72,29 +71,29 @@ BOOST_FIXTURE_TEST_SUITE(GeometryIterators, SimpleGeometryTestFixture)
 BOOST_AUTO_TEST_CASE( AllTests )
 {
   geo::GeometryCore const& geom = *(Provider<geo::GeometryCore>());
-  
+
   const double angle_u = 1. / 3. * util::pi<double>();
   const double angle_v = 2. / 3. * util::pi<double>();
   const double angle_w = 1. / 2. * util::pi<double>();
-  
+
   BOOST_TEST_MESSAGE(
     "Wire angles: u=" << angle_u << " v=" << angle_v << " => w=" << angle_w
     );
-  
+
   const double slope_u = 1. / std::sqrt(3);
   const double slope_v = 1. / std::sqrt(3);
-  
+
   const double expected_slope_w = 0.5;
-  
+
   double slope_w = geom.ComputeThirdPlaneSlope
     (angle_u, slope_u, angle_v, slope_v, angle_w);
-  
+
   BOOST_TEST_MESSAGE(
     "Slopes: s(u)=" << slope_u << " s(v)=" << slope_v << " => s(w)=" << slope_w
     );
-  
+
   BOOST_CHECK_CLOSE(slope_w, expected_slope_w, 0.01); // tolerance: 0.01%
-  
+
 } // BOOST_AUTO_TEST_CASE( AllTests )
 
 

@@ -2,7 +2,7 @@
  * \file GeoLine.h
  *
  * \ingroup GeoAlgo
- * 
+ *
  * \brief Class def header for a class Line
  *
  * @author David Caratelli
@@ -25,9 +25,9 @@ namespace geoalgo {
      protecting the dimensionality.
   */
   class Line {
-    
+
   public:
-    
+
     /// Default constructor
     Line();
 
@@ -73,15 +73,15 @@ namespace geoalgo {
     /// Pt1 setter template
     template<class T>
     void Pt1(const T& pt1)
-    { 
-      _pt1 = Point_t(pt1); 
+    {
+      _pt1 = Point_t(pt1);
       check_and_raise(_pt1,_pt2);
     }
-    
+
     /// Pt2 setter template
     template<class T>
     void Pt2(const T& pt2)
-    { 
+    {
       _pt2 = Vector_t(pt2);
       check_and_raise(_pt1,_pt2);
     }
@@ -91,5 +91,5 @@ namespace geoalgo {
   typedef Line Line_t;
 }
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

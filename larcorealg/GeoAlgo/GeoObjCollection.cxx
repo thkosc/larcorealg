@@ -2,7 +2,7 @@
 
 namespace geoalgo {
 
-  GeoObjCollection::GeoObjCollection() 
+  GeoObjCollection::GeoObjCollection()
   {}
 
   void GeoObjCollection::Clear()
@@ -27,7 +27,7 @@ namespace geoalgo {
   void GeoObjCollection::_AddLabel_(const Point_t& pt, std::string label)
   {
     auto const iter = _labels.find(pt);
-    if(iter==_labels.end()) 
+    if(iter==_labels.end())
 
       _labels.insert(std::make_pair(pt,Form("%s\n",label.c_str())));
 

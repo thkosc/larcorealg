@@ -5,7 +5,7 @@
 #include <sstream>
 
 
-//----------------------------------------------------------------------------- 
+//-----------------------------------------------------------------------------
 //--- lar::debug::CallInfo_t
 //---
 bool lar::debug::CallInfo_t::ParseString(std::string const& s) {
@@ -18,11 +18,11 @@ bool lar::debug::CallInfo_t::ParseString(std::string const& s) {
   range_t functionStr { boo, boo };
   range_t offsetStr   { boo, boo };
   setAll(s, addressStr, libraryStr, functionStr, offsetStr);
-  
+
   // expected format:
   // libraryName(mangledSymbol+offset) [hexAddress]
   // (+offset optional)
-  
+
   size_t i = s.find('(');
   if (i == boo) return false;
   libraryStr.first = 0;
@@ -34,9 +34,9 @@ bool lar::debug::CallInfo_t::ParseString(std::string const& s) {
     addressStr  = { boo, boo };
     functionStr = { boo, boo };
     offsetStr   = { boo, boo };
-    
+
     functionStr.first = ++i;
-    
+
     i = s.find_first_of("(+-)", i);
     if (i == boo) return false;
     switch (s[i]) {
@@ -58,20 +58,20 @@ bool lar::debug::CallInfo_t::ParseString(std::string const& s) {
          functionStr.second = i;
          break;
     } // switch (outer)
-    
+
     // finish with the address
     i = s.find_first_of("([", ++i);
     if (i == boo) break;
     if (s[i] == '(') continue;
     addressStr.first = ++i;
-    
+
     i = s.find_first_of("(]", i);
     if (s[i] == '(') continue;
     addressStr.second = i;
-    
+
     break;
   } // while (for ever)
-  
+
   setAll(s, addressStr, libraryStr, functionStr, offsetStr);
   return true;
 
@@ -90,7 +90,7 @@ bool lar::debug::CallInfo_t::ParseString(std::string const& s) {
       >> libraryName
       >> std::hex >> address >> std::dec
       >> mangledFunctionName;
-    
+
     // optional offset
     if (sstr.fail()) break; // an error somewhere: bail out
     sstr >> plus;
@@ -100,7 +100,7 @@ bool lar::debug::CallInfo_t::ParseString(std::string const& s) {
       sstr >> offset;
       if (sstr.fail()) break;
     }
-    
+
     demangleFunction();
     return true;
   } // while
@@ -125,17 +125,17 @@ void lar::debug::CallInfo_t::setAll(
   )
 {
   original = s;
-  
+
   libraryName = extract(s, libraryStr);
-  
+
   mangledFunctionName = extract(s, functionStr);
   demangleFunction();
-  
+
   if (!emptyRange(addressStr)) {
     std::istringstream sstr(extract(s, addressStr));
     sstr >> address;
   }
-  
+
   if (emptyRange(offsetStr)) offset = 0;
   else {
     auto offsetRange = offsetStr;
@@ -152,7 +152,7 @@ void lar::debug::CallInfo_t::setAll(
       if (neg) offset = -offset;
     }
   } // if offset ... else
-  
+
 } // lar::debug::CallInfo_t::setAll()
 
-//----------------------------------------------------------------------------- 
+//-----------------------------------------------------------------------------

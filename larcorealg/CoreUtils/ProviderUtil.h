@@ -3,7 +3,7 @@
  * @brief  Simple utilities for service providers
  * @date   November 30, 2015
  * @author Gianluca Petrillo (petrillo@fnal.gov)
- * 
+ *
  * Currently this header is written so that it does not need a implementation
  * file.
  */
@@ -17,18 +17,18 @@
 
 
 namespace lar {
-  
+
   /** **************************************************************************
    * @brief Returns a list of configuration keys that providers should ignore
    * @return a reference to a key list
-   * 
+   *
    * This function may be used for parameter validation, like in:
-   *     
+   *
    *     fhicl::Table<Config> cfg { pset, lar::IgnorableProviderConfigKeys() };
-   *     
+   *
    * where `pset` is a `fhicl::ParameterSet`. This will inform `cfg` that some
    * keys can be unexpectedly present, or missing.
-   * 
+   *
    * This implementation includes:
    * * art framework service keywords
    */
@@ -40,9 +40,9 @@ namespace lar {
         };
       return ignorable;
     } // IgnorableProviderConfigKeys()
-  
-  
-  
+
+
+
 } // namespace lar
 
 

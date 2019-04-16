@@ -4,7 +4,7 @@
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   July 13, 2017
  * @see    DriftPartitions.h
- * 
+ *
  */
 
 #include "larcorealg/Geometry/DriftPartitions.h"
@@ -38,7 +38,7 @@
 
 //------------------------------------------------------------------------------
 namespace {
-  
+
   //----------------------------------------------------------------------------
   /// Appends a copy of the content of `src` to the end of `dest` vector.
   template <typename T, typename CONT>
@@ -47,7 +47,7 @@ namespace {
     using std::cend;
     dest.insert(dest.end(), cbegin(src), cend(src));
   } // append()
-  
+
   /// Copies or moves the content of `src` vector to the end of `dest` vector.
   template <typename T>
   void append(std::vector<T>& dest, std::vector<T>&& src) {
@@ -69,10 +69,10 @@ namespace {
       );
     return result;
   } // keys()
-  
-  
+
+
   //----------------------------------------------------------------------------
-  
+
 } // local namespace
 
 
@@ -120,13 +120,13 @@ auto geo::DriftPartitions::computeCoverage
    * origin of the drift is at the origin of the global coordinate system.
    * The drift direction is the one stored in this object.
    */
-  
+
   struct CoverageExtractor {
     Range_t coverage;
-    
+
     CoverageExtractor(DriftPartitions::Decomposer_t const& decomp)
       : decomp(decomp) {}
-    
+
     void operator() (TPCPartition_t const& TPCpart)
       {
         geo::TPCGeo const* TPC = TPCpart.data();
@@ -134,20 +134,20 @@ auto geo::DriftPartitions::computeCoverage
         includePoint(TPC->GetCathodeCenter<Position_t>());
         includePoint(TPC->LastPlane().GetCenter<Position_t>());
       }
-    
+
       private:
     DriftPartitions::Decomposer_t const& decomp;
-    
+
     double driftCoord(Position_t const& pos) const
       { return decomp.PointNormalComponent(pos); }
     void includePoint(Position_t const& pos)
       { coverage.extendToInclude(driftCoord(pos)); }
   }; // struct CoverageExtractor
-  
+
   CoverageExtractor extractor(decomposer);
   TPCpart.walk(extractor);
   return extractor.coverage;
-  
+
 } // DriftPartitions::computeCoverage()
 
 
@@ -162,18 +162,18 @@ using TPCandPos_t = std::pair<double, geo::TPCGeo const*>;
 struct TPCgroup_t {
   double pos; // Common coordinate of the group.
   std::vector<geo::TPCGeo const*> TPCs; // All TPCs in the group.
-  
+
   // Explicit constructor.
   TPCgroup_t(double pos, std::vector<geo::TPCGeo const*>&& TPCs)
     : pos(pos), TPCs(std::move(TPCs)) {}
-  
+
   // Returns the position of a TPC group.
   static double Position(TPCgroup_t const& tpcg) { return tpcg.pos; }
-  
+
   // Comparison object useful to sort and find TPC groups.
   using Comparer_t
     = geo::details::Comparer<TPCgroup_t, double, TPCgroup_t::Position>;
-  
+
 }; // struct TPCgroup_t
 
 
@@ -194,23 +194,23 @@ groupTPCsByDriftDir(geo::CryostatGeo const& cryo)
     <geo::DriftPartitions::DriftDir_t, std::vector<geo::TPCGeo const*>>
     >
     result;
-  
+
   lar::util::RealComparisons<double> coordIs(1e-4);
   auto vectorIs = lar::util::makeVector3DComparison(coordIs);
-  
+
   auto const nTPCs = cryo.NTPC();
   for (unsigned int iTPC = 0; iTPC < nTPCs; ++iTPC) {
     geo::TPCGeo const& TPC = cryo.TPC(iTPC);
-    
+
     decltype(auto) driftDir = TPC.DriftDir();
-    
+
     std::size_t iGroup = 0;
     for (; iGroup < result.size(); ++iGroup) {
       if (vectorIs.nonEqual(driftDir, result[iGroup].first)) continue;
       result[iGroup].second.push_back(&TPC);
       break;
     } // for
-    
+
     // if we did not find a group yet, make a new one
     if (iGroup == result.size()) {
       result.emplace_back(
@@ -218,9 +218,9 @@ groupTPCsByDriftDir(geo::CryostatGeo const& cryo)
         std::vector<geo::TPCGeo const*>{ &TPC }
         );
     } // if
-    
+
   } // for
-  
+
   return result;
 } // groupTPCsByDriftDir()
 
@@ -236,7 +236,7 @@ std::vector<TPCandPos_t> sortTPCsByDriftCoord(
    * direction of the decomposer in argument.
    * The result is a collection of data structures containing each a TPC and
    * the drift coordinate that was used to sort it.
-   * 
+   *
    * Sorting happens by the drift coordinate of the first wire plane;
    * the absolute value of the drift coordinate value is not relevant nor it is
    * well defined.
@@ -244,7 +244,7 @@ std::vector<TPCandPos_t> sortTPCsByDriftCoord(
    */
   auto const driftCoord = [&decomp](geo::TPCGeo const& TPC)
     { return decomp.PointNormalComponent(geo::vect::convertTo<geo::DriftPartitions::Position_t>(TPC.FirstPlane().GetCenter())); };
-  
+
   std::vector<TPCandPos_t> result;
   result.reserve(TPCs.size());
   std::transform(TPCs.cbegin(), TPCs.cend(), std::back_inserter(result),
@@ -269,16 +269,16 @@ std::vector<TPCgroup_t> groupByDriftCoordinate
    * planes of the TPC).
    */
   if (TPCs.empty()) return {};
-  
+
   geo::TPCGeo const& firstTPC = *(TPCs.front().second);
   // arbitrary 5 cm if the first TPC has only one plane (pixel readout?);
   // protect against the case where planes have the same position
   // (e.g. dual phase)
   double const groupThickness = 10.0
     * std::min(((firstTPC.Nplanes() > 1)? firstTPC.Plane0Pitch(1): 0.5), 0.1);
-  
+
   auto iFirstTPC = TPCs.cbegin(), tend = TPCs.cend();
-  
+
   std::vector<TPCgroup_t> result;
   while (iFirstTPC != tend) {
     double const posEnd = iFirstTPC->first + groupThickness; // not beyond here
@@ -290,13 +290,13 @@ std::vector<TPCgroup_t> groupByDriftCoordinate
       sumPos += iEndGroup->first;
       ++iEndGroup;
     } while ((iEndGroup != tend) && (iEndGroup->first < posEnd));
-    
+
     double const averagePos = sumPos / TPCs.size();
     result.emplace_back(averagePos, std::move(TPCs));
-    
+
     iFirstTPC = iEndGroup;
   } // while (outer)
-  
+
   return result;
 } // groupByDriftCoordinate()
 
@@ -307,33 +307,33 @@ unsigned int checkTPCcoords(std::vector<geo::TPCGeo const*> const& TPCs) {
    * Verify coordinate system consistency between TPCs:
    *   * need to have the same drift direction
    *   * need to have the same drift coordinate
-   * 
+   *
    * On error, it prints information on the error stream ("GeometryPartitions").
    * It returns the number of errors found.
    */
-  
+
   auto iTPC = TPCs.cbegin(), tend = TPCs.cend();
   if (iTPC == tend) {
     mf::LogProblem("GeometryPartitions")
       << "checkTPCcoords() got an empty partition.";
     return 0;
   }
-  
+
   geo::TPCGeo const& refTPC = **iTPC;
   decltype(auto) refDriftDir = refTPC.DriftDir();
-  
+
   auto driftCoord = [&refDriftDir](geo::TPCGeo const& TPC)
     { return geo::vect::dot(TPC.FirstPlane().GetCenter(), refDriftDir); };
-  
+
   auto const refDriftPos = driftCoord(refTPC);
-  
+
   lar::util::RealComparisons<double> coordIs(1e-5);
   auto vectorIs = lar::util::makeVector3DComparison(coordIs);
-  
+
   unsigned int nErrors = 0U;
   while (++iTPC != tend) {
     geo::TPCGeo const& TPC = **iTPC;
-    
+
     if (vectorIs.nonEqual(TPC.DriftDir(), refDriftDir)) {
       mf::LogProblem("GeometryPartitions")
         << "Incompatible drift directions between " << TPC.ID()
@@ -369,11 +369,11 @@ geo::DriftPartitions::DriftDir_t detectGlobalDriftDir(Range&& directions) {
     throw cet::exception("buildDriftVolumes")
       << "detectGlobalDriftDir(): no TPCs provided!\n";
   }
-  
+
   lar::util::RealComparisons<double> comp(1e-5);
   auto compatibleDir = [comp](auto const& a, auto const& b)
     { return comp.equal(std::abs(geo::vect::dot(a, b)), +1.0); };
-  
+
   auto const dir = *(iDir++);
   for (; iDir != dend; ++iDir) {
     if (compatibleDir(dir, *iDir)) continue;
@@ -381,7 +381,7 @@ geo::DriftPartitions::DriftDir_t detectGlobalDriftDir(Range&& directions) {
       << "Found drift directions not compatible: " << lar::dump::vector3D(dir)
       << " and " << lar::dump::vector3D(*iDir) << "\n";
   } // for
-  
+
   // mildly prefer positive directions
   return ((dir.X() <= 0.0) && (dir.Y() <= 0.0) && (dir.Z() <= 0.0))? -dir: dir;
 } // detectGlobalDriftDir()
@@ -391,12 +391,12 @@ geo::DriftPartitions::DriftDir_t detectGlobalDriftDir(Range&& directions) {
 // A TPC and the area it covers in the partition.
 struct TPCwithArea_t: public geo::part::AreaOwner {
   using Area_t = geo::part::AreaOwner::Area_t;
-  
+
   geo::TPCGeo const* TPC = nullptr;
-  
+
   TPCwithArea_t(Area_t area, geo::TPCGeo const* TPC)
     : geo::part::AreaOwner(area), TPC(TPC) {}
-  
+
 }; // TPCwithArea_t
 
 
@@ -408,21 +408,21 @@ geo::part::AreaOwner::Area_t TPCarea
    * Returns the "area" of the TPC.
    * The area is delimited by TPC bounding box
    */
-  
+
   geo::DriftPartitions::Position_t const lower
     { TPC.MinX(), TPC.MinY(), TPC.MinZ() };
   geo::DriftPartitions::Position_t const upper
     { TPC.MaxX(), TPC.MaxY(), TPC.MaxZ() };
-  
+
   auto const lowerProj = decomposer.ProjectPointOnPlane(lower);
   auto const upperProj = decomposer.ProjectPointOnPlane(upper);
-  
+
   // we ask to sort the ranges, since the reference base may be flipped
   return {
     { lowerProj.X(), upperProj.X(), true },
     { lowerProj.Y(), upperProj.Y(), true }
     };
-  
+
 } // TPCarea()
 
 
@@ -435,10 +435,10 @@ std::vector<TPCwithArea_t> addAreaToTPCs(
    */
   std::vector<TPCwithArea_t> result;
   result.reserve(TPCs.size());
-  
+
   for (auto const& TPC: TPCs)
     result.emplace_back(TPCarea(*TPC, decomposer), TPC);
-  
+
   return result;
 } // addAreaToTPCs()
 
@@ -468,16 +468,16 @@ struct SorterByKey {
   // specific type and its ExtractKey is not required to be a function operating
   // on that object.
   using Key_t = Key;
-  
+
   static bool sortKey(Key_t a, Key_t b) { return Comparer()(a, b); }
   static Key_t key(Key_t k) { return k; }
   template <typename Data>
   static Key_t key(Data const& obj) { return ExtractKey()(obj); }
-  
+
   template <typename A, typename B>
   bool operator() (A const& a, B const& b) const
     { return sortKey(key(a), key(b)); }
-  
+
 }; // struct SorterByKey
 
 
@@ -511,18 +511,18 @@ groupTPCsByRangeCoord
    * The iterators are expected to be valid also after this function has
    * returned (lest the result be unusable).
    */
-  
+
   std::vector<std::vector<TPCwithArea_t const*>::const_iterator> groupStart;
-  
+
   // tolerate 1mm overlaps; this is way forgiving, but apparently there are
   // geometries around (DUNE 35t) with overlaps of that size.
   lar::util::RealComparisons<double> coordIs(0.1);
-  
+
   auto gbegin = beginTPCwithArea;
   while (gbegin != endTPCwithArea) {
-    
+
     groupStart.push_back(gbegin);
-    
+
     //
     // detect the end of this group
     //
@@ -542,13 +542,13 @@ groupTPCsByRangeCoord
         break;
       range.extendToInclude(TPCrange);
     } // while (inner)
-    
+
     // prepare for the next group
     gbegin = gend;
   } // while (outer)
-  
+
   return groupStart;
-  
+
 } // groupTPCsByRangeCoord<>()
 
 
@@ -572,16 +572,16 @@ sortAndGroupTPCsByRangeCoord
   if (TPCs.size() <= 1) return {}; // with only one TPC, refuse to operate
   std::sort
     (TPCs.begin(), TPCs.end(), SortTPCareaByAreaRangeLower<sortingRange>());
-  
+
   //
   // group
   //
   std::vector<std::vector<TPCwithArea_t const*>::const_iterator> TPCgroups
     = groupTPCsByRangeCoord<sortingRange>(TPCs.cbegin(), TPCs.cend());
   assert(!TPCgroups.empty());
-  
+
   return { std::move(TPCs), std::move(TPCgroups) };
-  
+
 } // sortAndGroupTPCsByRangeCoord()
 
 
@@ -598,7 +598,7 @@ geo::part::Partition<geo::TPCGeo const>::Subpartitions_t createSubpartitions(
    * Internal helper to create a sequence of partitions (geo::part::Partition)
    * from groups of TPCs. Each TPC is specified as a pointer to TPCwithArea_t
    * object.
-   * 
+   *
    * The groups are specified in a way that is more or less convenient after
    * calling groupTPCsByRangeCoord(): the uber-iterators itTPCbegin and itTPCend
    * delimit a collection of iterators pointing to the first TPC of a group
@@ -612,7 +612,7 @@ geo::part::Partition<geo::TPCGeo const>::Subpartitions_t createSubpartitions(
    * two (which are "uber-iterators" whose values are iterators), and which
    * points to the last available TPC, that is also the end iterator for the
    * TPCs of the last group.
-   * 
+   *
    */
   geo::part::Partition<geo::TPCGeo const>::Subpartitions_t subparts;
 
@@ -625,7 +625,7 @@ geo::part::Partition<geo::TPCGeo const>::Subpartitions_t createSubpartitions(
   while (igbegin != itTPCend) {
     auto const gbegin = *igbegin;
     auto const gend = (++igbegin == itTPCend)? TPCend: *igbegin;
-    
+
     //
     // create a partition from the new group
     //
@@ -635,7 +635,7 @@ geo::part::Partition<geo::TPCGeo const>::Subpartitions_t createSubpartitions(
     else {
       auto subpart = subpartMaker(gbegin, gend);
       if (!subpart) return {}; // failure!!
-      
+
       subparts.emplace_back(std::move(subpart));
     }
   } // while
@@ -683,7 +683,7 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeSortedPartition(
    * In case of failure, a null pointer is returned.
    * Do not use this function for a single TPC.
    * The algorithm is as follows:
-   * 
+   *
    * 1. sort the TPCs by width coordinate
    * 2. for each one, group it with all the following ones overlapping in width
    * 3. for each group with:
@@ -697,7 +697,7 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeSortedPartition(
    *    then, there is no room for a partition along width, and we declare
    *    failure
    */
-  
+
   //
   // sort by coordinate and group TPCs; work with pointers for convenience
   //
@@ -706,29 +706,29 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeSortedPartition(
   std::vector<TPCwithArea_t const*> const& TPCs = TPCgroupInfo.first;
   std::vector<std::vector<TPCwithArea_t const*>::const_iterator> const&
     TPCgroups = TPCgroupInfo.second;
-  
+
   if (TPCs.empty()) return {}; // failure?
-  
+
   //
   // for each group, create a subpartition
   //
   auto subparts = createSubpartitions
     (TPCgroups.cbegin(), TPCgroups.cend(), TPCs.cend(), subpartMaker);
-  
+
   // if we have grouped everything in a single unit, we have not done any good
   if (subparts.size() == 1) return {};
-  
+
   //
   // compute the total area (it might have been merged in a previous loop...)
   //
   auto totalArea = computeTotalArea(TPCs.cbegin(), TPCs.cend());
-  
+
   //
   // construct and return the final partition
   //
   return std::make_unique<TPCPartitionResultType>
     (totalArea, std::move(subparts));
-  
+
 } // makeSortedPartition()
 
 
@@ -764,7 +764,7 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeGridPartition
 {
   /*
    * Requires at least 4 input TPCs (otherwise, do not use GridPartition).
-   * 
+   *
    * 1. attempt a partition on width
    *    1. if failed, return failure
    * 2. attempt to partition the first subpartition on depth
@@ -775,11 +775,11 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeGridPartition
    * 4. run makePartition() on each of the cells
    * 5. create and return a GridPartition object from the subpartitions so
    *    created
-   * 
+   *
    * This algorithm could use some factorization...
    */
   using Area_t = geo::part::AreaOwner::Area_t;
-  
+
   //
   // sort by width coordinate; work with pointers for convenience
   //
@@ -788,14 +788,14 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeGridPartition
   std::vector<TPCwithArea_t const*> const& TPCs = TPCgroupInfo.first;
   std::vector<std::vector<TPCwithArea_t const*>::const_iterator> const&
     TPCgroups = TPCgroupInfo.second;
-  
+
   if (TPCs.empty()) return {}; // failure?
   // with only one TPC, then makeTPCPartitionElement() should be used instead!
   if (TPCs.size() < 4) return {};
-  
+
   unsigned int const nWidthParts = TPCgroups.size();
   if (nWidthParts <= 1) return {}; // only one group ain't no good
-  
+
   //
   // sort TPCs in the first width partition by depth coordinate
   //
@@ -805,10 +805,10 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeGridPartition
     = FirstColGroupInfo.first;
   std::vector<std::vector<TPCwithArea_t const*>::const_iterator> const&
     FirstColGroups = FirstColGroupInfo.second;
-  
+
   if (FirstColTPCs.empty()) return {}; // failure?
   if (FirstColGroups.size() <= 1 ) return {}; // only one row ain't good either
-  
+
   //
   // collect all candidate separation ranges
   //
@@ -817,7 +817,7 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeGridPartition
   // case, all TPCs with depth higher of the lower limit in the last case).
   // Checks need to be done in the gaps between depth partitions.
   // So we start by skipping the first border.
-  
+
   lar::util::RealComparisons<double> coordIs(0.1);
   std::vector<Area_t::Range_t> depthGaps; // candidate gaps
   auto icnext = FirstColGroups.cbegin(), icprev = icnext,
@@ -829,14 +829,14 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeGridPartition
     //
     auto const cprev = *icprev;
     auto const cnext = *icnext;
-    
+
     depthGaps.emplace_back
       ((*cprev)->area().depth.upper, (*cnext)->area().depth.lower);
-    
+
     icprev = icnext;
   } // while
   assert(!depthGaps.empty());
-  
+
   //
   // see that for every other width partition separations hold
   //
@@ -848,17 +848,17 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeGridPartition
     auto igend = std::next(igbegin);
     auto gbegin = *igbegin;
     auto gend = (igend == TPCgroups.cend())? TPCs.cend(): *igend;
-    
+
     auto const ColGroupInfo
       = sortAndGroupTPCsByRangeCoord<&Area_t::depth>(gbegin, gend);
     std::vector<TPCwithArea_t const*> const& ColTPCs = ColGroupInfo.first;
     std::vector<std::vector<TPCwithArea_t const*>::const_iterator> const&
       ColGroups = ColGroupInfo.second;
-    
+
     // failure to partition a single column means total failure
     if (ColTPCs.empty()) return {};
     if (ColGroups.size() <= 1) return {}; // only one row ain't good either
-    
+
     //
     // compute the coverage of each of the depth groups
     //
@@ -870,17 +870,17 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeGridPartition
       auto const icgend = std::next(icgstart);
       auto ictpc = *icgstart;
       auto const ictend = (icgend == ColGroups.cend())? ColTPCs.cend(): *icgend;
-      while (ictpc != ictend) 
+      while (ictpc != ictend)
         iGDepth->extendToInclude((*(ictpc++))->area().depth);
     } // for
-    
+
     //
     // check each of the remaining candidate gaps
     //
     auto iGap = depthGaps.begin();
     while (iGap != depthGaps.end()) {
       Area_t::Range_t& gap = *iGap;
-      
+
       //
       // check that the gap holds
       //
@@ -890,57 +890,57 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeGridPartition
         groupDepths.cbegin(), groupDepths.cend(), gap.upper,
         SortTPCwithAreaByDepth()
         );
-      
+
       // any TPCs before/after this gap?
       if ((iCGroup != groupDepths.begin()) && (iCGroup != groupDepths.end())) {
         Area_t::Range_t const& before = *(std::prev(iCGroup));
         Area_t::Range_t const& after = *iCGroup;
         Area_t::Range_t const TPCgap{ before.upper, after.lower };
-        
+
         // correct the gap
         if (coordIs.strictlySmaller(iGap->lower, TPCgap.lower))
           iGap->lower = TPCgap.lower;
         if (coordIs.strictlyGreater(iGap->upper, TPCgap.upper))
           iGap->upper = TPCgap.upper;
-        
+
         // if nothing is left, gap is gone
         bGoodGap = coordIs.nonSmaller(iGap->upper, iGap->lower);
       } // if TPCs around the gap
-      
+
       //
       // if the gap has been flagged as bad, remove it
       //
       if (bGoodGap) ++iGap;
       else iGap = depthGaps.erase(iGap);
-      
+
     } // while (separation)
-    
+
     if (depthGaps.empty()) return {}; // no surviving gaps means failure
-    
+
   } // while (width partition)
-  
-  // 
+
+  //
   // turn the gaps into separators
-  // 
+  //
   std::vector<double> depthSep;
   std::transform(
     depthGaps.cbegin(), depthGaps.cend(), std::back_inserter(depthSep),
     [](auto const& r){ return (r.lower + r.upper) / 2.0; }
     );
   unsigned int const nDepthParts = depthSep.size() + 1;
-  
+
   //
   // fill the groups with TPCs, and create subpartitions from each of them
   //
   geo::part::Partition<geo::TPCGeo const>::Subpartitions_t subparts
     (nWidthParts * nDepthParts);
   Area_t totalArea;
-  
+
   unsigned int iWidth = 0;
   for (auto igbegin = TPCgroups.cbegin(); igbegin != TPCgroups.cend();
     ++igbegin, ++iWidth
   ) {
-    
+
     // sort TPCs in this group (yes, again; this time we don't group just yet)
     auto igend = std::next(igbegin);
     auto gbegin = *igbegin;
@@ -948,11 +948,11 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeGridPartition
     std::vector<TPCwithArea_t const*> ColTPCs(gbegin, gend);
     std::sort(ColTPCs.begin(), ColTPCs.end(),
       SortTPCareaByAreaRangeLower<&Area_t::depth>());
-    
+
     unsigned int iDepth = 0;
     auto cgstart = ColTPCs.cbegin(), TPCend = ColTPCs.cend();
     for (double sep: depthSep) {
-      
+
       //
       // collect all TPCs for this partition
       //
@@ -967,7 +967,7 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeGridPartition
         cgend = cglast;
       } // while
       assert(cgstart != cgend); // separator selection should guarantee this
-      
+
       //
       // create and register the partition
       //
@@ -975,11 +975,11 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeGridPartition
       if (!part) return {}; // late failure!
       totalArea.extendToInclude(part->area());
       subparts[iDepth * nWidthParts + iWidth] = std::move(part);
-      
+
       ++iDepth;
       cgstart = cgend;
     } // for all depth separators
-    
+
     //
     // collect all the TPCs after the last separator
     //
@@ -987,12 +987,12 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makeGridPartition
     if (!part) return {}; // super-late failure!
     totalArea.extendToInclude(part->area());
     subparts[iDepth * nWidthParts + iWidth] = std::move(part);
-    
+
   } // for all width partitions
-  
+
   return std::make_unique<geo::part::GridPartition<geo::TPCGeo const>>
     (totalArea, std::move(subparts), nWidthParts, nDepthParts);
-  
+
 } // makeGridPartition()
 
 
@@ -1007,7 +1007,7 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makePartition
    * - single element partition objects: that's the single TPC end point
    * - TPC groups organised along width
    * - TPC groups organised along depth
-   * 
+   *
    * The procedure is recursively analysing a set of TPCs:
    * - if the set is actually one TPC only, use a PartitionElement
    * - attempt partitioning o a grid; if fails:
@@ -1031,21 +1031,21 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makePartition
       <std::decay_t<std::remove_pointer_t<value_type>>, TPCwithArea_t>(),
     "Iterators must point to TPCwithArea_t pointers."
     );
-  
-  
+
+
   auto const size = std::distance(beginTPCwithArea, endTPCwithArea);
   if (size == 1) {
     return makeTPCPartitionElement(**beginTPCwithArea);
   }
-  
+
   auto gPart = makeGridPartition(beginTPCwithArea, endTPCwithArea);
   if (gPart) return gPart;
-  
+
   auto wPart = makeWidthPartition(beginTPCwithArea, endTPCwithArea);
   auto dPart = makeDepthPartition(beginTPCwithArea, endTPCwithArea);
-  
+
   if (wPart) {
-    
+
     if (dPart) { // wPart && dPart
       if (wPart->nParts() < dPart->nParts()) return wPart;
       else                                   return dPart; // slight preference
@@ -1053,19 +1053,19 @@ std::unique_ptr<geo::part::Partition<geo::TPCGeo const>> makePartition
     else { // wPart && !dPart
       return wPart; // easy choice
     }
-    
+
   }
   else {
-    
+
     if (dPart) { // !wPart && dPart
       return dPart; // easy choice
     }
     else { // !wPart && !dPart
       return {}; // failure!!
     }
-    
+
   }
-  
+
 } // makePartition(Iter)
 
 
@@ -1094,23 +1094,23 @@ std::unique_ptr<geo::DriftPartitions::TPCPartition_t> makePartition
   auto TPCptrs = makeCPointerVector(TPCs);
   using std::cbegin;
   using std::cend;
-  return makePartition(cbegin(TPCptrs), cend(TPCptrs)); 
+  return makePartition(cbegin(TPCptrs), cend(TPCptrs));
 } // makePartition(coll)
 
 
 //------------------------------------------------------------------------------
 geo::DriftPartitions geo::buildDriftVolumes(geo::CryostatGeo const& cryo) {
-  
+
   //
   // group TPCs by drift direction
   //
   auto TPCsByDriftDir = groupTPCsByDriftDir(cryo);
-  
+
   //
   // determine the cryostat-wide drift direction (arbitrary but consistent)
   // and the decomposition base (using the same for all drift partitions);
   //
-  
+
   // In practice we use the coordinate system from the first TPC;
   // we still check that all drift directions are compatible,
   // but the result of detection is ignored.
@@ -1119,7 +1119,7 @@ geo::DriftPartitions geo::buildDriftVolumes(geo::CryostatGeo const& cryo) {
   geo::TPCGeo const& firstTPC = cryo.TPC(0);
   geo::DriftPartitions::Decomposer_t decomposer
     ({ cryo.Center(), firstTPC.RefWidthDir<Direction_t>(), firstTPC.RefDepthDir<Direction_t>() });
-  
+
   //
   // further group TPCs by plane position in drift direction
   //
@@ -1128,7 +1128,7 @@ geo::DriftPartitions geo::buildDriftVolumes(geo::CryostatGeo const& cryo) {
     auto TPCs = sortTPCsByDriftCoord(TPCsOnDriftDir.second, decomposer);
     append(TPCgroups, groupByDriftCoordinate(TPCs));
   } // for
-  
+
   //
   // verify coordinate system consistency between TPCs
   //
@@ -1140,9 +1140,9 @@ geo::DriftPartitions geo::buildDriftVolumes(geo::CryostatGeo const& cryo) {
         << errors << " errors found in " << TPCgroup.TPCs.size() << " TPCs).\n";
     } // if
   } // for
-  
+
   //
-  // partition each group 
+  // partition each group
   //
   geo::DriftPartitions partitions(decomposer);
   for (auto const& TPCgroup: TPCgroups) {
@@ -1159,7 +1159,7 @@ geo::DriftPartitions geo::buildDriftVolumes(geo::CryostatGeo const& cryo) {
     } // if error
     partitions.addPartition(std::move(part));
   } // for
-  
+
   return partitions;
 } // geo::buildDriftVolumes()
 

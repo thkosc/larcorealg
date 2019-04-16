@@ -49,7 +49,7 @@
 #include <iostream>
 #include <cassert>
 #include <limits> // std::numeric_limits<>
-#include <initializer_list> 
+#include <initializer_list>
 
 
 //------------------------------------------------------------------------------
@@ -70,7 +70,7 @@ std::ostream& operator<< (std::ostream& out, TVector2 const& v) {
 namespace {
   template <typename T>
   inline T sqr(T v) { return v*v; }
-  
+
 
   /// Returns whether the CET exception e contains the specified category cat
   bool hasCategory(cet::exception const& e, std::string const& cat) {
@@ -78,8 +78,8 @@ namespace {
       if (e_category == cat) return true;
     return false;
   } // hasCategory()
-  
-  
+
+
   /// Returns a convenience string for the specified direction
   template <typename Vector>
   std::string directionName(Vector const& v) {
@@ -93,15 +93,15 @@ namespace {
     sstr << v;
     return sstr.str();
   } // directionName()
-  
+
 } // local namespace
 
 
 namespace geo{
-  
-  
+
+
   //......................................................................
-  GeometryTestAlg::GeometryTestAlg(fhicl::ParameterSet const& pset) 
+  GeometryTestAlg::GeometryTestAlg(fhicl::ParameterSet const& pset)
     : geom(nullptr)
     , fDisableValidWireIDcheck( pset.get<bool>("DisableWireBoundaryCheck", false) )
     , fExpectedWirePitches( pset.get<std::vector<double>>("ExpectedWirePitches", {}) )
@@ -112,51 +112,51 @@ namespace geo{
       ("ForgiveExceptions", std::vector<std::string>()));
     std::copy(NonFatalErrors.begin(), NonFatalErrors.end(),
       std::inserter(fNonFatalExceptions, fNonFatalExceptions.end()));
-    
+
     // initialize the list of tests to be run
-    // 
+    //
     // our name selector accepts everything by default;
     // the default set skips the following:
     fRunTests.AddToDefinition("default",
       "-CheckOverlaps", "-ThoroughCheck", "-PrintWires"
       );
     fRunTests.ParseNames("@default"); // let's start from default
-    
+
     // read and parse the test list from the configuration parameters (if any)
     fRunTests.Parse(pset.get<std::vector<std::string>>("RunTests", {}));
-    
+
     std::ostringstream sstr;
     fRunTests.PrintConfiguration(sstr);
-    
+
     mf::LogInfo("GeometryTestAlg") << "Test selection:" << sstr.str();
-    
+
   } // GeometryTestAlg::GeometryTestAlg()
 
   //......................................................................
   unsigned int GeometryTestAlg::Run()
   {
-    
+
     if (!geom) {
       throw cet::exception("GeometryTestAlg")
         << "GeometryTestAlg not configured: no valid geometry provided.\n";
     }
-    
+
     unsigned int nErrors = 0; // currently unused
-    
+
     // change the printed version number when changing the "GeometryTest" output
-    // 
+    //
     // Version 1.1:
     //   more TPC information when printing all geometry
-    // 
+    //
     mf::LogVerbatim("GeometryTest") << "GeometryTest version 1.1";
-    
+
     mf::LogInfo("GeometryTestInfo")
       << "Running on detector: '" << geom->DetectorName() << "'";
-    
+
     mf::LogVerbatim("GeometryTest")
       << "  Running on detector: '" << geom->DetectorName() << "'"
       << "\nGeometry file: " << geom->ROOTFile();
-    
+
     try{
       if (shouldRunTests("DetectorIntro")) {
         MF_LOG_INFO("GeometryTest") << "detector introduction:";
@@ -332,14 +332,14 @@ namespace geo{
       mf::LogWarning("GeometryTest") << "exception caught: \n" << e;
       if (fNonFatalExceptions.count(e.category()) == 0) throw;
     }
-    
+
     std::ostringstream out;
     if (!fRunTests.CheckQueryRegistry(out)) {
       throw cet::exception("GeometryTest")
         << "(postumous) configuration error detected!\n"
         << out.str();
     }
-    
+
     mf::LogInfo log("GeometryTest");
     log << "Tests completed:";
     auto tests_run = fRunTests.AcceptedNames();
@@ -363,7 +363,7 @@ namespace geo{
 
   //......................................................................
   void GeometryTestAlg::printDetectorIntro() const {
-    
+
     geo::WireGeo const& testWire = geom->Wire(geo::WireID(0, 0, 1, 10));
     mf::LogVerbatim("GeometryTest")
       <<   "Wire Rmax  "         << testWire.RMax()
@@ -379,10 +379,10 @@ namespace geo{
       << "\nTotal number of TPCs " << geom->TotalNTPC()
       << "\nAuxiliary detectors  " << geom->NAuxDets()
       ;
-    
+
   } // GeometryTestAlg::printDetectorIntro()
-  
-  
+
+
   //......................................................................
   void GeometryTestAlg::printChannelSummary()
   {
@@ -404,7 +404,7 @@ namespace geo{
 
     }
 
-     mf::LogVerbatim("GeometryTest") << "OneSeg: "       << OneSeg 
+     mf::LogVerbatim("GeometryTest") << "OneSeg: "       << OneSeg
                                      << ",  TwoSegs: "   << TwoSegs
                                      << ",  ThreeSegs: " << ThreeSegs
                                      << ",  FourSegs: "  << FourSegs;
@@ -464,7 +464,7 @@ namespace geo{
       mf::LogVerbatim("GeometryTest") << "    height: "
                                       << geom->DetHalfHeight(0,c);
       mf::LogVerbatim("GeometryTest") << "    length: "
-                                      << geom->DetLength(0,c);      
+                                      << geom->DetLength(0,c);
     }
   }
 
@@ -477,12 +477,12 @@ namespace geo{
     for(unsigned int t=0; t<std::floor(geom->NTPC()/12)+1; ++t){
       for(unsigned int p=0; p<3; ++p){
         for(unsigned int w=0; w<geom->Cryostat(0).TPC(t).Plane(p).Nwires(); w++){
-        
+
           double xyz[3] = {0.};
           geom->Cryostat(0).TPC(t).Plane(p).Wire(w).GetCenter(xyz);
 
           std::cout << "WireID (" << cs << ", " << t << ", " << p << ", " << w
-                    << "):  x = " << xyz[0] 
+                    << "):  x = " << xyz[0]
                     << ", y = " << xyz[1]
                     << ", z = " << xyz[2] << std::endl;
         }
@@ -496,21 +496,21 @@ namespace geo{
     (const geo::TPCGeo& tpc, std::string indent /* = "" */) const
   {
     const unsigned int nPlanes = tpc.Nplanes();
-    
+
     tpc.PrintTPCInfo(
       mf::LogVerbatim("GeometryTest") << indent,
       indent, geo::TPCGeo::MaxVerbosity
       );
-    
+
     for(unsigned int p = 0; p < nPlanes; ++p) {
       const geo::PlaneGeo& plane = tpc.Plane(p);
       const unsigned int nWires = plane.Nwires();
-      
+
       plane.PrintPlaneInfo(
         mf::LogVerbatim("GeometryTest") << indent << "  ", indent + "      ",
         8 /* large verbosity */
         );
-      
+
       for(unsigned int w = 0;  w < nWires; ++w) {
         const geo::WireGeo& wire = plane.Wire(w);
         // this additional check is preserved to test alternative transformation
@@ -520,7 +520,7 @@ namespace geo{
         std::array<double, 3U> const local = {{ 0.0, 0.0, 0.0 }};
         std::array<double, 3U> center;
         wire.LocalToWorld(local.data(), center.data());
-        
+
         // the wire should be aligned on z axis, half on each side of 0,
         // in its local frame
         mf::LogVerbatim("GeometryTest") << indent
@@ -534,7 +534,7 @@ namespace geo{
     } // for plane
   } // GeometryTestAlg::printWiresInTPC()
 
-  
+
   void GeometryTestAlg::printAllGeometry() const {
     const unsigned int nCryostats = geom->Ncryostats();
     mf::LogVerbatim("GeometryTest") << "Detector " << geom->DetectorName()
@@ -554,23 +554,23 @@ namespace geo{
     mf::LogVerbatim("GeometryTest") << "End of detector "
                                     << geom->DetectorName() << " geometry.";
   } // GeometryTestAlg::printAllGeometry()
-  
-  
+
+
   //......................................................................
   void GeometryTestAlg::printAuxiliaryDetectors() const {
-    
+
     mf::LogVerbatim log("GeometryTest");
-    
+
     unsigned int const nAuxDets = geom->NAuxDets();
     log << "There are " << nAuxDets << " auxiliary detectors:";
     for (unsigned int iDet = 0; iDet < nAuxDets; ++iDet) {
       log << "\n[#" << iDet << "] ";
       printAuxDetGeo(log, geom->AuxDet(iDet), "  ", "");
     } // for
-    
+
   } // GeometryTestAlg::printAuxiliaryDetectors()
-  
-  
+
+
   //......................................................................
   template <typename Stream>
   void GeometryTestAlg::printAuxDetGeo(
@@ -578,13 +578,13 @@ namespace geo{
     std::string indent, std::string firstIndent
     ) const
   {
-    
+
     lar::util::RealComparisons<double> coordIs(1e-4);
-    
+
     std::array<double, 3U> center, normal;
     auxDet.GetCenter(center.data());
     auxDet.GetNormalVector(normal.data());
-    
+
     out << firstIndent << "\"" << auxDet.Name()
       << "\" centered at " << lar::dump::array<3U>(center)
       << " cm, size ( " << (2.0 * auxDet.HalfWidth1());
@@ -613,10 +613,10 @@ namespace geo{
         } // for
         break;
     } // if sensitive detectors
-    
+
   } // GeometryTestAlg::printAuxDetGeo()
-  
-  
+
+
   //......................................................................
   template <typename Stream>
   void GeometryTestAlg::printAuxDetSensitiveGeo(
@@ -624,13 +624,13 @@ namespace geo{
     std::string /* indent */, std::string firstIndent
     ) const
   {
-    
+
     lar::util::RealComparisons<double> coordIs(1e-4);
-    
+
     std::array<double, 3U> center, normal;
     auxDetSens.GetCenter(center.data());
     auxDetSens.GetNormalVector(normal.data());
-    
+
     out << firstIndent << "centered at " << lar::dump::array<3U>(center)
       << " cm, size ( " << (2.0 * auxDetSens.HalfWidth1());
     if (coordIs.nonEqual(auxDetSens.HalfWidth1(), auxDetSens.HalfWidth2()))
@@ -638,21 +638,21 @@ namespace geo{
     out << " x " << (2.0 * auxDetSens.HalfHeight())
       << " x " << auxDetSens.Length() << " ) cm"
       << ", normal facing " << lar::dump::array<3U>(normal);
-    
+
   } // GeometryTestAlg::printAuxDetSensitiveGeo()
-  
+
   //......................................................................
   void GeometryTestAlg::testCryostat()
   {
     mf::LogVerbatim("GeometryTest") << "There are " << geom->Ncryostats() << " cryostats in the detector";
 
     for(geo::CryostatGeo const& cryo: geom->IterateCryostats()) {
-      
-      mf::LogVerbatim("GeometryTest") 
+
+      mf::LogVerbatim("GeometryTest")
         << "\n\tCryostat " << cryo.ID()
         <<   " " << cryo.Volume()->GetName()
         <<   " Dimensions [cm]: " << cryo.Width()
-        <<                  " x " << cryo.Height() 
+        <<                  " x " << cryo.Height()
         <<                  " x " << cryo.Length()
         << "\n\t\tmass [kg]: " << cryo.Mass()
         << "\n\t\tCryostat boundaries:"
@@ -663,7 +663,7 @@ namespace geo{
       // pick a position in the middle of the cryostat in the world coordinates
       double const worldLoc[3]
         = { cryo.CenterX(), cryo.CenterY(), cryo.CenterZ() };
-                
+
       MF_LOG_DEBUG("GeometryTest") << "\t testing GeometryCore::PoitionToCryostat....";
       geo::CryostatID cid;
       try{
@@ -689,12 +689,12 @@ namespace geo{
 
   //......................................................................
   unsigned int GeometryTestAlg::testFindWorldVolumes() {
-    
+
     unsigned int nErrors = 0;
-    
+
     std::set<std::string> volume_names;
     std::vector<TGeoNode const*> nodes;
-    
+
     // world
     volume_names.insert(geom->GetWorldVolumeName());
     nodes = geom->FindAllVolumes(volume_names);
@@ -714,21 +714,21 @@ namespace geo{
         << "Found " << nodes.size() << " world volumes '"
           << geom->GetWorldVolumeName() << "! [expecting: one!!]";
     } // if nodes
-    
+
     return nErrors;
   } // GeometryTestAlg::testFindWorldVolumes()
-  
-  
+
+
   unsigned int GeometryTestAlg::testFindCryostatVolumes() {
-    
+
     unsigned int nErrors = 0;
-    
+
     std::set<std::string> volume_names;
     volume_names.insert(geom->GetWorldVolumeName());
     volume_names.insert("volCryostat");
-    
+
     std::vector<TGeoNode const*> nodes = geom->FindAllVolumes(volume_names);
-    
+
     mf::LogVerbatim log("GeometryTest");
     log << "Found " << nodes.size() << " world and cryostat volumes:";
     for (TGeoNode const* node: nodes) {
@@ -742,26 +742,26 @@ namespace geo{
         << "Found " << nodes.size() << " world and cryostat volumes! "
         "[expecting: 1 world and " << geom->Ncryostats() << " cryostats]";
     } // if nodes
-    
+
     return nErrors;
   } // GeometryTestAlg::testFindCryostatVolumes()
-  
-  
+
+
   unsigned int GeometryTestAlg::testFindTPCvolumePaths() {
-    
+
     unsigned int nErrors = 0;
-    
+
     // search the full path of all TPCs
     std::set<std::string> volume_names;
     for (geo::TPCGeo const& TPC: geom->IterateTPCs())
       volume_names.insert(TPC.TotalVolume()->GetName());
-    
+
     // get the right answer: how many TPCs?
     const unsigned int NTPCs = geom->TotalNTPC();
-    
+
     std::vector<std::vector<TGeoNode const*>> node_paths
       = geom->FindAllVolumePaths(volume_names);
-    
+
     mf::LogVerbatim log("GeometryTest");
     log << "Found " << node_paths.size() << " TPC volumes:";
     for (auto const& path: node_paths) {
@@ -785,11 +785,11 @@ namespace geo{
         << "Found " << node_paths.size() << " TPC volumes! "
         "[expecting: " << NTPCs << " TPCs]";
     } // if missed some
-    
+
     return nErrors;
   } // GeometryTestAlg::testFindTPCvolumePaths()
-  
-  
+
+
   void GeometryTestAlg::testFindVolumes() {
     /*
      * Finds and checks a selected number of volumes by name:
@@ -797,37 +797,37 @@ namespace geo{
      * - cryostat volumes
      * - TPCs (returns full paths)
      */
-    
+
     unsigned int nErrors = 0;
-    
+
     nErrors += testFindWorldVolumes();
     nErrors += testFindCryostatVolumes();
     nErrors += testFindTPCvolumePaths();
-    
+
     if (nErrors != 0) {
       throw cet::exception("FindVolumes")
         << "Collected " << nErrors << " errors during FindAllVolumes() test!\n";
     }
-    
+
   } // GeometryTestAlg::testFindVolumes()
-  
-  
+
+
   //......................................................................
   void GeometryTestAlg::testTPC(geo::CryostatID const& cid)
   {
     geo::CryostatGeo const& cryo = geom->Cryostat(cid);
 
-    mf::LogVerbatim("GeometryTest") << "\tThere are " << cryo.NTPC() 
+    mf::LogVerbatim("GeometryTest") << "\tThere are " << cryo.NTPC()
                                     << " TPCs in the detector";
-    
+
     for(size_t t = 0; t < cryo.NTPC(); ++t){
       geo::TPCID const tpcid(cid, t);
       geo::TPCGeo const& tpc = cryo.TPC(tpcid);
       decltype(auto) activeCenter = tpc.GetActiveVolumeCenter();
-      
+
       mf::LogVerbatim("GeometryTest")
         << "\n\t\tTPC " << tpcid
-          << " " << geom->GetLArTPCVolumeName(tpcid) 
+          << " " << geom->GetLArTPCVolumeName(tpcid)
           << " has " << tpc.Nplanes() << " planes."
         << "\n\t\tTPC location: ( "
           << tpc.MinX() << " ; " << tpc.MinY() << " ; "<< tpc.MinZ()
@@ -838,25 +838,25 @@ namespace geo{
           << tpc.Width() << " (" << directionName(tpc.WidthDir()) << ")"
           << " x " << tpc.Height() << " (" << directionName(tpc.HeightDir()) << ")"
           << " x " << tpc.Length() << " (" << directionName(tpc.LengthDir()) << ")"
-        << "\n\t\tTPC Active Dimensions: " 
+        << "\n\t\tTPC Active Dimensions: "
           << 2.*tpc.ActiveHalfWidth() << " x " << 2.*tpc.ActiveHalfHeight() << " x " << tpc.ActiveLength()
           << " around ( " << activeCenter.X() << " ; " << activeCenter.Y()
           << " ; "<< activeCenter.Z() << " ) cm"
         << "\n\t\tTPC mass: " << tpc.ActiveMass()
         << "\n\t\tTPC drift distance: " << tpc.DriftDistance()
           << ", direction: " << tpc.DriftDir();
-      
+
       for(size_t p = 0; p < tpc.Nplanes(); ++p) {
         geo::PlaneGeo const& plane = tpc.Plane(p);
-        
+
         // first line indented with two tabs, the others with two more spaces;
         // very verbose (8)
         plane.PrintPlaneInfo
           (mf::LogVerbatim("GeometryTest") << "\t\t", "\t\t  ", 8);
-        
-        mf::LogVerbatim("GeometryTest") 
+
+        mf::LogVerbatim("GeometryTest")
           << "\t\t  pitch from plane 0 is " << tpc.Plane0Pitch(p);
-        
+
       } // for plane
       geo::DriftDirection_t dir = tpc.DriftDirection();
       if     (dir == geo::kNegX) {
@@ -887,7 +887,7 @@ namespace geo{
 
       MF_LOG_DEBUG("GeometryTest") << "done.";
     } // for TPC
-    
+
     return;
   }
 
@@ -897,102 +897,102 @@ namespace geo{
     /*
      * The test verifies that all the planes in the geometry respect the
      * orientation requirements:
-     * 
+     *
      *   { (wire direction) , (wire coordinate increase), (plane normal) }
-     * 
+     *
      *   { (width direction) , (length direction), (plane normal) }
-     * 
+     *
      * both be a positively defined base.
      */
-    
+
     lar::util::RealComparisons<double> coordIs(1e-5);
-    
+
     unsigned int nErrors = 0;
     for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
-      
+
       //
       // check the ( wire ; wire coordinate ; normal) base
       //
-      
+
       // this funny way declares a reference or not, depending on return type
       decltype(auto) planeNormal = plane.GetNormalDirection();
       decltype(auto) wireCoordDir = plane.GetIncreasingWireDirection();
       decltype(auto) wireDir = plane.GetWireDirection();
-      
+
       double const wireFrame = wireDir.Cross(wireCoordDir).Dot(planeNormal);
-        
+
       if (coordIs.nonEqual(wireFrame, 1.0)) {
         ++nErrors;
-        
+
         mf::LogProblem("GeometryTestAlg")
-          << "Plane " << plane.ID() 
+          << "Plane " << plane.ID()
           << " has wire direction " << wireDir
           << " wire coordinate direction " << wireCoordDir
           << " and normal " << planeNormal
           << " , yielding to a non-positive plane-coordinate definition"
           << " (l x w . n = " << wireFrame << ")";
       } // if error
-      
+
       //
       // check the ( width ; depth ; normal) base
       //
-      
+
       decltype(auto) widthDir = plane.WidthDir();
       decltype(auto) depthDir = plane.DepthDir();
       double const geoFrame = widthDir.Cross(depthDir).Dot(planeNormal);
-        
+
       if (coordIs.nonEqual(geoFrame, 1.0)) {
         ++nErrors;
-        
+
         mf::LogProblem("GeometryTestAlg")
-          << "Plane " << plane.ID() 
+          << "Plane " << plane.ID()
           << " has width direction " << widthDir
           << " depth direction " << depthDir
           << " and normal " << planeNormal
           << " , yielding to a non-positive plane-coordinate definition"
           << " (w x d . n = " << geoFrame << ")";
       } // if error
-      
+
     } // for plane
-    
+
     if (nErrors > 0) {
       throw cet::exception("GeometryTestAlg")
         << "testPlaneDirections() accumulated " << nErrors
         << " errors (see messages above)\n";
     }
-    
+
   } // GeometryTestAlg::testPlaneDirections()
-  
-  
+
+
   //......................................................................
   void GeometryTestAlg::testWireOrientations() const {
     /*
      * The test verifies that all the wires in the geometry respect the
      * orientation requirement described in geo::WireGeo documentation:
-     * 
+     *
      *   { (wire direction) , (wire coordinate increase), (plane normal) }
-     * 
+     *
      * be a positively defined base.
-     * 
+     *
      */
-    
+
     unsigned int nErrors = 0;
     for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
-      
+
       // this funny way declares a reference or not, depending on return type
       decltype(auto) planeNormal = plane.GetNormalDirection();
       decltype(auto) wireCoordDir = plane.GetIncreasingWireDirection();
-      
+
       unsigned int nWires = plane.Nwires();
       for (unsigned int wireNo = 0; wireNo < nWires; ++wireNo) {
-        
+
         geo::WireGeo const& wire = plane.Wire(wireNo);
-        
+
         double positive = wire.Direction().Cross(wireCoordDir).Dot(planeNormal);
-        
+
         if (positive < 0.5) {
           ++nErrors;
-          
+
           // detail the problem; details of the plane should be read in the
           // output from other tests
           decltype(auto) wireDir = wire.Direction();
@@ -1002,68 +1002,68 @@ namespace geo{
             << " , yielding to a non-positive plane-coordinate definition"
             << " (l x w . n = " << positive << ")";
         } // if error
-        
+
       } // for wire
-      
+
     } // for plane
-    
+
     if (nErrors > 0) {
       throw cet::exception("GeometryTestAlg")
         << "testWireOrientations() accumulated " << nErrors
         << " errors (see messages above)\n";
     }
-    
+
   } // GeometryTestAlg::testWireOrientations()
-  
-  
+
+
   //......................................................................
   void GeometryTestAlg::testWireCoordFromPlane() const {
-    
+
     //
     // For each wire:
-    // 
+    //
     // * picks points lying on the planes including a wire and the normal to the
     //   wire plane (which have all the same wire coordinate)
-    // 
+    //
     // * tests that the coordinates are as expected (wire number times pitch)
     //
-    
+
     unsigned int nErrors = 0;
     for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
-      
+
       auto const nWires = plane.Nwires();
       auto const wirePitch = plane.WirePitch();
-      
+
       double const driftDistance = geom->TPC(plane.ID()).DriftDistance();
-      
+
       decltype(auto) planeNormal = plane.GetNormalDirection();
-      
+
       for (geo::WireID::WireID_t wireNo = 0; wireNo < nWires; ++wireNo) {
-        
+
         geo::WireGeo const& wire = plane.Wire(wireNo);
-        
+
         double const expected = wireNo * wirePitch;
-        
+
         // sample 7 points on wire
         constexpr int shifts = 3;
         double const step = wire.HalfL() / (std::abs(shifts) + 1);
         for (int iOfs = -shifts; iOfs <= shifts; ++iOfs) {
-          
+
           double const offset = iOfs * step;
-          
+
           auto const basePoint = wire.GetPositionFromCenter(offset);
-          
+
           // at 4 different distances from the plane
           constexpr int quotas = 4;
           double const jump = driftDistance / (std::abs(quotas) + 1);
           for (int iQuota = 0; iQuota < quotas; ++iQuota) {
-            
+
             // translate the point along the normal to the plane;
             // this should not change the result
             auto const point = basePoint + iQuota * jump * planeNormal;
-            
+
             double const distance = plane.PlaneCoordinate(point);
-            
+
             if (std::abs(distance - expected) > 1e-4) {
               mf::LogProblem("GeometryTestAlg") << "Point " << point
                 << "  (offset: " << iOfs << "x" << step << ", at " << iQuota
@@ -1072,122 +1072,122 @@ namespace geo{
                 << " (" << expected << " expected)";
               ++nErrors;
             } // if unexpected
-            
+
           } // for quotas
-          
+
         } // for iOfs
-        
+
       } // for wires
-      
+
     } // for planes
-    
+
     if (nErrors > 0) {
       throw cet::exception("GeometryTestAlg")
         << "testWireCoordFromPlane() accumulated " << nErrors
         << " errors (see messages above)\n";
     }
-    
+
   } // GeometryTestAlg::testWireCoordFromPlane()
 
-  
+
   //......................................................................
   void GeometryTestAlg::testParallelWires() const {
-    
+
     //
     // checks that all the wires in the same plane are parallel
     //
     auto const vectorIs = lar::util::makeVector3DComparison(geom->coordIs);
-    
+
     for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
-      
+
       decltype(auto) genDir = plane.GetWireDirection();
-      
+
       geo::WireID::WireID_t wireNo = 0;
       for (geo::WireGeo const& wire: plane.IterateWires()) {
-        
+
         geo::WireID const wireID(plane.ID(), wireNo++);
-        
+
         decltype(auto) wireDir = wire.Direction();
-        
+
         if (vectorIs.nonEqual(wireDir, genDir)) {
           throw cet::exception("ParallelWires")
             << "Wire " << std::string(wireID) << " has direction " << wireDir
             << ", not parallel to wire direction " << genDir
             << " according to the plane " << std::string(plane.ID()) << "\n";
-        } 
-        
+        }
+
       } // for wires in plane
-      
+
     } // for planes
-    
+
   } // GeometryTestAlg::testParallelWires()
-  
-  
+
+
   //......................................................................
   void GeometryTestAlg::testPlanePointDecomposition() const {
-    
+
     //
     // For each plane:
-    // 
+    //
     // 1) create a plane point with arbitrary distance from the plane,
     //    wire coordinate multiple (N) of wire pitch, and wire direction
     //    coordinate 0 or half a wire length in either directions
-    // 
+    //
     // 2) compose into a 3D vector, and verify that the nearest wire is the one
     //    expected (N)
-    // 
+    //
     // 3) decompose back the 3D vector, and verify that the result matches the
     //    starting decomposition
-    // 
-    // 4) also verify singly PointProjection() and DistanceFromPlane()
-    // 
-    // 5) verify DriftPoint()
-    // 
     //
-    
+    // 4) also verify singly PointProjection() and DistanceFromPlane()
+    //
+    // 5) verify DriftPoint()
+    //
+    //
+
     lar::util::RealComparisons<double> coordIs(1e-5);
     auto vectorIs = lar::util::makeVector3DComparison(coordIs);
-    
+
     unsigned int nErrors = 0;
     for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
-      
+
       auto const& planeNorm = plane.GetNormalDirection();
       auto const& wirePitch = plane.WirePitch();
       auto const& refPoint = plane.ProjectionReferencePoint();
-      
+
       unsigned int const lastWire = plane.Nwires() - 1;
       geo::WireID::WireID_t wireNo = 0;
       for (geo::WireGeo const& wire: plane.IterateWires()) {
-        
+
         geo::WireID const wireID(plane.ID(), wireNo++);
-        
+
         constexpr double distance = 5.0; // 5 cm from the plane
-        
+
         auto const wireDirStep = wire.HalfL() / 2.0; // quarter of the length
-        
+
         for (int iWDStep = -1; iWDStep <= 1; ++iWDStep) {
-          
+
           //
           // prepare expectation
           //
           auto const wireDirOffset = iWDStep * wireDirStep;
-          
+
           auto const expectedPoint = wire.GetCenter()
             + wireDirOffset * wire.Direction()
             + distance * planeNorm;
-          
+
           auto const expectedWireCoord = wirePitch * wireID.Wire;
           auto const expectedWireDirCoord = wireDirOffset
             + wire.Direction().Dot(wire.GetCenter() - refPoint);
-          
+
           geo::PlaneGeo::WireCoordProjection_t const expectedProj
             (expectedWireDirCoord, expectedWireCoord);
-          
+
           //
           // composition
           //
           auto point = plane.ComposePoint(distance, expectedProj);
-          
+
           if (vectorIs.nonEqual(point, expectedPoint)) {
             ++nErrors;
             mf::LogProblem("GeometryTestAlg")
@@ -1198,7 +1198,7 @@ namespace geo{
               << " while it is expected to be at " << expectedPoint
               << " (on wire " << std::string(wireID) << ")";
           } // if wrong point
-          
+
           //
           // decomposition
           //
@@ -1229,7 +1229,7 @@ namespace geo{
                 << decomp.projection.Y()
               << " cm, while " << expectedWireCoord << " is expected";
           } // if wrong wire coordinate
-          
+
           //
           // projection
           //
@@ -1250,7 +1250,7 @@ namespace geo{
               << " is reported to have wire coordinate " << proj.Y()
               << " cm, while " << expectedWireCoord << " is expected";
           } // if wrong wire coordinate
-          
+
           //
           // distance
           //
@@ -1263,7 +1263,7 @@ namespace geo{
               << " is reported to have distance " << dist << " cm from plane "
               << plane.ID() << ", while " << distance << " is expected";
           } // if wrong distance
-          
+
           //
           // drift
           //
@@ -1271,17 +1271,17 @@ namespace geo{
           // (https://bugs.llvm.org/show_bug.cgi?id=21629)
           std::array<double, 3> drifts {{ -distance, distance, 2.*distance }};
           for (double drift: drifts) {
-            
+
             // DriftPoint() moves the point in the drift direction,
             // which is opposite to the plane normal:
             auto const expectedDistance = distance - drift;
-            
+
             //
             // drift it by a known value
             //
             auto point = expectedPoint;
             plane.DriftPoint(point, drift);
-            
+
             //
             // check the new distance
             //
@@ -1297,9 +1297,9 @@ namespace geo{
                 << " which has distance from plane " << dist
                 << " cm, while " << expectedDistance << " was expected";
             } // if wrong distance
-            
+
           } // for drifts
-          
+
           //
           // containment
           //
@@ -1314,22 +1314,22 @@ namespace geo{
               << "Point " << expectedPoint << " (center of " << wireID
               << ") is not believed to be on the plane, but it should.";
           }
-          
+
         } // for different wire direction steps
-        
+
       } // for wires in plane
-      
+
     } // for planes
-    
+
     if (nErrors > 0) {
       throw cet::exception("GeometryTestAlg")
         << "testPlanePointDecomposition() accumulated " << nErrors
         << " errors (see messages above)\n";
     }
-    
+
   } // GeometryTestAlg::testPlanePointDecomposition()
-  
-  
+
+
   //......................................................................
   void GeometryTestAlg::testWireCoordAngle() const {
     /*
@@ -1341,33 +1341,33 @@ namespace geo{
      * - move one wire pitch away from the centre in the direction determined
      *   by PhiZ(), verify that the coordinate increases by 1
      */
-    
+
     for (geo::PlaneID const& planeid: geom->IteratePlaneIDs()) {
-      
+
       geo::PlaneGeo const& plane = geom->Plane(planeid);
-      
+
       // define the wires to work with
       const unsigned int nWires = plane.Nwires();
-      
+
       geo::WireID middle_wire_id(planeid, nWires / 2);
       geo::WireID next_wire_id(planeid, nWires / 2 + 1);
-      
+
       if (next_wire_id.Wire >= nWires) {
         throw cet::exception("WeirdGeometry")
           << "Plane " << std::string(planeid) << " has only " << nWires
           << " wires?!?\n";
       }
-      
-      
+
+
       geo::WireGeo const& middle_wire = geom->Wire(middle_wire_id);
       decltype(auto) middle_wire_center = middle_wire.GetCenter();
       MF_LOG_TRACE("GeometryTest")
         << "Center of " << middle_wire_id << " at " << middle_wire_center;
-      
+
       // cross check: we can find the middle wire
       const double middle_coord = geom->WireCoordinate
         (middle_wire_center, planeid);
-      
+
       if (std::abs(middle_coord - double(middle_wire_id.Wire)) > 2e-3) {
         throw cet::exception("WireCoordAngle")
           << "Center of " << std::string(middle_wire_id) << " at ("
@@ -1376,21 +1376,21 @@ namespace geo{
           << ") has wire coordinate " << middle_coord
           << " (" << middle_wire_id.Wire << " expected)\n";
       } // if
-      
+
       // the check: this coordinate should lie on the next wire
       const double pitch = plane.WirePitch();
       decltype(auto) wireCoordDir = plane.GetIncreasingWireDirection();
-      
+
       MF_LOG_TRACE("GeometryTest")
         << "  pitch: " << pitch << " wire coord dir: cos(phi_z): "
         << wireCoordDir;
-      
+
       auto on_next_wire = middle_wire_center + pitch * wireCoordDir;
-      
+
       const double next_coord = geom->WireCoordinate(on_next_wire, planeid);
-      
+
       if (std::abs(next_coord - double(next_wire_id.Wire)) > 2e-3) {
-        std::cerr 
+        std::cerr
           << "  pitch: " << pitch << " wire coord dir: " << wireCoordDir
           << "\n  start wire: " << middle_wire_id
           << " centered at " << middle_wire_center
@@ -1401,15 +1401,15 @@ namespace geo{
           << " is expected to be on wire " << std::string(next_wire_id)
           << " but it has wire coordinate " << next_coord << "\n";
       } // if
-      
+
     } // for
-    
+
   } // GeometryTestAlg::testWireCoordAngle()
-  
+
 
   //......................................................................
   void GeometryTestAlg::testChannelToROP() const {
-    
+
     // test that an invalid channel yields an invalid ROP
     try {
       readout::ROPID invalidROP = geom->ChannelToROP(raw::InvalidChannelID);
@@ -1424,50 +1424,50 @@ namespace geo{
       mf::LogWarning("testChannelToROP")
         << "Non-compilant ChannelToROP() throws on invalid channel.";
     }
-    
+
     // for each channel, test that its ROP contains it;
     // we assume each ROP contains contiguous channel IDs
     for (raw::ChannelID_t channel = 0; channel < geom->Nchannels(); ++channel) {
-      
+
       readout::ROPID const ropid = geom->ChannelToROP(channel);
-      
+
       auto const firstChannel = geom->FirstChannelInROP(ropid);
       auto const lastChannel = firstChannel + geom->Nchannels(ropid);
-      
+
       if ((channel < firstChannel) || (channel >= lastChannel)) {
         throw cet::exception("testChannelToROP")
           << "Channel " << channel << " comes from ROP " << std::string(ropid)
           << ", which contains only channels from " << firstChannel
           << " to " << lastChannel << " (excluded)\n";
       } // if
-      
+
     } // for channel
-    
-    
+
+
   } // GeometryTestAlg::testChannelToROP()
-  
+
   //......................................................................
   void GeometryTestAlg::testChannelToWire() const
   {
     using std::begin;
     using std::end;
-    
+
     geo::PlaneID lastPlane; // starts invalid
     geo::View_t planeView = geo::kUnknown;
     geo::SigType_t planeSigType = geo::kMysteryType;
 
     for(geo::WireID testWireID: geom->IterateWireIDs()){
-      
+
       raw::ChannelID_t channel = geom->PlaneWireToChannel(testWireID);
-      
+
       if (!raw::isValidChannelID(channel)) {
         throw cet::exception("BadChannelLookup")
           << "Invalid channel returned for wire " << std::string(testWireID)
           << "\n";
       }
-      
+
       auto const wireIDs = geom->ChannelToWire(channel);
-      
+
       if (wireIDs.empty()) {
         throw cet::exception("BadChannelLookup")
           << "List of wires for channel #" << channel << " is empty;"
@@ -1482,10 +1482,10 @@ namespace geo{
         for (auto const& wid: wireIDs)
           log << "\n  " << wid;
         throw cet::exception("BadChannelLookup")
-          << "Wire " << std::string(testWireID) << " is on channel #" << channel 
+          << "Wire " << std::string(testWireID) << " is on channel #" << channel
           << " but ChannelToWire() does not map the channel to that wire\n";
       }
-      
+
       // currently (LArSoft 6.12) signal type from channel and from plane use
       // the same underlying code, so the following test is not very valuable
       auto const channelSigType = geom->SignalType(channel);
@@ -1496,7 +1496,7 @@ namespace geo{
           << " but that the plane of " << std::string(testWireID)
           << " is of type " << geom->SignalType(testWireID.planeID()) << "\n";
       }
-      
+
       auto const channelView = geom->View(channel);
       if (channelView != geom->Plane(testWireID).View()) {
         throw cet::exception("BadChannelLookup")
@@ -1505,7 +1505,7 @@ namespace geo{
           << " but the plane of " << std::string(testWireID)
           << " claims to be on view " << geom->Plane(testWireID).View() << "\n";
       }
-      
+
       // check that all the channels on the same plane are consistent
       // (sort of: it's more like "all contiguous wires in the same plane")
       if (testWireID.planeID() == lastPlane) {
@@ -1529,44 +1529,44 @@ namespace geo{
         planeView = channelView;
         planeSigType = channelSigType;
       }
-      
+
     } // for wires in detector
-    
+
   } // GeometryTestAlg::testChannelToWire()
-  
+
   //......................................................................
   void GeometryTestAlg::testFindPlaneCenters()
   {
     double xyz[3] = {0.},   xyzW[3] = {0.};
-    for(size_t i = 0; i < geom->Nplanes(); ++i){ 
+    for(size_t i = 0; i < geom->Nplanes(); ++i){
       geom->Plane(i).LocalToWorld(xyz,xyzW);
-      mf::LogVerbatim("GeometryTest") << "\n\tplane " 
-                                      << i << " is centered at (x,y,z) = (" 
+      mf::LogVerbatim("GeometryTest") << "\n\tplane "
+                                      << i << " is centered at (x,y,z) = ("
                                       << xyzW[0] << "," << xyzW[1]
                                       << "," << xyzW[2] << ")";
-    } 
-  } 
+    }
+  }
 
   //......................................................................
   void GeometryTestAlg::testPlaneProjectionReference() const {
-    
+
     //
     // Check the definition of the projection reference
     //
     unsigned int nErrors = 0;
     for (auto const& plane: geom->IteratePlanes()) {
-      
+
       TVector3 reference = plane.ProjectionReferencePoint();
-      
+
       auto decomp = plane.DecomposePoint(reference);
-      
+
       if (geom->coordIs.nonZero(decomp.distance)) {
         MF_LOG_ERROR("GeometryTest")
           << "Plane " << plane.ID() << " reference point " << reference
           << " has distance " << decomp.distance << " cm (should be 0)";
         ++nErrors;
       }
-      
+
       if (geom->coordIs.nonZero(decomp.projection.X())
         || geom->coordIs.nonZero(decomp.projection.Y())
         )
@@ -1577,69 +1577,69 @@ namespace geo{
           << " ; " << decomp.projection.Y() << " ) cm (should be (0;0) )";
         ++nErrors;
       }
-      
+
     } // for planes
     if (nErrors > 0) {
       throw cet::exception("GeoTestPlaneProjectionReference")
         << "Accumulated " << nErrors << " errors (see messages above)\n";
     }
   } // GeometryTestAlg::testPlaneProjectionReference()
-  
-  
+
+
   //......................................................................
   void GeometryTestAlg::testPlanePointDecompositionFrame() const {
-    
+
     //
     // For each plane:
-    // 
+    //
     // 1) create a plane point with arbitrary distance from the plane,
     //    width and depth coordinates all across the plane
-    // 
+    //
     // 2) compose into a 3D vector
-    // 
+    //
     // 3) decompose back the 3D vector, and verify that the result matches the
     //    starting decomposition
-    // 
-    // 4) also verify singly PointProjection() and DistanceFromPlane()
-    // 
-    // 5) verify DriftPoint()
-    // 
     //
-    
+    // 4) also verify singly PointProjection() and DistanceFromPlane()
+    //
+    // 5) verify DriftPoint()
+    //
+    //
+
     lar::util::RealComparisons<double> coordIs(1e-5);
     auto vectorIs = lar::util::makeVector3DComparison(coordIs);
-    
+
     // steps on each side of the center, within the plane:
     constexpr int steps = 5;
     static_assert(steps > 0, "Steps must be a positive number.");
     // how many width units we go far from the center (1 means stay inside)
     constexpr int nOutsides = 1;
-    
+
     unsigned int nErrors = 0;
     for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
-    
+
       auto const& planeNorm = plane.GetNormalDirection();
       auto const& widthDir = plane.WidthDir();
       auto const& depthDir = plane.DepthDir();
       auto const& refPoint = plane.GetCenter();
-      
+
       double const halfWidth = plane.Width() / 2;
       double const halfDepth = plane.Depth() / 2;
       double const dW_2 = halfWidth / (steps * 2); // half width step
       double const dD_2 = halfDepth / (steps * 2); // half depth step
-      
+
       for (int iW = -nOutsides * steps; iW <= +nOutsides * steps; ++iW) {
-        
+
         double const expected_w = dW_2 * (iW * 2 + 1); // width coordinate
         bool const inWidth = std::abs(expected_w) <= halfWidth;
-        
+
         for (int iD = -nOutsides * steps; iD <= +nOutsides * steps; ++iD) {
-          
+
           double const expected_d = dD_2 * (iD * 2 + 1); // depth coordinate
           bool const inDepth = std::abs(expected_d) <= halfDepth;
-          
+
           constexpr double distance = 5.0; // we might test this too...
-          
+
           //
           // prepare expectation
           //
@@ -1647,15 +1647,15 @@ namespace geo{
             + expected_w * widthDir
             + expected_d * depthDir
             + distance * planeNorm;
-          
+
           geo::PlaneGeo::WidthDepthProjection_t const expectedProj
             (expected_w, expected_d);
-          
+
           //
           // composition
           //
           auto point = plane.ComposePoint(distance, expectedProj);
-          
+
           if (vectorIs.nonEqual(point, expectedPoint)) {
             ++nErrors;
             mf::LogProblem("GeometryTestAlg")
@@ -1666,7 +1666,7 @@ namespace geo{
               << " was reported as " << point
               << " while it is expected to be at " << expectedPoint;
           } // if wrong point
-          
+
           //
           // decomposition
           //
@@ -1700,7 +1700,7 @@ namespace geo{
                 << decomp.projection.Y()
               << " cm, while " << expected_d << " is expected";
           } // if wrong wire coordinate
-          
+
           //
           // projection
           //
@@ -1723,7 +1723,7 @@ namespace geo{
               << ") is reported to have wire coordinate " << proj.Y()
               << " cm, while " << expected_d << " is expected";
           } // if wrong wire coordinate
-          
+
           //
           // distance
           //
@@ -1737,7 +1737,7 @@ namespace geo{
               << ") is reported to have distance from plane " << dist
               << " cm, while " << distance << " is expected";
           } // if wrong distance
-          
+
           //
           // drift
           //
@@ -1745,17 +1745,17 @@ namespace geo{
           // (https://bugs.llvm.org/show_bug.cgi?id=21629)
           std::array<double, 3> drifts {{ -distance, distance, 2.*distance }};
           for (double drift: drifts) {
-            
+
             // DriftPoint() moves the point in the drift direction,
             // which is opposite to the plane normal:
             auto const expectedDistance = distance - drift;
-            
+
             //
             // drift it by a known value
             //
             auto point = expectedPoint;
             plane.DriftPoint(point, drift);
-            
+
             //
             // check the new distance
             //
@@ -1771,9 +1771,9 @@ namespace geo{
                 << " which has distance from plane " << dist
                 << " cm, while " << expectedDistance << " was expected";
             } // if wrong distance
-            
+
           } // for drifts
-          
+
           //
           // containment
           //
@@ -1790,74 +1790,74 @@ namespace geo{
                 << " believed to be on plane " << plane.ID()
               << ", but it should" << (expected_onPlane? "": " not be") << ".";
           }
-          
+
         } // for different wire direction steps
-        
+
       } // for wires in plane
-      
+
     } // for planes
-    
+
     if (nErrors > 0) {
       throw cet::exception("GeometryTestAlg")
         << "testPlanePointDecomposition() accumulated " << nErrors
         << " errors (see messages above)\n";
     }
-    
+
   } // GeometryTestAlg::testPlanePointDecompositionFrame()
-  
-  
+
+
   //......................................................................
   void GeometryTestAlg::testPlaneProjectionOnFrame() const {
-    
+
     //
     // Tests:
-    // 
+    //
     // 1. containment (isProjectionOnPlane())
-    // 
-    // 
+    //
+    //
     // 2. capping by closest point
     //
-    
+
     lar::util::RealComparisons<double> coordIs(1e-5);
     auto vectorIs = lar::util::makeVector3DComparison(coordIs);
     auto const& vector2Dis = vectorIs.comp2D();
-    
+
     // steps on each side of the center, within the plane:
     constexpr int steps = 5;
     static_assert(steps > 0, "Steps must be a positive number.");
     // how many width units we go far from the center (1 means stay inside)
     constexpr int nOutsides = 2;
-    
+
     unsigned int nErrors = 0;
     for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
-      
+
       double const halfWidth = plane.Width() / 2;
       double const halfDepth = plane.Depth() / 2;
       double const dW_2 = halfWidth / (steps * 2); // half width step
       double const dD_2 = halfDepth / (steps * 2); // half depth step
-      
+
       for (int iW = -nOutsides * steps; iW <= +nOutsides * steps; ++iW) {
-        
+
         double const expected_w = dW_2 * (iW * 2 + 1); // width coordinate
         bool const inWidth = std::abs(expected_w) <= halfWidth;
-        
+
         for (int iD = -nOutsides * steps; iD <= +nOutsides * steps; ++iD) {
-          
+
           double const expected_d = dD_2 * (iD * 2 + 1); // depth coordinate
           bool const inDepth = std::abs(expected_d) <= halfDepth;
-          
+
           for (double distance: { -30., 0.0, +30.0 }) {
-            
+
             //
             // prepare expectation
             //
             // definition of the test point
             geo::PlaneGeo::WidthDepthProjection_t const expected_proj
               (expected_w, expected_d);
-            
+
             auto const expected_point
               = plane.ComposePoint(distance, expected_proj);
-            
+
             //
             // 1. Containment test
             //
@@ -1875,7 +1875,7 @@ namespace geo{
                 << ", but it should" << (expected_onPlane? "": " not be")
                 << ".";
             }
-            
+
             //
             // 2. capping by closest point
             //
@@ -1901,13 +1901,13 @@ namespace geo{
                 << expected_movedProjection
                 << ".";
             }
-            
+
             //
             // 2.2. capping point
             //
             auto expected_movedPoint
               = plane.ComposePoint(distance, expected_movedProjection);
-            
+
             auto movedPoint = plane.MovePointOverPlane(expected_point);
             if (vectorIs.nonEqual(movedPoint, expected_movedPoint)) {
               ++nErrors;
@@ -1921,53 +1921,53 @@ namespace geo{
                 << expected_movedPoint
                 << ".";
             }
-            
+
           } // for distance
-          
+
         } // for depth step
-        
+
       } // for width step
-    
+
     } // for planes
-    
+
     if (nErrors > 0) {
       throw cet::exception("GeoTestPlaneProjection")
         << "Accumulated " << nErrors << " errors (see messages above)\n";
     }
-    
+
   } // testPlaneProjectionOnFrame()
-  
+
   //......................................................................
   void GeometryTestAlg::testPlaneProjection() const {
-    
+
     //
     // Check the definition of the reference
     //
-    
+
     testPlaneProjectionReference();
-    
+
     //
     // Check the projections and point composition in the plane frame reference
     //
     testPlanePointDecompositionFrame();
-    
+
     //
     // Check containment
     //
     testPlaneProjectionOnFrame();
-    
-    
+
+
   } // GeometryTestAlg::testPlaneProjection()
-  
-  
+
+
   //......................................................................
-  void GeometryTestAlg::testStandardWirePos() 
+  void GeometryTestAlg::testStandardWirePos()
   {
     double xyz[3] = {0.};
     double xyzprev[3] = {0.};
     for(size_t cs = 0; cs < geom->Ncryostats(); ++cs){
       for(size_t t = 0; t < geom->Cryostat(cs).NTPC(); ++t){
-        const geo::TPCGeo* tpc = &geom->Cryostat(cs).TPC(t); 
+        const geo::TPCGeo* tpc = &geom->Cryostat(cs).TPC(t);
 
         for (size_t i=0; i < tpc->Nplanes(); ++i) {
           const geo::PlaneGeo* plane = &tpc->Plane(i);
@@ -1996,7 +1996,7 @@ namespace geo{
 }
 
   //......................................................................
-  void GeometryTestAlg::testAPAWirePos() 
+  void GeometryTestAlg::testAPAWirePos()
   {
     double origin[3] = {0.};
     double tpcworld[3] = {0.};
@@ -2029,7 +2029,7 @@ namespace geo{
               throw cet::exception("WireOrderProblem")         << "\n\tbottom TPC wires do not increase in +y order in"
                                                         << "Cryostat " << cs
                                                         << ", TPC " << t
-                                                        << ", Plane " << i 
+                                                        << ", Plane " << i
                                                         << ";  at wire " << j << "\n";
           }// end loop over wires
         }// end loop over planes
@@ -2037,8 +2037,8 @@ namespace geo{
     }// end loop over cryostats
 
   }
-  
-  
+
+
   //......................................................................
   inline std::array<double, 3> GeometryTestAlg::GetIncreasingWireDirection
     (const geo::PlaneGeo& plane)
@@ -2049,8 +2049,8 @@ namespace geo{
     return
       {{ IncreasingWireDir.X(), IncreasingWireDir.Y(), IncreasingWireDir.Z() }};
   } // GeometryTestAlg::GetIncreasingWireDirection()
-  
-  
+
+
   //......................................................................
   void GeometryTestAlg::testNearestWire()
   {
@@ -2062,15 +2062,15 @@ namespace geo{
     stopWatch.Start();
 
     bool bTestWireCoordinate = true;
-    
+
     // get a wire and find its center
     for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
-      
+
       geo::PlaneID const& planeID = plane.ID();
       const unsigned int NWires = plane.Nwires();
-      
+
       decltype(auto) IncreasingWireDir = plane.GetIncreasingWireDirection();
-      
+
       MF_LOG_DEBUG("GeoTestWireCoordinate")
         << "The direction of increasing wires for plane " << planeID
         << " (theta=" << plane.Wire(0).ThetaZ() << " pitch="
@@ -2078,22 +2078,22 @@ namespace geo{
         << (plane.Orientation() == geo::kHorizontal? "H": "V")
         << (plane.WireIDincreasesWithZ()? "+": "-")
         << ") is " << IncreasingWireDir;
-      
+
       geo::WireID::WireID_t w = 0;
       for (geo::WireGeo const& wire: plane.IterateWires()) {
-        
+
         geo::WireID wireID(planeID, w++);
-        
+
         decltype(auto) wire_center = wire.GetCenter();
-        
+
         uint32_t nearest = 0;
         std::vector< geo::WireID > wireIDs;
-        
+
         try{
           // The double[] version tested here falls back on the
           // TVector3 version, so this test both.
           nearest = geom->NearestChannel(wire_center, planeID);
-          
+
           // We also want to test the std::vector<double> version
           std::vector<double> posWorldV(3);
           for (int i=0; i<3; ++i) {
@@ -2105,10 +2105,10 @@ namespace geo{
           mf::LogWarning("GeoTestCaughtException") << e;
           if (fNonFatalExceptions.count(e.category()) == 0) throw;
         }
-        
+
         try{
           wireIDs = geom->ChannelToWire(nearest);
-          
+
           if ( wireIDs.empty() ) {
             throw cet::exception("BadPositionToChannel")
               << "test point is at " << wire_center
@@ -2121,7 +2121,7 @@ namespace geo{
           mf::LogWarning("GeoTestCaughtException") << e;
           if (fNonFatalExceptions.count(e.category()) == 0) throw;
         }
-        
+
         if(std::find(wireIDs.begin(), wireIDs.end(), wireID) == wireIDs.end()) {
           throw cet::exception("BadPositionToChannel")
             << "Current wire " << std::string(wireID)
@@ -2131,33 +2131,33 @@ namespace geo{
             << "\nNearestChannel is " << nearest
             << "\nShould be channel " << geom->PlaneWireToChannel(wireID);
         } // if good lookup fails
-        
-        
+
+
         // nearest wire, integral and floating point
         try {
           // The test consists in sampling NStep (=5) points between the current
           // wire and the previous/next, following the normal to the wire.
           // We expect WireCoordinate() to reflect the same shift.
-          
+
           // using absolute value just in case (what happens if w1 > w2?)
-          
+
           const double pitch = std::abs(geom->WirePitch(planeID));
-          
+
           TVector3 wire_shifted;
           TVector3 const step = pitch * IncreasingWireDir;
-          
+
           constexpr int NSteps = 5; // odd value avoids testing half-way
           for (int i = -NSteps; i <= +NSteps; ++i) {
             // we move away by this fraction of wire:
             const double f = NSteps? (double(i) / NSteps): 0.0;
-            
+
             // these are the actual shifts on the positive directions y and z
             TVector3 const delta = f * step;
             TVector3 const wire_shifted = wire_center + delta;
-            
+
             // we expect this wire number
             const double expected_wire = wireID.Wire + f;
-            
+
             double wire_from_wc = 0;
             if (bTestWireCoordinate) {
               try {
@@ -2184,9 +2184,9 @@ namespace geo{
                   << " cm shows " << wire_from_wc << ", " << expected_wire
                   << " expected.\n";
               } // if mismatch
-              
+
             } // if testing WireCoordinate
-            
+
             if ((expected_wire > -0.5) && (expected_wire < NWires - 0.5)) {
               const unsigned int expected_wire_number = std::round(expected_wire);
               unsigned int wire_number_from_wc;
@@ -2203,7 +2203,7 @@ namespace geo{
                   << " cm failed NearestWire(), " << expected_wire_number
                   << " expected (more precisely, " << expected_wire << ").\n";
               }
-              
+
               if (mf::isDebugEnabled()) {
                 // In debug mode, we print a lot and we don't (fatally) complain
                 std::stringstream e;
@@ -2234,22 +2234,22 @@ namespace geo{
                   << " expected (more precisely, " << expected_wire << ").";
               }
             } // if shifted wire not outside boundaries
-            
+
           } // for i
-          
+
         } // try
         catch(cet::exception &e) {
           mf::LogWarning("GeoTestCaughtException") << e;
           if (fNonFatalExceptions.count(e.category()) == 0) throw;
         }
-        
+
       } // for all wires in the plane
     } // end loop over planes
 
     stopWatch.Stop();
     MF_LOG_DEBUG("GeoTestWireCoordinate") << "\tdone testing closest channel";
     stopWatch.Print();
-    
+
     // trigger an exception with NearestChannel
     mf::LogVerbatim("GeoTestWireCoordinate") << "\tattempt to cause an exception to be caught "
                                              << "when looking for a nearest channel";
@@ -2313,14 +2313,14 @@ namespace geo{
      * All tests are performed; at the end, the test is considered a failure
      * if any of the single tests failed.
      */
-    
+
     unsigned int nErrors = 0;
     for (geo::GeometryCore::TPC_id_iterator iTPC(&*geom); iTPC; ++iTPC) {
       const geo::TPCGeo& TPC = *(iTPC.get());
-      
+
       MF_LOG_DEBUG("GeometryTest") << "Cryostat #" << iTPC->Cryostat
         << " TPC #" << iTPC->TPC;
-      
+
       // sanity: wires on different cryostats
       if (iTPC->Cryostat < geom->Ncryostats() - 1) {
         geo::WireID w1 { iTPC->Cryostat, iTPC->TPC, 0, 0 },
@@ -2333,7 +2333,7 @@ namespace geo{
           ++nErrors;
         } // if intersect
       } // if not the last cryostat
-      
+
       // sanity: wires on different TPC
       if (iTPC->TPC < geom->NTPC(iTPC->Cryostat) - 1) {
         geo::WireID w1 { iTPC->Cryostat, iTPC->TPC, 0, 0 },
@@ -2346,7 +2346,7 @@ namespace geo{
           ++nErrors;
         } // if intersect
       } // if not the last TPC
-      
+
       // sanity: wires on same plane
       const unsigned int nPlanes = TPC.Nplanes();
       for (unsigned int plane = 0; plane < nPlanes; ++plane) {
@@ -2360,71 +2360,71 @@ namespace geo{
           ++nErrors;
         } // if intersect
       } // for all planes
-      
-      
+
+
       // sample the area covered by all planes, split into SplitW and SplitD
       // rectangles; drift coordinate is chosen roughly in the middle of the TPC
       geo::PlaneGeo const& refPlane = TPC.SmallestPlane();
       constexpr unsigned int SplitW = 19, SplitD = 17;
-      
+
       auto const driftOffset = -TPC.DriftDistance() / 2.0 * TPC.DriftDir();
       auto const refPoint = TPC.GetCenter() + driftOffset;
-      
+
       decltype(auto) coverage = refPlane.ActiveArea();
       const double stepW = coverage.width.length() / SplitW;
       const double stepD = coverage.depth.length() / SplitD;
       const int stepsW = SplitW / 2;
       const int stepsD = SplitD / 2;
-      
+
       // let's pick a point:
       for (int iW = -stepsW; iW <= +stepsW; ++iW) {
-        
+
         auto const widthOffset = (iW * stepW) * refPlane.WidthDir();
-        
+
         for (int iD = -stepsD; iD < +stepsD; ++iD) {
-          
+
           auto const depthOffset = (iD * stepD) * refPlane.DepthDir();
-          
+
           auto const point = refPoint + widthOffset + driftOffset;
-          
+
           // finally, let's test this point...
           nErrors += testWireIntersectionAt(TPC, point);
         } // for y
       } // for z
     } // for iTPC
-    
+
     if (nErrors > 0) {
       throw cet::exception("GeoTestWireIntersection")
         << "Accumulated " << nErrors << " errors (see messages above)\n";
     }
-    
+
   } // GeometryTestAlg::testWireIntersection()
-  
-  
+
+
   unsigned int GeometryTestAlg::testWireIntersectionAt
     (const geo::TPCGeo& TPC, TVector3 const& point) const
   {
     /* Tests WireIDsIntersect() on the specified point on the wire planes of
      * a given TPC.
-     * 
+     *
      * The test follows this strategy:
      * - find the ID of the wires closest to the point on each plane
      * - for all wire plane pairing, ask for the intersection between the wires
      * - fail if the returned point is farther than half a pitch from the
      *   original point
-     * 
+     *
      * This function returns the number of accumulated failures.
      */
-    
+
     using geo::vect::dot;
-    
+
     unsigned int nErrors = 0;
-    
+
     const unsigned int NPlanes = TPC.Nplanes();
-    
+
     bool const bDriftOnX = (TPC.DriftDir<geo::Vector_t>() == geo::Xaxis())
       || (TPC.DriftDir<geo::Vector_t>() == -geo::Xaxis());
-    
+
     // collect information per plane:
     std::vector<double> WirePitch(NPlanes); // for convenience
     std::vector
@@ -2437,31 +2437,31 @@ namespace geo{
       const geo::PlaneGeo& plane = TPC.Plane(iPlane);
       WireCoordDirs[iPlane] = plane.GetIncreasingWireDirection();
       WirePitch[iPlane] = plane.WirePitch();
-      
+
       const double WireDistance = geom->WireCoordinate(point, plane.ID());
       WireIDs.emplace_back(plane.ID(), (unsigned int) std::round(WireDistance));
       WireDistances[iPlane]
         = (WireDistance - std::round(WireDistance)) * WirePitch[iPlane];
-      
+
       MF_LOG_DEBUG("GeometryTest") << "Nearest wire to " << point
         << " on plane " << std::string(plane.ID())
         << " (pitch: " << WirePitch[iPlane]
         << ", coord.dir.=" << WireCoordDirs[iPlane]
         << ") is " << WireIDs[iPlane] << " (position: " << WireDistance << ")";
     } // for planes
-    
+
     // test all the combinations
-    
+
     lar::util::RealComparisons<double> coordIs(1e-3);
     auto vectorIs = lar::util::makeVector3DComparison(coordIs);
     for (unsigned int iPlane1 = 0; iPlane1 < NPlanes; ++iPlane1) {
-      
+
       const geo::WireID& w1 = WireIDs[iPlane1];
       geo::PlaneGeo const& plane1 = TPC.Plane(w1);
-      
+
       for (unsigned int iPlane2 = iPlane1 + 1; iPlane2 < NPlanes; ++iPlane2) {
         const geo::WireID& w2 = WireIDs[iPlane2];
-        
+
         geo::Point_t xingPoint;
         if (!geom->WireIDsIntersect(w1, w2, xingPoint)) {
           MF_LOG_ERROR("GeometryTest") << "Wires " << w1 << " and " << w2
@@ -2470,9 +2470,9 @@ namespace geo{
           ++nErrors;
           continue;
         }
-        
+
         if (bDriftOnX) { // legacy check
-          
+
           geo::WireIDIntersection widIntersect;
           if (!geom->WireIDsIntersect(w1, w2, widIntersect)) {
             MF_LOG_ERROR("GeometryTest") << "Legacy check: wires " << w1 << " and "
@@ -2480,7 +2480,7 @@ namespace geo{
               << TPC.ID() << ", but they seem not to intersect at all!";
             ++nErrors;
           }
-          
+
           if (coordIs.nonEqual(widIntersect.y, xingPoint.Y())
             || coordIs.nonEqual(widIntersect.z, xingPoint.Z()))
           {
@@ -2490,10 +2490,10 @@ namespace geo{
               << widIntersect.y << ", " << widIntersect.z << ")!";
             ++nErrors;
           }
-          
+
         } // bDriftOnX
-        
-        
+
+
         geo::Point_t xingPointInv;
         if (!geom->WireIDsIntersect(w2, w1, xingPointInv)) {
           MF_LOG_ERROR("GeometryTest") << "Wires " << w2 << " and " << w1
@@ -2513,7 +2513,7 @@ namespace geo{
           ++nErrors;
           continue;
         }
-        
+
         // the expected distance between the probe point and the
         // intersection point is geometrically determined, given the distances
         // of the probe point from the two wires and the angle between the wires
@@ -2532,7 +2532,7 @@ namespace geo{
           << " - wires " << w1 << " and " << w2 << " intersect at " << xingPoint
           << ", " << d << " cm far from starting point (expected: "
           << expected_d << ")";
-        
+
         // precision of the test is an issue; the 10^-3 x pitch threshold
         // is roughly tuned so that we don't get errors
         lar::util::RealComparisons<double> wireCoordIs
@@ -2546,10 +2546,10 @@ namespace geo{
           ++nErrors;
           continue;
         } // if too far
-        
+
       } // for iPlane2
     } // for iPlane1
-    
+
     return nErrors;
   } // GeometryTestAlg::testWireIntersectionAt()
 
@@ -2564,27 +2564,27 @@ namespace geo{
      *
      * The test strategy is to check all the TPC one by one:
      * - for all combinations of two planes, if the result is the expected one
-     * 
+     *
      * All tests are performed; at the end, the test is considered a failure
      * if any of the single tests failed.
      */
-    
+
     unsigned int nErrors = 0;
     for (geo::GeometryCore::TPC_id_iterator iTPC(&*geom); iTPC; ++iTPC) {
       const geo::TPCID tpcid = *iTPC;
       const geo::TPCGeo& TPC = geom->TPC(tpcid);
-      
+
       const unsigned int nPlanes = TPC.Nplanes();
       MF_LOG_DEBUG("GeometryTest") << tpcid << " (" << nPlanes << " planes)";
-      
-      
+
+
       for (geo::PlaneID::PlaneID_t iPlane1 = 0; iPlane1 < nPlanes; ++iPlane1) {
         geo::PlaneID pid1(tpcid, iPlane1);
-        
+
         for (geo::PlaneID::PlaneID_t iPlane2 = 0; iPlane2 < nPlanes; ++iPlane2)
         {
           geo::PlaneID pid2(tpcid, iPlane2);
-          
+
           const bool isValidInput = (nPlanes == 3) && (iPlane1 != iPlane2);
           bool bError = false;
           geo::PlaneID third_plane;
@@ -2597,12 +2597,12 @@ namespace geo{
             // if "GeometryCore" is included in the categories of the exception
             bError = hasCategory(e, "GeometryCore");
           } // try...catch
-          
+
           MF_LOG_TRACE("GeometryTest")
             << "  [" << pid1 << "], [" << pid2 << "] => "
             << (bError? "error": std::string(third_plane));
           if (bError) continue; // we got what we wanted
-          
+
           if (!bError && !isValidInput) {
             MF_LOG_ERROR("GeometryTest") << "ThirdPlane() on " << pid1
               << " and " << pid2 << " returned " << third_plane
@@ -2610,7 +2610,7 @@ namespace geo{
             ++nErrors;
             continue;
           } // if no error
-          
+
           if (third_plane != tpcid) {
             MF_LOG_ERROR("GeometryTest") << "ThirdPlane() on " << pid1
               << " and " << pid2 << " returned " << third_plane
@@ -2640,21 +2640,21 @@ namespace geo{
               << ", same as the second input";
             ++nErrors;
           }
-          
+
         } // for plane 2
-        
+
       } // for plane 1
-      
+
     } // for TPC
-    
+
     if (nErrors > 0) {
       throw cet::exception("GeoTestThirdPlane")
         << "Accumulated " << nErrors << " errors (see messages above)\n";
     }
-    
+
   } // GeometryTestAlg::testThirdPlane()
-  
-  
+
+
   //......................................................................
   void GeometryTestAlg::testThirdPlane_dTdW() const {
     /*
@@ -2666,22 +2666,22 @@ namespace geo{
      * - if a query for planes on different TPCs fails
      * - for selected 3D points, compute the three dT/dW and verify them by
      *   test these slopes by testThirdPlane__dTdW_at() function (see)
-     * 
+     *
      * All tests are performed; at the end, the test is considered a failure
      * if any of the single tests failed.
      */
-    
+
     unsigned int nErrors = 0;
     for (geo::GeometryCore::TPC_id_iterator iTPC(&*geom); iTPC; ++iTPC) {
       const geo::TPCID tpcid = *iTPC;
       const geo::TPCGeo& TPC = geom->TPC(tpcid);
-      
+
       const double driftVelocity = 0.1
         * ((TPC.DriftDirection() == geo::kNegX)? -1.: +1);
-      
+
       const unsigned int NPlanes = TPC.Nplanes();
       MF_LOG_DEBUG("GeometryTest") << tpcid << " (" << NPlanes << " planes)";
-      
+
       // sanity: planes on different cryostats
       if (tpcid.Cryostat < geom->Ncryostats() - 1) {
         geo::PlaneID p1 { tpcid, 0 }, p2 { tpcid.Cryostat + 1, tpcid.TPC, 1 };
@@ -2702,7 +2702,7 @@ namespace geo{
           ++nErrors;
         } // if no error
       } // if not the last cryostat
-      
+
       // sanity: planes on different TPC
       if (tpcid.TPC < geom->NTPC(tpcid.Cryostat) - 1) {
         geo::PlaneID p1 { tpcid, 0 }, p2 { tpcid.Cryostat, tpcid.TPC + 1, 1 };
@@ -2723,8 +2723,8 @@ namespace geo{
           ++nErrors;
         } // if no error
       } // if not the last TPC in its cryostat
-      
-      
+
+
       // pick a point in the very middle of the TPC:
       // BUG the double brace syntax is required to work around clang bug 21629
       // (https://bugs.llvm.org/show_bug.cgi?id=21629)
@@ -2733,20 +2733,20 @@ namespace geo{
       // pick a radius half the way to the closest border
       const double radius
         = std::min({ TPC.HalfWidth(), TPC.HalfHeight(), TPC.Length()/2. }) / 2.;
-      
+
       // I arbitrary decide that the second point will have dX equal size as
       // the radius, and on the positive x direction (may be negative dT)
       const double dX = radius;
       const double dT = driftVelocity * dX;
-      
+
       // sample a circle of SplitAngles directions around A
       constexpr unsigned int NAngles = 19;
       const double start_angle = 0.05; // radians
       const double step_angle = 2. * util::pi<double>() / NAngles; // radians
-      
+
       for (unsigned int iAngle = 0; iAngle < NAngles; ++iAngle) {
         const double angle = start_angle + iAngle * step_angle;
-        
+
         // define B as a point "radius" far from A in the angle direction,
         // with some arbitrary and fixed dx offset
         // BUG the double brace syntax is required to work around clang bug 21629
@@ -2756,12 +2756,12 @@ namespace geo{
           A[1] + radius * std::sin(angle),
           A[2] + radius * std::cos(angle)
           }};
-        
+
         // get the expectation; this function assumes a drift velocity of
         // 1 mm per tick by default; for the test, it does not matter
         std::vector<std::pair<geo::PlaneID, double>> dTdWs
           = ExpectedPlane_dTdW(A, B, driftVelocity);
-        
+
         if (mf::isDebugEnabled()) {
           mf::LogTrace log("GeometryTest");
           log << "Expected dT/dW for a segment with " << radius
@@ -2770,22 +2770,22 @@ namespace geo{
           for (auto const& dTdW_info: dTdWs)
             log << "  " << dTdW_info.first << " slope:" << dTdW_info.second;
         } // if debug
-        
+
         // run the test
         nErrors += testThirdPlane_dTdW_at(dTdWs);
-        
+
       } // for angle
-      
+
     } // for TPC
-    
+
     if (nErrors > 0) {
       throw cet::exception("GeoTestThirdPlane_dTdW")
         << "Accumulated " << nErrors << " errors (see messages above)\n";
     }
-    
+
   } // GeometryTestAlg::testThirdPlane_dTdW()
-  
-  
+
+
   std::vector<std::pair<geo::PlaneID, double>>
   GeometryTestAlg::ExpectedPlane_dTdW(
     std::array<double, 3> const& A, std::array<double, 3> const& B,
@@ -2795,16 +2795,16 @@ namespace geo{
     // This function returns a list of entries, one for each plane:
     // - plane ID
     // - slope of the projection of AB from the plane, in dt/dw units
-    
+
     // find which TPC we are taking about
     geo::TPCID tpcid = geom->FindTPCAtPosition(A.data());
-    
+
     if (!tpcid.isValid) {
       throw cet::exception("GeometryTestAlg")
         << "ExpectedPlane_dTdW(): can't find any TPC containing point A ("
         << A[0] << "; " << A[1] << "; " << A[2] << ")";
     }
-    
+
     if (geom->FindTPCAtPosition(B.data()) != tpcid) {
       throw cet::exception("GeometryTestAlg")
         << "ExpectedPlane_dTdW(): point A ("
@@ -2813,9 +2813,9 @@ namespace geo{
         << " while point B (" << B[0] << "; " << B[1] << "; " << B[2]
         << ") is in " << std::string(geom->FindTPCAtPosition(B.data()));
     }
-    
+
     geo::TPCGeo const& TPC = geom->TPC(tpcid);
-    
+
     // conversion from X coordinate to tick coordinate
     double dT_over_dX = 1. / driftVelocity;
     switch (TPC.DriftDirection()) {
@@ -2831,24 +2831,24 @@ namespace geo{
           << ((int) TPC.DriftDirection()) << " of " << std::string(tpcid)
           << " not supported.\n";
     } // switch drift direction
-    
+
     const unsigned int nPlanes = TPC.Nplanes();
     std::vector<std::pair<geo::PlaneID, double>> slopes(nPlanes);
-    
+
     for (geo::PlaneID::PlaneID_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
       geo::PlaneID pid(tpcid, iPlane);
       const double wA = geom->WireCoordinate(A[1], A[2], pid);
       const double wB = geom->WireCoordinate(B[1], B[2], pid);
-      
+
       slopes[iPlane]
         = std::make_pair(pid, ((B[0] - A[0]) * dT_over_dX) / (wB - wA));
-      
+
     } // for iPlane
-    
+
     return slopes;
   }  // GeometryTestAlg::ExpectedPlane_dTdW()
-  
-  
+
+
   unsigned int GeometryTestAlg::testThirdPlane_dTdW_at
     (std::vector<std::pair<geo::PlaneID, double>> const& plane_dTdW) const
   {
@@ -2856,16 +2856,16 @@ namespace geo{
      * This function tests that for every combination of planes, the expected
      * slope is returned within some tolerance.
      * It returns the number of mistakes found.
-     * 
+     *
      * The parameter is a list if pair of expected slope on the paired plane.
      */
-    
+
     unsigned int nErrors = 0;
     for (std::pair<geo::PlaneID, double> const& input1: plane_dTdW) {
       for (std::pair<geo::PlaneID, double> const& input2: plane_dTdW) {
-        
+
         const bool bValidInput = input1.first != input2.first;
-        
+
         for (std::pair<geo::PlaneID, double> const& output: plane_dTdW) {
           bool bError = false;
           double output_slope = 0.;
@@ -2888,7 +2888,7 @@ namespace geo{
               << "  => exception";
             continue;
           }
-          
+
           if (!bValidInput && !bError) {
             MF_LOG_ERROR("GeometryTest")
               << "GeometryCore::ThirdPlane_dTdW() on "
@@ -2898,7 +2898,7 @@ namespace geo{
             ++nErrors;
             continue;
           } // if faulty input and no error
-          
+
           MF_LOG_TRACE("GeometryTest")
             << input1.first << " slope:" << input1.second
             << "  " << input2.first << " slope:" << input2.second
@@ -2914,15 +2914,15 @@ namespace geo{
               << "  (expected: " << output.second << ")";
             ++nErrors;
           } // if too far
-          
+
           // now test the automatic detection of the other plane
-          
+
         } // for output
       } // for second input
     } // for first input
     return nErrors;
   }  // GeometryTestAlg::testThirdPlane_dTdW_at()
-  
+
 
   //......................................................................
   void GeometryTestAlg::testWirePitch()
@@ -2953,15 +2953,15 @@ namespace geo{
       for (double pitch: fExpectedWirePitches) log << " " << pitch;
       log << " [...]";
     }
-    
+
     for (geo::PlaneID const& planeid: geom->IteratePlaneIDs()) {
-      
+
       geo::PlaneGeo const& plane = geom->Plane(planeid);
       const unsigned int nWires = plane.Nwires();
       if (nWires < 2) continue;
-      
+
       geo::WireGeo const* pWire = &(plane.Wire(0));
-      
+
       // which pitch to expect:
       // - if they did not tell us anything:
       //     get the one from the first two wires
@@ -2979,12 +2979,12 @@ namespace geo{
         expectedPitch = fExpectedWirePitches[planeid.Plane];
       else
         expectedPitch = fExpectedWirePitches.back();
-      
+
       geo::WireID::WireID_t w = 0; // wire number
       while (++w < nWires) {
         geo::WireGeo const* pPrevWire = pWire;
         pWire = &(plane.Wire(w));
-        
+
         const double thisPitch = std::abs(pWire->DistanceFrom(*pPrevWire));
         if (std::abs(thisPitch - expectedPitch) > 1e-5) {
           mf::LogProblem("WirePitch") << "ERROR: on plane " << planeid
@@ -2994,14 +2994,14 @@ namespace geo{
           ++nPitchErrors;
         } // if unexpected pitch
       } // while
-      
+
     } // for
-    
+
     if (nPitchErrors > 0) {
       throw cet::exception("UnexpectedWirePitch")
         << "unexpected pitches between " << nPitchErrors << " wires!";
     } // end loop over planes
-    
+
   } // GeometryTestAlg::testWirePitch()
 
   //......................................................................
@@ -3033,14 +3033,14 @@ namespace geo{
       for (double pitch: fExpectedPlanePitches) log << " " << pitch;
       log << " [...]";
     }
-    
+
     unsigned int nPitchErrors = 0;
     for (geo::TPCID const& tpcid: geom->IterateTPCIDs()) {
-      
+
       geo::TPCGeo const& TPC = geom->TPC(tpcid);
       const unsigned int nPlanes = TPC.Nplanes();
       if (nPlanes < 2) continue;
-      
+
       double expectedPitch = 0.;
       if (fExpectedPlanePitches.empty()) {
         expectedPitch = TPC.PlanePitch(0, 1);
@@ -3048,7 +3048,7 @@ namespace geo{
           << "Plane pitch between the first two planes of " << tpcid << ": "
           << expectedPitch << " cm";
       }
-      
+
       geo::PlaneID::PlaneID_t p = 0; // plane number
       while (++p < nPlanes) {
         // which pitch to expect:
@@ -3063,24 +3063,24 @@ namespace geo{
           else
             expectedPitch = fExpectedPlanePitches.back();
         } // if we have directions about plane pitch
-        
+
         const double thisPitch = std::abs(TPC.PlanePitch(p - 1, p));
         if (std::abs(thisPitch - expectedPitch) > 1e-5) {
           mf::LogProblem("PlanePitch") << "ERROR: pitch of planes P:" << (p - 1)
-            << " and P: " << p << " in " << tpcid 
+            << " and P: " << p << " in " << tpcid
             << " is " << thisPitch << " cm, not " << expectedPitch
             << " as expected!";
           ++nPitchErrors;
         } // if unexpected pitch
       } // while planes
-      
+
     } // for TPCs
-    
+
     if (nPitchErrors > 0) {
       throw cet::exception("UnexpectedPlanePitch")
         << "unexpected pitches between " << nPitchErrors << " planes!";
     } // end loop over planes
-    
+
   } // GeometryTestAlg::testPlanePitch()
 
   //......................................................................
@@ -3107,7 +3107,7 @@ namespace geo{
     for (int i=0; i<10; ++i) {
       const double* pos = gGeoManager->GetCurrentPoint();
       const double* dir = gGeoManager->GetCurrentDirection();
-      mf::LogVerbatim("GeometryTest") << "\tnode = " 
+      mf::LogVerbatim("GeometryTest") << "\tnode = "
                                       << gGeoManager->GetCurrentNode()->GetName()
                                       << "\n\t\tpos=" << "\t"
                                       << pos[0] << "\t"
@@ -3117,9 +3117,9 @@ namespace geo{
                                       << dir[0] << "\t"
                                       << dir[1] << "\t"
                                       << dir[2]
-                                      << "\n\t\tmat = " 
+                                      << "\n\t\tmat = "
                                       << gGeoManager->GetCurrentNode()->GetVolume()->GetMaterial()->GetName();
-      
+
       gGeoManager->FindNextBoundary();
       gGeoManager->FindNormal();
       gGeoManager->Step(kTRUE,kTRUE);
@@ -3127,9 +3127,9 @@ namespace geo{
 
     xyz[0] = 306.108; xyz[1] = -7.23775; xyz[2] = 856.757;
     gGeoManager->InitTrack(xyz, dxyz);
-    mf::LogVerbatim("GeometryTest") << "\tnode = " 
+    mf::LogVerbatim("GeometryTest") << "\tnode = "
                                     << gGeoManager->GetCurrentNode()->GetName()
-                                    << "\n\tmat = " 
+                                    << "\n\tmat = "
                                     << gGeoManager->GetCurrentNode()->GetVolume()->GetMaterial()->GetName();
 
     gGeoManager->GetCurrentNode()->GetVolume()->GetMaterial()->Print();
@@ -3138,13 +3138,13 @@ namespace geo{
 
   //......................................................................
 
-  void GeometryTestAlg::testProject() 
+  void GeometryTestAlg::testProject()
   {
     double xlo, xhi;
     double ylo, yhi;
     double zlo, zhi;
     geom->WorldBox(&xlo, &xhi, &ylo, &yhi, &zlo, &zhi);
-  
+
     double xyz[3]   = { 0.0, 0.0, 0.0};
     double dxyz1[3] = { 1.0, 0.0, 0.0};
     double dxyz2[3] = {-1.0, 0.0, 0.0};
@@ -3173,7 +3173,7 @@ namespace geo{
     if (std::abs(xyzo[2]-zlo)>1.E-6) abort();
   }
 
-  
+
   //......................................................................
   bool GeometryTestAlg::CheckAuxDetAtPosition
     (double const pos[3], unsigned int expected) const
@@ -3198,7 +3198,7 @@ namespace geo{
     }
     return true;
   } // GeometryTestAlg::CheckAuxDetAtPosition()
-  
+
   //......................................................................
   bool GeometryTestAlg::CheckAuxDetSensitiveAtPosition
     (double const pos[3], unsigned int expectedDet, unsigned int expectedSens)
@@ -3227,62 +3227,62 @@ namespace geo{
     }
     return true;
   } // GeometryTestAlg::CheckAuxDetAtPosition()
-  
+
   //......................................................................
   void GeometryTestAlg::testFindAuxDet() const {
-    
+
     /*
-     * 
+     *
      * Picks the center of each sensitive detector and verifies that the
      * correct sensitive detector and auxiliary detector are found.
-     * 
+     *
      */
-    
+
     unsigned int nErrors = 0;
-    
+
     unsigned int const nAuxDets = geom->NAuxDets();
-    
+
     for (unsigned int iDet = 0; iDet < nAuxDets; ++iDet) {
-      
+
       geo::AuxDetGeo const& auxDet = geom->AuxDet(iDet);
       unsigned int const nSensitive = auxDet.NSensitiveVolume();
-      
+
       if (nSensitive == 0) {
         std::array<double, 3U> center;
         auxDet.GetCenter(center.data());
-        
+
         if (!CheckAuxDetAtPosition(center.data(), iDet)) ++nErrors;
-        
+
       }
       else { // if one or more sensitive detectors
-        
+
         for (unsigned int iDetSens = 0; iDetSens < nSensitive; ++iDetSens) {
-          
+
           geo::AuxDetSensitiveGeo const& auxDetSens
             = auxDet.SensitiveVolume(iDetSens);
           std::array<double, 3U> center;
           auxDetSens.GetCenter(center.data());
-          
+
           if (!CheckAuxDetAtPosition(center.data(), iDet)) ++nErrors;
           if (!CheckAuxDetSensitiveAtPosition(center.data(), iDet, iDetSens))
             ++nErrors;
-          
+
         } // for sensitive detectors
-        
+
       } // if ... else
-      
+
     } // for all auxiliary detectors
-    
+
     if (nErrors != 0) {
       throw cet::exception("FindAuxDet")
         << "Collected " << nErrors << " errors during testFindAuxDet() test!\n";
     }
-    
-    
+
+
   } // GeometryTestAlg::testFindAuxDet()
-  
+
   //......................................................................
-  
+
   inline bool GeometryTestAlg::shouldRunTests(std::string test_name) const {
     return fRunTests(test_name);
   } // GeometryTestAlg::shouldRunTests()

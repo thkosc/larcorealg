@@ -12,4 +12,4 @@
 
 #include "Math/Functor.h"
 
-#pragma GCC diagnostic pop 
+#pragma GCC diagnostic pop

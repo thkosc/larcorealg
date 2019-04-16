@@ -33,9 +33,9 @@ namespace geo{
     : fTrans(std::move(trans))
   {
     fOpDetNode = &node;
-    
+
     fCenter = toWorldCoords(geo::origin<LocalPoint_t>());
-    
+
   }
 
   //......................................................................
@@ -52,14 +52,14 @@ namespace geo{
 
   //......................................................................
 
-  double OpDetGeo::RMax() const 
+  double OpDetGeo::RMax() const
   {
     return asTube()->GetRmax();
   }
-    
+
   //......................................................................
 
-  double OpDetGeo::HalfL() const 
+  double OpDetGeo::HalfL() const
   {
     TGeoBBox const* pBox = asBox();
     return pBox? pBox->GetDZ(): 0.0;
@@ -67,7 +67,7 @@ namespace geo{
 
   //......................................................................
 
-  double OpDetGeo::HalfW() const 
+  double OpDetGeo::HalfW() const
   {
     TGeoBBox const* pBox = asBox();
     return pBox? pBox->GetDX(): 0.0;
@@ -75,7 +75,7 @@ namespace geo{
 
   //......................................................................
 
-  double OpDetGeo::HalfH() const 
+  double OpDetGeo::HalfH() const
   {
     TGeoBBox const* pBox = asBox();
     return pBox? pBox->GetDY(): 0.0;
@@ -83,7 +83,7 @@ namespace geo{
 
   //......................................................................
 
-  double OpDetGeo::RMin() const 
+  double OpDetGeo::RMin() const
   {
     return asTube()->GetRmin();
   }
@@ -93,22 +93,22 @@ namespace geo{
   {
     auto const& center = GetCenter();
     auto const& end = toWorldCoords(LocalPoint_t{ 0.0, 0.0, HalfL() });
-    
+
     // TODO change this into something generic
     //either y or x will be 0, so ading both will always catch the right
     //one
-    double angle = (end.Y()-center.Y()+end.X()-center.X()) / 
-      std::abs(end.Y()-center.Y()+center.X()-end.X()) * 
+    double angle = (end.Y()-center.Y()+end.X()-center.X()) /
+      std::abs(end.Y()-center.Y()+center.X()-end.X()) *
       std::acos((end.Z() - center.Z())/HalfL());
-    if (angle < 0) angle += util::pi(); 
+    if (angle < 0) angle += util::pi();
     return angle;
   }
 
   //......................................................................
   double OpDetGeo::ThetaZ(bool degree) const
     { return degree? util::RadiansToDegrees(ThetaZ()): ThetaZ(); }
-  
-  
+
+
 
   //......................................................................
   double OpDetGeo::DistanceToPoint(geo::Point_t const& point) const
@@ -135,12 +135,12 @@ namespace geo{
 
   //......................................................................
   void OpDetGeo::UpdateAfterSorting(geo::OpDetID opdetid) {
-    
+
     fID = opdetid;
-    
+
   } // OpDetGeo::UpdateAfterSorting()
-  
-  
+
+
   //......................................................................
 
 }

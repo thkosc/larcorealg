@@ -4,7 +4,7 @@
  * @date   2011/02/17
  * @author brebel@fnal.gov
  * @see    GeometryTestAlg.cxx
- * 
+ *
  * Refactored by Gianluca Petrillo on May 5th, 2015.
  */
 
@@ -32,25 +32,25 @@ namespace fhicl {
 
 
 namespace geo {
-  
+
   // forward declarations
   class GeometryCore;
   class TPCGeo;
   class PlaneGeo;
   class AuxDetGeo;
   class AuxDetSensitiveGeo;
-  
+
   namespace details {
     class TestTrackerClassBase;
   } // namespace details
-  
-  
+
+
   /** **************************************************************************
    * @brief Performs tests on the geometry as seen by Geometry service
-   * 
+   *
    * Configuration parameters
    * =========================
-   * 
+   *
    * - **DisableWireBoundaryCheck** (boolean, default: false): the exceptions
    *   thrown when checking wire boundaries are not fatal
    * - **ExpectedWirePitches** (list of reals, default: empty):
@@ -109,10 +109,10 @@ namespace geo {
   class GeometryTestAlg {
       public:
     explicit GeometryTestAlg(fhicl::ParameterSet const& pset);
-    
+
     /// Virtual destructor
     virtual ~GeometryTestAlg() = default;
-    
+
     /// Runs the test
     virtual void Setup(geo::GeometryCore const& new_geo) { geom = &new_geo; }
 
@@ -130,10 +130,10 @@ namespace geo {
     std::set<std::string> fNonFatalExceptions;
     std::vector<double> fExpectedWirePitches; ///< wire pitch on each plane
     std::vector<double> fExpectedPlanePitches; ///< plane pitch on each plane
-    
+
     // using as pointer just not to have to write the declaration in the header
     testing::NameSelector fRunTests; ///< test filter
-    
+
     void printDetectorIntro() const;
     void printChannelSummary();
     void printVolBounds();
@@ -170,36 +170,36 @@ namespace geo {
     void testFindAuxDet() const;
 
     bool shouldRunTests(std::string test_name) const;
-    
+
     // single tests for testFindVolumes
     unsigned int testFindWorldVolumes();
     unsigned int testFindCryostatVolumes();
     unsigned int testFindTPCvolumePaths();
-    
+
     /// Method to print the auxiliary detectors on screen.
     void printAuxiliaryDetectors() const;
-    
+
     /// Prints information of an auxiliary detector into the specified stream.
     template <typename Stream>
     void printAuxDetGeo(
       Stream&& out, geo::AuxDetGeo const& auxDet,
       std::string indent, std::string firstIndent
       ) const;
-    
+
     /// Prints information of an auxiliary detector into the specified stream.
     template <typename Stream>
     void printAuxDetGeo
       (Stream&& out, geo::AuxDetGeo const& auxDet, std::string indent = "")
       const
       { printAuxDetGeo(std::forward<Stream>(out), auxDet, indent, indent); }
-    
+
     /// Prints information of the sensitive auxiliary detector into a stream.
     template <typename Stream>
     void printAuxDetSensitiveGeo(
       Stream&& out, geo::AuxDetSensitiveGeo const& auxDetSens,
       std::string indent, std::string firstIndent
       ) const;
-    
+
     /// Prints information of the sensitive auxiliary detector into a stream.
     template <typename Stream>
     void printAuxDetSensitiveGeo(
@@ -210,82 +210,82 @@ namespace geo {
         printAuxDetSensitiveGeo
           (std::forward<Stream>(out), auxDetSens, indent, indent);
       }
-    
+
     /// Returns whether the auxiliary detector at `pos` is the `expected` one.
     bool CheckAuxDetAtPosition
       (double const pos[3], unsigned int expected) const;
-    
+
     /// Returns whether the auxiliary sensitive detector at `pos` is expected.
     bool CheckAuxDetSensitiveAtPosition
       (double const pos[3], unsigned int expectedDet, unsigned int expectedSens)
       const;
-      
+
     /// Performs the wire intersection test at a single point
     unsigned int testWireIntersectionAt
       (geo::TPCGeo const& TPC, TVector3 const& point) const;
-    
+
     /// Returns dT/dW expected from the specified segment A-to-B
     std::vector<std::pair<geo::PlaneID, double>> ExpectedPlane_dTdW(
       std::array<double, 3> const& A, std::array<double, 3> const& B,
       const double driftVelocity = -0.1
       ) const;
-    
+
     /// Performs the third plane slope test with a single configuration
     unsigned int testThirdPlane_dTdW_at
       (std::vector<std::pair<geo::PlaneID, double>> const& plane_dTdW) const;
-    
+
   };
-  
-  
+
+
   namespace details {
     /// Class telling whether a test needs to be run
     class TestTrackerClassBase {
         public:
       using TestList_t = std::set<std::string>;
-      
+
       virtual ~TestTrackerClassBase() = default;
-      
+
       /// Returns whether the specified test should run
       virtual bool ShouldRun(std::string test_name) const = 0;
-      
+
       /// Checks the test and records the request
       bool operator() (std::string test_name);
-      
+
       /// Allow the specified test to run
       virtual void PleaseRunAlso(std::string test_name) = 0;
-      
+
       /// Returns the tests that have been run
       TestList_t const& RunTests() const { return run; }
-      
+
       /// Returns the tests that have been skipped
       TestList_t const& SkippedTests() const { return skipped; }
-      
+
       /// Returns the tests that have been queried
       TestList_t QueriedTests() const;
-      
+
       /// Checks that the validity of the configuration (after the fact)
       virtual bool CheckQueriesRegistry() const;
-      
+
       /// Prints information about the configuration of the filter
       virtual void PrintConfiguration(std::ostream&) const;
-      
+
         protected:
       TestList_t run; ///< requested tests that should be run
       TestList_t skipped; ///< requested tests that should be skipped
-      
+
       virtual void RecordRequest(std::string test_name, bool bRun);
-      
+
       /// Checks the test and records the request
       virtual bool Query(std::string test_name);
-      
+
       /// Adds a vector of tests into a test set
       static void CopyList
         (TestList_t& dest, std::vector<std::string> const& from);
     }; // class TestTrackerClassBase
-    
+
   } // namespace details
-  
-  
+
+
 } // namespace geo
 
 #endif // GEO_GEOMETRYTESTALG_H

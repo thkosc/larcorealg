@@ -3,7 +3,7 @@
  * @brief  Test for neighbourhood discovery in simple geometries.
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   July 12, 2017
- * 
+ *
  * Usage: just run the executable.
  */
 
@@ -30,7 +30,7 @@
 
 
 struct Neighbors_t {
-  
+
   static constexpr std::size_t Width = 0;
   static constexpr std::size_t Depth = 1;
   static constexpr std::size_t Drift = 2;
@@ -38,15 +38,15 @@ struct Neighbors_t {
   static constexpr std::size_t Pos = 0;
   static constexpr std::size_t Neg = 1;
   static constexpr std::size_t NDirs = 2;
-  
+
   std::vector<geo::BoxBoundedGeo const*> neighbors[NDims][NDirs];
-  
+
 }; // Neighbors_t
 
 
 //------------------------------------------------------------------------------
 void BoxedTopologyTest() {
-  
+
   //
   // definition of the topology; something simple here: a 3x3x3 cube
   //
@@ -57,24 +57,24 @@ void BoxedTopologyTest() {
     for (int y = -1; y <= 1; ++y)
       for (int z = -1; z <= 1; ++z)
         boxes.emplace_back(
-          side * (x - 0.5), side * (x + 0.5), 
-          side * (y - 0.5), side * (y + 0.5), 
+          side * (x - 0.5), side * (x + 0.5),
+          side * (y - 0.5), side * (y + 0.5),
           side * (z - 0.5), side * (z + 0.5)
           );
   std::vector<geo::BoxBoundedGeo const*> volumes;
   std::transform(boxes.cbegin(), boxes.cend(), std::back_inserter(volumes),
     [](auto& obj){ return std::addressof(obj); });
-  
+
   //
   // discovery of the neighbourhood
   //
-  
+
   //
   // verification of the result
   //
-  
-  
-  
+
+
+
 } // BoxedTopologyTest()
 
 

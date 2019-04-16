@@ -72,12 +72,12 @@ namespace geo{
     // Check hardware channel number
     unsigned int hChan = this->HardwareChannelFromOpChannel(opChannel);
     if (hChan >= this->NOpHardwareChannels(opdet)) return false;
-    
+
     return true;
   }
 
   //----------------------------------------------------------------------------
-  size_t ChannelMapAlg::NearestAuxDet(const double* point, 
+  size_t ChannelMapAlg::NearestAuxDet(const double* point,
 				      std::vector<geo::AuxDetGeo*> const& auxDets) const
   {
     double HalfCenterWidth = 0.;
@@ -111,21 +111,21 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  size_t ChannelMapAlg::NearestSensitiveAuxDet(const double* point, 
+  size_t ChannelMapAlg::NearestSensitiveAuxDet(const double* point,
 					       std::vector<geo::AuxDetGeo*> const& auxDets) const
   {
     double HalfCenterWidth = 0.;
     double localPoint[3] = {0.};
 
     size_t auxDetIdx = this->NearestAuxDet(point, auxDets);
-    
+
     geo::AuxDetGeo* adg = auxDets[auxDetIdx];
 
     for(size_t a = 0; a < adg->NSensitiveVolume(); ++a) {
 
       geo::AuxDetSensitiveGeo const& adsg = adg->SensitiveVolume(a);
-      adsg.WorldToLocal(point, localPoint);    
-  
+      adsg.WorldToLocal(point, localPoint);
+
       HalfCenterWidth = 0.5 * (adsg.HalfWidth1() + adsg.HalfWidth2());
 
       if( localPoint[2] >= - adsg.Length()/2       &&
@@ -152,12 +152,12 @@ namespace geo{
 					std::string                  const& detName,
 					uint32_t                     const& /*channel*/) const
   {
-    // loop over the map of AuxDet names to Geo object numbers to determine which auxdet 
+    // loop over the map of AuxDet names to Geo object numbers to determine which auxdet
     // we have.  If no name in the map matches the provided string, throw an exception
     for(auto itr : fADNameToGeo)
       if( itr.first.compare(detName) == 0 ) return itr.second;
 
-    
+
     throw cet::exception("Geometry") << "No AuxDetGeo matching name: " << detName;
 
     return UINT_MAX;
@@ -176,17 +176,17 @@ namespace geo{
     if( fADChannelToSensitiveGeo.count(adGeoIdx) > 0 ){
 
       auto itr = fADChannelToSensitiveGeo.find(adGeoIdx);
-      
+
       // get the vector of channels to AuxDetSensitiveGeo index
       if( channel < itr->second.size() )
 	return std::make_pair(adGeoIdx, itr->second[channel]);
 
-      throw cet::exception("Geometry") << "Given AuxDetSensitive channel, " << channel 
+      throw cet::exception("Geometry") << "Given AuxDetSensitive channel, " << channel
 				       << ", cannot be found in vector associated to AuxDetGeo index: "
 				       << adGeoIdx << ". Vector has size " << itr->second.size();
     }
 
-    throw cet::exception("Geometry") << "Given AuxDetGeo with index " << adGeoIdx 
+    throw cet::exception("Geometry") << "Given AuxDetGeo with index " << adGeoIdx
 				     << " does not correspond to any vector of sensitive volumes";
 
     return std::make_pair(adGeoIdx, UINT_MAX);

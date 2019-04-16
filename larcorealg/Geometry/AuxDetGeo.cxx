@@ -26,7 +26,7 @@
 #include <limits>
 
 namespace geo{
-  
+
   //-----------------------------------------
   AuxDetGeo::AuxDetGeo(
     TGeoNode const& node, geo::TransformationMatrix&& trans,
@@ -36,27 +36,27 @@ namespace geo{
     , fTrans(std::move(trans))
     , fSensitive(std::move(sensitive))
   {
-    
+
     if(!fTotalVolume)
       throw cet::exception("AuxDetGeo") << "cannot find AuxDet volume\n";
-    
+
     MF_LOG_DEBUG("Geometry") << "detector total  volume is " << fTotalVolume->GetName();
-    
+
     // if there are no sensitive volumes then this aux det
     // could be from an older gdml file than the introduction of AuxDetSensitiveGeo
     // in that case assume the full AuxDetGeo is sensitive and copy its information
     // into a single AuxDetSensitive
     if (fSensitive.empty())
       fSensitive.emplace_back(node, geo::TransformationMatrix(fTrans.Matrix()));
-    
+
     InitShapeSize();
-    
+
   }
-  
+
   //......................................................................
   geo::Point_t AuxDetGeo::GetCenter(double localz /* = 0.0 */) const
     { return toWorldCoords(LocalPoint_t{ 0.0, 0.0, localz }); }
-  
+
   //......................................................................
   void AuxDetGeo::GetCenter(double* xyz, double localz) const {
     auto const& center = GetCenter(localz);
@@ -64,15 +64,15 @@ namespace geo{
     xyz[1] = center.Y();
     xyz[2] = center.Z();
   } // AuxDetGeo::GetCenter(double*)
-  
+
   //......................................................................
-  
+
   // Return the unit normal vector (0,0,1) in local coordinates to global coordinates
   geo::Vector_t AuxDetGeo::GetNormalVector() const
     { return toWorldCoords(geo::Zaxis<LocalVector_t>()); }
-  
+
   //......................................................................
-  
+
   // Return the unit normal vector (0,0,1) in local coordinates to global coordinates
   void AuxDetGeo::GetNormalVector(double* xyzDir) const {
     auto const& norm = GetNormalVector();
@@ -80,22 +80,22 @@ namespace geo{
     xyzDir[1] = norm.Y();
     xyzDir[2] = norm.Z();
   } // AuxDetGeo::GetNormalVector(double*)
-  
-  
+
+
   //......................................................................
   geo::Length_t AuxDetGeo::DistanceToPoint(double const* point) const
     { return DistanceToPoint(geo::vect::makePointFromCoords(point)); }
 
-  //......................................................................  
+  //......................................................................
   std::size_t AuxDetGeo::FindSensitiveVolume(geo::Point_t const& point) const
   {
     for(std::size_t a = 0; a < fSensitive.size(); ++a) {
       auto const& sensVol = SensitiveVolume(a);
 
       auto const local = sensVol.toLocalCoords(point);
-      
+
       double const HalfCenterWidth = sensVol.HalfCenterWidth();
-      
+
       double const deltaWidth
         = local.Z()*(HalfCenterWidth-sensVol.HalfWidth2())/sensVol.HalfLength();
 
@@ -109,19 +109,19 @@ namespace geo{
         )  return a;
 
     }// for loop over AuxDetSensitive a
-    
+
     throw cet::exception("AuxDetGeo")
       << "Can't find AuxDetSensitive for position " << point << "\n";
     // the following is not very useful right now...
     return std::numeric_limits<std::size_t>::max();
   } // AuxDetGeo::FindSensitiveVolume(geo::Point_t)
-  
-  //......................................................................  
+
+  //......................................................................
   std::size_t AuxDetGeo::FindSensitiveVolume(double const worldPos[3]) const
     { return FindSensitiveVolume(geo::vect::makePointFromCoords(worldPos)); }
-  
-  
-  //......................................................................  
+
+
+  //......................................................................
   AuxDetSensitiveGeo const& AuxDetGeo::PositionToSensitiveVolume
     (geo::Point_t const& point, size_t& sv) const
   {
@@ -133,12 +133,12 @@ namespace geo{
     return SensitiveVolume(sv);
   }
 
-  //......................................................................  
+  //......................................................................
   AuxDetSensitiveGeo const& AuxDetGeo::PositionToSensitiveVolume
     (double const worldLoc[3], size_t& sv) const
     { return PositionToSensitiveVolume(geo::vect::makePointFromCoords(worldLoc), sv); }
 
-  //......................................................................  
+  //......................................................................
   void AuxDetGeo::SortSubVolumes(GeoObjectSorter const& sorter)
   {
     // the sorter interface requires a vector of pointers;
@@ -147,7 +147,7 @@ namespace geo{
       (fSensitive, [&sorter](auto& coll){ sorter.SortAuxDetSensitive(coll); });
   }
 
-  //......................................................................  
+  //......................................................................
   std::string AuxDetGeo::AuxDetInfo
     (std::string indent /* = "" */, unsigned int verbosity /* = 1 */) const
   {
@@ -155,9 +155,9 @@ namespace geo{
     PrintAuxDetInfo(sstr, indent, verbosity);
     return sstr.str();
   } // AuxDetGeo::AuxDetInfo()
-  
-  
-  //......................................................................  
+
+
+  //......................................................................
   void AuxDetGeo::InitShapeSize() {
     // set the ends depending on whether the shape is a box or trapezoid
     std::string volName(fTotalVolume->GetName());
@@ -168,13 +168,13 @@ namespace geo{
       //         /    \     T     of the trapezoid
       //        /      \    |
       //       /        \   | Length
-      //      /__________\  _ 
-      //         Width 
+      //      /__________\  _
+      //         Width
       fHalfHeight      =     ((TGeoTrd2*)fTotalVolume->GetShape())->GetDy1(); // same as Dy2()
       fLength          = 2.0*((TGeoTrd2*)fTotalVolume->GetShape())->GetDz();
       fHalfWidth1      =     ((TGeoTrd2*)fTotalVolume->GetShape())->GetDx1(); // at -Dz
       fHalfWidth2      =     ((TGeoTrd2*)fTotalVolume->GetShape())->GetDx2(); // at +Dz
-    } 
+    }
     else {
       fHalfWidth1      =     ((TGeoBBox*)fTotalVolume->GetShape())->GetDX();
       fHalfHeight      =     ((TGeoBBox*)fTotalVolume->GetShape())->GetDY();
@@ -182,8 +182,8 @@ namespace geo{
       fHalfWidth2      = fHalfWidth1;
     }
   } // AuxDetGeo::InitShapeSize()
-  
-  //......................................................................  
-  
+
+  //......................................................................
+
 }
 ////////////////////////////////////////////////////////////////////////

@@ -14,14 +14,14 @@ struct AClass {
          std::cout << present() << ": Do()" << std::endl;
          lar::debug::printBacktrace(std::cout);
       }
-  
+
   std::string present() const
   {
      std::ostringstream sstr;
      sstr << lar::debug::demangle(this) << "[" << ((void*) this) << "]";
      return sstr.str();
   } // present()
-  
+
 }; // AClass
 
 
@@ -38,14 +38,14 @@ struct BClass {
          sstr << lar::debug::demangle(this) << "[" << ((void*) this) << "]";
          return sstr.str();
       } // present()
-      
+
    AClass a;
 }; // BClass
 
 
 struct CClass {
    CClass() { Do(); }
-   
+
    void Do()
       {
          std::cout << present() << ": Do()" << std::endl;
@@ -58,22 +58,22 @@ struct CClass {
          sstr << lar::debug::demangle(this) << "[" << ((void*) this) << "]";
          return sstr.str();
       } // present()
-      
+
    AClass a;
 }; // CClass
 
 
 int main(int /* argc */, char** /* argv */) {
-   
+
    AClass a;
    a.Do();
-   
+
    BClass b;
    b.Do();
 
-   // create test classes in a deeper, non-local context   
+   // create test classes in a deeper, non-local context
    std::vector<CClass> v [[gnu::unused]] (2);
-   
+
    return 0;
 } // main()
 

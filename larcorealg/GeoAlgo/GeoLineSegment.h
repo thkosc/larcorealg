@@ -2,7 +2,7 @@
  * \file GeoLineSegment.h
  *
  * \ingroup GeoAlgo
- * 
+ *
  * \brief Class def header for a class LineSegment
  *
  * @author kazuhiro
@@ -23,12 +23,12 @@ namespace geoalgo {
      Defines a finite 3D straight line by having the start and end position (Point_t). \n
   */
   class LineSegment{
-    
+
   public:
-    
+
     /// Default constructor
     LineSegment();
-    
+
     /// Default destructor
     virtual ~LineSegment(){}
 
@@ -69,12 +69,12 @@ namespace geoalgo {
       : LineSegment(Point_t(start), Point_t(end))
     {}
 
-    
+
   };
 
   typedef LineSegment LineSegment_t;
 }
 
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
 

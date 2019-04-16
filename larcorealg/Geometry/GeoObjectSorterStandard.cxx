@@ -14,7 +14,7 @@
 #include "larcorealg/Geometry/WireGeo.h"
 
 namespace {
-  
+
   // Tolerance when comparing distances in geometry:
   static constexpr double DistanceTol = 0.001; // cm
 
@@ -34,9 +34,9 @@ namespace geo{
     // assume volume name is "volAuxDet##"
     int ad1Num = atoi( ad1name.substr( 9, ad1name.size()).c_str() );
     int ad2Num = atoi( ad2name.substr( 9, ad2name.size()).c_str() );
-    
+
     return ad1Num < ad2Num;
-   
+
   }
 
   //----------------------------------------------------------------------------
@@ -51,9 +51,9 @@ namespace geo{
     // assume volume name is "volAuxDetSensitive##"
     int ad1Num = atoi( ad1name.substr( 9, ad1name.size()).c_str() );
     int ad2Num = atoi( ad2name.substr( 9, ad2name.size()).c_str() );
-    
+
     return ad1Num < ad2Num;
-   
+
   }
 
   //----------------------------------------------------------------------------
@@ -61,17 +61,17 @@ namespace geo{
   static bool sortCryoStandard(const CryostatGeo* c1, const CryostatGeo* c2)
   {
     double xyz1[3] = {0.}, xyz2[3] = {0.};
-    double local[3] = {0.}; 
+    double local[3] = {0.};
     c1->LocalToWorld(local, xyz1);
     c2->LocalToWorld(local, xyz2);
 
-    return xyz1[0] < xyz2[0];   
+    return xyz1[0] < xyz2[0];
   }
 
 
   //----------------------------------------------------------------------------
   // Define sort order for tpcs in standard configuration.
-  static bool sortTPCStandard(const TPCGeo* t1, const TPCGeo* t2) 
+  static bool sortTPCStandard(const TPCGeo* t1, const TPCGeo* t2)
   {
     double xyz1[3] = {0.};
     double xyz2[3] = {0.};
@@ -88,7 +88,7 @@ namespace geo{
 
   //----------------------------------------------------------------------------
   // Define sort order for planes in standard configuration
-  static bool sortPlaneStandard(const PlaneGeo* p1, const PlaneGeo* p2) 
+  static bool sortPlaneStandard(const PlaneGeo* p1, const PlaneGeo* p2)
   {
     double xyz1[3] = {0.};
     double xyz2[3] = {0.};
@@ -142,7 +142,7 @@ namespace geo{
   void GeoObjectSorterStandard::SortAuxDets(std::vector<geo::AuxDetGeo*> & adgeo) const
   {
     std::sort(adgeo.begin(), adgeo.end(), sortAuxDetStandard);
-    
+
     return;
   }
 
@@ -150,7 +150,7 @@ namespace geo{
   void GeoObjectSorterStandard::SortAuxDetSensitive(std::vector<geo::AuxDetSensitiveGeo*> & adsgeo) const
   {
     std::sort(adsgeo.begin(), adsgeo.end(), sortAuxDetSensitiveStandard);
-    
+
     return;
   }
 
@@ -158,14 +158,14 @@ namespace geo{
   void GeoObjectSorterStandard::SortCryostats(std::vector<geo::CryostatGeo*> & cgeo) const
   {
     std::sort(cgeo.begin(), cgeo.end(), sortCryoStandard);
-    
+
     return;
   }
 
   //----------------------------------------------------------------------------
   void GeoObjectSorterStandard::SortTPCs(std::vector<geo::TPCGeo*>  & tgeo) const
   {
-    
+
     std::sort(tgeo.begin(), tgeo.end(), sortTPCStandard);
 
     return;

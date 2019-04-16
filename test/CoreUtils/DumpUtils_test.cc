@@ -3,8 +3,8 @@
  * @brief  Unit test for utilities in DumpUtils.h
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   February 28, 2017
- * 
- * 
+ *
+ *
  */
 
 // Boost libraries
@@ -85,22 +85,22 @@ void ArrayTest_ptr() {
 }
 
 void ArrayTest() {
-  
+
   ArrayTest_STLarray();
   ArrayTest_STLvector();
   ArrayTest_array();
   ArrayTest_carray();
   ArrayTest_ptr();
   ArrayTest_cptr();
-  
+
 } // ArrayTest()
 
 
 //------------------------------------------------------------------------------
 void ArrayDocumentationTest() {
-  
+
   std::ostringstream sstr;
-  
+
   /* This is the code as in the documentation:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * double const data[5] = { 1., 2., 3., 4., 6. };
@@ -117,7 +117,7 @@ void ArrayDocumentationTest() {
 
   sstr << lar::dump::array<5>(data);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 3; 4; 6 }");
-  
+
 } // ArrayDocumentationTest()
 
 
@@ -141,20 +141,20 @@ void VectorTest_STLlist() {
 } // VectorTest_STLlist()
 
 void VectorTest() {
-  
+
   VectorTest_STLvector();
   VectorTest_STLlist();
-  
+
 } // VectorTest()
 
 
 //------------------------------------------------------------------------------
 void VectorDocumentationTest() {
-  
+
   std::ostringstream sstr;
-  
+
   /* This is the code as in the documentation:
-   * 
+   *
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * std::vector<double> data = { 1., 2., 3., 4., 6. };
    * std::cout << "Data: " << lar::dump::vector(data) << std::endl;
@@ -164,13 +164,13 @@ void VectorDocumentationTest() {
    * Data: { 1; 2; 3; 4; 6 }
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */
-  
+
   std::vector<double> data = { 1., 2., 3., 4., 6. };
   std::cout << "Data: " << lar::dump::vector(data) << std::endl;
-  
+
   sstr << lar::dump::array<5>(data);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 1; 2; 3; 4; 6 }");
-  
+
 } // VectorDocumentationTest()
 
 
@@ -219,21 +219,21 @@ void Vector3Dtest_ptr() {
 
 
 void Vector3Dtest() {
-  
+
   Vector3Dtest_TVector3();
   Vector3Dtest_array();
   Vector3Dtest_carray();
   Vector3Dtest_ptr();
   Vector3Dtest_cptr();
-  
+
 } // Vector3Dtest()
 
 
 //------------------------------------------------------------------------------
 void Vector3DstreamOutputDocumentationTest() {
-  
+
   std::ostringstream sstr;
-  
+
   /* This is the code as in the documentation:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * TVector3 pos;
@@ -250,14 +250,14 @@ void Vector3DstreamOutputDocumentationTest() {
 
   sstr << lar::dump::vector3D(pos);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 0; 0; 0 }");
-  
+
 } // Vector3DstreamOutputDocumentationTest()
 
 
 void Vector3DstringConcatDocumentationTest() {
-  
+
   std::ostringstream sstr;
-  
+
   /* This is the code as in the documentation:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * TVector3 pos;
@@ -273,16 +273,16 @@ void Vector3DstringConcatDocumentationTest() {
   TVector3 pos;
   std::runtime_error e("Position: " + lar::dump::vector3D(pos));
   std::cout << e.what() << std::endl;
-  
+
   BOOST_CHECK_EQUAL(std::string(e.what()), "Position: { 0; 0; 0 }");
-  
+
 } // Vector3DstringConcatDocumentationTest()
 
 
 void Vector3DstringAppendDocumentationTest() {
-  
+
   std::ostringstream sstr;
-  
+
   /* This is the code that should have been in the documentation:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * TVector3 pos;
@@ -300,9 +300,9 @@ void Vector3DstringAppendDocumentationTest() {
   std::string s = "Position: ";
   s += lar::dump::vector3D(pos);
   std::cout << s << std::endl;
-  
+
   BOOST_CHECK_EQUAL(s, "Position: { 0; 0; 0 }");
-  
+
 } // Vector3DstringAppendDocumentationTest()
 
 
@@ -319,67 +319,67 @@ void Vector3DdocumentationTest() {
 
 namespace lar {
   namespace dump {
-    
+
     // specialization for 3D std::array<>
     template <typename T>
     struct VectorDumper<std::array<T, 3U>> {
-      
+
       using Vector_t = std::array<T, 3U>;
-      
+
       Vector_t const& a;
-      
+
       VectorDumper(Vector_t const& a): a(a) {}
-      
+
       template <typename Stream>
       void operator() (Stream&& out) const
         { out << "{ " << a[0] << "; " << a[1] << "; " << a[2] << " }"; }
-      
+
     }; // struct VectorDumper<array>
-    
-    
+
+
   } // namespace dump
 } // namespace lar
 
 
 void Vector3DspecializationTest() {
-  
+
   std::ostringstream sstr;
 
   std::array<float, 3U> v;
   v.fill(0.0);
   sstr << lar::dump::vector3D(v);
   BOOST_CHECK_EQUAL(sstr.str(), "{ 0; 0; 0 }");
-  
+
 } // Vector3DspecializationTest()
 
 
 
 //------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(DumpArrays_testcase) {
-  
+
   ArrayTest();
-  
+
   ArrayDocumentationTest();
-  
+
 } // BOOST_AUTO_TEST_CASE(DumpArrays_testcase)
 
 
 BOOST_AUTO_TEST_CASE(DumpVectors_testcase) {
-  
+
   VectorTest();
-  
+
   VectorDocumentationTest();
-  
+
 } // BOOST_AUTO_TEST_CASE(DumpVectors_testcase)
 
 
 BOOST_AUTO_TEST_CASE(Dump3Dvectors_testcase) {
-  
+
   Vector3Dtest();
-  
+
   Vector3DdocumentationTest();
-  
+
   Vector3DspecializationTest();
-  
+
 } // BOOST_AUTO_TEST_CASE(Dump3Dvectors_testcase)
 

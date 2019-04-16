@@ -4,9 +4,9 @@
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   April 28, 2016
  * @see    UncopiableAndUnmovableClass.h
- * 
+ *
  * This test takes no command line argument.
- * 
+ *
  */
 
 /*
@@ -31,7 +31,7 @@
 
 //------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(UncopiableAndUnmovableClassTest) {
-   
+
    // check lar::UncopiableAndUnmovableClass class itself
    BOOST_CHECK
      (!std::is_copy_constructible<lar::UncopiableAndUnmovableClass>::value);
@@ -41,42 +41,42 @@ BOOST_AUTO_TEST_CASE(UncopiableAndUnmovableClassTest) {
      (!std::is_move_constructible<lar::UncopiableAndUnmovableClass>::value);
    BOOST_CHECK
      (!std::is_move_assignable<lar::UncopiableAndUnmovableClass>::value);
-   
-   
+
+
    // check a class derived from lar::UncopiableAndUnmovableClass class
    struct Derived: protected lar::UncopiableAndUnmovableClass {};
-   
+
    BOOST_CHECK(!std::is_copy_constructible<Derived>::value);
    BOOST_CHECK(!std::is_copy_assignable   <Derived>::value);
    BOOST_CHECK(!std::is_move_constructible<Derived>::value);
    BOOST_CHECK(!std::is_move_assignable   <Derived>::value);
-   
-   
+
+
    // check a class derived from lar::UncopiableAndUnmovableClass class
    // and made movable
    struct MovableDerived: protected lar::UncopiableAndUnmovableClass {
       MovableDerived(MovableDerived&&):
         lar::UncopiableAndUnmovableClass() {}
    };
-   
+
    BOOST_CHECK(!std::is_copy_constructible<MovableDerived>::value);
    BOOST_CHECK(!std::is_copy_assignable   <MovableDerived>::value);
    BOOST_CHECK( std::is_move_constructible<MovableDerived>::value);
    BOOST_CHECK(!std::is_move_assignable   <MovableDerived>::value);
-   
-   
+
+
    // check a class derived from lar::UncopiableAndUnmovableClass class
    // and made both copy- and move-assignable
    struct AssignableDerived: protected lar::UncopiableAndUnmovableClass {
       AssignableDerived& operator=(AssignableDerived const&) { return *this; }
       AssignableDerived& operator=(AssignableDerived&&) { return *this; }
    };
-   
+
    BOOST_CHECK(!std::is_copy_constructible<AssignableDerived>::value);
    BOOST_CHECK( std::is_copy_assignable   <AssignableDerived>::value);
    BOOST_CHECK(!std::is_move_constructible<AssignableDerived>::value);
    BOOST_CHECK( std::is_move_assignable   <AssignableDerived>::value);
-   
+
 } // BOOST_AUTO_TEST_CASE(larProviderFromTest)
 
 

@@ -2,7 +2,7 @@
  * \file GeoVector.h
  *
  * \ingroup GeoAlgo
- * 
+ *
  * \brief Class def header for a class Point and Vector
  *
  * @author kazuhiro
@@ -56,12 +56,12 @@ namespace geoalgo {
     Vector(const double x, const double y, const double z); ///< ctor w/ x, y & z
     Vector(const TVector3 &pt);                             ///< ctor w/ TVector3
     Vector(const TLorentzVector &pt);                       ///< ctor w/ TLorentzVector
-    
+
     virtual ~Vector(){} ///< Default dtor
 
     void   Normalize(); ///< Normalize itself
-    
-    bool   IsValid () const; ///< Check if point is valid    
+
+    bool   IsValid () const; ///< Check if point is valid
     double SqLength() const; ///< Compute the squared length of the vector
     double Length  () const; ///< Compute the length of the vector
     Vector Dir     () const; ///< Return a direction unit vector
@@ -101,7 +101,7 @@ namespace geoalgo {
     //
     // binary/uniry operators
     //
-    inline Vector& operator+=(const Vector& rhs) { 
+    inline Vector& operator+=(const Vector& rhs) {
       for(size_t i=0; i<size(); ++i) (*this)[i] += rhs[i];
       return *this;
     }
@@ -128,21 +128,21 @@ namespace geoalgo {
     }
 
     inline Vector operator+(const Vector& rhs) const
-    { 
+    {
       Vector res((*this));
       res+=rhs;
       return res;
     }
 
     inline Vector operator-(const Vector& rhs) const
-    { 
+    {
       Vector res((*this));
       res-=rhs;
       return res;
     }
 
     inline double operator*(const Vector& rhs) const
-    { 
+    {
       double res=0;
       for(size_t i=0; i<size(); ++i) res += (*this)[i] * rhs[i];
       return res;
@@ -162,21 +162,21 @@ namespace geoalgo {
       return res;
     }
 
-    inline bool operator< ( const Vector& rhs ) const 
-    { 
+    inline bool operator< ( const Vector& rhs ) const
+    {
       compat(rhs);
       for(size_t i=0; i<size(); ++i)
 	if((*this)[i] < rhs[i]) return true;
       return false;
     }
 
-    inline bool operator< ( const double& rhs) const 
+    inline bool operator< ( const double& rhs) const
     { return Length() < rhs; }
 
     inline bool operator== ( const Vector& rhs) const
-    { 
-      compat(rhs); 
-      for(size_t i=0; i<size(); ++i) 
+    {
+      compat(rhs);
+      for(size_t i=0; i<size(); ++i)
 	if((*this)[i] != rhs[i]) return false;
       return true;
     }
@@ -200,7 +200,7 @@ namespace geoalgo {
   typedef Vector Point_t;
 }
 
-// Define a pointer comparison                                                                                                                     
+// Define a pointer comparison
 namespace std {
   template <>
   class less<geoalgo::Vector*>
@@ -212,4 +212,4 @@ namespace std {
 }
 
 #endif
-/** @} */ // end of doxygen group 
+/** @} */ // end of doxygen group
