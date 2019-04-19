@@ -62,6 +62,7 @@
 #include "larcorealg/Geometry/GeometryDataContainers.h" // geo::TPCDataContainer
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect namespace
 #include "larcorealg/CoreUtils/RealComparisons.h"
+#include "larcorealg/CoreUtils/span.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
@@ -170,7 +171,17 @@ namespace geo {
       using LocalID_t = geo::CryostatID; ///< type of the ID we change
       static_assert(std::is_base_of<LocalID_t, GEOID>::value,
         "template type GEOID is not a LocalID_t");
-
+      
+      
+      /// @name Iterator traits
+      /// @{
+      using difference_type = std::ptrdiff_t;
+      using value_type = LocalID_t;
+      using reference = value_type const&;
+      using pointer  = value_type const*;
+      using iterator_category = std::input_iterator_tag;
+      /// @}
+      
 
       /// Default constructor; effect not defined: assign to it before using!
       cryostat_id_iterator_base() {}
@@ -208,10 +219,10 @@ namespace geo {
         { return localID() != as.localID(); }
 
       /// Returns the ID the iterator points to
-      LocalID_t const& operator* () const { return localID(); }
+      reference operator* () const { return localID(); }
 
       /// Returns a pointer to the ID the iterator points to
-      LocalID_t const* operator-> () const { return &(localID()); }
+      pointer operator-> () const { return &(localID()); }
 
       /// Prefix increment: returns this iterator pointing to the next cryostat
       iterator& operator++ () { next(); return *this; }
@@ -318,6 +329,17 @@ namespace geo {
       using upper_iterator::begin_pos;
       using upper_iterator::end_pos;
 
+      
+      /// @name Iterator traits
+      /// @{
+      using difference_type = std::ptrdiff_t;
+      using value_type = LocalID_t;
+      using reference = value_type const&;
+      using pointer  = value_type const*;
+      using iterator_category = std::input_iterator_tag;
+      /// @}
+      
+      
       /// Default constructor; effect not defined: assign to it before using!
       TPC_id_iterator_base() {}
 
@@ -353,10 +375,10 @@ namespace geo {
         { return localID() != as.localID(); }
 
       /// Returns the TPCID the iterator points to
-      LocalID_t const& operator* () const { return localID(); }
+      reference operator* () const { return localID(); }
 
       /// Returns the TPCID the iterator points to
-      LocalID_t const* operator-> () const { return &(localID()); }
+      pointer operator-> () const { return &(localID()); }
 
       /// Prefix increment: returns this iterator pointing to the next TPC
       iterator& operator++ () { next(); return *this; }
@@ -455,6 +477,17 @@ namespace geo {
       using upper_iterator::begin_pos;
       using upper_iterator::end_pos;
 
+      
+      /// @name Iterator traits
+      /// @{
+      using difference_type = std::ptrdiff_t;
+      using value_type = LocalID_t;
+      using reference = value_type const&;
+      using pointer  = value_type const*;
+      using iterator_category = std::input_iterator_tag;
+      /// @}
+      
+      
       /// Default constructor; effect not defined: assign to it before using!
       plane_id_iterator_base() {}
 
@@ -490,10 +523,10 @@ namespace geo {
         { return localID() != as.localID(); }
 
       /// Returns the PlaneID the iterator points to
-      LocalID_t const& operator* () const { return localID(); }
+      reference operator* () const { return localID(); }
 
       /// Returns the PlaneID the iterator points to
-      LocalID_t const* operator-> () const { return &(localID()); }
+      pointer operator-> () const { return &(localID()); }
 
       /// Prefix increment: returns this iterator pointing to the next plane
       iterator& operator++ () { next(); return *this; }
@@ -592,6 +625,17 @@ namespace geo {
       using upper_iterator::begin_pos;
       using upper_iterator::end_pos;
 
+      
+      /// @name Iterator traits
+      /// @{
+      using difference_type = std::ptrdiff_t;
+      using value_type = LocalID_t;
+      using reference = value_type const&;
+      using pointer  = value_type const*;
+      using iterator_category = std::input_iterator_tag;
+      /// @}
+      
+      
       /// Default constructor; effect not defined: assign to it before using!
       wire_id_iterator_base() {}
 
@@ -627,10 +671,10 @@ namespace geo {
         { return localID() != as.localID(); }
 
       /// Returns the WireID the iterator points to
-      LocalID_t const& operator* () const { return localID(); }
+      reference operator* () const { return localID(); }
 
       /// Returns the WireID the iterator points to
-      LocalID_t const* operator-> () const { return &(localID()); }
+      pointer operator-> () const { return &(localID()); }
 
       /// Prefix increment: returns this iterator pointing to the next wire
       iterator& operator++ () { next(); return *this; }
@@ -767,6 +811,17 @@ namespace geo {
       /// Geometry class pointed by the iterator
       using Element_t = typename std::remove_pointer<ElementPtr_t>::type;
 
+      
+      /// @name Iterator traits
+      /// @{
+      using difference_type = std::ptrdiff_t;
+      using value_type = Element_t;
+      using reference = value_type const&;
+      using pointer  = value_type const*;
+      using iterator_category = std::forward_iterator_tag;
+      /// @}
+      
+      
       /// Default constructor; effect not defined: assign to it before using!
       geometry_element_iterator() = default;
 
@@ -812,7 +867,7 @@ namespace geo {
        * @throw cet::exception (category "geometry_iterator") if no valid
        *   geometry element is currently pointed by the iterator
        */
-      Element_t const& operator* () const
+      reference operator* () const
         {
           ElementPtr_t ptr = get();
           if (ptr) return *ptr;
@@ -822,7 +877,7 @@ namespace geo {
         } // operator*()
 
       /// Returns a pointer to the element the iterator points to (or nullptr)
-      Element_t const* operator-> () const { return get(); }
+      pointer operator-> () const { return get(); }
 
       /// Prefix increment: returns this iterator pointing to the next element
       iterator& operator++ () { ++id_iterator(); return *this; }
@@ -906,6 +961,17 @@ namespace geo {
       using upper_iterator::undefined_pos;
       using upper_iterator::begin_pos;
       using upper_iterator::end_pos;
+      
+      
+      /// @name Iterator traits
+      /// @{
+      using difference_type = std::ptrdiff_t;
+      using value_type = LocalID_t;
+      using reference = value_type const&;
+      using pointer  = value_type const*;
+      using iterator_category = std::input_iterator_tag;
+      /// @}
+      
 
       /// Default constructor; effect not defined: assign to it before using!
       TPCset_id_iterator_base() {}
@@ -943,10 +1009,10 @@ namespace geo {
         { return localID() != as.localID(); }
 
       /// Returns the TPCsetID the iterator points to.
-      LocalID_t const& operator* () const { return localID(); }
+      reference operator* () const { return localID(); }
 
       /// Returns the TPCsetID the iterator points to.
-      LocalID_t const* operator-> () const { return &(localID()); }
+      pointer operator-> () const { return &(localID()); }
 
       /// Prefix increment: returns this iterator pointing to the next TPC set.
       iterator& operator++ () { next(); return *this; }
@@ -1046,6 +1112,17 @@ namespace geo {
       using upper_iterator::undefined_pos;
       using upper_iterator::begin_pos;
       using upper_iterator::end_pos;
+      
+      
+      /// @name Iterator traits
+      /// @{
+      using difference_type = std::ptrdiff_t;
+      using value_type = LocalID_t;
+      using reference = value_type const&;
+      using pointer  = value_type const*;
+      using iterator_category = std::input_iterator_tag;
+      /// @}
+      
 
       /// Default constructor; effect not defined: assign to it before using!
       ROP_id_iterator_base() = default;
@@ -1082,10 +1159,10 @@ namespace geo {
         { return localID() != as.localID(); }
 
       /// Returns the PlaneID the iterator points to
-      LocalID_t const& operator* () const { return localID(); }
+      reference operator* () const { return localID(); }
 
       /// Returns the PlaneID the iterator points to
-      LocalID_t const* operator-> () const { return &(localID()); }
+      pointer operator-> () const { return &(localID()); }
 
       /// Prefix increment: returns this iterator pointing to the next plane
       iterator& operator++ () { next(); return *this; }
@@ -1309,37 +1386,16 @@ namespace geo {
    */
   using ROP_id_iterator = details::ROP_id_iterator_base<readout::ROPID>;
 
-
-  template <typename Iter>
-  class IteratorBoxBase {
-      public:
-    using iterator = Iter;
-
-    /// Constructor: initializes the begin and end iterators.
-    IteratorBoxBase(iterator const& b, iterator const& e): b(b), e(e) {}
-
-    iterator begin() const { return b; }
-    iterator end() const { return e; }
-
-    iterator cbegin() const { return b; }
-    iterator cend() const { return e; }
-
-      protected:
-    iterator b, e; ///< Begin and end iterators.
-
-  }; // IteratorBoxBase<>
-
-
   template <
     typename Iter,
     Iter (GeometryCore::*BeginFunc)() const,
     Iter (GeometryCore::*EndFunc)() const
     >
-  class IteratorBox: public IteratorBoxBase<Iter> {
+  class IteratorBox: public util::span<Iter> {
       public:
 
     IteratorBox(GeometryCore const* geom)
-      : IteratorBoxBase<Iter>((geom->*BeginFunc)(), (geom->*EndFunc)())
+      : util::span<Iter>((geom->*BeginFunc)(), (geom->*EndFunc)())
       {}
 
   }; // IteratorBox<>
@@ -1351,11 +1407,11 @@ namespace geo {
     Iter (GeometryCore::*BeginFunc)(GeoID const&) const,
     Iter (GeometryCore::*EndFunc)(GeoID const&) const
     >
-  class LocalIteratorBox: public IteratorBoxBase<Iter> {
+  class LocalIteratorBox: public util::span<Iter> {
       public:
 
     LocalIteratorBox(GeometryCore const* geom, GeoID const& ID)
-      : IteratorBoxBase<Iter>((geom->*BeginFunc)(ID), (geom->*EndFunc)(ID))
+      : util::span<Iter>((geom->*BeginFunc)(ID), (geom->*EndFunc)(ID))
       {}
 
   }; // LocalIteratorBox<>
