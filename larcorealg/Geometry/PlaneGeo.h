@@ -86,6 +86,10 @@ namespace geo {
     using WireCollection_t = std::vector<geo::WireGeo>;
     using GeoNodePath_t = std::vector<TGeoNode const*>;
 
+    /// Type returned by `IterateElements()`.
+    using ElementIteratorBox = WireCollection_t const&;
+    
+
     /// @{
     /**
      * @name Types for geometry-local reference vectors.
@@ -341,7 +345,8 @@ namespace geo {
 
     /// Return the last wire in the plane.
     const WireGeo& LastWire()                                 const { return Wire(Nwires()-1); }
-
+    
+    // @{
     /**
      * @brief Allows range-for iteration on all wires in this plane.
      * @return an object suitable for range-for iteration on all wires
@@ -364,10 +369,34 @@ namespace geo {
      *
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * (note that all data types here can be replaced with `auto`).
+     * The resulting sequence exposes the wires within the plane in their
+     * ID order, from plane `0` to `Nplanes() - 1`.
+     * 
+     * Since the wire ID is not contained in `geo::WireGeo`, further steps are
+     * needed to obtain it if needed. For example:
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      *
+     * auto geom = lar::providerFrom<geo::Geometry>();
+     * for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
+     *
+     *   // collect plane information
+     *   geo::PlaneID const planeid { plane.ID() };
+     *
+     *   for (auto&& iWire, wire: util::enumerate(plane.IterateWires())) {
+     *     
+     *     geo::WireID const wireid (planeID, iWire);
+     *     
+     *     // do something with each single wire and ID
+     *     
+     *   }
+     * } // for planes
+     *
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * 
      */
-    auto IterateWires() const -> WireCollection_t const&
-      { return fWire; }
+    ElementIteratorBox IterateElements() const { return fWire; }
+    ElementIteratorBox IterateWires() const { return IterateElements(); }
+    // @}
 
     /// @}
 

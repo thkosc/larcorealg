@@ -324,6 +324,11 @@ namespace geo{
 
 
   //......................................................................
+  auto TPCGeo::IterateElements() const -> ElementIteratorBox
+    { return fPlanes; }
+  
+  
+  //......................................................................
   std::set<geo::View_t> TPCGeo::Views() const {
     std::set<geo::View_t> views;
     std::transform(fPlanes.cbegin(), fPlanes.cend(),

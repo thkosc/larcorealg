@@ -124,6 +124,10 @@ namespace geo{
   }
 
 
+  //......................................................................
+  auto CryostatGeo::IterateElements() const -> ElementIteratorBox
+    { return fTPCs; }
+  
 
   //......................................................................
   // wiggle is 1+a small number to allow for rounding errors on the
@@ -165,7 +169,7 @@ namespace geo{
   geo::TPCGeo const* CryostatGeo::PositionToTPCptr
     (geo::Point_t const& point, double wiggle) const
   {
-    for (auto const& tpc: TPCs())
+    for (auto const& tpc: IterateTPCs())
       if (tpc.ContainsPosition(point, wiggle)) return &tpc;
     return nullptr;
   } // CryostatGeo::PositionToTPCptr()

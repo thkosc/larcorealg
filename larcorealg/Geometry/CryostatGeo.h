@@ -46,6 +46,9 @@ namespace geo {
 
     using GeoNodePath_t = geo::WireGeo::GeoNodePath_t;
 
+    /// Type returned by `IterateElements()`.
+    using ElementIteratorBox = TPCList_t const&;
+
     /// @{
     /**
      * @name Types for geometry-local reference vectors.
@@ -214,18 +217,24 @@ namespace geo {
     const TPCGeo&     GetElement(TPCID const& tpcid)            const
       { return TPC(tpcid); }
 
-
+    // @{
     /**
-     * @brief Returns a container with references to all TPCs.
-     * @return a container with references to all TPCs
+     * @brief Returns an object suitable for iterating through all TPCs.
      *
      * The returned value can be used in a range-for loop like:
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-     * for (geo::TPCGeo const& tpc: cryo.TPCs()) { ... }
+     * for (geo::TPCGeo const& tpc: cryo.IterateTPCs()) { ... }
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * The resulting sequence exposes the TPCs within the cryostat in their
+     * ID order, from TPC `0` to `NTPC() - 1`.
      */
-    auto const& TPCs() const { return fTPCs; }
-
+    auto const& TPCs [[deprecated("Use `geo::CryostatGeo::IterateTPCs()` instead")]] () const { return fTPCs; }
+    ElementIteratorBox IterateElements() const;
+    ElementIteratorBox IterateTPCs() const { return IterateElements(); }
+    // @}
+    
+    
+    
     /**
      * @brief Returns the TPC number itpc from this cryostat.
      * @param itpc the number of local TPC

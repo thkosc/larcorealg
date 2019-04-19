@@ -45,6 +45,9 @@ namespace geo {
     using PlaneCollection_t = std::vector<geo::PlaneGeo>;
     using GeoNodePath_t = geo::WireGeo::GeoNodePath_t;
 
+    /// Type returned by `IterateElements()`.
+    using ElementIteratorBox = PlaneCollection_t const&;
+
     /// @{
     /**
      * @name Types for geometry-local reference vectors.
@@ -246,7 +249,25 @@ namespace geo {
 
     /// @brief Returns the largest number of wires among the planes in this TPC
     unsigned int MaxWires() const;
-
+    
+    // @{
+    /**
+     * @brief Returns an object for iterating through all `geo::PlaneGeo`.
+     * @return an (undisclosed) object for iterating through all `geo::PlaneGeo`
+     * 
+     * For example, this snippet computes `MaxWires()` of `TPC` (a `TPCGeo`):
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+     * unsigned int maxWires = 0U;
+     * for (geo::PlaneGeo const& plane: TPC.IteratePlanes())
+     *   maxWires = std::max(maxWires, plane.Nwires());
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * The resulting sequence exposes the planes within the TPC in their
+     * ID order, from plane `0` to `Nplanes() - 1`.
+     */
+    ElementIteratorBox IterateElements() const;
+    ElementIteratorBox IteratePlanes() const { return IterateElements(); }
+    // @}
+    
     /// Returns a set of all views covered in this TPC.
     std::set<geo::View_t> Views() const;
 
@@ -309,7 +330,7 @@ namespace geo {
 
     /// Returns the identifier of this TPC
     geo::TPCID const& ID() const { return fID; }
-
+    
     /// @}
 
 
@@ -684,6 +705,7 @@ namespace geo {
     void MakePlane(GeoNodePath_t& path, size_t depth);
 
   private:
+    
     using LocalTransformation_t = geo::LocalTransformationGeo
       <ROOT::Math::Transform3D, LocalPoint_t, LocalVector_t>;
 
