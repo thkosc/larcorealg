@@ -5462,6 +5462,26 @@ namespace geo {
 
   private:
 
+    GeometryData_t fGeoData;        ///< The detector description data
+
+    double         fSurfaceY;       ///< The point where air meets earth for this detector.
+    std::string    fDetectorName;   ///< Name of the detector.
+    std::string    fGDMLfile;       ///< path to geometry file used for Geant4 simulation
+    std::string    fROOTfile;       ///< path to geometry file for geometry in GeometryCore
+    double         fMinWireZDist;   ///< Minimum distance in Z from a point in which
+                                    ///< to look for the closest wire
+    double         fPositionWiggle; ///< accounting for rounding errors when testing positions
+
+    /// Configuration for the geometry builder
+    /// (needed since builder is created after construction).
+    fhicl::ParameterSet fBuilderParameters;
+    std::shared_ptr<const geo::ChannelMapAlg> fChannelMapAlg;
+                                    ///< Object containing the channel to wire mapping
+
+    // cached values
+    std::set<geo::View_t> allViews; ///< All views in the detector.
+    
+    
     std::vector<TGeoNode const*> FindDetectorEnclosure
       (std::string const& name = "volDetEnclosure") const;
 
@@ -5496,25 +5516,6 @@ namespace geo {
     /// are on different planes of the same TPC (ID validity is not checked)
     static void CheckIndependentPlanesOnSameTPC
       (geo::PlaneID const& pid1, geo::PlaneID const& pid2, const char* caller);
-
-    GeometryData_t fGeoData;        ///< The detector description data
-
-    double         fSurfaceY;       ///< The point where air meets earth for this detector.
-    std::string    fDetectorName;   ///< Name of the detector.
-    std::string    fGDMLfile;       ///< path to geometry file used for Geant4 simulation
-    std::string    fROOTfile;       ///< path to geometry file for geometry in GeometryCore
-    double         fMinWireZDist;   ///< Minimum distance in Z from a point in which
-                                    ///< to look for the closest wire
-    double         fPositionWiggle; ///< accounting for rounding errors when testing positions
-
-    /// Configuration for the geometry builder
-    /// (needed since builder is created after construction).
-    fhicl::ParameterSet fBuilderParameters;
-    std::shared_ptr<const geo::ChannelMapAlg> fChannelMapAlg;
-                                    ///< Object containing the channel to wire mapping
-
-    // cached values
-    std::set<geo::View_t> allViews; ///< All views in the detector.
 
   }; // class GeometryCore
 
