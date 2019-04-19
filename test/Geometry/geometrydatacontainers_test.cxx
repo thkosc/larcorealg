@@ -9,6 +9,7 @@
 
 // LArSoft libraries
 #include "larcorealg/Geometry/GeometryDataContainers.h"
+#include "larcorealg/CoreUtils/counter.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 
 // Boost libraries
@@ -18,14 +19,35 @@
 
 
 //------------------------------------------------------------------------------
-void TPCDataContainerTest() {
+template <typename T>
+struct Summer {
+  
+  T sum = T { 0 };
+  
+  void operator() (T v) { sum += v; }
+  
+  T get() const { return sum; }
+  void reset() { sum = T{0}; }
+  
+}; // struct Summer
 
-  geo::TPCDataContainer<int> data(2U, 3U);
+//------------------------------------------------------------------------------
+void TPCDataContainerTest() {
+  
+  static constexpr std::size_t NCryostats = 2U;
+  static constexpr std::size_t NTPCs      = 3U;
+  static constexpr std::size_t N          = NCryostats * NTPCs;
+  
+  geo::TPCDataContainer<int> data(NCryostats, NTPCs);
 
   BOOST_CHECK(!data.empty());
-  BOOST_CHECK_EQUAL(data.size(), 6U);
-  BOOST_CHECK_GE(data.capacity(), 6U);
-
+  BOOST_CHECK_EQUAL(data.size(), N);
+  BOOST_CHECK_GE(data.capacity(), N);
+  
+  for (auto c: util::counter<unsigned int>(NCryostats)) 
+    for (auto t: util::counter<unsigned int>(NTPCs)) 
+      BOOST_CHECK_EQUAL((data[{ c, t }]), 0);
+  
   BOOST_CHECK_EQUAL(data.firstID(), geo::TPCID(0, 0));
   BOOST_CHECK_EQUAL(data.lastID(), geo::TPCID(1, 2));
 
@@ -129,7 +151,7 @@ void TPCDataContainerTest() {
   BOOST_CHECK_EQUAL((data[{1U, 2U}]), -17);
   BOOST_CHECK_EQUAL(data.last(), -17);
   data.last() =  17;
-
+  
   auto const& constData = data;
 
   BOOST_CHECK_EQUAL
@@ -159,19 +181,62 @@ void TPCDataContainerTest() {
   BOOST_CHECK_THROW(constData.at({2, 2}), std::out_of_range);
   BOOST_CHECK_THROW(constData.at({2, 3}), std::out_of_range);
   BOOST_CHECK_THROW(constData.at({2, 4}), std::out_of_range);
-
+  
+  
+  data.fill(14);
+  for (auto c: util::counter<unsigned int>(NCryostats)) 
+    for (auto t: util::counter<unsigned int>(NTPCs)) 
+      BOOST_CHECK_EQUAL((data[{ c, t }]), 14);
+  
+  data.apply([](int& v){ v *= 2; });
+  for (auto c: util::counter<unsigned int>(NCryostats)) 
+    for (auto t: util::counter<unsigned int>(NTPCs)) 
+      BOOST_CHECK_EQUAL((data[{ c, t }]), 28);
+  
+  Summer<int> summer;
+  static_assert(std::is_same_v<decltype(data.apply(summer)), Summer<int>&>);
+  data.apply(summer);
+  BOOST_CHECK_EQUAL(summer.get(), N * 28);
+  
+  summer.reset();
+  static_assert
+    (std::is_same_v<decltype(constData.apply(summer)), Summer<int>&>);
+  constData.apply(summer);
+  BOOST_CHECK_EQUAL(summer.get(), N * 28);
+  
+  auto summer1 = data.apply(Summer<int>{});
+  BOOST_CHECK_EQUAL(summer1.get(), N * 28);
+  
+  auto summer2 = constData.apply(Summer<int>{});
+  BOOST_CHECK_EQUAL(summer2.get(), N * 28);
+  
+  data.clear();
+  for (auto c: util::counter<unsigned int>(NCryostats)) 
+    for (auto t: util::counter<unsigned int>(NTPCs)) 
+      BOOST_CHECK_EQUAL((data[{ c, t }]), 0);
+  
+  
 } // TPCDataContainerTest()
 
 
 //------------------------------------------------------------------------------
 void PlaneDataContainerTest() {
 
-  geo::PlaneDataContainer<int> data(2U, 3U, 2U);
+  static constexpr std::size_t NCryostats = 2U;
+  static constexpr std::size_t NTPCs      = 3U;
+  static constexpr std::size_t NPlanes    = 2U;
+  static constexpr std::size_t N          = NCryostats * NTPCs * NPlanes;
+  geo::PlaneDataContainer<int> data(NCryostats, NTPCs, NPlanes);
 
   BOOST_CHECK(!data.empty());
-  BOOST_CHECK_EQUAL(data.size(), 12U);
-  BOOST_CHECK_GE(data.capacity(), 12U);
+  BOOST_CHECK_EQUAL(data.size(), N);
+  BOOST_CHECK_GE(data.capacity(), N);
 
+  for (auto c: util::counter<unsigned int>(NCryostats)) 
+    for (auto t: util::counter<unsigned int>(NTPCs)) 
+      for (auto p: util::counter<unsigned int>(NPlanes)) 
+        BOOST_CHECK_EQUAL((data[{ c, t, p }]), 0);
+  
   BOOST_CHECK_EQUAL(data.firstID(), geo::PlaneID(0, 0, 0));
   BOOST_CHECK_EQUAL(data.lastID(), geo::PlaneID(1, 2, 1));
 
@@ -550,6 +615,42 @@ void PlaneDataContainerTest() {
   BOOST_CHECK_THROW(constData.at({2, 3, 2}), std::out_of_range);
 
 
+  data.fill(14);
+  for (auto c: util::counter<unsigned int>(NCryostats)) 
+    for (auto t: util::counter<unsigned int>(NTPCs)) 
+      for (auto p: util::counter<unsigned int>(NPlanes)) 
+        BOOST_CHECK_EQUAL((data[{ c, t, p }]), 14);
+  
+  data.apply([](int& v){ v *= 2; });
+  for (auto c: util::counter<unsigned int>(NCryostats)) 
+    for (auto t: util::counter<unsigned int>(NTPCs)) 
+      for (auto p: util::counter<unsigned int>(NPlanes)) 
+        BOOST_CHECK_EQUAL((data[{ c, t, p }]), 28);
+  
+  Summer<int> summer;
+  static_assert(std::is_same_v<decltype(data.apply(summer)), Summer<int>&>);
+  data.apply(summer);
+  BOOST_CHECK_EQUAL(summer.get(), N * 28);
+  
+  summer.reset();
+  static_assert
+    (std::is_same_v<decltype(constData.apply(summer)), Summer<int>&>);
+  constData.apply(summer);
+  BOOST_CHECK_EQUAL(summer.get(), N * 28);
+  
+  auto summer1 = data.apply(Summer<int>{});
+  BOOST_CHECK_EQUAL(summer1.get(), N * 28);
+  
+  auto summer2 = constData.apply(Summer<int>{});
+  BOOST_CHECK_EQUAL(summer2.get(), N * 28);
+  
+  data.clear();
+  for (auto c: util::counter<unsigned int>(NCryostats)) 
+    for (auto t: util::counter<unsigned int>(NTPCs)) 
+      for (auto p: util::counter<unsigned int>(NPlanes)) 
+        BOOST_CHECK_EQUAL((data[{ c, t, p }]), 0);
+  
+  
 } // PlaneDataContainerTest()
 
 

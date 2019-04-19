@@ -16,12 +16,23 @@
 
 // C/C++ standard libraries
 #include <vector>
+#include <string>
+#include <utility> // std::forward()
+#include <algorithm> // std::fill(), std::for_each()
 #include <stdexcept> // std::out_of_range
 #include <cassert>
 
 
 namespace geo {
-
+  
+  namespace details {
+    
+    template <typename T>
+    class GeoContainerData;
+    
+  } // namespace details
+  
+  
   // --- BEGIN Geometry data containers ----------------------------------------
   /// @name Geometry data containers
   /// @ingroup Geometry
@@ -63,28 +74,31 @@ namespace geo {
    */
   template <typename T>
   class TPCDataContainer {
-
-    using Container_t = std::vector<T>;
-
+    
+    /// Type of data container helper.
+    using Container_t = details::GeoContainerData<T>;
+    
       public:
-
+    
     /// @{
     /// @name STL container types.
 
-    // TODO the iterator is not really a random access one
+    // TODO we don't offer iterators so far
 
+    using value_type             = typename Container_t::value_type            ;
     using reference              = typename Container_t::reference             ;
     using const_reference        = typename Container_t::const_reference       ;
     using pointer                = typename Container_t::pointer               ;
     using const_pointer          = typename Container_t::const_pointer         ;
-    using iterator               = typename Container_t::iterator              ;
-    using const_iterator         = typename Container_t::const_iterator        ;
-    using reverse_iterator       = typename Container_t::reverse_iterator      ;
-    using const_reverse_iterator = typename Container_t::const_reverse_iterator;
+//     using iterator               = typename Container_t::iterator              ;
+//     using const_iterator         = typename Container_t::const_iterator        ;
+//     using reverse_iterator       = typename Container_t::reverse_iterator      ;
+//     using const_reverse_iterator = typename Container_t::const_reverse_iterator;
     using difference_type        = typename Container_t::difference_type       ;
     using size_type              = typename Container_t::size_type             ;
 
     /// @}
+
 
     /**
      * @brief Prepares the container with default-constructed data.
@@ -98,7 +112,7 @@ namespace geo {
       : fNCryo(nCryo)
       , fNTPCs(nTPCs)
       , fData(computeSize())
-      { assert(!empty()); }
+      { assert(!fData.empty()); }
 
     /**
      * @brief Prepares the container with copies of the specified default value.
@@ -116,11 +130,12 @@ namespace geo {
      *   assert(PlanesPerTPC[TPC.ID()] == TPC.Nplanes());
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    TPCDataContainer(unsigned int nCryo, unsigned int nTPCs, T const& defValue)
+    TPCDataContainer
+      (unsigned int nCryo, unsigned int nTPCs, value_type const& defValue)
       : fNCryo(nCryo)
       , fNTPCs(nTPCs)
       , fData(computeSize(), defValue)
-      { assert(!empty()); }
+      { assert(!fData.empty()); }
 
 
     // --- BEGIN Container status query ----------------------------------------
@@ -138,11 +153,11 @@ namespace geo {
 
     /// Returns whether this container hosts data for the specified cryostat.
     bool hasCryostat(geo::CryostatID const& cryoid) const
-      { return bounded(cryoid.Cryostat, fNCryo); }
+      { return Container_t::bounded(cryoid.Cryostat, fNCryo); }
 
     /// Returns whether this container hosts data for the specified TPC.
     bool hasTPC(geo::TPCID const& id) const
-      { return hasCryostat(id) && bounded(id.TPC, fNTPCs); }
+      { return hasCryostat(id) && Container_t::bounded(id.TPC, fNTPCs); }
 
     /// Returns the ID of the first TPC.
     geo::TPCID firstID() const { return { 0U, 0U }; }
@@ -197,6 +212,61 @@ namespace geo {
     const_reference last() const { return operator[](lastID()); }
 
     /// @}
+    // --- END Element access --------------------------------------------------
+
+
+    // --- BEGIN Data modification ---------------------------------------------
+    /**
+     * @name Data modification
+     * 
+     * In general, each single element can be accessed and changed.
+     * In addition, this section includes methods acting on multiple elements
+     * at once.
+     */
+    /// @{
+    
+    /// Sets all elements to the specified `value` (copied).
+    void fill(value_type value) { fData.fill(value); }
+    
+    /// Sets all the elements to a default-constructed `value_type`.
+    void clear() { fData.clear(); }
+    
+    
+    /**
+     * @brief Applies an operation on all elements.
+     * @tparam Op type of operation
+     * @param op Operation
+     * @return the operation object after operations took place
+     * 
+     * The operation `op` is a unary functor, i.e. an object that supports the
+     * call to `op(value_type&)`.
+     * 
+     * The return values of `op` calls are discarded.
+     */
+    template <typename Op>
+    Op apply(Op&& op)
+      { return fData.apply(std::forward<Op>(op)); }
+    
+    /**
+     * @brief Applies an operation on all elements.
+     * @tparam Op type of operation
+     * @param op Operation
+     * @return the operation object after operations took place
+     * 
+     * The operation `op` is a unary functor, i.e. an object that supports the
+     * call to `op(value_type const&)`.
+     * 
+     * The return values of `op` calls are discarded.
+     * Note that while the elements of this container can't be modified, the
+     * operation itself still can if not constant, and it is returned.
+     */
+    template <typename Op>
+    decltype(auto) apply(Op&& op) const
+      { return fData.apply(std::forward<Op>(op)); }
+    
+  
+    /// @}
+    // --- END Element access --------------------------------------------------
 
 
       private:
@@ -205,8 +275,9 @@ namespace geo {
 
     CryostatNo_t fNCryo; ///< Number of cryostats.
     TPCNo_t fNTPCs; ///< Number of TPCs.
+    
+    Container_t fData; ///< Data storage.
 
-    Container_t fData; ///< Data storage area.
 
     /// Returns the internal index of the specified TPC in the storage area.
     size_type index(CryostatNo_t cryo, TPCNo_t tpc) const
@@ -227,12 +298,7 @@ namespace geo {
     static size_type computeSize(CryostatNo_t nCryo, TPCNo_t nTPCs)
       { return nCryo * nTPCs; }
 
-    /// Returns whether the specified value is between `0` and the upper limit.
-    template <typename Value, typename Upper>
-    static bool bounded(Value v, Upper upper)
-      { return (v >= 0) && (static_cast<size_type>(v) < upper); }
-
-  }; // class TPCDataContainer
+  }; // class TPCDataContainer<>
 
 
 
@@ -272,23 +338,26 @@ namespace geo {
   template <typename T>
   class PlaneDataContainer {
 
-    using Container_t = std::vector<T>;
+    /// Type of data container helper.
+    using Container_t = details::GeoContainerData<T>;
+    
 
       public:
 
     /// @{
     /// @name STL container types.
 
-    // TODO the iterator is not really a random access one
+    // TODO we don't offer iterators so far
 
+    using value_type             = typename Container_t::value_type            ;
     using reference              = typename Container_t::reference             ;
     using const_reference        = typename Container_t::const_reference       ;
     using pointer                = typename Container_t::pointer               ;
     using const_pointer          = typename Container_t::const_pointer         ;
-    using iterator               = typename Container_t::iterator              ;
-    using const_iterator         = typename Container_t::const_iterator        ;
-    using reverse_iterator       = typename Container_t::reverse_iterator      ;
-    using const_reverse_iterator = typename Container_t::const_reverse_iterator;
+//     using iterator               = typename Container_t::iterator              ;
+//     using const_iterator         = typename Container_t::const_iterator        ;
+//     using reverse_iterator       = typename Container_t::reverse_iterator      ;
+//     using const_reverse_iterator = typename Container_t::const_reverse_iterator;
     using difference_type        = typename Container_t::difference_type       ;
     using size_type              = typename Container_t::size_type             ;
 
@@ -354,15 +423,15 @@ namespace geo {
 
     /// Returns whether this container hosts data for the specified cryostat.
     bool hasCryostat(geo::CryostatID const& cryoid) const
-      { return bounded(cryoid.Cryostat, fNCryo); }
+      { return Container_t::bounded(cryoid.Cryostat, fNCryo); }
 
     /// Returns whether this container hosts data for the specified TPC.
     bool hasTPC(geo::TPCID const& id) const
-      { return hasCryostat(id) && bounded(id.TPC, fNTPCs); }
+      { return hasCryostat(id) && Container_t::bounded(id.TPC, fNTPCs); }
 
     /// Returns whether this container hosts data for the specified plane.
     bool hasPlane(geo::PlaneID const& id) const
-      { return hasTPC(id) && bounded(id.Plane, fNPlanes); }
+      { return hasTPC(id) && Container_t::bounded(id.Plane, fNPlanes); }
 
     /// Returns the ID of the first TPC.
     geo::PlaneID firstID() const { return { 0U, 0U, 0U }; }
@@ -418,6 +487,60 @@ namespace geo {
     const_reference last() const { return operator[](lastID()); }
 
     /// @}
+    // --- END Element access --------------------------------------------------
+
+
+    // --- BEGIN Data modification ---------------------------------------------
+    /**
+     * @name Data modification
+     * 
+     * In general, each single element can be accessed and changed.
+     * In addition, this section includes methods acting on multiple elements
+     * at once.
+     */
+    /// @{
+    
+    /// Sets all elements to the specified `value` (copied).
+    void fill(value_type value) { fData.fill(value); }
+    
+    /// Sets all the elements to a default-constructed `value_type`.
+    void clear() { fData.clear(); }
+    
+    
+    /**
+     * @brief Applies an operation on all elements.
+     * @tparam Op type of operation
+     * @param op Operation
+     * @return the operation object after operations took place
+     * 
+     * The operation `op` is a unary functor, i.e. an object that supports the
+     * call to `op(value_type&)`.
+     * 
+     * The return values of `op` calls are discarded.
+     */
+    template <typename Op>
+    Op apply(Op&& op)
+      { return fData.apply(std::forward<Op>(op)); }
+    
+    /**
+     * @brief Applies an operation on all elements.
+     * @tparam Op type of operation
+     * @param op Operation
+     * @return the operation object after operations took place
+     * 
+     * The operation `op` is a unary functor, i.e. an object that supports the
+     * call to `op(value_type const&)`.
+     * 
+     * The return values of `op` calls are discarded.
+     * Note that while the elements of this container can't be modified, the
+     * operation itself still can if not constant, and it is returned.
+     */
+    template <typename Op>
+    decltype(auto) apply(Op&& op) const
+      { return fData.apply(std::forward<Op>(op)); }
+    
+    
+    // --- END Element access --------------------------------------------------
 
 
       private:
@@ -455,11 +578,6 @@ namespace geo {
       (CryostatNo_t nCryo, TPCNo_t nTPCs, PlaneNo_t nPlanes)
       { return nCryo * nTPCs * nPlanes; }
 
-    /// Returns whether the specified value is between `0` and the upper limit.
-    template <typename Value, typename Upper>
-    static bool bounded(Value v, Upper upper)
-      { return (v >= 0) && (static_cast<size_type>(v) < upper); }
-
   }; // class PlaneDataContainer
 
 
@@ -469,5 +587,146 @@ namespace geo {
 } // namespace geo
 
 
+//------------------------------------------------------------------------------
+//--- Template implementation
+//------------------------------------------------------------------------------
+
+template <typename T>
+class geo::details::GeoContainerData {
+
+  using Container_t = std::vector<T>;
+
+    public:
+
+  // --- BEGIN STL container types ---------------------------------------------
+  /// @{
+  /// @name STL container types.
+
+  using value_type             = typename Container_t::value_type            ;
+  using reference              = typename Container_t::reference             ;
+  using const_reference        = typename Container_t::const_reference       ;
+  using pointer                = typename Container_t::pointer               ;
+  using const_pointer          = typename Container_t::const_pointer         ;
+  using iterator               = typename Container_t::iterator              ;
+  using const_iterator         = typename Container_t::const_iterator        ;
+  using reverse_iterator       = typename Container_t::reverse_iterator      ;
+  using const_reverse_iterator = typename Container_t::const_reverse_iterator;
+  using difference_type        = typename Container_t::difference_type       ;
+  using size_type              = typename Container_t::size_type             ;
+
+  /// @}
+  // --- END STL container types -----------------------------------------------
+  
+
+  using index_type = size_type; ///< Type used internally (so far) for indexing.
+  
+  // --- BEGIN Constructors ----------------------------------------------------
+  
+  /// Prepares the container with default-constructed data.
+  GeoContainerData(size_type size): fData(size) {}
+
+  // Prepares the container with copies of the specified default value.
+  GeoContainerData(size_type size, value_type const& defValue)
+    : fData(size, defValue) {}
+  
+  // --- END Constructors ------------------------------------------------------
+  
+  
+  // --- BEGIN Container status query ------------------------------------------
+  /// @name Container status query
+  /// @{
+
+  /// Returns the number of elements in the container.
+  size_type size() const { return fData.size(); }
+
+  /// Returns the number of elements the container has memory for.
+  size_type capacity() const { return fData.capacity(); }
+
+  /// Returns whether the container has no elements (`false` by assumptions).
+  bool empty() const { return fData.empty(); }
+
+  /// @}
+  // --- END Container status query --------------------------------------------
+  
+  
+  // --- BEGIN Data modification -----------------------------------------------
+  /**
+   * @name Data modification
+   * 
+   * In general, each single element can be accessed and changed.
+   * In addition, this section includes methods acting on multiple elements
+   * at once.
+   */
+  /// @{
+  
+  /// Sets all elements to the specified `value` (copied).
+  void fill(value_type value)
+    { std::fill(fData.begin(), fData.end(), value); }
+  
+  /// Sets all the elements to a default-constructed `value_type`.
+  void clear() { fill(value_type{}); }
+  
+  /**
+   * @brief Applies an operation on all elements.
+   * @tparam Op type of operation
+   * @param op Operation
+   * @return the operation object after operations took place
+   * 
+   * The operation `op` is a unary functor, i.e. an object that supports the
+   * call to `op(value_type&)`.
+   * 
+   * The return values of `op` calls are discarded.
+   */
+  template <typename Op>
+  Op apply(Op&& op)
+    { for (auto& data: fData) op(data); return op; }
+  
+  /**
+   * @brief Applies an operation on all elements.
+   * @tparam Op type of operation
+   * @param op Operation
+   * @return the operation object after operations took place
+   * 
+   * The operation `op` is a unary functor, i.e. an object that supports the
+   * call to `op(value_type const&)`.
+   * 
+   * The return values of `op` calls are discarded.
+   */
+  template <typename Op>
+  Op apply(Op&& op) const
+    { for (auto const& data: fData) op(data); return op; }
+  
+  
+  /// @}
+  // --- END Element access ----------------------------------------------------
+
+
+  // --- BEGIN Element access --------------------------------------------------
+  /// @name Element access
+  /// @{
+  
+  /// Returns the element for the specified index.
+  reference operator[](index_type index) { return fData[index]; }
+  
+  /// Returns the element for the specified index (read-only).
+  const_reference operator[](index_type index) const { return fData[index]; }
+  
+  /// @}
+  // --- END Element access ----------------------------------------------------
+
+
+  /// Returns whether the specified value is between `0` and the upper limit.
+  template <typename Value, typename Upper>
+  static bool bounded(Value v, Upper upper)
+    { return (v >= 0) && (static_cast<size_type>(v) < upper); }
+  
+    private:
+
+  Container_t fData; ///< Data storage area.
+
+}; // class geo::details::GeoContainerData
+
+
+//------------------------------------------------------------------------------
 
 #endif // LARCOREALG_GEOMETRY_GEOMETRYDATACONTAINERS_H
