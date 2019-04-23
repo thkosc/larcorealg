@@ -227,8 +227,12 @@ namespace geo {
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * The resulting sequence exposes the TPCs within the cryostat in their
      * ID order, from TPC `0` to `NTPC() - 1`.
+     * 
+     * @deprecated `TPCs()` is informally deprecated because it used to return
+     *             a collection of `geo::TPCGeo` and it might soon be unable to
+     *             do so. For iterations, `IterateTPCs()` is just as good.
      */
-    auto const& TPCs [[deprecated("Use `geo::CryostatGeo::IterateTPCs()` instead")]] () const { return fTPCs; }
+    auto const& TPCs() const { return fTPCs; }
     ElementIteratorBox IterateElements() const;
     ElementIteratorBox IterateTPCs() const { return IterateElements(); }
     // @}
