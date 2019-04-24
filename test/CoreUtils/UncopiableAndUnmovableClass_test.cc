@@ -3,7 +3,7 @@
  * @brief  Tests the content of UncopiableAndUnmovableClass.h
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   April 28, 2016
- * @see    UncopiableAndUnmovableClass.h
+ * @see    larcorealg/CoreUtils/UncopiableAndUnmovableClass.h
  *
  * This test takes no command line argument.
  *
@@ -27,6 +27,29 @@
 
 // C/C++ standard libraries
 #include <type_traits>
+
+
+//------------------------------------------------------------------------------
+// static checks
+static_assert( std::is_copy_constructible_v<lar::PolymorphicClass>);
+static_assert( std::is_copy_assignable_v   <lar::PolymorphicClass>);
+static_assert( std::is_move_constructible_v<lar::PolymorphicClass>);
+static_assert( std::is_move_assignable_v   <lar::PolymorphicClass>);
+
+static_assert(!std::is_copy_constructible_v<lar::PolymorphicUncopiableClass>);
+static_assert(!std::is_copy_assignable_v   <lar::PolymorphicUncopiableClass>);
+static_assert( std::is_move_constructible_v<lar::PolymorphicUncopiableClass>);
+static_assert( std::is_move_assignable_v   <lar::PolymorphicUncopiableClass>);
+
+static_assert( std::is_copy_constructible_v<lar::PolymorphicUnmovableClass>);
+static_assert( std::is_copy_assignable_v   <lar::PolymorphicUnmovableClass>);
+static_assert(!std::is_move_constructible_v<lar::PolymorphicUnmovableClass>);
+static_assert(!std::is_move_assignable_v   <lar::PolymorphicUnmovableClass>);
+
+static_assert(!std::is_copy_constructible_v<lar::PolymorphicUncopiableAndUnmovableClass>);
+static_assert(!std::is_copy_assignable_v   <lar::PolymorphicUncopiableAndUnmovableClass>);
+static_assert(!std::is_move_constructible_v<lar::PolymorphicUncopiableAndUnmovableClass>);
+static_assert(!std::is_move_assignable_v   <lar::PolymorphicUncopiableAndUnmovableClass>);
 
 
 //------------------------------------------------------------------------------
@@ -77,7 +100,7 @@ BOOST_AUTO_TEST_CASE(UncopiableAndUnmovableClassTest) {
    BOOST_CHECK(!std::is_move_constructible<AssignableDerived>::value);
    BOOST_CHECK( std::is_move_assignable   <AssignableDerived>::value);
 
-} // BOOST_AUTO_TEST_CASE(larProviderFromTest)
+} // BOOST_AUTO_TEST_CASE(UncopiableAndUnmovableClassTest)
 
 
 //------------------------------------------------------------------------------
