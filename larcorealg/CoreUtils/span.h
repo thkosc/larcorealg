@@ -12,7 +12,7 @@
 
 /// C/C++ standard library
 #include <iterator> // std::begin(), std::end()
-#include <type_traits> // std::decay_t<>, std::declval()
+#include <type_traits> // std::decay_t<>, std::declval(), std::invoke_result_t<>
 
 
 namespace util {
@@ -138,6 +138,13 @@ namespace util {
     /// Constructor: specifies the begin and end iterator.
     span(begin_iterator b, end_iterator e): pair_t(b, e) {}
 
+    /// Constructor: specifies the begin and end iterator and an adapter.
+    template <typename SrcIterB, typename SrcIterE, typename Adaptor>
+    span(SrcIterB&& b, SrcIterE&& e, Adaptor&& adaptor)
+      : span
+        (adaptor(std::forward<SrcIterB>(b)), adaptor(std::forward<SrcIterE>(e)))
+      {}
+
     /// Constructor: copies from another span (possibly with different types).
     template <typename OBIter, typename OEIter>
     span(span<OBIter, OEIter> const& from): span(from.begin(), from.end()) {}
@@ -162,8 +169,20 @@ namespace util {
     bool empty() const { return begin() == end(); }
 
   }; // span
+  
+  // deduction guide for adapted span
+  template <typename IterB, typename IterE, typename Adaptor>
+  span(IterB&& b, IterE&& e, Adaptor&& adaptor)
+    -> span<
+      std::invoke_result_t<Adaptor, IterB>,
+      std::invoke_result_t<Adaptor, IterE>
+    >;
+  
 
-
+  // --- BEGIN -- Span helper functions ----------------------------------------
+  /// @name Span helper functions
+  /// @{
+  
   /// Creates a span from specified iterators (can use constructor instead).
   template <typename BIter, typename EIter>
   auto make_span(BIter begin, EIter end) { return util::span(begin, end); }
@@ -179,7 +198,75 @@ namespace util {
     {
       return span{ span_base::get_cbegin(cont), span_base::get_cend(cont) };
     }
+  
+  /// @}
+  // --- END -- Span helper functions ------------------------------------------
+  
+  
+  
+  // --- BEGIN -- Adapted span helper functions --------------------------------
+  /// @name Adapted span helper functions
+  /// @{
+  
+  /// Creates a span from specified iterators via an adaptor.
+  /// @see `make_adapted_span(Cont&, Adaptor&&)`
+  template <typename BIter, typename EIter, typename Adaptor>
+  auto make_adapted_span(BIter begin, EIter end, Adaptor&& adaptor)
+    { return util::span(adaptor(begin), adaptor(end)); }
 
+  /**
+   * @brief Creates a span from specified collection via an adaptor.
+   * @param cont collection to be iterated through
+   * @param adapter iterator transformation to be applied on `cont`
+   * @return a `util::span` object iterating via an adapter to `cont`
+   * @see `make_adapted_span(BIter, EIter, Adaptor&&)`,
+   *      `make_adapted_const_span(Cont, Adaptor&&)`
+   * 
+   * This interface is just a little help on using _iterator_ adapters.
+   * Note that `adapter` transforms the iterators of `cont`, not its values.
+   * The adapter needs to be written aside and it's in general not trivial.
+   * An example of iterating through a collection of objects (actually, just
+   * `float` for simplicity) stored as unique pointers in a collection:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * float accumulate(std::vector<std::unique_ptr<float>> const& v) {
+   *   
+   *   using src_iterator = std::vector<std::unique_ptr<float>>::const_iterator;
+   *   
+   *   float sum = 0.0F;
+   *   for (float v: util::make_adapted_span(v, boost::make_indirect_iterator<src_iterator>))
+   *     sum += v;
+   *   
+   *   return sum;
+   * } // accumulate()
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * This example shows the usage of `util::make_adapted_span()`. In the
+   * specific example, it would have been more explicit to use the constant
+   * counterpart, `util::make_adapted_const_span()`.
+   * The adaptor helper `boost::make_indirect_iterator()` is provided in
+   * `boost/iterator/indirect_iterator.hpp`.
+   */
+  template <typename Cont, typename Adaptor>
+  auto make_adapted_span(Cont& cont, Adaptor&& adaptor)
+    {
+      return make_adapted_span(
+        span_base::get_begin(cont), span_base::get_end(cont),
+        std::forward<Adaptor>(adaptor)
+        );
+    }
+
+  /// Creates constant iteration span from specified collection via an adaptor.
+  // @see `make_adapted_span(Cont, Adaptor&&)`
+  template <typename Cont, typename Adaptor>
+  auto make_adapted_const_span(Cont& cont, Adaptor&& adaptor)
+    {
+      return make_adapted_span(
+        span_base::get_cbegin(cont), span_base::get_cend(cont),
+        std::forward<Adaptor>(adaptor)
+        );
+    }
+  
+  /// @}
+  // --- END -- Adapted span helper functions ----------------------------------
 
 } // namespace util
 
