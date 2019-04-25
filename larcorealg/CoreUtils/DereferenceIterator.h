@@ -21,6 +21,9 @@
  *   dereferenceIteratorLoop(),  dereferenceIteratorReverseLoop(),
  *   dereferenceConstIteratorLoop(), dereferenceConstIteratorReverseLoop()
  *
+ * @deprecated Boost offers `boost::make_indirect_iterator` and similar,
+ *             with header `boost/iterator/indirect_iterator.hpp`.
+ * 
  */
 
 #ifndef LARCORE_COREUTILS_DEREFERENCEITERATOR_H
@@ -206,6 +209,9 @@ namespace lar {
      *
      * @note Note the bizarre construction mechanism, needed to differentiate
      *       from copy constructor. This allows nesting iterators.
+     * 
+     * @deprecated Just use `boost::indirect_iterator` instead
+     *             (`boost/iterator/indirect_iterator.hpp`).
      */
     template <typename Iter>
     using DereferenceConstIterator = detail::DereferenceIteratorBase<
@@ -220,6 +226,9 @@ namespace lar {
      *
      * This class behaves like DereferenceConstIterator, except that it returns
      * mutable references to values.
+     * 
+     * @deprecated Just use `boost::indirect_iterator` instead
+     *             (`boost/iterator/indirect_iterator.hpp`).
      */
     template <typename Iter>
     using DereferenceIterator = detail::DereferenceIteratorBase<
