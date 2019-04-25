@@ -23,10 +23,8 @@
 
 //------------------------------------------------------------------------------
 template <typename Iter, typename Cont>
-void test_span(Cont& c) {
+void test_span(Cont& v) {
   using TestVector_t = Cont;
-
-  TestVector_t v;
 
   auto r = util::make_span(v);
 
@@ -60,10 +58,8 @@ void test_span(Cont& c) {
 
 //------------------------------------------------------------------------------
 template <typename Iter, typename Cont>
-void test_const_span(Cont& c) {
+void test_const_span(Cont& v) {
   using TestVector_t = Cont;
-
-  TestVector_t v;
 
   auto r = util::make_const_span(v);
 
