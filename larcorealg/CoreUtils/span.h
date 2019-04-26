@@ -10,8 +10,12 @@
 #ifndef LARCOREALG_COREUTILS_SPAN_H
 #define LARCOREALG_COREUTILS_SPAN_H
 
-/// C/C++ standard library
+// Boost libraries
+#include "boost/iterator/transform_iterator.hpp"
+
+// C/C++ standard library
 #include <iterator> // std::begin(), std::end()
+#include <utility> // std::as_const()
 #include <type_traits> // std::decay_t<>, std::declval(), std::invoke_result_t<>
 
 
@@ -267,7 +271,87 @@ namespace util {
   
   /// @}
   // --- END -- Adapted span helper functions ----------------------------------
+  
+  
+  
+  // --- BEGIN -- Transformed span helper functions ----------------------------
+  /**
+   * @name Transformed span helper functions
+   * 
+   * 
+   * 
+   */
+  /// @{
+  
+  /// Creates a span from specified iterators via an adaptor.
+  /// @see `make_transformed_span(Cont&, Adaptor&&)`
+  template <typename BIter, typename EIter, typename Op>
+  auto make_transformed_span(BIter begin, EIter end, Op&& op)
+    {
+      auto adaptor
+        = [&op](auto iter){ return boost::make_transform_iterator(iter, op); };
+      return util::make_adapted_span(begin, end, adaptor);
+    }
 
+
+  /**
+   * @brief Creates a span from specified collection via an adaptor.
+   * @param cont collection to be iterated through
+   * @param adapter iterator transformation to be applied on `cont`
+   * @return a `util::span` object iterating via an adapter to `cont`
+   * @see `make_transformed_span(BIter, EIter, Adaptor&&)`,
+   *      `make_transformed_const_span(Cont, Adaptor&&)`,
+   *      `make_adapted_span()`,
+   * 
+   * This function transforms as directed by the unary operation `op` the result
+   * of each iteration cycle, so that instead of `cont[i]`, a `op(cont[i])`
+   * is assigned to the iteration control variable.
+   * An example of iterating through a collection of objects (actually, just
+   * `float` for simplicity) stored as unique pointers in a collection:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * float accumulate(std::vector<std::unique_ptr<float>> const& v) {
+   *   
+   *   float sum = 0.0F;
+   *   for (float v: util::make_transformed_span(v, [](auto& ptr){ return *ptr; }))
+   *     sum += v;
+   *   
+   *   return sum;
+   * } // accumulate()
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * This example shows the usage of `util::make_transformed_span()`. In the
+   * specific example, it would have been more explicit to use the constant
+   * counterpart, `util::make_transformed_const_span()`.
+   * Note that in the example the dereference result is _copied_ into `v`.
+   * For have it by reference, the operation `op` must be properly written:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * void scale(std::vector<std::unique_ptr<float>>& v, float factor) {
+   *   
+   *   for (float& v: util::make_transformed_span(v, [](auto& ptr) -> float& { return *ptr; }))
+   *     v *= factor;
+   *   
+   * } // scale()
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   */
+  template <typename Cont, typename Op>
+  auto make_transformed_span(Cont& cont, Op&& op)
+    {
+      return make_transformed_span(
+        span_base::get_begin(cont), span_base::get_end(cont),
+        std::forward<Op>(op)
+        );
+    }
+
+  /// Creates constant iteration span from specified collection via a
+  /// transformation `op`.
+  // @see `make_transformed_span(Cont, Op&&)`
+  template <typename Cont, typename Op>
+  auto make_transformed_const_span(Cont& cont, Op&& op)
+    { return make_transformed_span(std::as_const(cont), std::forward<Op>(op)); }
+  
+  /// @}
+  // --- END -- Adapted span helper functions ----------------------------------
+  
+  
 } // namespace util
 
 
