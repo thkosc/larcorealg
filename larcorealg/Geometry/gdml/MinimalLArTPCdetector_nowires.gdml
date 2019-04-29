@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- A "generic" LAr TPC detector.
+
+     This is the version of `MinimalLArTPCdetector.gdml` without TPC wires.
+     
      This incarnation is extracted from `larcore/gdml/LArTPCdetector.gdml` of
      LArSoft v08_14_00.
      With respect to that version, it has been purged from most of the volumes
@@ -13,13 +16,54 @@
      
      It includes a single cryostat with a single TPC, some auxiliary detectors
      and some optical ones.
+     
+     
+     Table of contents
+     - - - - - - - - - -
+     
+     [1]      Geometry definitions
+     [2]      Material definitions
+     [2.1]       element definitions
+     [2.2]       material definitions
+     [3]      Solid definitions
+     [3.1]      Wire solid definitions [omitted]
+     [3.2]      Wire plane solid definitions
+     [3.3]      TPC solid definitions
+     [3.4]      Optical detector solid definitions
+     [3.5]      Cryostat solid definition
+     [3.6]      Auxiliary detector solids definition
+     [3.7]      Detector enclosure solid definition
+     [3.8]      World volume solid definition
+     [4]      Placement of volumes in space
+     [4.1]      Wire volume definition for wires on first and second plane [omitted]
+     [4.2]      First and second wire plane volume definition
+     [4.2.1]      Wire placement inside the first wire plane [omitted]
+     [4.3]      Vertical wire volume definition [omitted]
+     [4.4]      Third wire plane definition
+     [4.4.1]      Wire placement inside the third wire plane [omitted]
+     [4.5]      Active TPC volume definition
+     [4.6]      TPC volume definition
+     [4.6.1]      active volume inside the TPC
+     [4.6.2]      wire planes inside the TPC
+     [4.7]      Optical detector volume definition
+     [4.8]      Cryostat volume definition
+     [4.8.1]      TPC definition inside the cryostat
+     [4.8.2]      Optical detector elements definition inside the cryostat
+     [4.9]      Auxiliary detector volume definitions
+     [4.10]     Detector enclosure volume definition
+     [4.10.1]     Cryostat volumes inside the detector enclosure
+     [4.10.2]     Auxiliary detector volumes inside the detector enclosure
+     [4.11]     World volume definition
+     [5]      Selection of the default starting volume
+     
+     
      -->
 <gdml xmlns:gdml="http://cern.ch/2001/Schemas/GDML"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="GDMLSchema/gdml.xsd">
 
 
-<!-- Geometry definitions  - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- [1] Geometry definitions  - - - - - - - - - - - - - - - - - - - - - - - -->
 <define>
   
   <rotation name="rPlus90AboutX"  unit="deg" x="90"  y="0"   z="0"/>
@@ -31,10 +75,10 @@
 
 
 
-<!-- Material definitions  - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- [2] Material definitions  - - - - - - - - - - - - - - - - - - - - - - - -->
 <materials>
   
-  <!-- element definitions - - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- [2.1] element definitions - - - - - - - - - - - - - - - - - - - - - - -->
   <element name="hydrogen" formula="H" Z="1">  <atom value="1.0079"/> </element>
   <element name="nitrogen" formula="N" Z="7">  <atom value="14.0067"/> </element>
   <element name="oxygen" formula="O" Z="8">  <atom value="15.999"/> </element>
@@ -42,7 +86,7 @@
   <element name="titanium" formula="Ti" Z="22"> <atom value="47.867"/>   </element>
   <element name="argon" formula="Ar" Z="18"> <atom value="39.9480"/>  </element>
   
-  <!-- material definitions  - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- [2.2] material definitions  - - - - - - - - - - - - - - - - - - - - - -->
   <material name="LAr" formula="LAr">
     <D value="1.40" unit="g/cm3"/>
     <fraction n="1.0000" ref="argon"/>
@@ -71,11 +115,15 @@
 
 
 
-<!-- Solid definitions - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+<!-- [3] Solid definitions - - - - - - - - - - - - - - - - - - - - - - - - - -->
 <solids>
   
   
-  <!-- Wire plane solid definitions  - - - - - - - - - - - - - - - - - - - - -->
+  <!-- [3.1] Wire solid definitions  - - - - - - - - - - - - - - - - - - - - -->
+  
+  <!-- omitted -->
+  
+  <!-- [3.2] Wire plane solid definitions  - - - - - - - - - - - - - - - - - -->
   <box name="TPCPlane"
     x="0.15"
     y="233"
@@ -90,7 +138,7 @@
     lunit="cm"/>
   
   
-  <!-- TPC solid definitions - - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- [3.3] TPC solid definitions - - - - - - - - - - - - - - - - - - - - - -->
   <box name="TPC"
     lunit="cm"
     x="260"
@@ -106,7 +154,7 @@
     />
   
   
-  <!-- Optical detector solid definitions  - - - - - - - - - - - - - - - - - -->
+  <!-- [3.4] Optical detector solid definitions  - - - - - - - - - - - - - - -->
   <tube name="PMTVolume"
     rmax="15.494"
     z="28.199"
@@ -124,7 +172,7 @@
     />
   
   
-  <!-- Cryostat solid definition - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- [3.5] Cryostat solid definition - - - - - - - - - - - - - - - - - - - -->
   <tube name="Cryostat"
     rmax="193"
     z="1091.485"
@@ -134,7 +182,7 @@
     />
   
   
-  <!-- Auxiliary detector solids definition  - - - - - - - - - - - - - - - - -->
+  <!-- [3.6] Auxiliary detector solids definition  - - - - - - - - - - - - - -->
   <box lunit="cm" name="AuxDet0"    x="19"    y="0.6"    z="151" />
   <box lunit="cm" name="AuxDet1"    x="19"    y="0.6"    z="151" />
   <box lunit="cm" name="AuxDet2"    x="19"    y="0.6"    z="151" />
@@ -404,13 +452,13 @@
   <box lunit="cm" name="AuxDet266"    x="19"    y="0.6"    z="151" />
   
   
-  <!-- Detector enclosure solid definition - - - - - - - - - - - - - - - - - -->
+  <!-- [3.7] Detector enclosure solid definition - - - - - - - - - - - - - - -->
   <box name="DetEnclosure" lunit="cm"
     x="1000" y="1060" z="2073"
   />
   
   
-  <!-- World volume solid definition - - - - - - - - - - - - - - - - - - - - -->
+  <!-- [3.8] World volume solid definition - - - - - - - - - - - - - - - - - -->
   <box name="World"
     lunit="cm"
     x="100000"
@@ -422,26 +470,43 @@
 
 
 
+<!-- [4] Placement of volumes in space - - - - - - - - - - - - - - - - - - - -->
 <structure>
 
-  <!-- First and second wire plane volume definition - - - - - - - - - - - - -->
+  <!-- [4.1] Wire volume definition for wires on first and second plane  - - -->
+  
+  <!-- omitted -->
+  
+  <!-- [4.2] First and second wire plane volume definition - - - - - - - - - -->
   <volume name="volTPCPlane">
     <materialref ref="LAr"/>
     <solidref ref="TPCPlane"/>
     
+    <!-- [4.2.1] First and second wire plane volume definition - - - - - - - -->
+    
+    <!-- omitted -->
+    
   </volume> <!-- "volTPCPlane" -->
   
   
-  <!-- Third wire plane definition - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- [4.3] Third wire plane definition - - - - - - - - - - - - - - - - - - -->
+  
+  <!-- omitted -->
+  
+  <!-- [4.4] Third wire plane definition - - - - - - - - - - - - - - - - - - -->
   <volume name="volTPCPlaneVert">
     <materialref ref="LAr"/>
     <solidref ref="TPCPlaneVert"/>
+    
+    <!-- [4.4.1] Wire placement inside the third wire plane  - - - - - - - - -->
+    
+    <!-- omitted -->
     
   </volume> <!-- "volTPCPlaneVert" -->
   
   
   
-  <!-- Active TPC volume definition  - - - - - - - - - - - - - - - - - - - - -->
+  <!-- [4.5] Active TPC volume definition  - - - - - - - - - - - - - - - - - -->
   <volume name="volTPCActive">
     <!-- "volTPCActive" volume is optional in the standard `geo::TPCGeo` -->
     <materialref ref="LAr"/>
@@ -449,18 +514,18 @@
   </volume> <!-- "volTPCActive" -->
   
   
- <!-- TPC volume definition  - - - - - - - - - - - - - - - - - - - - - - - - -->
+ <!-- [4.6] TPC volume definition  - - - - - - - - - - - - - - - - - - - - - -->
   <volume name="volTPC">
     <materialref ref="LAr"/>
     <solidref ref="TPC"/>
     
-    <!-- active volume inside the TPC  - - - - - - - - - - - - - - - - - - - -->
+    <!-- [4.6.1] active volume inside the TPC  - - - - - - - - - - - - - - - -->
     <physvol>
       <volumeref ref="volTPCActive"/>
       <position name="posTPCActive" unit="cm" x="-1.55" y="0" z="0"/>
     </physvol>
     
-    <!-- wire planes inside the TPC  - - - - - - - - - - - - - - - - - - - - -->
+    <!-- [4.6.2] wire planes inside the TPC  - - - - - - - - - - - - - - - - -->
     <physvol>
       <volumeref ref="volTPCPlaneVert"/>
       <position name="posTPCPlaneVert" unit="cm" x="-128.775" y="0" z="0"/>
@@ -479,7 +544,7 @@
   
   
   
-  <!-- Optical detector volume definition  - - - - - - - - - - - - - - - - - -->
+  <!-- [4.7] Optical detector volume definition  - - - - - - - - - - - - - - -->
   <volume name="volOpDetSensitive">
     <materialref ref="LAr"/>
     <solidref ref="PMT_AcrylicPlate"/>
@@ -496,18 +561,18 @@
   
   
   
-  <!-- Cryostat volume definition  - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- [4.8] Cryostat volume definition  - - - - - - - - - - - - - - - - - - -->
   <volume name="volCryostat">
     <materialref ref="LAr"/>
     <solidref ref="Cryostat"/>
     
-    <!-- TPC definition inside the cryostat  - - - - - - - - - - - - - - - - -->
+    <!-- [4.8.1] TPC definition inside the cryostat  - - - - - - - - - - - - -->
     <physvol>
       <volumeref ref="volTPC"/>
       <position name="posTPC" unit="cm" x="0.0" y="0.97" z="0"/>
     </physvol>
     
-    <!-- Optical detector elements definition inside the cryostat  - - - - - -->
+    <!-- [4.8.2] Optical detector elements definition inside the cryostat  - -->
     <physvol>
       <volumeref ref="volPMT"/>
       <position name="posPMT0" unit="cm"  x="-147.8"  y="3.21654"  z="-472"/>
@@ -663,7 +728,7 @@
   
   
   
-  <!-- Auxiliary detector volume definitions  - - - - - - - - - - - - - - - - -->
+  <!-- [4.9] Auxiliary detector volume definitions - - - - - - - - - - - - - -->
   <volume name="volAuxDet0">
     <materialref ref="Polystyrene"/>
     <solidref ref="AuxDet0"/>
@@ -1735,18 +1800,18 @@
   
   
   
-  <!-- Detector enclosure volume definition -  - - - - - - - - - - - - - - - -->
+  <!-- [4.10] Detector enclosure volume definition - - - - - - - - - - - - - -->
   <volume name="volDetEnclosure">
     <materialref ref="Air"/>
     <solidref ref="DetEnclosure"/>
     
-    <!-- Cryostat volumes inside the detector enclosure  - - - - - - - - - - -->
+    <!-- [4.10.1] Cryostat volumes inside the detector enclosure - - - - - - -->
     <physvol>
       <volumeref ref="volCryostat"/>
       <position name="posCryostat" unit="cm" x="0" y="0" z="0"/>
     </physvol>
     
-    <!-- Auxiliary detector volumes inside the detector enclosure  - - - - - -->
+    <!-- [4.10.2] Auxiliary detector volumes inside the detector enclosure - -->
     <physvol>
       <volumeref ref="volAuxDet0"/>
       <position name="posAuxDet0" unit="mm"    x="3628.91180974" y="-1420.26501873" z="-5945.5670412"/>
@@ -3088,7 +3153,7 @@
   
   
   
-  <!-- World volume definition - - - - - - - - - - - - - - - - - - - - - - - -->
+  <!-- [4.11] World volume definition  - - - - - - - - - - - - - - - - - - - -->
   <volume name="volWorld" >
     <materialref ref="Air"/>
     <solidref ref="World"/>
@@ -3102,7 +3167,7 @@
 </structure>
 
 
-<!-- Selection of the default starting volume  - - - - - - - - - - - - - - - -->
+<!-- [5] Selection of the default starting volume  - - - - - - - - - - - - - -->
 <setup name="Default" version="1.0">
   <world ref="volWorld" />
 </setup>
