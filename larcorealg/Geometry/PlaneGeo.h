@@ -44,6 +44,9 @@ namespace geo {
   } // namespace details
 
   //......................................................................
+  class WireGeo;
+  using WirePtr = WireGeo const*; // this will become an object in the future
+  
 
   /**
    * @brief Geometry information for a single wire plane.
@@ -318,7 +321,7 @@ namespace geo {
      * @param iwire the number of local wire
      * @return a constant pointer to the wire, or nullptr if it does not exist
      */
-    WireGeo const* WirePtr(unsigned int iwire) const
+    geo::WirePtr WirePtr(unsigned int iwire) const
       { return HasWire(iwire)? &(fWire[iwire]): nullptr; }
 
     //@{
@@ -330,9 +333,9 @@ namespace geo {
      * The cryostat, TPC and plane numbers in wireid are ignored, as it is
      * ignored whether wireid is invalid.
      */
-    WireGeo const* WirePtr(WireID const& wireid) const
+    geo::WirePtr WirePtr(WireID const& wireid) const
       { return WirePtr(wireid.Wire); }
-    WireGeo const* GetElementPtr(WireID const& wireid) const
+    geo::WirePtr GetElementPtr(WireID const& wireid) const
       { return WirePtr(wireid); }
     //@}
 
