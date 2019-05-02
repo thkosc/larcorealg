@@ -181,6 +181,80 @@ namespace util {
   using is_not_same = std::negation<std::is_same<A, B>>;
 
 
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Trait: index of the first occurrence of `T` among the specified
+   *        `Types`, starting from the one with index `StartFrom`.
+   * @tparam T the type of check the presence of
+   * @tparam StartFrom number of `Types` that will be ignored
+   * @tparam Types the possible types `T` can match.
+   * @see    `util::find_next_type`
+   * 
+   * The value of the trait is the index of `T` within the specified list of
+   * `Types` (first type as index `0`).
+   * The first `StartFrom` `Types` are ignored, but still counted.
+   * The match is exact, as in `std::is_same`.
+   * If none of the `Types` exactly matches `T`, the trait value will be the
+   * number of types (i.e. `sizeof...(Types)`), which is the index after the
+   * last of the types.
+   * 
+   * This is a integral trait (type `std::size_t`): use it as
+   * `std::integer_constant`.
+   */
+  template <typename T, std::size_t StartFrom, typename... Types>
+  struct find_next_type;
+  
+  template <typename T, std::size_t StartFrom, typename... Types>
+  constexpr std::size_t find_next_type_v
+    = find_next_type<T, StartFrom, Types...>::value;
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Trait: index of the first occurrence of `T` among the specified
+   *        `Types`.
+   * @tparam T the type of check the presence of
+   * @tparam Types the possible types `T` can match.
+   * @see    `util::find_next_type`
+   * 
+   * The value of the trait is the index of `T` within the specified list of
+   * `Types` (first type as index `0`). The match is exact, as in
+   * `std::is_same`. If none of the `Types` exactly matches `T`, the trait value
+   * will be the number of types (i.e. `sizeof...(Types)`), which is the index
+   * after the last of the types.
+   * 
+   * This is a integral trait (type `std::size_t`): use it as
+   * `std::integer_constant`.
+   */
+  template <typename T, typename... Types>
+  using find_type = find_next_type<T, 0U, Types...>;
+  
+  
+  /// Index of the first occurrence of `T` among the specified `Types`.
+  /// @see `util::find_type`
+  template <typename T, typename... Types>
+  constexpr std::size_t find_type_v = find_type<T, Types...>::value;
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Trait: whether `T` is among the specified `Types`.
+   * @tparam T the type of check the presence of
+   * @tparam Types the possible types `T` can match.
+   * 
+   * Matching is for the exact type, as in `std::is_same`.
+   * 
+   * This is a boolean trait: use it as `std::bool_constant`.
+   */
+  template <typename T, typename... Types>
+  struct is_any_of;
+  
+  /// Whether `T` is among the specified `Types` (see `util::is_any_of`).
+  template <typename T, typename... Types>
+  constexpr bool is_any_of_v = is_any_of<T, Types...>::value;
+  
+  
+  //----------------------------------------------------------------------------
   // @{
   /**
    * @brief Helper to determine the type of a variable at compilation time.
@@ -496,6 +570,31 @@ namespace util {
   namespace details {
 
     //--------------------------------------------------------------------------
+    template
+      <std::size_t Index, std::size_t Skip, typename T, typename... Types>
+    struct find_type_impl;
+    
+    template <
+      std::size_t Index, std::size_t Skip,
+      typename T,
+      typename Type, typename... Others
+      >
+    struct find_type_impl<Index, Skip, T, Type, Others...>
+      : std::integral_constant<std::size_t,
+      (Skip == 0) && std::is_same_v<T, Type>
+        ? Index
+        : find_type_impl<Index + 1U, ((Skip > 0U)? Skip - 1U: 0U), T, Others...>
+          ::value
+      >
+    {};
+    
+    template <std::size_t Index, std::size_t Skip, typename T>
+    struct find_type_impl<Index, Skip, T>
+      : std::integral_constant<std::size_t, Index>
+    {};
+    
+    
+    //--------------------------------------------------------------------------
     /// Implementation detail of `staticDumpClassName()`.
     template <typename T>
     struct ClassNameStaticDumper {
@@ -662,6 +761,18 @@ namespace util {
     : details::is_instance_of_impl<Template, std::decay_t<T>>
   {};
 
+  //----------------------------------------------------------------------------
+  template <typename T, std::size_t StartFrom, typename... Types>
+  struct find_next_type: details::find_type_impl<0U, StartFrom, T, Types...> {};
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename T, typename... Types>
+  struct is_any_of:
+    std::bool_constant<((find_type_v<T, Types...>) < sizeof...(Types))>
+  {};
+  
+  
   //----------------------------------------------------------------------------
   template <typename T>
   void staticDumpClassName() { (void) details::ClassNameStaticDumper<T>(); }

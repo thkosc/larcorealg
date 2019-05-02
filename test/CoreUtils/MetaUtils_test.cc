@@ -23,7 +23,44 @@
 //------------------------------------------------------------------------------
 //--- static tests (would fail at compile time)
 //------------------------------------------------------------------------------
+// util::find_next_type_v
+//------------------------------------------------------------------------------
+static_assert(util::find_next_type_v<int,         0U, int, int, float> == 0U);
+static_assert(util::find_next_type_v<float,       0U, int, int, float> == 2U);
+static_assert(util::find_next_type_v<const float, 0U, int, int, float> == 3U);
+static_assert(util::find_next_type_v<int,         1U, int, int, float> == 1U);
+static_assert(util::find_next_type_v<float,       1U, int, int, float> == 2U);
+static_assert(util::find_next_type_v<const float, 1U, int, int, float> == 3U);
+static_assert(util::find_next_type_v<int,         2U, int, int, float> == 3U);
+static_assert(util::find_next_type_v<float,       2U, int, int, float> == 2U);
+static_assert(util::find_next_type_v<const float, 2U, int, int, float> == 3U);
+static_assert(util::find_next_type_v<int,         3U, int, int, float> == 3U);
+static_assert(util::find_next_type_v<float,       3U, int, int, float> == 3U);
+static_assert(util::find_next_type_v<const float, 3U, int, int, float> == 3U);
+static_assert(util::find_next_type_v<int,         4U, int, int, float> == 3U);
+static_assert(util::find_next_type_v<float,       4U, int, int, float> == 3U);
+static_assert(util::find_next_type_v<const float, 4U, int, int, float> == 3U);
 
+
+//------------------------------------------------------------------------------
+// util::find_type_v
+//------------------------------------------------------------------------------
+static_assert(util::find_type_v<int,         int, int, float> == 0U);
+static_assert(util::find_type_v<float,       int, int, float> == 2U);
+static_assert(util::find_type_v<const float, int, int, float> == 3U);
+
+
+//------------------------------------------------------------------------------
+// util::is_any_of_v
+//------------------------------------------------------------------------------
+static_assert( util::is_any_of_v<int,         int, int, float>);
+static_assert( util::is_any_of_v<float,       int, int, float>);
+static_assert(!util::is_any_of_v<const float, int, int, float>);
+
+
+//------------------------------------------------------------------------------
+// util::is_instance_of_v
+//------------------------------------------------------------------------------
 static_assert( util::is_instance_of_v<std::unique_ptr, std::unique_ptr<int>>);
 static_assert( util::is_instance_of_v<std::unique_ptr, std::unique_ptr<int> const&>);
 static_assert(!util::is_instance_of_v<std::unique_ptr, std::shared_ptr<int>>);
