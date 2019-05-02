@@ -166,20 +166,19 @@ namespace util {
   constexpr bool always_true_v = true;
 
 
-  // will be present in C++17 as std::bool_constant
-  /// @todo Replace all uses with std::bool_constant when C++17 is adopted
   template <bool Value>
-  using bool_constant = std::integral_constant<bool, Value>;
+  using bool_constant 
+    [[deprecated("use `std::bool_constant` instead (`#include <type_traits>`")]]
+    = std::bool_constant<Value>;
 
-  // will be present in C++17 as std::negation
-  /// @todo Replace all uses with std::negation when C++17 is adopted
   template <typename BoolTrait>
-  using negation = bool_constant<!BoolTrait::value>;
+  using negation
+    [[deprecated("use `std::bool_constant` instead (`#include <type_traits>`")]]
+    = std::negation<BoolTrait>;
 
   /// The negation of `std::is_same`.
-  /// @todo Switch to std::negation in implementation when C++17 is adopted
   template <typename A, typename B>
-  using is_not_same = negation<std::is_same<A, B>>;
+  using is_not_same = std::negation<std::is_same<A, B>>;
 
 
   // @{
