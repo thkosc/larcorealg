@@ -421,6 +421,42 @@ namespace util {
   constexpr bool is_unique_ptr_v = is_unique_ptr<T>::value;
 
 
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Trait: whether type `T` is a character type.
+   * @tparam T the type to be tested
+   * 
+   * Character types are `char` (in all its sign options), `wchar_t`, `char32_t`
+   * and `char16_t`, in any combination of constantness and volatility.
+   * References to types yield the same value as the types they reference.
+   */
+  template <typename T>
+  struct is_character_type;
+  
+  /// Whether type `T` is a character type (see `util::is_character_type`).
+  template <typename T>
+  constexpr bool is_character_type_v = is_character_type<T>::value;
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Trait: whether type `T` is a character string type.
+   * @tparam T the type to be tested
+   * @see `util::is_character_type`
+   * 
+   * In this definition, any container of character types is a string.
+   * A container is defined as a type having a `value_type` member.
+   * Also, C-style arrays and pointers to characters are considered strings.
+   * Reference types yield the same value as their referenced type.
+   */
+  template <typename T>
+  struct is_string_type;
+  
+  /// Whether type `T` is a character string type (see `util::is_string_type`).
+  template <typename T>
+  constexpr bool is_string_type_v = is_string_type<T>::value;
+  
+  
   /// @}
   //--- END Type identification ------------------------------------------------
 
@@ -591,6 +627,59 @@ namespace util {
     template <std::size_t Index, std::size_t Skip, typename T>
     struct find_type_impl<Index, Skip, T>
       : std::integral_constant<std::size_t, Index>
+    {};
+    
+    
+    //--------------------------------------------------------------------------
+    template <typename T, typename = void>
+    struct is_character_type_impl: std::bool_constant<
+      util::is_any_of_v<
+        std::decay_t<T>,
+        signed char,
+        unsigned char,
+        char,
+        wchar_t,
+#ifdef __cpp_char8_t // C++20
+        char8_t,
+#endif // __cpp_char8_t
+        char16_t, // this is defined unsigned
+        char32_t  // this is defined unsigned
+      >>
+    {};
+    
+    
+    //--------------------------------------------------------------------------
+    template <typename T, typename = void>
+    struct is_string_type_impl: std::false_type {};
+    
+    template <typename T>
+    struct is_string_type_impl<
+      T,
+      std::enable_if_t<is_character_type_impl<typename T::value_type>::value>
+      >
+      : std::true_type
+    {};
+    
+    template <typename T>
+    struct is_string_type_impl<
+      T,
+      std::enable_if_t<
+        std::is_pointer_v<std::decay_t<T>>
+        && is_character_type_impl<std::remove_pointer_t<std::decay_t<T>>>::value
+        >
+      >
+      : std::true_type
+    {};
+    
+    template <typename T>
+    struct is_string_type_impl<
+      T,
+      std::enable_if_t<
+        std::is_array_v<std::decay_t<T>>
+        && is_character_type_impl<std::remove_extent_t<std::decay_t<T>>>::value
+        >
+      >
+      : std::true_type
     {};
     
     
@@ -771,6 +860,16 @@ namespace util {
   struct is_any_of:
     std::bool_constant<((find_type_v<T, Types...>) < sizeof...(Types))>
   {};
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename T>
+  struct is_character_type: details::is_character_type_impl<T> {};
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename T>
+  struct is_string_type: details::is_string_type_impl<T> {};
   
   
   //----------------------------------------------------------------------------

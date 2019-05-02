@@ -66,6 +66,33 @@ static_assert( util::is_instance_of_v<std::unique_ptr, std::unique_ptr<int> cons
 static_assert(!util::is_instance_of_v<std::unique_ptr, std::shared_ptr<int>>);
 static_assert(!util::is_instance_of_v<std::unique_ptr, int>);
 
+
+//------------------------------------------------------------------------------
+// util::is_character_type_v
+//------------------------------------------------------------------------------
+static_assert( util::is_character_type_v<char>);
+static_assert( util::is_character_type_v<signed char>);
+static_assert( util::is_character_type_v<unsigned char>);
+static_assert( util::is_character_type_v<wchar_t>);
+static_assert(!util::is_character_type_v<short int>);
+static_assert(!util::is_character_type_v<std::string>);
+
+
+//------------------------------------------------------------------------------
+// util::is_string_type_v
+//------------------------------------------------------------------------------
+static_assert(!util::is_string_type_v<short int>);
+static_assert(!util::is_string_type_v<std::vector<int>>);
+static_assert( util::is_string_type_v<std::vector<wchar_t>>);
+static_assert( util::is_string_type_v<std::string>);
+static_assert( util::is_string_type_v<std::string_view>);
+static_assert( util::is_string_type_v<char const*>);
+static_assert( util::is_string_type_v<char const*&>);
+static_assert( util::is_string_type_v<wchar_t*>);
+static_assert( util::is_string_type_v<char[]>);
+static_assert( util::is_string_type_v<wchar_t const[10U]>);
+
+
 //------------------------------------------------------------------------------
 // util::is_STLarray_v
 //------------------------------------------------------------------------------
