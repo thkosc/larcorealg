@@ -322,6 +322,7 @@ namespace geo {
 
 
     /// Returns the coordinates of the center of the specified plane [cm]
+    /// @deprecated Use `Plane(p).GetCenter()` or equivalent.
     const double*     PlaneLocation(unsigned int p)             const;
     double            Plane0Pitch(unsigned int p)               const;
     double            PlanePitch(unsigned int p1=0,
@@ -747,6 +748,9 @@ namespace geo {
 
     /// Refills the plane vs. view cache of the TPC.
     void UpdatePlaneViewCache();
+    
+    /// Updates plane cached information.
+    void UpdatePlaneCache();
 
     /// Recomputes the TPC boundary.
     void InitTPCBoundaries();

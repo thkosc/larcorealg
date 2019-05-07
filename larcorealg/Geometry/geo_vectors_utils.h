@@ -405,9 +405,15 @@ namespace geo {
     /// Convenience utilities not directly related to vectors.
     namespace extra {
 
+      /// Returns `value`, rounded to 0 if closer than `tol`.
+      template <typename T>
+      constexpr T roundValue0(T value, T tol) {
+        return (std::abs(value) < tol)? T{}: value;
+      } // roundValue0()
+
       /// Returns `value`, rounded to 0, -1 or +1 if closer than `tol`.
       template <typename T>
-      T roundValue01(T value, T tol) {
+      constexpr T roundValue01(T value, T tol) {
         if (std::abs(value) < tol) return 0.;
         if (std::abs(std::abs(value) - 1.) < tol) return (value > 0.)? 1.: -1.;
         return value;
@@ -1145,6 +1151,18 @@ namespace geo {
      *       two `Vector_t` or `Point_t` will become a `VectorBase_t`).
      *
      */
+
+    /// Returns a vector with all components rounded if close to 0.
+    template <typename Vector, typename Scalar>
+    Vector rounded0(Vector const& v, Scalar tol)
+      {
+        return transformCoords
+          (v, [tol](auto c){ return extra::roundValue0(c, tol); });
+      }
+
+    /// Returns a vector with all components rounded if close to 0.
+    template <typename Vector, typename Scalar>
+    void round0(Vector& v, Scalar tol) { v = rounded0(v, tol); }
 
     /// Returns a vector with all components rounded if close to 0, -1 or +1.
     template <typename Vector, typename Scalar>

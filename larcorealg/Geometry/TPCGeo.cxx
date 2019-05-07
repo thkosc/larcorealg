@@ -10,6 +10,7 @@
 // LArSoft includes
 #include "larcorealg/Geometry/PlaneGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect::fillCoords()
 #include "larcorealg/CoreUtils/RealComparisons.h"
 
 // Framework includes
@@ -200,28 +201,7 @@ namespace geo{
   void TPCGeo::SortSubVolumes(geo::GeoObjectSorter const& sorter)
   {
     SortPlanes(fPlanes);
-
-    double origin[3] = {0.};
-
-    // set the plane pitch for this TPC
-    double xyz[3]  = {0.};
-    fPlanes[0].LocalToWorld(origin,xyz);
-    double xyz1[3] = {0.};
-    fPlaneLocation.clear();
-    fPlaneLocation.resize(fPlanes.size());
-    for(unsigned int i = 0; i < fPlaneLocation.size(); ++i) fPlaneLocation[i].resize(3);
-    fPlane0Pitch.clear();
-    fPlane0Pitch.resize(this->Nplanes(), 0.);
-    for(size_t p = 0; p < this->Nplanes(); ++p){
-      fPlanes[p].LocalToWorld(origin,xyz1);
-      if(p > 0) fPlane0Pitch[p] = fPlane0Pitch[p-1] + std::abs(xyz1[0]-xyz[0]);
-      else      fPlane0Pitch[p] = 0.;
-      xyz[0] = xyz1[0];
-      fPlaneLocation[p][0] = xyz1[0];
-      fPlaneLocation[p][1] = xyz1[1];
-      fPlaneLocation[p][2] = xyz1[2];
-    }
-
+    
     // the PlaneID_t cast convert InvalidID into a rvalue (non-reference);
     // leaving it a reference would cause C++ to treat it as such,
     // that can't be because InvalidID is a static member constant without an address
@@ -253,6 +233,7 @@ namespace geo{
 
     } // for
 
+    UpdatePlaneCache();
     UpdatePlaneViewCache();
 
   } // TPCGeo::UpdateAfterSorting()
@@ -516,6 +497,30 @@ namespace geo{
       (1U + (size_t) geo::kUnknown, (geo::PlaneID::PlaneID_t) geo::PlaneID::InvalidID);
     for(size_t p = 0; p < Nplanes(); ++p)
       fViewToPlaneNumber[(size_t) fPlanes[p].View()] = p;
+
+  } // TPCGeo::UpdatePlaneViewCache()
+
+
+  //......................................................................
+  
+  void TPCGeo::UpdatePlaneCache() {
+
+    /*
+     * set the plane pitch for this TPC
+     */
+    fPlaneLocation.resize(fPlanes.size());
+    fPlane0Pitch.resize(Nplanes(), 0.);
+    geo::Point_t refPlaneCenter = fPlanes[0].GetCenter<geo::Point_t>();
+    for(size_t p = 0; p < Nplanes(); ++p){
+      geo::Point_t const& center = fPlanes[p].GetCenter<geo::Point_t>();
+      fPlane0Pitch[p] = (p == 0)
+        ? 0.0
+        : fPlane0Pitch[p-1] + std::abs(center.X()-refPlaneCenter.X())
+        ;
+      fPlaneLocation[p].resize(3);
+      geo::vect::fillCoords(fPlaneLocation[p], center);
+      refPlaneCenter = center;
+    } // for planes
 
   } // TPCGeo::UpdatePlaneViewCache()
 

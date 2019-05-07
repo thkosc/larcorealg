@@ -1174,7 +1174,9 @@ namespace geo{
     fCenter = GetBoxCenter<geo::Point_t>();
 
     DriftPoint(fCenter, DistanceFromPlane(fCenter));
-
+    
+    geo::vect::round0(fCenter, 1e-7); // round dimensions less than 1 nm to 0
+    
     fDecompFrame.SetOrigin(fCenter); // equivalent to GetCenter() now
 
   } // PlaneGeo::UpdateWirePlaneCenter()
