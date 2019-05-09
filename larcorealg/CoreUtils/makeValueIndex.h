@@ -72,7 +72,11 @@ decltype(auto) util::makeValueIndex(Coll const& coll, Extractor getter) {
   
   using Value_t = typename Coll::value_type;
   using Key_t
+#if 0 // this is C++17...
     = std::remove_reference_t<std::invoke_result_t<Extractor, Value_t>>;
+#else // ... and this is what Clang 5.0 understands:
+    = std::remove_reference_t<decltype(getter(std::declval<Value_t>()))>;
+#endif // 0
   
   using Map_t = std::map<Key_t, std::size_t>;
   
