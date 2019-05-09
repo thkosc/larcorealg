@@ -29,7 +29,6 @@
 //------------------------------------------------------------------------------
 template <typename Iter, typename Cont>
 void test_span(Cont& v) {
-  using TestVector_t = Cont;
 
   auto r = util::make_span(v);
 
@@ -64,7 +63,6 @@ void test_span(Cont& v) {
 //------------------------------------------------------------------------------
 template <typename Iter, typename Cont>
 void test_const_span(Cont& v) {
-  using TestVector_t = Cont;
 
   auto r = util::make_const_span(v);
 
@@ -99,7 +97,6 @@ void test_const_span(Cont& v) {
 //------------------------------------------------------------------------------
 template <typename Iter, typename Cont>
 void test_adapted_span(Cont& v) {
-  using TestVector_t = Cont;
   
   /*
    * In this test we create a container of pointers to `v` elements and iterate
@@ -136,7 +133,6 @@ void test_adapted_span(Cont& v) {
 //------------------------------------------------------------------------------
 template <typename Iter, typename Cont>
 void test_transformed_span(Cont& v) {
-  using TestVector_t = Cont;
   
   /*
    * In this test we create a container of pointers to `v` elements and iterate

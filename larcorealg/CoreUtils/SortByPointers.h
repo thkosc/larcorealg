@@ -160,7 +160,7 @@ namespace util::details {
       
       
       using coll_t = Coll;
-      using unique_ptr_t = typename Coll::value_type;
+      using unique_ptr_t = typename coll_t::value_type;
       using value_type = typename unique_ptr_t::element_type;
       using pointer_type = std::add_pointer_t<value_type>;
       using ptr_coll_t = std::vector<pointer_type>;
