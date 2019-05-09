@@ -473,6 +473,8 @@ namespace lar::debug {
 
   template <typename T, bool Enable = true>
   struct static_assert_on {
+    static_assert_on() = default;
+    static_assert_on(T) {}
     details::THE_TYPE_IS<T> _;
   }; // static_assert_on<>
 
