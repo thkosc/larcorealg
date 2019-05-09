@@ -593,7 +593,8 @@ namespace util {
 
   /// @}
   //--- END Type manipulation --------------------------------------------------
-
+  
+  
 } // namespace util
 
 
