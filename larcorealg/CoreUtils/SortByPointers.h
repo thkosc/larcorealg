@@ -10,6 +10,10 @@
 #ifndef LARCOREALG_COREUTILS_SORTBYPOINTER_H
 #define LARCOREALG_COREUTILS_SORTBYPOINTER_H
 
+// LArSoft libraries
+#include "larcorealg/CoreUtils/makeValueIndex.h"
+#include "larcorealg/CoreUtils/MetaUtils.h" // util::is_unique_ptr_v<>
+
 // C/C++ standard libraries
 #include <vector>
 #include <algorithm> // std::transform(), std::sort()
@@ -92,6 +96,23 @@ namespace util {
 
 
   //----------------------------------------------------------------------------
+  /**
+   * @brief Sorts a vector of unique pointers using a C pointer sorter.
+   * @tparam Coll type of collection to be sorted
+   * @tparam Sorter type of sorter function
+   * @param coll collection to be sorted
+   * @param sorter sorting procedure
+   * 
+   * This adapter moves the unique pointers around to match a sorted version of
+   * source.
+   * This is an expensive procedure, implying the creation of a temporary
+   * vector and of additional supporting data: avoid it if at all possible.
+   */
+  template <typename Coll, typename Sorter>
+  void SortUniquePointers(Coll& coll, Sorter&& sorter);
+  
+  
+  //----------------------------------------------------------------------------
 
 } // namespace util
 
@@ -99,27 +120,83 @@ namespace util {
 //------------------------------------------------------------------------------
 //---  Template implementation
 //------------------------------------------------------------------------------
+namespace util::details {
+  
+  //----------------------------------------------------------------------------
+  template <typename Coll, typename = void>
+  struct PointerVectorMaker {
+    
+    static auto make(Coll& coll) {
+
+      using coll_t = Coll;
+      using value_type = typename coll_t::value_type;
+      using pointer_type = std::add_pointer_t<value_type>;
+      using ptr_coll_t = std::vector<pointer_type>;
+
+      auto const n = coll.size();
+
+      //
+      // create the collection of pointers to data
+      //
+      ptr_coll_t ptrs;
+      ptrs.reserve(n);
+      std::transform(coll.begin(), coll.end(), std::back_inserter(ptrs),
+        [](auto& obj){ return &obj; });
+
+      return ptrs;
+
+    } // make()
+    
+  }; // struct PointerVectorMaker<>
+  
+  
+  template <typename Coll>
+  struct PointerVectorMaker
+    <Coll, std::enable_if_t<util::is_unique_ptr_v<typename Coll::value_type>>>
+  {
+    
+    
+    static auto make(Coll& coll) {
+      
+      
+      using coll_t = Coll;
+      using unique_ptr_t = typename Coll::value_type;
+      using value_type = typename unique_ptr_t::element_type;
+      using pointer_type = std::add_pointer_t<value_type>;
+      using ptr_coll_t = std::vector<pointer_type>;
+      
+      static_assert(util::is_unique_ptr_v<unique_ptr_t>); // kind of silly now
+      
+      using std::size;
+      auto const n = size(coll);
+
+      //
+      // create the collection of pointers to data
+      //
+      ptr_coll_t ptrs;
+      ptrs.reserve(n);
+      std::transform(coll.begin(), coll.end(), std::back_inserter(ptrs),
+        [](auto& obj){ return obj.get(); });
+
+      return ptrs;
+
+    } // make()
+    
+  }; // struct PointerVectorMaker<unique_ptr>
+  
+  
+  
+  //----------------------------------------------------------------------------
+  
+  
+} // namespace util::details
+
+
+
+//------------------------------------------------------------------------------
 template <typename Coll>
-auto util::makePointerVector(Coll& coll) {
-
-  using coll_t = Coll;
-  using value_type = typename coll_t::value_type;
-  using pointer_type = std::add_pointer_t<value_type>;
-  using ptr_coll_t = std::vector<pointer_type>;
-
-  auto const n = coll.size();
-
-  //
-  // create the collection of pointers to data
-  //
-  ptr_coll_t ptrs;
-  ptrs.reserve(n);
-  std::transform(coll.begin(), coll.end(), std::back_inserter(ptrs),
-    [](auto& obj){ return &obj; });
-
-  return ptrs;
-
-} // util::makePointerVector()
+auto util::makePointerVector(Coll& coll)
+  { return details::PointerVectorMaker<Coll>::make(coll); }
 
 
 //------------------------------------------------------------------------------
@@ -150,6 +227,45 @@ void util::SortByPointers(Coll& coll, Sorter sorter) {
   coll = std::move(sorted);
 
 } // util::SortByPointers()
+
+
+//------------------------------------------------------------------------------
+template <typename Coll, typename Sorter>
+void util::SortUniquePointers(Coll& coll, Sorter&& sorter) {
+
+  using Collection_t = Coll;
+  using UPtr_t = typename Collection_t::value_type;
+  
+  static_assert(util::is_unique_ptr_v<UPtr_t>);
+
+  //
+  // create the collection of pointers to data
+  //
+  auto ptrs = makePointerVector(coll);
+  
+  // data pointer -> index
+  auto const ptrIndex = util::makeValueIndex(ptrs);
+  
+  //
+  // delegate the sorting by pointers
+  //
+  sorter(ptrs);
+
+  //
+  // create a sorted collection moving the content from the original one
+  //
+  Collection_t sorted;
+  for (auto const& dataPtr: ptrs) {
+    std::size_t const originalIndex = ptrIndex.at(dataPtr);
+    sorted.emplace_back(std::move(coll[originalIndex]));
+  }
+  
+  //
+  // replace the old container with the new one
+  //
+  coll = std::move(sorted);
+
+} // util::SortUniquePointers()
 
 
 //------------------------------------------------------------------------------
