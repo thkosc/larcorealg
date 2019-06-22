@@ -902,7 +902,14 @@ namespace geo{
 
   //......................................................................
   void PlaneGeo::UpdateWirePitch() {
-    fWirePitch = geo::WireGeo::WirePitch(Wire(0), Wire(1));
+    // pick long wires around the center of the detector,
+    // so that their coordinates are defined with better precision
+    assert(Nwires() > 1);
+    
+    auto const iWire = Nwires() / 2;
+    
+    fWirePitch = geo::WireGeo::WirePitch(Wire(iWire - 1), Wire(iWire));
+    
   } // PlaneGeo::UpdateWirePitch()
 
   //......................................................................
