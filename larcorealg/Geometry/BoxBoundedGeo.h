@@ -18,9 +18,7 @@
 
 // C/C++ standard library
 #include <algorithm>
-#include <array>
 #include <vector>
-
 
 namespace geo {
   /**

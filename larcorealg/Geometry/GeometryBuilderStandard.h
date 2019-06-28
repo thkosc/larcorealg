@@ -21,7 +21,6 @@
 #include "larcorealg/Geometry/WireGeo.h"
 
 // support libraries
-#include "fhiclcpp/types/Table.h"
 #include "fhiclcpp/types/Atom.h"
 
 // ROOT libraries
