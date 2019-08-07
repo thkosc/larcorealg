@@ -15,10 +15,12 @@
 // LArSoft libraries
 #include "larcorealg/CoreUtils/operations.h"
 #include "larcorealg/CoreUtils/zip.h"
+#include "larcorealg/CoreUtils/UncopiableAndUnmovableClass.h"
 
 // C/C++ standard libraries
 #include <vector>
 #include <algorithm>
+#include <memory> // std::unique_ptr<>
 #include <numeric> // std::iota()
 
 
@@ -219,9 +221,9 @@ void test_dereference_documentation() {
   
 } // test_dereference_documentation()
 
-  
+
 //------------------------------------------------------------------------------
-void test_dereference() {
+void test_dereference_C_ptr() {
   
   std::vector<int> data(10U);
   std::iota(data.begin(), data.end(), 0U);
@@ -245,9 +247,50 @@ void test_dereference() {
     
   } // for
   
-} // test_dereference()
+} // test_dereference_C_ptr()
 
 
+//------------------------------------------------------------------------------
+void test_dereference_unique_ptr() {
+  
+  std::vector<int> data(10U);
+  std::iota(data.begin(), data.end(), 0U);
+  
+  std::vector<std::unique_ptr<int>> dataPtrs;
+  dataPtrs.reserve(data.size());
+  for (auto&& value: data) dataPtrs.push_back(std::make_unique<int>(value)); 
+  
+  std::vector<int> dataAgain;
+  std::transform(
+    dataPtrs.cbegin(), dataPtrs.cend(),
+    std::back_inserter(dataAgain),
+    util::dereference()
+    );
+  
+  BOOST_CHECK_EQUAL(dataAgain.size(), data.size());
+  for (auto&& [ value, valueAgain ]: util::zip(data, dataAgain)) {
+    
+    BOOST_CHECK_EQUAL(valueAgain, value);
+    BOOST_CHECK_NE(&valueAgain, &value);
+    
+  } // for
+  
+} // test_dereference_unique_ptr()
+
+
+//------------------------------------------------------------------------------
+void test_dereference_uncopiable() {
+  
+  struct ToughInt: private lar::UncopiableAndUnmovableClass {
+    int value = 0;
+  }; // ToughInt
+  
+  ToughInt value;
+  ToughInt const* pValue = &value;
+  
+  BOOST_CHECK_EQUAL(pValue, &(util::dereference()(pValue)));
+  
+} // test_dereference_uncopiable()
 
 
 //------------------------------------------------------------------------------
@@ -264,7 +307,9 @@ BOOST_AUTO_TEST_CASE(takeAddress_testcase) {
 //------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(dereference_testcase) {
 
-  test_dereference();
+  test_dereference_C_ptr();
+  test_dereference_unique_ptr();
+  test_dereference_uncopiable();
   test_dereference_documentation();
   test_Dereferencer_documentation();
 
