@@ -184,7 +184,6 @@ void test_transformed_span_with_unmoveable_values(Cont& v) {
   
   using value_t   = typename std::iterator_traits<Iter>::value_type;
   using pointer_t   = std::unique_ptr<value_t>;
-  using reference_t = typename pointer_t::element_type&;
   
   std::vector<pointer_t> ptrs;
   std::transform(
@@ -195,9 +194,7 @@ void test_transformed_span_with_unmoveable_values(Cont& v) {
   auto r = util::make_transformed_span(ptrs, util::dereference());
 
   // check the type of the object
-  static_assert(
-    std::is_same<typename decltype(r)::value_type, typename Iter::value_type>()
-    );
+  static_assert(std::is_same<typename decltype(r)::value_type, value_t>());
 
   BOOST_CHECK_EQUAL(r.empty(), v.empty());
   BOOST_CHECK_EQUAL(r.size(), v.size());
