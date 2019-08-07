@@ -83,7 +83,7 @@ namespace util {
    * This `util::takeAddress()` operates in a very similar way to the lambda in
    * the last example.
    */
-  auto takeAddress() { return AddressTaker(); }
+  decltype(auto) takeAddress() { return AddressTaker(); }
   
   
   //----------------------------------------------------------------------------
@@ -104,7 +104,7 @@ namespace util {
     
     /// Returns `*ptr`.
     template <typename T>
-    auto operator() (T&& ptr) const { return *ptr; }
+    decltype(auto) operator() (T&& ptr) const { return *ptr; }
     
   }; // struct Dereferencer
   
