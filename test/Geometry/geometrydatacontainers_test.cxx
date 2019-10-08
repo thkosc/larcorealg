@@ -39,6 +39,12 @@ void TPCDataContainerTest() {
   static constexpr std::size_t N          = NCryostats * NTPCs;
   
   geo::TPCDataContainer<int> data(NCryostats, NTPCs);
+  
+  static_assert(data.dimensions() == 2U);
+  BOOST_CHECK_EQUAL(data.dimSize<0U>(), NCryostats);
+  BOOST_CHECK_EQUAL(data.dimSize<1U>(), NTPCs);
+  BOOST_CHECK_EQUAL(data.dimSize<2U>(), 0U);
+  BOOST_CHECK_EQUAL(data.dimSize<3U>(), 0U);
 
   BOOST_CHECK(!data.empty());
   BOOST_CHECK_EQUAL(data.size(), N);
@@ -154,6 +160,12 @@ void TPCDataContainerTest() {
   
   auto const& constData = data;
 
+  static_assert(data.dimensions() == 2U);
+  BOOST_CHECK_EQUAL(data.dimSize<0U>(), NCryostats);
+  BOOST_CHECK_EQUAL(data.dimSize<1U>(), NTPCs);
+  BOOST_CHECK_EQUAL(data.dimSize<2U>(), 0U);
+  BOOST_CHECK_EQUAL(data.dimSize<3U>(), 0U);
+
   BOOST_CHECK_EQUAL
     (std::addressof(constData.first()), std::addressof(data.first()));
   BOOST_CHECK_EQUAL
@@ -227,6 +239,12 @@ void PlaneDataContainerTest() {
   static constexpr std::size_t NPlanes    = 2U;
   static constexpr std::size_t N          = NCryostats * NTPCs * NPlanes;
   geo::PlaneDataContainer<int> data(NCryostats, NTPCs, NPlanes);
+
+  static_assert(data.dimensions() == 3U);
+  BOOST_CHECK_EQUAL(data.dimSize<0U>(), NCryostats);
+  BOOST_CHECK_EQUAL(data.dimSize<1U>(), NTPCs);
+  BOOST_CHECK_EQUAL(data.dimSize<2U>(), NPlanes);
+  BOOST_CHECK_EQUAL(data.dimSize<3U>(), 0U);
 
   BOOST_CHECK(!data.empty());
   BOOST_CHECK_EQUAL(data.size(), N);
@@ -552,6 +570,12 @@ void PlaneDataContainerTest() {
   data.last() =  126;
 
   auto const& constData = data;
+
+  static_assert(data.dimensions() == 3U);
+  BOOST_CHECK_EQUAL(data.dimSize<0U>(), NCryostats);
+  BOOST_CHECK_EQUAL(data.dimSize<1U>(), NTPCs);
+  BOOST_CHECK_EQUAL(data.dimSize<2U>(), NPlanes);
+  BOOST_CHECK_EQUAL(data.dimSize<3U>(), 0U);
 
   BOOST_CHECK_EQUAL
     (std::addressof(constData.first()), std::addressof(data.first()));
