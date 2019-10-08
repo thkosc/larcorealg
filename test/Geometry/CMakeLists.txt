@@ -162,6 +162,11 @@ cet_test(geometrydatacontainers_test
   USE_BOOST_UNIT
   )
 
+cet_test(readoutdatacontainers_test
+  SOURCES readoutdatacontainers_test.cxx
+  USE_BOOST_UNIT
+  )
+
 cet_test(topology_test
   SOURCES topology_test.cxx
   LIBRARIES larcorealg_Geometry
