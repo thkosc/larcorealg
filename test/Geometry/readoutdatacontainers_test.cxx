@@ -32,14 +32,14 @@ struct Summer {
 }; // struct Summer
 
 //------------------------------------------------------------------------------
-void TPCsetDataContainerTest() {
+void TPCsetDataContainerTest(
+  readout::TPCsetDataContainer<int> data, // copy is intentional
+  std::size_t const NCryostats,
+  std::size_t const NTPCsets
+) {
   
-  static constexpr std::size_t NCryostats = 2U;
-  static constexpr std::size_t NTPCsets   = 3U;
-  static constexpr std::size_t N          = NCryostats * NTPCsets;
+  std::size_t const N = NCryostats * NTPCsets;
   
-  readout::TPCsetDataContainer<int> data(NCryostats, NTPCsets);
-
   BOOST_CHECK(!data.empty());
   BOOST_CHECK_EQUAL(data.size(), N);
   BOOST_CHECK_GE(data.capacity(), N);
@@ -210,23 +210,26 @@ void TPCsetDataContainerTest() {
   auto summer2 = constData.apply(Summer<int>{});
   BOOST_CHECK_EQUAL(summer2.get(), N * 28);
   
-  data.clear();
+  data.reset();
   for (auto c: util::counter<unsigned int>(NCryostats)) 
     for (auto s: util::counter<unsigned short int>(NTPCsets)) 
       BOOST_CHECK_EQUAL((data[{ c, s }]), 0);
   
+  data.clear();
+  BOOST_CHECK(data.empty());
   
 } // TPCsetDataContainerTest()
 
 
 //------------------------------------------------------------------------------
-void ROPDataContainerTest() {
+void ROPDataContainerTest(
+  readout::ROPDataContainer<int> data, // copy is intentional
+  std::size_t const NCryostats,
+  std::size_t const NTPCsets,
+  std::size_t const NROPs
+) {
 
-  static constexpr std::size_t NCryostats = 2U;
-  static constexpr std::size_t NTPCsets   = 3U;
-  static constexpr std::size_t NROPs      = 2U;
-  static constexpr std::size_t N          = NCryostats * NTPCsets * NROPs;
-  readout::ROPDataContainer<int> data(NCryostats, NTPCsets, NROPs);
+  std::size_t const N = NCryostats * NTPCsets * NROPs;
 
   BOOST_CHECK(!data.empty());
   BOOST_CHECK_EQUAL(data.size(), N);
@@ -644,11 +647,14 @@ void ROPDataContainerTest() {
   auto summer2 = constData.apply(Summer<int>{});
   BOOST_CHECK_EQUAL(summer2.get(), N * 28);
   
-  data.clear();
+  data.reset();
   for (auto c: util::counter<unsigned int>(NCryostats)) 
     for (auto s: util::counter<unsigned short int>(NTPCsets)) 
       for (auto r: util::counter<unsigned int>(NROPs)) 
         BOOST_CHECK_EQUAL((data[{ c, s, r }]), 0);
+  
+  data.clear();
+  BOOST_CHECK(data.empty());
   
   
 } // ROPDataContainerTest()
@@ -656,13 +662,50 @@ void ROPDataContainerTest() {
 
 //------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(TPCsetDataContainerTestCase) {
-  TPCsetDataContainerTest();
+  
+  constexpr std::size_t NCryostats = 2U;
+  constexpr std::size_t NTPCsets   = 3U;
+  
+  //
+  // size constructor
+  //
+  readout::TPCsetDataContainer<int> data1(NCryostats, NTPCsets);
+  TPCsetDataContainerTest(data1, NCryostats, NTPCsets);
+  
+  //
+  // default constructor + resize
+  //
+  readout::TPCsetDataContainer<int> data2;
+  BOOST_CHECK(data2.empty());
+  
+  data2.resize({ NCryostats, NTPCsets });
+  TPCsetDataContainerTest(data2, NCryostats, NTPCsets);
+  
 } // TPCsetDataContainerTestCase
 
 
 //------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(ROPDataContainerTestCase) {
-  ROPDataContainerTest();
+  
+  constexpr std::size_t NCryostats = 2U;
+  constexpr std::size_t NTPCsets   = 3U;
+  constexpr std::size_t NROPs      = 2U;
+  
+  //
+  // size constructor
+  //
+  readout::ROPDataContainer<int> data1(NCryostats, NTPCsets, NROPs);
+  ROPDataContainerTest(data1, NCryostats, NTPCsets, NROPs);
+  
+  //
+  // default constructor + resize
+  //
+  readout::ROPDataContainer<int> data2;
+  BOOST_CHECK(data2.empty());
+  
+  data2.resize({ NCryostats, NTPCsets, NROPs });
+  ROPDataContainerTest(data2, NCryostats, NTPCsets, NROPs);
+  
 } // ROPDataContainerTestCase
 
 

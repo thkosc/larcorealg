@@ -66,6 +66,16 @@ class readout::TPCsetDataContainer
   using value_type = typename BaseContainer_t::value_type;
   
   /**
+   * @brief Default constructor: empty container.
+   * @see `resize()`
+   * 
+   * The container starts with no room for any data.
+   * The only guarantee is that `empty()` is `true` and `size()` is `0`.
+   * Use `resize()` before anything else.
+   */
+  TPCsetDataContainer() = default;
+
+  /**
    * @brief Prepares the container with default-constructed data.
    * @param nCryo number of cryostats
    * @param nTPCsets number of TPC sets
@@ -147,6 +157,16 @@ class readout::ROPDataContainer
   using BaseContainer_t = geo::GeoIDdataContainer<T, readout::ROPID>;
   
     public:
+
+  /**
+   * @brief Default constructor: empty container.
+   * @see `resize()`
+   * 
+   * The container starts with no room for any data.
+   * The only guarantee is that `empty()` is `true` and `size()` is `0`.
+   * Use `resize()` before anything else.
+   */
+  ROPDataContainer() = default;
 
   /**
    * @brief Prepares the container with default-constructed data.

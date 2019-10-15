@@ -120,10 +120,19 @@ class geo::GeoIDdataContainer {
   using size_type              = typename Container_t::size_type             ;
 
   /// @}
-
+  
+  /**
+   * @brief Default constructor: container has no room at all.
+   * @see `resize()`
+   * 
+   * The object *must* be resized before being of any use.
+   */
+  GeoIDdataContainer() = default;
+  
   /**
    * @brief Prepares the container with default-constructed data.
    * @param dims number of elements on all levels of the container
+   * @see `resize()`
    * 
    * The size of each dimension is specified by the corresponding number,
    * starting from the size of the outer dimension (cryostat).
@@ -134,14 +143,16 @@ class geo::GeoIDdataContainer {
   GeoIDdataContainer(std::initializer_list<unsigned int> dims);
 
   /**
-   * @brief Prepares the container with default-constructed data.
+   * @brief Prepares the container initializing all its data.
    * @param dims number of elements on all levels of the container
+   * @param defValue the value copied to fill all entries in the container
+   * @see `resize()`
    * 
    * The size of each dimension is specified by the corresponding number,
    * starting from the size of the outer dimension (cryostat).
    *
    * The container is sized to host data for all the elements.
-   * Each element in the container is default-constructed.
+   * Each element in the container is constructed as copy of `defValue`.
    */
   GeoIDdataContainer(
     std::initializer_list<unsigned int> dims,
@@ -164,7 +175,7 @@ class geo::GeoIDdataContainer {
 
   /// Dimensions of the `Level` dimension of this container.
   template <std::size_t Level>
-  unsigned int dimSize();
+  unsigned int dimSize() const;
   
   /// Dimensions of the ID of this container.
   static constexpr unsigned int dimensions();
@@ -236,7 +247,7 @@ class geo::GeoIDdataContainer {
   void fill(value_type value);
   
   /// Sets all the elements to a default-constructed `value_type`.
-  void clear();
+  void reset();
   
   
   /**
@@ -270,14 +281,64 @@ class geo::GeoIDdataContainer {
   decltype(auto) apply(Op&& op) const;
   
   /// @}
-  // --- END Element access --------------------------------------------------
+  // --- END Data modification -------------------------------------------------
+  
+  
+  // --- BEGIN Container modification ------------------------------------------
+  /// @name Container modification
+  /// @{
+  
+  /**
+   * @brief Prepares the container with default-constructed data.
+   * @param dims number of elements on all levels of the container
+   * @see `clear()`, `fill()`
+   * 
+   * The size of each dimension is specified by the corresponding number,
+   * starting from the size of the outer dimension (cryostat).
+   *
+   * The container is sized to host data for all the elements.
+   * Each new element in the container is default-constructed.
+   * Existing data is not touched, but it may be rearranged in a
+   * non-straightforward way.
+   */
+  void resize(std::initializer_list<unsigned int> dims);
+
+  /**
+   * @brief Prepares the container initializing all its data.
+   * @param dims number of elements on all levels of the container
+   * @param defValue the value copied to fill all entries in the container
+   * @see `clear()`, `fill()`
+   * 
+   * The size of each dimension is specified by the corresponding number,
+   * starting from the size of the outer dimension (cryostat).
+   *
+   * The container is sized to host data for all the elements.
+   * Each new element in the container is constructed as copy of `defValue`.
+   * Existing data is not touched, but it may be rearranged in a
+   * non-straightforward way.
+   */
+  void resize
+    (std::initializer_list<unsigned int> dims, value_type const& defValue);
+  
+  /**
+   * @brief Makes the container empty, with no usable storage space.
+   * @see `resize()`
+   * 
+   * The container needs to be resized before it is useful again.
+   */
+  void clear();
+  
+  
+  /// @}
+  // --- END Container modification --------------------------------------------
 
 
     private:
   ///< Type of dimension sizes.
   using Dimensions_t = std::array<unsigned int, dimensions()>;
   
-  Dimensions_t fN; ///< Number of maximum entries per ID level.
+  /// Number of maximum entries per ID level.
+  Dimensions_t fN = zeroDimensions();
   
   Container_t fData; ///< Data storage.
 
@@ -299,6 +360,10 @@ class geo::GeoIDdataContainer {
   /// @param dimSizes the sizes of each of the levels
   template <std::size_t Level, typename Dims>
   static size_type sizeLevel(Dims const& dimSizes);
+  
+  /// Initializer with zero size for each of the dimensions.
+  static Dimensions_t zeroDimensions()
+    { Dimensions_t dims; dims.fill(0); return dims; }
   
 }; // class geo::GeoIDdataContainer<>
 
@@ -347,6 +412,16 @@ class geo::TPCDataContainer: public geo::GeoIDdataContainer<T, geo::TPCID> {
   
   using value_type = typename BaseContainer_t::value_type;
   
+  /**
+   * @brief Default constructor: empty container.
+   * @see `resize()`
+   * 
+   * The container starts with no room for any data.
+   * The only guarantee is that `empty()` is `true` and `size()` is `0`.
+   * Use `resize()` before anything else.
+   */
+  TPCDataContainer() = default;
+
   /**
    * @brief Prepares the container with default-constructed data.
    * @param nCryo number of cryostats
@@ -442,6 +517,16 @@ class geo::PlaneDataContainer: public geo::GeoIDdataContainer<T, geo::PlaneID>
   using BaseContainer_t = geo::GeoIDdataContainer<T, geo::PlaneID>;
   
     public:
+
+  /**
+   * @brief Default constructor: empty container.
+   * @see `resize()`
+   * 
+   * The container starts with no room for any data.
+   * The only guarantee is that `empty()` is `true` and `size()` is `0`.
+   * Use `resize()` before anything else.
+   */
+  PlaneDataContainer() = default;
 
   /**
    * @brief Prepares the container with default-constructed data.
@@ -556,6 +641,9 @@ class geo::details::GeoContainerData {
   
   // --- BEGIN Constructors ----------------------------------------------------
   
+  /// Default constructor with empty container. Good for nothing.
+  GeoContainerData() = default;
+
   /// Prepares the container with default-constructed data.
   GeoContainerData(size_type size): fData(size) {}
 
@@ -598,7 +686,7 @@ class geo::details::GeoContainerData {
     { std::fill(fData.begin(), fData.end(), value); }
   
   /// Sets all the elements to a default-constructed `value_type`.
-  void clear() { fill(value_type{}); }
+  void reset() { fill(value_type{}); }
   
   /**
    * @brief Applies an operation on all elements.
@@ -633,6 +721,47 @@ class geo::details::GeoContainerData {
   
   /// @}
   // --- END Element access ----------------------------------------------------
+
+
+  // --- BEGIN Container modification ------------------------------------------
+  /// @name Container modification
+  /// @{
+  
+  /**
+   * @brief Prepares the container with default-constructed data.
+   * @param size number of elements in the container
+   * @see `clear()`, `fill()`
+   * 
+   * The container is sized to host data for all the elements.
+   * Each new element in the container is default-constructed.
+   * Existing data is not touched.
+   */
+  void resize(size_type size) { fData.resize(size); }
+
+  /**
+   * @brief Prepares the container with copies of the specified default value.
+   * @param size number of elements in the container
+   * @param defValue the value copied to fill all entries in the container
+   * @see `clear()`, `fill()`
+   * 
+   * The container is sized to host data for all the elements.
+   * Each new element in the container is constructed as copy of `defValue`.
+   * Existing data is not touched.
+   */
+  void resize(size_type size, value_type const& defValue)
+    { fData.resize(size, defValue); }
+  
+  /**
+   * @brief Makes the container empty, with no usable storage space.
+   * @see `resize()`
+   * 
+   * The container needs to be resized before it is useful again.
+   */
+  void clear() { fData.clear(); }
+  
+  
+  /// @}
+  // --- END Container modification --------------------------------------------
 
 
   // --- BEGIN Element access --------------------------------------------------
@@ -710,7 +839,7 @@ bool geo::GeoIDdataContainer<T, IDType>::empty() const
 //------------------------------------------------------------------------------
 template <typename T, typename IDType>
 template <std::size_t Level>
-unsigned int geo::GeoIDdataContainer<T, IDType>::dimSize() {
+unsigned int geo::GeoIDdataContainer<T, IDType>::dimSize() const {
   if constexpr (Level >= dimensions()) return 0U; // technically it would be 1...
   else return fN[Level];
 } // geo::GeoIDdataContainer<>::dimSize()
@@ -811,8 +940,8 @@ void geo::GeoIDdataContainer<T, IDType>::fill(value_type value)
 
 //------------------------------------------------------------------------------
 template <typename T, typename IDType>
-void geo::GeoIDdataContainer<T, IDType>::clear()
-  { fData.clear(); }
+void geo::GeoIDdataContainer<T, IDType>::reset()
+  { fData.reset(); }
 
 
 //------------------------------------------------------------------------------
@@ -820,6 +949,32 @@ template <typename T, typename IDType>
 template <typename Op>
 Op geo::GeoIDdataContainer<T, IDType>::apply(Op&& op)
   { return fData.apply(std::forward<Op>(op)); }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename IDType>
+void geo::GeoIDdataContainer<T, IDType>::resize
+  (std::initializer_list<unsigned int> dims)
+{
+  fN = details::initializerListToArray<dimensions()>(dims);
+  fData.resize(computeSize());
+} // geo::GeoIDdataContainer<T, IDType>::resize()
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename IDType>
+void geo::GeoIDdataContainer<T, IDType>::resize
+  (std::initializer_list<unsigned int> dims, value_type const& defValue)
+{
+  fN = details::initializerListToArray<dimensions()>(dims);
+  fData.resize(computeSize(), defValue);
+} // geo::GeoIDdataContainer<T, IDType>::resize(value_type)
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename IDType>
+void geo::GeoIDdataContainer<T, IDType>::clear()
+  { fData.clear(); }
 
 
 //------------------------------------------------------------------------------

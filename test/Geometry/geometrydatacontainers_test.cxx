@@ -32,13 +32,12 @@ struct Summer {
 }; // struct Summer
 
 //------------------------------------------------------------------------------
-void TPCDataContainerTest() {
+void TPCDataContainerTest(
+  geo::TPCDataContainer<int> data, // copy here is intentional
+  std::size_t const NCryostats, std::size_t const NTPCs
+) {
   
-  static constexpr std::size_t NCryostats = 2U;
-  static constexpr std::size_t NTPCs      = 3U;
-  static constexpr std::size_t N          = NCryostats * NTPCs;
-  
-  geo::TPCDataContainer<int> data(NCryostats, NTPCs);
+  std::size_t const N = NCryostats * NTPCs;
   
   static_assert(data.dimensions() == 2U);
   BOOST_CHECK_EQUAL(data.dimSize<0U>(), NCryostats);
@@ -222,24 +221,27 @@ void TPCDataContainerTest() {
   auto summer2 = constData.apply(Summer<int>{});
   BOOST_CHECK_EQUAL(summer2.get(), N * 28);
   
-  data.clear();
+  data.reset();
   for (auto c: util::counter<unsigned int>(NCryostats)) 
     for (auto t: util::counter<unsigned int>(NTPCs)) 
       BOOST_CHECK_EQUAL((data[{ c, t }]), 0);
   
+  data.clear();
+  BOOST_CHECK(data.empty());
   
 } // TPCDataContainerTest()
 
 
 //------------------------------------------------------------------------------
-void PlaneDataContainerTest() {
+void PlaneDataContainerTest(
+  geo::PlaneDataContainer<int> data, // copy here is intentional
+  std::size_t const NCryostats,
+  std::size_t const NTPCs,
+  std::size_t const NPlanes
+) {
 
-  static constexpr std::size_t NCryostats = 2U;
-  static constexpr std::size_t NTPCs      = 3U;
-  static constexpr std::size_t NPlanes    = 2U;
-  static constexpr std::size_t N          = NCryostats * NTPCs * NPlanes;
-  geo::PlaneDataContainer<int> data(NCryostats, NTPCs, NPlanes);
-
+  std::size_t const N = NCryostats * NTPCs * NPlanes;
+  
   static_assert(data.dimensions() == 3U);
   BOOST_CHECK_EQUAL(data.dimSize<0U>(), NCryostats);
   BOOST_CHECK_EQUAL(data.dimSize<1U>(), NTPCs);
@@ -668,25 +670,63 @@ void PlaneDataContainerTest() {
   auto summer2 = constData.apply(Summer<int>{});
   BOOST_CHECK_EQUAL(summer2.get(), N * 28);
   
-  data.clear();
+  data.reset();
   for (auto c: util::counter<unsigned int>(NCryostats)) 
     for (auto t: util::counter<unsigned int>(NTPCs)) 
       for (auto p: util::counter<unsigned int>(NPlanes)) 
         BOOST_CHECK_EQUAL((data[{ c, t, p }]), 0);
   
+  data.clear();
+  BOOST_CHECK(data.empty());
   
 } // PlaneDataContainerTest()
 
 
 //------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(TPCDataContainerTestCase) {
-  TPCDataContainerTest();
+  
+  constexpr std::size_t NCryostats = 2U;
+  constexpr std::size_t NTPCs      = 3U;
+  
+  //
+  // size constructor
+  //
+  geo::TPCDataContainer<int> data1(NCryostats, NTPCs);
+  TPCDataContainerTest(data1, NCryostats, NTPCs);
+  
+  //
+  // default constructor + resize
+  //
+  geo::TPCDataContainer<int> data2;
+  BOOST_CHECK(data2.empty());
+  
+  data2.resize({ NCryostats, NTPCs });
+  TPCDataContainerTest(data2, NCryostats, NTPCs);
+  
 } // TPCDataContainerTestCase
-
 
 //------------------------------------------------------------------------------
 BOOST_AUTO_TEST_CASE(PlaneDataContainerTestCase) {
-  PlaneDataContainerTest();
+  
+  constexpr std::size_t NCryostats = 2U;
+  constexpr std::size_t NTPCs      = 3U;
+  constexpr std::size_t NPlanes    = 2U;
+  
+  //
+  // size constructor
+  //
+  geo::PlaneDataContainer<int> data1(NCryostats, NTPCs, NPlanes);
+  PlaneDataContainerTest(data1, NCryostats, NTPCs, NPlanes);
+  
+  //
+  // default constructor + resize
+  //
+  geo::PlaneDataContainer<int> data2;
+  BOOST_CHECK(data2.empty());
+  
+  data2.resize({ NCryostats, NTPCs, NPlanes });
+  PlaneDataContainerTest(data2, NCryostats, NTPCs, NPlanes);
+  
 } // PlaneDataContainerTestCase
 
 
