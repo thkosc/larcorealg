@@ -678,7 +678,7 @@ BOOST_AUTO_TEST_CASE(TPCsetDataContainerTestCase) {
   readout::TPCsetDataContainer<int> data2;
   BOOST_CHECK(data2.empty());
   
-  data2.resize({ NCryostats, NTPCsets });
+  data2.resizeAs(data1);
   TPCsetDataContainerTest(data2, NCryostats, NTPCsets);
   
 } // TPCsetDataContainerTestCase
@@ -703,7 +703,7 @@ BOOST_AUTO_TEST_CASE(ROPDataContainerTestCase) {
   readout::ROPDataContainer<int> data2;
   BOOST_CHECK(data2.empty());
   
-  data2.resize({ NCryostats, NTPCsets, NROPs });
+  data2.resizeAs(data1);
   ROPDataContainerTest(data2, NCryostats, NTPCsets, NROPs);
   
 } // ROPDataContainerTestCase

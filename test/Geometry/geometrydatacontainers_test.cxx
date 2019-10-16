@@ -700,7 +700,7 @@ BOOST_AUTO_TEST_CASE(TPCDataContainerTestCase) {
   geo::TPCDataContainer<int> data2;
   BOOST_CHECK(data2.empty());
   
-  data2.resize({ NCryostats, NTPCs });
+  data2.resizeAs(data1);
   TPCDataContainerTest(data2, NCryostats, NTPCs);
   
 } // TPCDataContainerTestCase
@@ -724,7 +724,7 @@ BOOST_AUTO_TEST_CASE(PlaneDataContainerTestCase) {
   geo::PlaneDataContainer<int> data2;
   BOOST_CHECK(data2.empty());
   
-  data2.resize({ NCryostats, NTPCs, NPlanes });
+  data2.resizeAs(data1);
   PlaneDataContainerTest(data2, NCryostats, NTPCs, NPlanes);
   
 } // PlaneDataContainerTestCase

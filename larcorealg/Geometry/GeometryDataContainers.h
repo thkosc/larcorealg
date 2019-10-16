@@ -320,6 +320,39 @@ class geo::GeoIDdataContainer {
   void resize
     (std::initializer_list<unsigned int> dims, value_type const& defValue);
   
+  
+  /**
+   * @brief Prepares the container with default-constructed data.
+   * @param other data collection to take dimensions from
+   * 
+   * The size of each dimension is taken by the matching one in `other`.
+   *
+   * The container is sized to host data for all the elements.
+   * Each new element in the container is default-constructed.
+   * Existing data is not touched, but it may be rearranged in a
+   * non-straightforward way.
+   */
+  template <typename OT>
+  void resizeAs(geo::GeoIDdataContainer<OT, IDType> const& other);
+  
+  /**
+   * @brief Prepares the container initializing all its data.
+   * @param other data collection to take dimensions from
+   * @param defValue the value copied to fill all entries in the container
+   * 
+   * The size of each dimension is taken by the matching one in `other`.
+   *
+   * The container is sized to host data for all the elements.
+   * Each new element in the container is constructed as copy of `defValue`.
+   * Existing data is not touched, but it may be rearranged in a
+   * non-straightforward way.
+   */
+  template <typename OT>
+  void resizeAs(
+    geo::GeoIDdataContainer<OT, IDType> const& other,
+    value_type const& defValue
+    );
+  
   /**
    * @brief Makes the container empty, with no usable storage space.
    * @see `resize()`
@@ -355,7 +388,23 @@ class geo::GeoIDdataContainer {
 
   /// Computes the expected size of this container.
   size_type computeSize() const;
-
+  
+  
+  /// Implementation for `resizeAs(geo::GeoIDdataContainer)`.
+  template<typename OT, std::size_t... Indices>
+  void resizeAsImpl(
+    geo::GeoIDdataContainer<OT, IDType> const& other,
+    std::index_sequence<Indices...>
+    );
+  
+  /// Implementation for `resizeAs(geo::GeoIDdataContainer, value_type)`.
+  template<typename OT, std::size_t... Indices>
+  void resizeAsImpl(
+    geo::GeoIDdataContainer<OT, IDType> const& other,
+    value_type const& defValue,
+    std::index_sequence<Indices...>
+    );
+  
   /// Returns the number of elements at the specified `Level`.
   /// @param dimSizes the sizes of each of the levels
   template <std::size_t Level, typename Dims>
@@ -456,6 +505,50 @@ class geo::TPCDataContainer: public geo::GeoIDdataContainer<T, geo::TPCID> {
     {}
 
 
+  // --- BEGIN Container modification ------------------------------------------
+  /// @name Container modification
+  /// @{
+  
+  /**
+   * @brief Prepares the container with default-constructed data.
+   * @param nCryo number of cryostats
+   * @param nTPCs number of TPCs
+   * @see `clear()`, `fill()`
+   * 
+   * The container is sized to host data for `nCryo` cryostats, each with
+   * `nTPCs` TPCs. Each element in the container is default-constructed.
+   * 
+   * Existing data is not touched, but it may be rearranged in a
+   * non-straightforward way.
+   */
+  void resize(unsigned int nCryo, unsigned int nTPCs)
+    { BaseContainer_t::resize({ nCryo, nTPCs }); }
+
+  /**
+   * @brief Prepares the container initializing all its data.
+   * @param nCryo number of cryostats
+   * @param nTPCs number of TPCs
+   * @param defValue the value copied to fill all entries in the container
+   * @see `clear()`, `fill()`
+   * 
+   * The container is sized to host data for `nCryo` cryostats, each with
+   * `nTPCs` TPCs. Each element in the container is a copy of `defValue`.
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * auto const* geom = lar::providerFrom<geo::GeometryCore>();
+   * geo::TPCDataContainer<unsigned int> countPerPlane
+   * countPerPlane.resize(geom->NCryostats(), geom->MaxTPCs(), 0U);
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * 
+   * Existing data is not touched, but it may be rearranged in a
+   * non-straightforward way.
+   */
+  void resize(unsigned int nCryo, unsigned int nTPCs, T const& defValue)
+    { BaseContainer_t::resize({ nCryo, nTPCs }, defValue); }
+  
+  /// @}
+  // --- END Container modification --------------------------------------------
+  
+
   // --- BEGIN Container status query ------------------------------------------
   /// @name Container status query
   /// @{
@@ -555,7 +648,7 @@ class geo::PlaneDataContainer: public geo::GeoIDdataContainer<T, geo::PlaneID>
    * the container is a copy of `defValue`.
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * auto const* geom = lar::providerFrom<geo::GeometryCore>();
-   * geo::TPCDataContainer<unsigned int> countPerPlane
+   * geo::PlaneDataContainer<unsigned int> countPerPlane
    *   (geom->NCryostats(), geom->MaxTPCs(), geom->MaxPlanes(), 0U);
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */
@@ -566,6 +659,58 @@ class geo::PlaneDataContainer: public geo::GeoIDdataContainer<T, geo::PlaneID>
     : BaseContainer_t{ { nCryo, nTPCs, nPlanes }, defValue }
     {}
 
+
+  // --- BEGIN Container modification ------------------------------------------
+  /// @name Container modification
+  /// @{
+  
+  /**
+   * @brief Prepares the container with default-constructed data.
+   * @param nCryo number of cryostats
+   * @param nTPCs number of TPCs
+   * @param nPlanes number of planes per TPC
+   * @see `clear()`, `fill()`
+   * 
+   * The container is sized to host data for `nCryo` cryostats, each with
+   * `nTPCs` TPCs, each one with `nPlanes` wire planes. Each element in the
+   * container is default-constructed.
+   * 
+   * Existing data is not touched, but it may be rearranged in a
+   * non-straightforward way.
+   */
+  void resize(unsigned int nCryo, unsigned int nTPCs, unsigned int nPlanes)
+    { BaseContainer_t::resize({ nCryo, nTPCs, nPlanes }); }
+
+  /**
+   * @brief Prepares the container initializing all its data.
+   * @param nCryo number of cryostats
+   * @param nTPCs number of TPCs
+   * @param nPlanes number of planes per TPC
+   * @param defValue the value copied to fill all entries in the container
+   * @see `clear()`, `fill()`
+   * 
+   * The container is sized to host data for `nCryo` cryostats, each with
+   * `nTPCs` TPCs, and each of them with `nPlanes` planes. Each element in
+   * the container is a copy of `defValue`.
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * auto const* geom = lar::providerFrom<geo::GeometryCore>();
+   * geo::PlaneDataContainer<unsigned int> countPerPlane
+   * countPerPlane.resize
+   *   (geom->NCryostats(), geom->MaxTPCs(), geom->MaxPlanes(), 0U);
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * 
+   * Existing data is not touched, but it may be rearranged in a
+   * non-straightforward way.
+   */
+  void resize(
+    unsigned int nCryo, unsigned int nTPCs, unsigned int nPlanes,
+    T const& defValue
+    )
+    { BaseContainer_t::resize({ nCryo, nTPCs, nPlanes }, defValue); }
+  
+  /// @}
+  // --- END Container modification --------------------------------------------
+  
 
   // --- BEGIN Container status query ------------------------------------------
   /// @name Container status query
@@ -973,6 +1118,26 @@ void geo::GeoIDdataContainer<T, IDType>::resize
 
 //------------------------------------------------------------------------------
 template <typename T, typename IDType>
+template <typename OT>
+void geo::GeoIDdataContainer<T, IDType>::resizeAs
+  (geo::GeoIDdataContainer<OT, IDType> const& other)
+{
+  resizeAsImpl(other, std::make_index_sequence<dimensions()>{});
+} // geo::GeoIDdataContainer<T, IDType>::resize(geo::GeoIDdataContainer)
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename IDType>
+template <typename OT>
+void geo::GeoIDdataContainer<T, IDType>::resizeAs
+  (geo::GeoIDdataContainer<OT, IDType> const& other, value_type const& defValue)
+{
+  resizeAsImpl(other, defValue, std::make_index_sequence<dimensions()>{});
+} // geo::GeoIDdataContainer<T, IDType>::resize(geo::GeoIDdataContainer)
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename IDType>
 void geo::GeoIDdataContainer<T, IDType>::clear()
   { fData.clear(); }
 
@@ -1021,6 +1186,30 @@ bool geo::GeoIDdataContainer<T, IDType>::hasElementLevel(GeoID const& id) const
 template <typename T, typename IDType>
 auto geo::GeoIDdataContainer<T, IDType>::computeSize() const -> size_type
   { return sizeLevel<0U>(fN); }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename IDType>
+template<typename OT, std::size_t... Indices>
+void geo::GeoIDdataContainer<T, IDType>::resizeAsImpl(
+  geo::GeoIDdataContainer<OT, IDType> const& other,
+  std::index_sequence<Indices...>
+  )
+{
+  resize({ other.template dimSize<Indices>()... });
+} // geo::GeoIDdataContainer<T, IDType>::resizeAsImpl()
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename IDType>
+template<typename OT, std::size_t... Indices>
+void geo::GeoIDdataContainer<T, IDType>::resizeAsImpl(
+  geo::GeoIDdataContainer<OT, IDType> const& other, value_type const& defValue,
+  std::index_sequence<Indices...>
+  )
+{
+  resize({ other.template dimSize<Indices>()... }, defValue);
+} // geo::GeoIDdataContainer<T, IDType>::resizeAsImpl(value_type)
 
 
 //------------------------------------------------------------------------------

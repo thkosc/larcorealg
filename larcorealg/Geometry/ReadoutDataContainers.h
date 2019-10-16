@@ -107,6 +107,49 @@ class readout::TPCsetDataContainer
     {}
 
 
+  // --- BEGIN Container modification ------------------------------------------
+  /// @name Container modification
+  /// @{
+  
+  /**
+   * @brief Prepares the container with default-constructed data.
+   * @param nCryo number of cryostats
+   * @param nTPCsets number of TPC sets
+   * @see `clear()`, `fill()`
+   * 
+   * The container is sized to host data for `nCryo` cryostats, each with
+   * `nTPCsets` TPC sets. Each element in the container is default-constructed.
+   * 
+   * Existing data is not touched, but it may be rearranged in a
+   * non-straightforward way.
+   */
+  void resize(unsigned int nCryo, unsigned int nTPCsets)
+    { BaseContainer_t::resize({ nCryo, nTPCsets }); }
+
+  /**
+   * @brief Prepares the container initializing all its data.
+   * @param nCryo number of cryostats
+   * @param nTPCsets number of TPC sets
+   * @param defValue the value copied to fill all entries in the container
+   * @see `clear()`, `fill()`
+   * 
+   * The container is sized to host data for `nCryo` cryostats, each with
+   * `nTPCsets` TPC sets. Each element in the container is a copy of `defValue`.
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * auto const* geom = lar::providerFrom<geo::GeometryCore>();
+   * readout::TPCsetDataContainer<unsigned int> ROPsPerTPCset;
+   * ROPsPerTPCset.resize(geom->NCryostats(), geom->MaxTPCsets(), 3U);
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * Existing data is not touched, but it may be rearranged in a
+   * non-straightforward way.
+   */
+  void resize(unsigned int nCryo, unsigned int nTPCsets, T const& defValue)
+    { BaseContainer_t::resize({ nCryo, nTPCsets }, defValue); }
+  
+  /// @}
+  // --- END Container modification --------------------------------------------
+  
+
   // --- BEGIN Container status query ------------------------------------------
   /// @name Container status query
   /// @{
@@ -206,6 +249,52 @@ class readout::ROPDataContainer
     : BaseContainer_t{ { nCryo, nTPCsets, nROPs }, defValue }
     {}
 
+
+  // --- BEGIN Container modification ------------------------------------------
+  /// @name Container modification
+  /// @{
+  
+  /**
+   * @brief Prepares the container with default-constructed data.
+   * @param nCryo number of cryostats
+   * @param nTPCsets number of TPC sets
+   * @param nROPs number of readout planes per TPC set
+   * @see `clear()`, `fill()`
+   * 
+   * The container is sized to host data for `nCryo` cryostats, each with
+   * `nTPCsets` TPC sets, and each of them with `nROPs` readout planes.
+   * Each element in the container is default-constructed.
+   * 
+   * Existing data is not touched, but it may be rearranged in a
+   * non-straightforward way.
+   */
+  void resize(unsigned int nCryo, unsigned int nTPCsets, unsigned int nROPs)
+    { BaseContainer_t::resize({ nCryo, nTPCsets, nROPs }); }
+
+  /**
+   * @brief Prepares the container initializing all its data.
+   * @param nCryo number of cryostats
+   * @param nTPCsets number of TPC sets
+   * @param nROPs number of readout planes per TPC set
+   * @param defValue the value copied to fill all entries in the container
+   * @see `clear()`, `fill()`
+   * 
+   * The container is sized to host data for `nCryo` cryostats, each with
+   * `nTPCsets` TPC sets, and each of them with `nROPs` readout planes.
+   * Each element in the container is a copy of `defValue`.
+   * 
+   * Existing data is not touched, but it may be rearranged in a
+   * non-straightforward way.
+   */
+  void resize(
+    unsigned int nCryo, unsigned int nTPCsets, unsigned int nROPs,
+    T const& defValue
+    )
+    { BaseContainer_t::resize({ nCryo, nTPCsets, nROPs }, defValue); }
+  
+  /// @}
+  // --- END Container modification --------------------------------------------
+  
 
   // --- BEGIN Container status query ------------------------------------------
   /// @name Container status query
