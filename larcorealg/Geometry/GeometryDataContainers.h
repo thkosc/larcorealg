@@ -13,11 +13,15 @@
 
 // LArSoft libraries
 #include "larcorealg/Geometry/GeometryIDmapper.h"
+#include "larcorealg/CoreUtils/span.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
+
+// Boost libraries
+#include <boost/iterator/iterator_adaptor.hpp>
+#include <boost/iterator/transform_iterator.hpp>
 
 // C/C++ standard libraries
 #include <vector>
-#include <array>
 #include <initializer_list>
 #include <string>
 #include <utility> // std::forward()
@@ -43,8 +47,11 @@ namespace geo {
     template <typename T>
     class GeoContainerData;
     
-    template <typename GeoIDdataContainerClass>
+    template <typename GeoIDdataContainerClass, typename BaseIterator>
     class GeoIDdataContainerIterator;
+    
+    template <typename GeoIDIteratorClass>
+    class GeoIDdataContainerItemIterator;
     
   } // namespace details
   // ---------------------------------------------------------------------------
@@ -95,32 +102,50 @@ namespace geo {
 template <typename T, typename Mapper>
 class geo::GeoIDdataContainer {
   
+  using This_t = geo::GeoIDdataContainer<T, Mapper>; ///< Type of this class.
+  
   /// Type of data container helper.
   using Container_t = details::GeoContainerData<T>;
+  
+  /// Type of iterator to the data.
+  using BaseIter_t = typename Container_t::iterator;
+  
+  /// Type of constant iterator to the data.
+  using BaseConstIter_t = typename Container_t::const_iterator;
+  
+  /// Functor to extract an ID data member.
+  struct IDextractor {
+    template <typename Obj>
+    decltype(auto) operator()(Obj&& obj) const { return obj.ID(); }
+  }; // struct IDextractor
+  
+    public:
   
   /// Type of mapper between IDs and index.
   using Mapper_t = Mapper;
   
   using ID_t = typename Mapper_t::ID_t; ///< Type used as ID for this container.
   
-    public:
-  
   /// @{
   /// @name STL container types.
-
-  // TODO we don't offer iterators so far
 
   using value_type             = typename Container_t::value_type            ;
   using reference              = typename Container_t::reference             ;
   using const_reference        = typename Container_t::const_reference       ;
   using pointer                = typename Container_t::pointer               ;
   using const_pointer          = typename Container_t::const_pointer         ;
-//     using iterator               = typename Container_t::iterator              ;
-//     using const_iterator         = typename Container_t::const_iterator        ;
+  using iterator               = details::GeoIDdataContainerIterator<Mapper_t, BaseIter_t>;
+  using const_iterator         = details::GeoIDdataContainerIterator<Mapper_t, BaseConstIter_t>;
 //     using reverse_iterator       = typename Container_t::reverse_iterator      ;
 //     using const_reverse_iterator = typename Container_t::const_reverse_iterator;
   using difference_type        = typename Container_t::difference_type       ;
   using size_type              = typename Container_t::size_type             ;
+  
+  /// Special iterator dereferencing to pairs ( ID, value ) (see `items()`).
+  using item_iterator          = details::GeoIDdataContainerItemIterator<iterator>;
+  
+  /// Special iterator dereferencing to pairs ( ID, value ) (see `items()`).
+  using item_const_iterator    = details::GeoIDdataContainerItemIterator<const_iterator>;
 
   /// @}
   
@@ -239,6 +264,102 @@ class geo::GeoIDdataContainer {
   // --- END Element access --------------------------------------------------
 
 
+  // --- BEGIN Iterators -----------------------------------------------------
+  /**
+   * @name Iterators
+   * 
+   * Two types of iterators are provided:
+   * 
+   * 1. "standard" iterators pointing to data values
+   * 2. "item" pseudo-iterators dereferencing to a (ID, value) pair
+   * 
+   * Reverse iterators are not supported (yet?).
+   * 
+   * Standard iterators
+   * -------------------
+   * 
+   * The STL-like interface provides iterators that go through the entire range
+   * of allowed data, i.e. all the `size()` elements that are also reached
+   * via random access (`operator[]()`).
+   * 
+   * These iterators have an interface extension: the data member `ID()` returns
+   * the ID of the element the iterator is pointing to. For example:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * auto iData = data.begin();
+   * auto const dend = data.end(); 
+   * while (iData != dend) {
+   *   std::cout << "data[" << iData.ID() << "] = " << *iData << std::endl;
+   *   ++iData;
+   * } // while
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * Note that using the range-for loop, you don't get access to the iterator
+   * and therefore not even to the ID.
+   * 
+   * 
+   * Item iterators
+   * ---------------
+   * 
+   * The item iterators are iterators adapted from the standard ones, which
+   * when dereferenced return a pair ( `ID_t`, `reference` ).
+   * They can be accessed with `item_begin()`, `item_end()` etc, and range-for
+   * loop can be obtained via `items()` member function:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * for (auto&& [ ID, value ]: data.items()) {
+   *   std::cout << "data[" << ID << "] = " << value << std::endl;
+   * }
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   * (this loop has the same effect as the one in the example of the standard
+   * iterators, but it's more compact).
+   * 
+   */
+  /// @{
+  
+  /// Returns an iterator to the beginning of the data.
+  iterator begin();
+  
+  /// Returns an iterator to past the end of the data.
+  iterator end();
+  
+  /// Returns a constant iterator to the beginning of the data.
+  const_iterator begin() const;
+  
+  /// Returns a constant iterator to past the end of the data.
+  const_iterator end() const;
+  
+  /// Returns a constant iterator to the beginning of the data.
+  const_iterator cbegin() const;
+  
+  /// Returns a constant iterator to past the end of the data.
+  const_iterator cend() const;
+  
+  /// Returns an item iterator to the beginning of the data.
+  item_iterator item_begin();
+  
+  /// Returns an item iterator to past the end of the data.
+  item_iterator item_end();
+  
+  /// Returns a item constant iterator to the beginning of the data.
+  item_const_iterator item_begin() const;
+  
+  /// Returns a item constant iterator to past the end of the data.
+  item_const_iterator item_end() const;
+  
+  /// Returns a item constant iterator to the beginning of the data.
+  item_const_iterator item_cbegin() const;
+  
+  /// Returns a item constant iterator to past the end of the data.
+  item_const_iterator item_cend() const;
+  
+  /// Returns an object suitable for a range-for loop with `item_iterator`.
+  auto items();
+  
+  /// Returns an object suitable for a range-for loop with `item_const_iterator`.
+  auto items() const;
+  
+  /// @}
+  // --- END Iterators -------------------------------------------------------
+  
+  
   // --- BEGIN Data modification ---------------------------------------------
   /**
    * @name Data modification
@@ -388,12 +509,6 @@ class geo::GeoIDdataContainer {
   
 }; // class geo::GeoIDdataContainer<>
 
-
-//------------------------------------------------------------------------------
-template <typename GeoIDdataContainerClass>
-class geo::GeoIDdataContainerIterator {
-  
-};
 
 //------------------------------------------------------------------------------
 /** 
@@ -716,6 +831,180 @@ class geo::PlaneDataContainer
 }; // class geo::PlaneDataContainer
 
 
+//------------------------------------------------------------------------------
+/**
+ * @brief Iterator for `geo::GeoIDdataContainer` class.
+ * @tparam GeoIDdataContainerClass type of the class being iterated
+ * @tparam BaseIterator type of iterator to the actual data
+ * 
+ * @note These iterators haven't been extensively tested. Caveat emptor...
+ */
+template <typename GeoIDmapperClass, typename BaseIterator>
+class geo::details::GeoIDdataContainerIterator
+  : public boost::iterator_adaptor<
+      geo::details::GeoIDdataContainerIterator<GeoIDmapperClass, BaseIterator>
+    , BaseIterator
+    >
+{
+  
+  ///< Type of mapping of the container this class iterates.
+  using Mapper_t = GeoIDmapperClass;
+  
+  using BaseIterator_t = BaseIterator; ///< Type of iterator to the actual data.
+  
+  /// Type of index in the container mapping.
+  using Index_t = typename Mapper_t::index_type;
+  
+  struct ExtraData_t {
+    
+    /// Mapping of the container being iterated.
+    Mapper_t const* mapper = nullptr;
+    
+    BaseIterator_t start; ///< Iterator to the first element.
+    
+  }; // struct ExtraData_t
+  
+  ExtraData_t fData; ///< Data for extended features of this iterator.
+  
+  /// Returns the iterator to the current element.
+  BaseIterator_t const& current() const
+    { return GeoIDdataContainerIterator::iterator_adaptor_::base(); }
+  BaseIterator_t& current()
+    { return GeoIDdataContainerIterator::iterator_adaptor_::base(); }
+  
+  /// Returns the iterator to the begin element.
+  BaseIterator_t const& start() const { return fData.start; }
+  
+  /// Returns the mapping of the container being iterated.
+  Mapper_t const& mapper() const
+    { assert(fData.mapper); return *(fData.mapper); }
+  
+  /// Returns the index of the current element
+  Index_t index() const { return static_cast<Index_t>(current() - start()); }
+  
+    public:
+  
+  using ID_t = typename Mapper_t::ID_t; ///< Type of the ID in this iterator.
+  
+  
+  /// Default constructor: undefined status.
+  GeoIDdataContainerIterator() = default;
+  
+  /// Constructor: points to data pointed by `current`.
+  GeoIDdataContainerIterator(
+    Mapper_t const& mapper,
+    BaseIterator_t const& start,
+    BaseIterator_t const& current
+    )
+    : GeoIDdataContainerIterator::iterator_adaptor_(current)
+    , fData{ &mapper, start }
+    {}
+  
+  /// Generalized copy constructor, only if argument iterator can be converted.
+  template <typename OBaseIterator>
+  GeoIDdataContainerIterator(
+    GeoIDdataContainerIterator<Mapper_t, OBaseIterator> const& other,
+    std::enable_if_t<std::is_convertible_v<OBaseIterator, BaseIterator_t>>
+      = nullptr
+    )
+    : GeoIDdataContainerIterator::iterator_adaptor_(other.base())
+    , fData(other.fData)
+    {}
+  
+  /// Returns the ID corresponding to the current element.
+  ID_t ID() const { return mapper().ID(index()); }
+  
+    private:
+//   friend class boost::iterator_core_access;
+  
+  // there might be some need for other interoperability methods (comparison?)
+  
+}; // geo::details::GeoIDdataContainerIterator
+
+
+
+/**
+ * @brief Item iterator for `geo::GeoIDdataContainer` class.
+ * @tparam GeoIDIteratorClass type of iterator being wrapped
+ * 
+ * This iterator is just a wrapper.
+ * 
+ * @note These iterators haven't been extensively tested. Caveat emptor...
+ */
+template <typename GeoIDIteratorClass>
+class geo::details::GeoIDdataContainerItemIterator
+  : public boost::iterator_adaptor<
+      geo::details::GeoIDdataContainerItemIterator<GeoIDIteratorClass>
+    , GeoIDIteratorClass
+    , std::pair<
+        typename GeoIDIteratorClass::ID_t,
+        typename GeoIDIteratorClass::reference
+      >                                           // Value
+    , boost::use_default                          // Category
+    , std::pair<
+        typename GeoIDIteratorClass::ID_t,
+        typename GeoIDIteratorClass::reference
+      >                                           // Reference
+    >
+{
+  /*
+   * Implementation notes:
+   *  * boost::transform_iterator can't be used to wrap
+   *      `geo::GeoIDdataContainerIterator` because it acts on the value of
+   *      the wrapped iterator, while we need to extract information from
+   *      the iterator itself (its `ID()` data member)
+   *  * we need to specify the type of reference the iterator returns,
+   *      because... it's not a reference; this is not really a STL random
+   *      access iterator since it dereferences to a temporary value (rvalue)
+   *      like an input iterator can; but for the rest it's a full blown random
+   *      access iterator (same stuff as the infamous `std::vector<bool>`)
+   * 
+   */
+  
+  using GeoIDiterator_t = GeoIDIteratorClass; ///< Type of wrapped iterator.
+  
+  using iterator_adaptor_
+    = typename GeoIDdataContainerItemIterator::iterator_adaptor_;
+  
+    public:
+  
+  /// Type of the ID in this iterator.
+  using ID_t = typename GeoIDiterator_t::ID_t;
+  
+  
+  /// Default constructor: undefined status.
+  GeoIDdataContainerItemIterator() = default;
+  
+  /// Constructor: points to data pointed by `current`.
+  GeoIDdataContainerItemIterator(GeoIDiterator_t const& iter)
+    : iterator_adaptor_(iter)
+    {}
+  
+  /// Generalized copy constructor, only if argument iterator can be converted.
+  template <typename OGeoIDIteratorClass>
+  GeoIDdataContainerItemIterator(
+    GeoIDdataContainerItemIterator<OGeoIDIteratorClass> const& other,
+    std::enable_if_t<std::is_convertible_v<OGeoIDIteratorClass, GeoIDiterator_t>>
+      = nullptr
+    )
+    : iterator_adaptor_(other.base())
+    {}
+  
+  
+    private:
+  friend class boost::iterator_core_access;
+  
+  using iterator_adaptor_::base;
+  
+  typename iterator_adaptor_::reference dereference() const
+    { return { base().ID(), *base() }; }
+  
+  // there might be some need for other interoperability methods (comparison?)
+  
+}; // geo::details::GeoIDdataContainerItemIterator
+
+
+
 /// @}
 // --- END Geometry data containers --------------------------------------------
 //------------------------------------------------------------------------------
@@ -895,6 +1184,28 @@ class geo::details::GeoContainerData {
   // --- END Element access ----------------------------------------------------
 
 
+  // --- BEGIN Iterators -------------------------------------------------------
+  /// @name Iterators
+  /// @{
+  
+  iterator begin() { return fData.begin(); }
+  iterator end() { return fData.end(); }
+  const_iterator begin() const { return fData.begin(); }
+  const_iterator end() const { return fData.end(); }
+  const_iterator cbegin() const { return fData.cbegin(); }
+  const_iterator cend() const { return fData.cend(); }
+  
+  reverse_iterator rbegin() { return fData.rbegin(); }
+  reverse_iterator rend() { return fData.rend(); }
+  const_reverse_iterator rbegin() const { return fData.rbegin(); }
+  const_reverse_iterator rend() const { return fData.rend(); }
+  const_reverse_iterator crbegin() const { return fData.crbegin(); }
+  const_reverse_iterator crend() const { return fData.crend(); }
+  
+  /// @}
+  // --- END Iterators ---------------------------------------------------------
+
+
   /// Returns whether the specified value is between `0` and the upper limit.
   template <typename Value, typename Upper>
   static bool bounded(Value v, Upper upper)
@@ -1042,6 +1353,94 @@ auto geo::GeoIDdataContainer<T, Mapper>::last() -> reference
 template <typename T, typename Mapper>
 auto geo::GeoIDdataContainer<T, Mapper>::last() const -> const_reference
   { return operator[](lastID()); }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::begin() -> iterator
+  { return { mapper(), fData.begin(), fData.begin() }; }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::end() -> iterator
+  { return { mapper(), fData.begin(), fData.end() }; }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::begin() const -> const_iterator
+  { return { mapper(), fData.begin(), fData.begin() }; }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::end() const -> const_iterator
+  { return { mapper(), fData.begin(), fData.end() }; }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::cbegin() const -> const_iterator
+  { return begin(); }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::cend() const -> const_iterator
+  { return end(); }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::item_begin() -> item_iterator
+  { return { begin() }; }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::item_end() -> item_iterator
+  { return { end() }; }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::item_begin() const
+  -> item_const_iterator
+  { return { begin() }; }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::item_end() const
+  -> item_const_iterator
+  { return { end() }; }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::item_cbegin() const
+  -> item_const_iterator
+  { return item_begin(); }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::item_cend() const
+  -> item_const_iterator
+  { return item_end(); }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::items()
+  { return util::span{ item_begin(), item_end() }; }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::items() const
+  { return util::span{ item_begin(), item_end() }; }
 
 
 //------------------------------------------------------------------------------

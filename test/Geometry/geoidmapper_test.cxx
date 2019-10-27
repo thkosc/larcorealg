@@ -41,13 +41,17 @@ void TPCIDmappingTest(
     for (auto t: util::counter<unsigned int>(NTPCs)) {
       geo::TPCID const expected_ID { c, t };
       
+      auto const& ID = mapper.ID(expected_index);
+      
       BOOST_CHECK_EQUAL(mapper.index(expected_ID), expected_index);
-      BOOST_CHECK_EQUAL(mapper.ID(expected_index), expected_ID);
+      BOOST_CHECK_EQUAL(ID, expected_ID);
+      BOOST_CHECK(ID.isValid);
       
       ++expected_index;
     } // for TPCs
   } // for cryostats
   BOOST_CHECK_EQUAL(mapper.size(), expected_index);
+  BOOST_CHECK(!mapper.ID(expected_index).isValid);
   
   BOOST_CHECK_EQUAL(mapper.firstID(), geo::TPCID(0, 0));
   BOOST_CHECK_EQUAL(mapper.lastID(), geo::TPCID(1, 2));

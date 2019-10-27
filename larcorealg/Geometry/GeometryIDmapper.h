@@ -15,13 +15,11 @@
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 
 // C/C++ standard libraries
-#include <vector>
 #include <array>
 #include <initializer_list>
-#include <string>
-#include <utility> // std::forward()
-#include <algorithm> // std::fill(), std::for_each()
-#include <stdexcept> // std::out_of_range
+#include <algorithm> // std::copy()
+#include <type_traits> // std::index_sequence
+#include <cstdlib> // std::size_t
 #include <cassert>
 
 
@@ -576,8 +574,8 @@ template <std::size_t Level, typename GeoID>
 void geo::GeoIDmapper<IDType, Index>::fillID(GeoID& id, index_type index) const
 {
   if constexpr (Level == 0) {
-    id.markValid();
     id.template writeIndex<0U>() = index;
+    id.setValidity(index < fN[0U]);
   }
   else {
     id.template writeIndex<Level>() = index % fN[Level];

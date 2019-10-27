@@ -10,7 +10,9 @@
 // LArSoft libraries
 #include "larcorealg/Geometry/GeometryDataContainers.h"
 #include "larcorealg/CoreUtils/counter.h"
+#include "larcorealg/CoreUtils/DebugUtils.h" // lar::debug::static_assert_on()
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
+
 
 // Boost libraries
 #include "cetlib/quiet_unit_test.hpp" // BOOST_AUTO_TEST_CASE()
@@ -55,7 +57,36 @@ void TPCDataContainerTest(
   
   BOOST_CHECK_EQUAL(data.firstID(), geo::TPCID(0, 0));
   BOOST_CHECK_EQUAL(data.lastID(), geo::TPCID(1, 2));
-
+  
+  
+  std::size_t expected_index = 0U;
+  
+  // simple R/W iteration test
+  for (auto& value: data) {
+    static_assert(std::is_same_v<decltype(value), decltype(data)::reference>);
+    
+    geo::TPCID const expected_ID = data.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(value, data[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(data.size(), expected_index);
+  
+  // ID/data pair R/W iteration test
+  expected_index = 0U;
+  for (auto&& [ ID, value ]: data.items()) {
+    static_assert(std::is_same_v<decltype(ID), geo::TPCID>);
+    static_assert(std::is_same_v<decltype(value), decltype(data)::reference>);
+    
+    geo::TPCID const expected_ID = data.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(ID, expected_ID);
+    BOOST_CHECK_EQUAL(value, data[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(data.size(), expected_index);
+  
+  
   BOOST_CHECK( data.hasTPC({ 0,  0}));
   BOOST_CHECK( data.hasTPC({ 0,  1}));
   BOOST_CHECK( data.hasTPC({ 0,  2}));
@@ -159,11 +190,13 @@ void TPCDataContainerTest(
   
   auto const& constData = data;
 
-  static_assert(data.dimensions() == 2U);
-  BOOST_CHECK_EQUAL(data.dimSize<0U>(), NCryostats);
-  BOOST_CHECK_EQUAL(data.dimSize<1U>(), NTPCs);
-  BOOST_CHECK_EQUAL(data.dimSize<2U>(), 0U);
-  BOOST_CHECK_EQUAL(data.dimSize<3U>(), 0U);
+  BOOST_CHECK_EQUAL(constData.size(), N);
+  
+  static_assert(std::decay_t<decltype(constData)>::dimensions() == 2U);
+  BOOST_CHECK_EQUAL(constData.dimSize<0U>(), NCryostats);
+  BOOST_CHECK_EQUAL(constData.dimSize<1U>(), NTPCs);
+  BOOST_CHECK_EQUAL(constData.dimSize<2U>(), 0U);
+  BOOST_CHECK_EQUAL(constData.dimSize<3U>(), 0U);
 
   BOOST_CHECK_EQUAL
     (std::addressof(constData.first()), std::addressof(data.first()));
@@ -192,6 +225,41 @@ void TPCDataContainerTest(
   BOOST_CHECK_THROW(constData.at({2, 2}), std::out_of_range);
   BOOST_CHECK_THROW(constData.at({2, 3}), std::out_of_range);
   BOOST_CHECK_THROW(constData.at({2, 4}), std::out_of_range);
+  
+  
+  auto const cb = constData.begin();
+  auto const ce = constData.end();
+  BOOST_CHECK_EQUAL(ce - cb, N);
+  
+  // simple read-only iteration test
+  expected_index = 0U;
+  for (auto& value: constData) {
+    static_assert(std::is_same_v
+      <decltype(value), std::decay_t<decltype(constData)>::const_reference>
+      );
+    
+    geo::TPCID const expected_ID = constData.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(value, constData[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(constData.size(), expected_index);
+  
+  // ID/data pair read-only iteration test
+  expected_index = 0U;
+  for (auto&& [ ID, value ]: constData.items()) {
+    static_assert(std::is_same_v<decltype(ID), geo::TPCID>);
+    static_assert(std::is_same_v
+      <decltype(value), std::decay_t<decltype(constData)>::const_reference>
+      );
+    
+    geo::TPCID const expected_ID = constData.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(ID, expected_ID);
+    BOOST_CHECK_EQUAL(value, constData[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(constData.size(), expected_index);
   
   
   data.fill(14);
@@ -259,6 +327,34 @@ void PlaneDataContainerTest(
   
   BOOST_CHECK_EQUAL(data.firstID(), geo::PlaneID(0, 0, 0));
   BOOST_CHECK_EQUAL(data.lastID(), geo::PlaneID(1, 2, 1));
+  
+  
+  std::size_t expected_index = 0U;
+  
+  // simple R/W iteration test
+  for (auto& value: data) {
+    static_assert(std::is_same_v<decltype(value), decltype(data)::reference>);
+    
+    geo::PlaneID const expected_ID = data.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(value, data[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(data.size(), expected_index);
+  
+  // ID/data pair R/W iteration test
+  expected_index = 0U;
+  for (auto&& [ ID, value ]: data.items()) {
+    static_assert(std::is_same_v<decltype(ID), geo::PlaneID>);
+    static_assert(std::is_same_v<decltype(value), decltype(data)::reference>);
+    
+    geo::PlaneID const expected_ID = data.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(ID, expected_ID);
+    BOOST_CHECK_EQUAL(value, data[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(data.size(), expected_index);
 
   BOOST_CHECK( data.hasPlane({ 0, 0, 0}));
   BOOST_CHECK( data.hasPlane({ 0, 0, 1}));
@@ -641,6 +737,41 @@ void PlaneDataContainerTest(
   BOOST_CHECK_THROW(constData.at({2, 3, 2}), std::out_of_range);
 
 
+  auto const cb = constData.begin();
+  auto const ce = constData.end();
+  BOOST_CHECK_EQUAL(ce - cb, N);
+  
+  // simple read-only iteration test
+  expected_index = 0U;
+  for (auto& value: constData) {
+    static_assert(std::is_same_v
+      <decltype(value), std::decay_t<decltype(constData)>::const_reference>
+      );
+    
+    geo::PlaneID const expected_ID = constData.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(value, constData[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(constData.size(), expected_index);
+  
+  // ID/data pair read-only iteration test
+  expected_index = 0U;
+  for (auto&& [ ID, value ]: constData.items()) {
+    static_assert(std::is_same_v<decltype(ID), geo::PlaneID>);
+    static_assert(std::is_same_v
+      <decltype(value), std::decay_t<decltype(constData)>::const_reference>
+      );
+    
+    geo::PlaneID const expected_ID = constData.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(ID, expected_ID);
+    BOOST_CHECK_EQUAL(value, constData[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(constData.size(), expected_index);
+  
+  
   data.fill(14);
   for (auto c: util::counter<unsigned int>(NCryostats)) 
     for (auto t: util::counter<unsigned int>(NTPCs)) 

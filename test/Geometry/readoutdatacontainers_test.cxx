@@ -50,6 +50,34 @@ void TPCsetDataContainerTest(
   
   BOOST_CHECK_EQUAL(data.firstID(), readout::TPCsetID(0, 0));
   BOOST_CHECK_EQUAL(data.lastID(), readout::TPCsetID(1, 2));
+  
+  
+  std::size_t expected_index = 0U;
+  
+  // simple R/W iteration test
+  for (auto& value: data) {
+    static_assert(std::is_same_v<decltype(value), decltype(data)::reference>);
+    
+    readout::TPCsetID const expected_ID = data.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(value, data[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(data.size(), expected_index);
+  
+  // ID/data pair R/W iteration test
+  expected_index = 0U;
+  for (auto&& [ ID, value ]: data.items()) {
+    static_assert(std::is_same_v<decltype(ID), readout::TPCsetID>);
+    static_assert(std::is_same_v<decltype(value), decltype(data)::reference>);
+    
+    readout::TPCsetID const expected_ID = data.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(ID, expected_ID);
+    BOOST_CHECK_EQUAL(value, data[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(data.size(), expected_index);
 
   BOOST_CHECK( data.hasTPCset({ 0,  0}));
   BOOST_CHECK( data.hasTPCset({ 0,  1}));
@@ -181,6 +209,41 @@ void TPCsetDataContainerTest(
   BOOST_CHECK_THROW(constData.at({2, 2}), std::out_of_range);
   BOOST_CHECK_THROW(constData.at({2, 3}), std::out_of_range);
   BOOST_CHECK_THROW(constData.at({2, 4}), std::out_of_range);
+
+
+  auto const cb = constData.begin();
+  auto const ce = constData.end();
+  BOOST_CHECK_EQUAL(ce - cb, N);
+  
+  // simple read-only iteration test
+  expected_index = 0U;
+  for (auto& value: constData) {
+    static_assert(std::is_same_v
+      <decltype(value), std::decay_t<decltype(constData)>::const_reference>
+      );
+    
+    readout::TPCsetID const expected_ID = constData.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(value, constData[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(constData.size(), expected_index);
+  
+  // ID/data pair read-only iteration test
+  expected_index = 0U;
+  for (auto&& [ ID, value ]: constData.items()) {
+    static_assert(std::is_same_v<decltype(ID), readout::TPCsetID>);
+    static_assert(std::is_same_v
+      <decltype(value), std::decay_t<decltype(constData)>::const_reference>
+      );
+    
+    readout::TPCsetID const expected_ID = constData.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(ID, expected_ID);
+    BOOST_CHECK_EQUAL(value, constData[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(constData.size(), expected_index);
   
   
   data.fill(14);
@@ -242,6 +305,35 @@ void ROPDataContainerTest(
   
   BOOST_CHECK_EQUAL(data.firstID(), readout::ROPID(0, 0, 0));
   BOOST_CHECK_EQUAL(data.lastID(), readout::ROPID(1, 2, 1));
+  
+  
+  std::size_t expected_index = 0U;
+  
+  // simple R/W iteration test
+  for (auto& value: data) {
+    static_assert(std::is_same_v<decltype(value), decltype(data)::reference>);
+    
+    readout::ROPID const expected_ID = data.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(value, data[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(data.size(), expected_index);
+  
+  // ID/data pair R/W iteration test
+  expected_index = 0U;
+  for (auto&& [ ID, value ]: data.items()) {
+    static_assert(std::is_same_v<decltype(ID), readout::ROPID>);
+    static_assert(std::is_same_v<decltype(value), decltype(data)::reference>);
+    
+    readout::ROPID const expected_ID = data.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(ID, expected_ID);
+    BOOST_CHECK_EQUAL(value, data[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(data.size(), expected_index);
+
 
   BOOST_CHECK( data.hasROP({ 0, 0, 0}));
   BOOST_CHECK( data.hasROP({ 0, 0, 1}));
@@ -616,6 +708,41 @@ void ROPDataContainerTest(
   BOOST_CHECK_THROW(constData.at({2, 1, 2}), std::out_of_range);
   BOOST_CHECK_THROW(constData.at({2, 2, 2}), std::out_of_range);
   BOOST_CHECK_THROW(constData.at({2, 3, 2}), std::out_of_range);
+
+
+  auto const cb = constData.begin();
+  auto const ce = constData.end();
+  BOOST_CHECK_EQUAL(ce - cb, N);
+  
+  // simple read-only iteration test
+  expected_index = 0U;
+  for (auto& value: constData) {
+    static_assert(std::is_same_v
+      <decltype(value), std::decay_t<decltype(constData)>::const_reference>
+      );
+    
+    readout::ROPID const expected_ID = constData.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(value, constData[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(constData.size(), expected_index);
+  
+  // ID/data pair read-only iteration test
+  expected_index = 0U;
+  for (auto&& [ ID, value ]: constData.items()) {
+    static_assert(std::is_same_v<decltype(ID), readout::ROPID>);
+    static_assert(std::is_same_v
+      <decltype(value), std::decay_t<decltype(constData)>::const_reference>
+      );
+    
+    readout::ROPID const expected_ID = constData.mapper().ID(expected_index);
+    BOOST_CHECK_EQUAL(ID, expected_ID);
+    BOOST_CHECK_EQUAL(value, constData[expected_ID]);
+    
+    ++expected_index;
+  } // for
+  BOOST_CHECK_EQUAL(constData.size(), expected_index);
 
 
   data.fill(14);
