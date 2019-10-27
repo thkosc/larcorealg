@@ -13,6 +13,7 @@
 
 // LArSoft libraries
 #include "larcorealg/Geometry/GeometryDataContainers.h"
+#include "larcorealg/Geometry/ReadoutIDmapper.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
 
 
@@ -56,10 +57,10 @@ namespace readout {
  */
 template <typename T>
 class readout::TPCsetDataContainer
-  : public geo::GeoIDdataContainer<T, readout::TPCsetID>
+  : public geo::GeoIDdataContainer<T, readout::TPCsetIDmapper<>>
 {
   
-  using BaseContainer_t = geo::GeoIDdataContainer<T, readout::TPCsetID>;
+  using BaseContainer_t = geo::GeoIDdataContainer<T, readout::TPCsetIDmapper<>>;
   
     public:
   
@@ -193,11 +194,11 @@ class readout::TPCsetDataContainer
  */
 template <typename T>
 class readout::ROPDataContainer
-  : public geo::GeoIDdataContainer<T, readout::ROPID>
+  : public geo::GeoIDdataContainer<T, readout::ROPIDmapper<>>
 {
 
   /// Base class.
-  using BaseContainer_t = geo::GeoIDdataContainer<T, readout::ROPID>;
+  using BaseContainer_t = geo::GeoIDdataContainer<T, readout::ROPIDmapper<>>;
   
     public:
 

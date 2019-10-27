@@ -12,6 +12,7 @@
 #define LARCOREALG_GEOMETRY_GEOMETRYDATACONTAINERS_H
 
 // LArSoft libraries
+#include "larcorealg/Geometry/GeometryIDmapper.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 
 // C/C++ standard libraries
@@ -27,7 +28,7 @@
 
 namespace geo {
   
-  template <typename T, typename IDType>
+  template <typename T, typename Mapper>
   class GeoIDdataContainer;
   
   template <typename T>
@@ -42,9 +43,8 @@ namespace geo {
     template <typename T>
     class GeoContainerData;
     
-    /// Returns a STL array of size `N` filled with `values` from the argument.
-    template <std::size_t N, typename T>
-    auto initializerListToArray(std::initializer_list<T> values);
+    template <typename GeoIDdataContainerClass>
+    class GeoIDdataContainerIterator;
     
   } // namespace details
   // ---------------------------------------------------------------------------
@@ -92,13 +92,16 @@ namespace geo {
  * * at least one element is expected to be present
  *
  */
-template <typename T, typename IDType>
+template <typename T, typename Mapper>
 class geo::GeoIDdataContainer {
   
   /// Type of data container helper.
   using Container_t = details::GeoContainerData<T>;
   
-  using ID_t = IDType; ///< Type used as ID for this container.
+  /// Type of mapper between IDs and index.
+  using Mapper_t = Mapper;
+  
+  using ID_t = typename Mapper_t::ID_t; ///< Type used as ID for this container.
   
     public:
   
@@ -191,7 +194,10 @@ class geo::GeoIDdataContainer {
   /// Returns the ID of the last covered element with GeoID type.
   template <typename GeoID = ID_t>
   GeoID lastID() const;
-
+  
+  /// Returns the mapper object used to convert ID's and container positions.
+  Mapper_t const& mapper() const;
+  
   /// @}
   // --- END Container status query ------------------------------------------
 
@@ -333,7 +339,7 @@ class geo::GeoIDdataContainer {
    * non-straightforward way.
    */
   template <typename OT>
-  void resizeAs(geo::GeoIDdataContainer<OT, IDType> const& other);
+  void resizeAs(geo::GeoIDdataContainer<OT, Mapper_t> const& other);
   
   /**
    * @brief Prepares the container initializing all its data.
@@ -349,7 +355,7 @@ class geo::GeoIDdataContainer {
    */
   template <typename OT>
   void resizeAs(
-    geo::GeoIDdataContainer<OT, IDType> const& other,
+    geo::GeoIDdataContainer<OT, Mapper_t> const& other,
     value_type const& defValue
     );
   
@@ -367,55 +373,27 @@ class geo::GeoIDdataContainer {
 
 
     private:
-  ///< Type of dimension sizes.
-  using Dimensions_t = std::array<unsigned int, dimensions()>;
   
-  /// Number of maximum entries per ID level.
-  Dimensions_t fN = zeroDimensions();
+  Mapper_t fMapper; ///< Mapping of IDs to indices.
   
   Container_t fData; ///< Data storage.
-
-
-  /// Returns the internal index of the specified TPC in the storage area.
+  
+  
+  /// Returns the internal index of the specified ID in the storage area.
   size_type index(ID_t const& id) const;
   
-  template <std::size_t Level, typename GeoID>
-  size_type indexLevel(GeoID const& id) const;
+  /// Returns the ID corresponding to a internal index in the storage area.
+  ID_t ID(size_type const index) const;
   
-  /// Returns whether all levels of `id` up to `Level` are within range.
-  template <std::size_t Level, typename GeoID>
-  bool hasElementLevel(GeoID const& id) const;
-
-  /// Computes the expected size of this container.
-  size_type computeSize() const;
-  
-  
-  /// Implementation for `resizeAs(geo::GeoIDdataContainer)`.
-  template<typename OT, std::size_t... Indices>
-  void resizeAsImpl(
-    geo::GeoIDdataContainer<OT, IDType> const& other,
-    std::index_sequence<Indices...>
-    );
-  
-  /// Implementation for `resizeAs(geo::GeoIDdataContainer, value_type)`.
-  template<typename OT, std::size_t... Indices>
-  void resizeAsImpl(
-    geo::GeoIDdataContainer<OT, IDType> const& other,
-    value_type const& defValue,
-    std::index_sequence<Indices...>
-    );
-  
-  /// Returns the number of elements at the specified `Level`.
-  /// @param dimSizes the sizes of each of the levels
-  template <std::size_t Level, typename Dims>
-  static size_type sizeLevel(Dims const& dimSizes);
-  
-  /// Initializer with zero size for each of the dimensions.
-  static Dimensions_t zeroDimensions()
-    { Dimensions_t dims; dims.fill(0); return dims; }
   
 }; // class geo::GeoIDdataContainer<>
 
+
+//------------------------------------------------------------------------------
+template <typename GeoIDdataContainerClass>
+class geo::GeoIDdataContainerIterator {
+  
+};
 
 //------------------------------------------------------------------------------
 /** 
@@ -453,9 +431,11 @@ class geo::GeoIDdataContainer {
  *
  */
 template <typename T>
-class geo::TPCDataContainer: public geo::GeoIDdataContainer<T, geo::TPCID> {
+class geo::TPCDataContainer
+  : public geo::GeoIDdataContainer<T, geo::TPCIDmapper<>>
+{
   
-  using BaseContainer_t = geo::GeoIDdataContainer<T, geo::TPCID>;
+  using BaseContainer_t = geo::GeoIDdataContainer<T, geo::TPCIDmapper<>>;
   
     public:
   
@@ -603,11 +583,12 @@ class geo::TPCDataContainer: public geo::GeoIDdataContainer<T, geo::TPCID> {
  *
  */
 template <typename T>
-class geo::PlaneDataContainer: public geo::GeoIDdataContainer<T, geo::PlaneID>
+class geo::PlaneDataContainer
+  : public geo::GeoIDdataContainer<T, geo::PlaneIDmapper<>>
 {
 
   /// Base class.
-  using BaseContainer_t = geo::GeoIDdataContainer<T, geo::PlaneID>;
+  using BaseContainer_t = geo::GeoIDdataContainer<T, geo::PlaneIDmapper<>>;
   
     public:
 
@@ -743,15 +724,6 @@ class geo::PlaneDataContainer: public geo::GeoIDdataContainer<T, geo::PlaneID>
 
 //------------------------------------------------------------------------------
 //--- Template implementation
-//------------------------------------------------------------------------------
-template <std::size_t N, typename T>
-auto geo::details::initializerListToArray(std::initializer_list<T> values) {
-  std::array<T, N> data;
-  std::copy(values.begin(), values.end(), data.begin());
-  return data;
-} // geo::details::initializerListToArray()
-
-
 //------------------------------------------------------------------------------
 //--- geo::details::GeoContainerData
 //------------------------------------------------------------------------------
@@ -938,114 +910,109 @@ class geo::details::GeoContainerData {
 //------------------------------------------------------------------------------
 //--- geo::GeoIDdataContainer
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-geo::GeoIDdataContainer<T, IDType>::GeoIDdataContainer
+template <typename T, typename Mapper>
+geo::GeoIDdataContainer<T, Mapper>::GeoIDdataContainer
   (std::initializer_list<unsigned int> dims)
-  : fN(details::initializerListToArray<dimensions()>(dims))
-  , fData(computeSize())
+  : fMapper(dims)
+  , fData(fMapper.size())
 {
-  assert(dims.size() == dimensions()); // can't be static
   assert(!fData.empty()); 
 }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-geo::GeoIDdataContainer<T, IDType>::GeoIDdataContainer(
-  std::initializer_list<unsigned int> dims,
-  value_type const& defValue
-  )
-  : fN(details::initializerListToArray<dimensions()>(dims))
-  , fData(computeSize(), defValue)
+template <typename T, typename Mapper>
+geo::GeoIDdataContainer<T, Mapper>::GeoIDdataContainer
+  (std::initializer_list<unsigned int> dims, value_type const& defValue)
+  : fMapper(dims)
+  , fData(fMapper.computeSize(), defValue)
 {
-  assert(dims.size() == dimensions()); // can't be static
   assert(!fData.empty()); 
 }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-auto geo::GeoIDdataContainer<T, IDType>::size() const -> size_type 
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::size() const -> size_type 
   { return fData.size(); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-auto geo::GeoIDdataContainer<T, IDType>::capacity() const -> size_type 
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::capacity() const -> size_type 
   { return fData.capacity(); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-bool geo::GeoIDdataContainer<T, IDType>::empty() const
+template <typename T, typename Mapper>
+bool geo::GeoIDdataContainer<T, Mapper>::empty() const
   { return fData.empty(); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
+template <typename T, typename Mapper>
 template <std::size_t Level>
-unsigned int geo::GeoIDdataContainer<T, IDType>::dimSize() const {
-  if constexpr (Level >= dimensions()) return 0U; // technically it would be 1...
-  else return fN[Level];
-} // geo::GeoIDdataContainer<>::dimSize()
+unsigned int geo::GeoIDdataContainer<T, Mapper>::dimSize() const
+  { return mapper().template dimSize<Level>(); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-constexpr unsigned int geo::GeoIDdataContainer<T, IDType>::dimensions()
-  { return IDType::Level + 1; }
+template <typename T, typename Mapper>
+constexpr unsigned int geo::GeoIDdataContainer<T, Mapper>::dimensions()
+  { return Mapper_t::dimensions(); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
+template <typename T, typename Mapper>
 template <typename GeoID>
-bool geo::GeoIDdataContainer<T, IDType>::hasElement(GeoID const& id) const
-  { return hasElementLevel<GeoID::Level>(id); }
+bool geo::GeoIDdataContainer<T, Mapper>::hasElement(GeoID const& id) const
+  { return mapper().template hasElement<GeoID>(id); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
+template <typename T, typename Mapper>
 template <typename GeoID /* = ID_t */>
-GeoID geo::GeoIDdataContainer<T, IDType>::firstID() const {
-  if constexpr (GeoID::Level == 0) return GeoID(0U);
-  else return GeoID(firstID<typename GeoID::ParentID_t>(), 0U);
-} // geo::GeoIDdataContainer<>::firstID()
+GeoID geo::GeoIDdataContainer<T, Mapper>::firstID() const
+  { return mapper().template firstID<GeoID>(); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
+template <typename T, typename Mapper>
 template <typename GeoID /* = ID_t */>
-GeoID geo::GeoIDdataContainer<T, IDType>::lastID() const {
-  if constexpr (GeoID::Level == 0) return GeoID(fN[GeoID::Level] - 1U);
-  else
-    return GeoID(lastID<typename GeoID::ParentID_t>(), fN[GeoID::Level] - 1U);
-} // geo::GeoIDdataContainer<>::lastID()
+GeoID geo::GeoIDdataContainer<T, Mapper>::lastID() const
+  { return mapper().template lastID<GeoID>(); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-auto geo::GeoIDdataContainer<T, IDType>::operator[](ID_t const& id) -> reference
-  { return fData[index(id)]; }
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::mapper() const -> Mapper_t const&
+  { return fMapper; }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-auto geo::GeoIDdataContainer<T, IDType>::operator[](ID_t const& id) const
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::operator[](ID_t const& id) -> reference
+  { return fData[mapper().index(id)]; }
+
+
+//------------------------------------------------------------------------------
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::operator[](ID_t const& id) const
   -> const_reference
-  { return fData[index(id)]; }
+  { return fData[mapper().index(id)]; }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-auto geo::GeoIDdataContainer<T, IDType>::at(ID_t const& id) -> reference {
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::at(ID_t const& id) -> reference {
   if (hasElement(id)) return operator[](id);
   throw std::out_of_range("No data for " + std::string(id));
 } // geo::GeoIDdataContainer<>::at()
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-auto geo::GeoIDdataContainer<T, IDType>::at(ID_t const& id) const
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::at(ID_t const& id) const
   -> const_reference
 {
   if (hasElement(id)) return operator[](id);
@@ -1054,173 +1021,116 @@ auto geo::GeoIDdataContainer<T, IDType>::at(ID_t const& id) const
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-auto geo::GeoIDdataContainer<T, IDType>::first() -> reference
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::first() -> reference
   { return operator[](firstID()); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-auto geo::GeoIDdataContainer<T, IDType>::first() const -> const_reference
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::first() const -> const_reference
   { return operator[](firstID()); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-auto geo::GeoIDdataContainer<T, IDType>::last() -> reference
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::last() -> reference
   { return operator[](lastID()); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-auto geo::GeoIDdataContainer<T, IDType>::last() const -> const_reference
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::last() const -> const_reference
   { return operator[](lastID()); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-void geo::GeoIDdataContainer<T, IDType>::fill(value_type value)
+template <typename T, typename Mapper>
+void geo::GeoIDdataContainer<T, Mapper>::fill(value_type value)
   { fData.fill(value); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-void geo::GeoIDdataContainer<T, IDType>::reset()
+template <typename T, typename Mapper>
+void geo::GeoIDdataContainer<T, Mapper>::reset()
   { fData.reset(); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
+template <typename T, typename Mapper>
 template <typename Op>
-Op geo::GeoIDdataContainer<T, IDType>::apply(Op&& op)
+Op geo::GeoIDdataContainer<T, Mapper>::apply(Op&& op)
   { return fData.apply(std::forward<Op>(op)); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-void geo::GeoIDdataContainer<T, IDType>::resize
+template <typename T, typename Mapper>
+void geo::GeoIDdataContainer<T, Mapper>::resize
   (std::initializer_list<unsigned int> dims)
 {
-  fN = details::initializerListToArray<dimensions()>(dims);
-  fData.resize(computeSize());
-} // geo::GeoIDdataContainer<T, IDType>::resize()
+  fMapper.resize(dims);
+  fData.resize(mapper().size());
+} // geo::GeoIDdataContainer<T, Mapper>::resize()
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-void geo::GeoIDdataContainer<T, IDType>::resize
+template <typename T, typename Mapper>
+void geo::GeoIDdataContainer<T, Mapper>::resize
   (std::initializer_list<unsigned int> dims, value_type const& defValue)
 {
-  fN = details::initializerListToArray<dimensions()>(dims);
-  fData.resize(computeSize(), defValue);
-} // geo::GeoIDdataContainer<T, IDType>::resize(value_type)
+  fMapper.resize(dims);
+  fData.resize(mapper().size(), defValue);
+} // geo::GeoIDdataContainer<T, Mapper>::resize(value_type)
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
+template <typename T, typename Mapper>
 template <typename OT>
-void geo::GeoIDdataContainer<T, IDType>::resizeAs
-  (geo::GeoIDdataContainer<OT, IDType> const& other)
+void geo::GeoIDdataContainer<T, Mapper>::resizeAs
+  (geo::GeoIDdataContainer<OT, Mapper_t> const& other)
 {
-  resizeAsImpl(other, std::make_index_sequence<dimensions()>{});
-} // geo::GeoIDdataContainer<T, IDType>::resize(geo::GeoIDdataContainer)
+  fMapper.resizeAs(other.mapper());
+  fData.resize(mapper().size());
+} // geo::GeoIDdataContainer<T, Mapper>::resizeAs()
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
+template <typename T, typename Mapper>
 template <typename OT>
-void geo::GeoIDdataContainer<T, IDType>::resizeAs
-  (geo::GeoIDdataContainer<OT, IDType> const& other, value_type const& defValue)
+void geo::GeoIDdataContainer<T, Mapper>::resizeAs
+  (geo::GeoIDdataContainer<OT, Mapper_t> const& other, value_type const& defValue)
 {
-  resizeAsImpl(other, defValue, std::make_index_sequence<dimensions()>{});
-} // geo::GeoIDdataContainer<T, IDType>::resize(geo::GeoIDdataContainer)
+  fMapper.resizeAs(other.mapper());
+  fData.resize(mapper().size(), defValue);
+} // geo::GeoIDdataContainer<T, Mapper>::resizeAs(value_type)
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-void geo::GeoIDdataContainer<T, IDType>::clear()
-  { fData.clear(); }
+template <typename T, typename Mapper>
+void geo::GeoIDdataContainer<T, Mapper>::clear() {
+  fMapper.clear();
+  fData.clear();
+} // geo::GeoIDdataContainer<>::clear()
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
+template <typename T, typename Mapper>
 template <typename Op>
-decltype(auto) geo::GeoIDdataContainer<T, IDType>::apply(Op&& op) const
+decltype(auto) geo::GeoIDdataContainer<T, Mapper>::apply(Op&& op) const
   { return fData.apply(std::forward<Op>(op)); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-auto geo::GeoIDdataContainer<T, IDType>::index(ID_t const& id) const
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::index(ID_t const& id) const
   -> size_type
-  { return indexLevel<ID_t::Level>(id); }
+  { return mapper().index(id); }
 
 
 //------------------------------------------------------------------------------
-template <typename T, typename IDType>
-template <std::size_t Level, typename GeoID>
-auto geo::GeoIDdataContainer<T, IDType>::indexLevel(GeoID const& id) const
-  -> size_type
-{
-  if constexpr (Level == 0) return id.template getIndex<0U>();
-  else {
-    return
-      indexLevel<(Level-1U)>(id) * fN[Level] + id.template getIndex<Level>();
-  }
-} // geo::GeoIDdataContainer<>::indexLevel()
-
-
-//------------------------------------------------------------------------------
-template <typename T, typename IDType>
-template <std::size_t Level, typename GeoID>
-bool geo::GeoIDdataContainer<T, IDType>::hasElementLevel(GeoID const& id) const
-{
-  if (!Container_t::bounded(id.template getIndex<Level>(), fN[Level]))
-    return false;
-  if constexpr (Level == 0U) return true;
-  else return hasElementLevel<(Level-1U)>(id);
-} // geo::GeoIDdataContainer<>::hasElementLevel()
-
-
-//------------------------------------------------------------------------------
-template <typename T, typename IDType>
-auto geo::GeoIDdataContainer<T, IDType>::computeSize() const -> size_type
-  { return sizeLevel<0U>(fN); }
-
-
-//------------------------------------------------------------------------------
-template <typename T, typename IDType>
-template<typename OT, std::size_t... Indices>
-void geo::GeoIDdataContainer<T, IDType>::resizeAsImpl(
-  geo::GeoIDdataContainer<OT, IDType> const& other,
-  std::index_sequence<Indices...>
-  )
-{
-  resize({ other.template dimSize<Indices>()... });
-} // geo::GeoIDdataContainer<T, IDType>::resizeAsImpl()
-
-
-//------------------------------------------------------------------------------
-template <typename T, typename IDType>
-template<typename OT, std::size_t... Indices>
-void geo::GeoIDdataContainer<T, IDType>::resizeAsImpl(
-  geo::GeoIDdataContainer<OT, IDType> const& other, value_type const& defValue,
-  std::index_sequence<Indices...>
-  )
-{
-  resize({ other.template dimSize<Indices>()... }, defValue);
-} // geo::GeoIDdataContainer<T, IDType>::resizeAsImpl(value_type)
-
-
-//------------------------------------------------------------------------------
-template <typename T, typename IDType>
-template <std::size_t Level, typename Dims>
-auto geo::GeoIDdataContainer<T, IDType>::sizeLevel(Dims const& dimSizes)
-  -> size_type
-{
-  if constexpr (Level >= dimensions()) return 1U;
-  else return sizeLevel<(Level+1U)>(dimSizes) * dimSizes[Level];
-} // geo::GeoIDdataContainer<>::sizeLevel()
+template <typename T, typename Mapper>
+auto geo::GeoIDdataContainer<T, Mapper>::ID(size_type const index) const -> ID_t
+  { return mapper().ID(index); }
 
 
 //------------------------------------------------------------------------------
