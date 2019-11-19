@@ -527,7 +527,8 @@ namespace geo{
 
   //......................................................................
   bool PlaneGeo::WireIDincreasesWithZ() const {
-    return GetIncreasingWireDirection().Z() > 0.;
+    return lar::util::RealComparisons(1e-3).nonNegative
+      (GetIncreasingWireDirection().Z());
   } // PlaneGeo::WireIDincreasesWithZ()
 
 
