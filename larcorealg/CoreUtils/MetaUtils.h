@@ -26,6 +26,8 @@
 
 // C/C++ standard libraries
 #include <array>
+#include <string>
+#include <string_view>
 #include <memory> // std::addressof()
 #include <functional> // std::reference_wrapper<>
 #include <type_traits>
@@ -464,6 +466,41 @@ namespace util {
   constexpr bool is_string_type_v = is_string_type<T>::value;
   
   
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Trait: whether type `T` is a STL string type.
+   * @tparam T the type to be tested
+   * 
+   * This trait has `value` `true` if `T` is an instance of `std::basic_string`
+   * template, `false` otherwise.
+   */
+  template <typename T>
+  struct is_basic_string_type;
+  
+  /// Whether type `T` is a character string type
+  /// (see `util::is_basic_string_type`).
+  template <typename T>
+  constexpr bool is_basic_string_type_v = is_basic_string_type<T>::value;
+  
+  
+  //----------------------------------------------------------------------------
+  /**
+   * @brief Trait: whether type `T` is a `std::string_view` type.
+   * @tparam T the type to be tested
+   * 
+   * This trait has `value` `true` if `T` is an instance of
+   * `std::basic_string_view` template, `false` otherwise.
+   */
+  template <typename T>
+  struct is_basic_string_view_type;
+  
+  /// Whether type `T` is a character string type
+  /// (see `util::is_basic_string_view_type`).
+  template <typename T>
+  constexpr bool is_basic_string_view_type_v
+    = is_basic_string_view_type<T>::value;
+  
+  
   /// @}
   //--- END Type identification ------------------------------------------------
 
@@ -721,6 +758,28 @@ namespace util {
     
     
     //--------------------------------------------------------------------------
+    template <typename T>
+    struct is_basic_string_type_impl: std::false_type {};
+    
+    
+    template <typename... Args>
+    struct is_basic_string_type_impl<std::basic_string<Args...>>
+      : std::true_type
+      {};
+    
+    
+    //--------------------------------------------------------------------------
+    template <typename T>
+    struct is_basic_string_view_type_impl: std::false_type {};
+    
+    
+    template <typename... Args>
+    struct is_basic_string_view_type_impl<std::basic_string_view<Args...>>
+      : std::true_type
+      {};
+    
+    
+    //--------------------------------------------------------------------------
     /// Implementation detail of `staticDumpClassName()`.
     template <typename T>
     struct ClassNameStaticDumper {
@@ -907,6 +966,19 @@ namespace util {
   //----------------------------------------------------------------------------
   template <typename T>
   struct is_string_type: details::is_string_type_impl<T> {};
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename T>
+  struct is_basic_string_type
+    : details::is_basic_string_type_impl<std::decay_t<T>> {};
+  
+  
+  //----------------------------------------------------------------------------
+  template <typename T>
+  struct is_basic_string_view_type
+    : details::is_basic_string_view_type_impl<std::decay_t<T>>
+  {};
   
   
   //----------------------------------------------------------------------------

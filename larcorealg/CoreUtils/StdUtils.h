@@ -8,9 +8,13 @@
 #ifndef LARCOREALG_COREUTILS_STDUTILS_H
 #define LARCOREALG_COREUTILS_STDUTILS_H
 
+// LArSoft libraries
+#include "larcorealg/CoreUtils/MetaUtils.h" // util::is_basic_string_type_v ...
+
 // C/C++ standard libraries
 #include <string> // std::to_string()
 #include <iterator> // std::begin(), std::end(), ...
+
 
 namespace util {
   
@@ -57,8 +61,8 @@ namespace util {
   
   /// ADL-aware version of `std::to_string`.
   template <typename T>
-  constexpr decltype(auto) to_string(T&& obj)
-    { using std::to_string; return to_string(std::forward<T>(obj)); }
+  constexpr decltype(auto) to_string(T&& obj);
+//     { using std::to_string; return to_string(std::forward<T>(obj)); }
   
   
   // --- BEGIN --- Containers and iterators ------------------------------------
@@ -99,6 +103,56 @@ namespace util {
   
 } // namespace util
 
+// -----------------------------------------------------------------------------
+// --- template implementation
+// -----------------------------------------------------------------------------
+namespace util::details {
+  
+  // ---------------------------------------------------------------------------
+  template <typename T, typename = void>
+  struct ToStringImpl {
+    
+    template <typename U>
+    static std::string to_string(U&& obj)
+      { using std::to_string; return to_string(std::forward<U>(obj)); }
+    
+  }; // struct ToStringImpl
+  
+  
+  // ---------------------------------------------------------------------------
+  template <typename T>
+  struct ToStringImpl<T, std::enable_if_t<util::is_basic_string_type_v<T>>> {
+    
+    template <typename U>
+    static std::string to_string(U&& obj) { return obj; }
+    
+  }; // struct ToStringImpl<string>
+  
+  
+  // ---------------------------------------------------------------------------
+  template <typename T>
+  struct ToStringImpl<T, std::enable_if_t<util::is_basic_string_view_type_v<T>>>
+  {
+    
+    template <typename U>
+    static std::string to_string(U&& obj) { return { obj.begin(), obj.end() }; }
+    
+  }; // struct ToStringImpl<string_view>
+  
+  
+  // ---------------------------------------------------------------------------
+  
+} // namespace util::details
+
+
+// -----------------------------------------------------------------------------
+template <typename T>
+constexpr decltype(auto) util::to_string(T&& obj)
+  { return util::details::ToStringImpl<T>::to_string(std::forward<T>(obj)); }
+//   { using std::to_string; return to_string(std::forward<T>(obj)); }
+
+
+// -----------------------------------------------------------------------------
 
 #endif // LARCOREALG_COREUTILS_STDUTILS_H
 

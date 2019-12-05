@@ -17,6 +17,8 @@
 
 // C/C++ standard libraries
 #include <array>
+#include <string>
+#include <string_view>
 #include <memory> // std::unique_ptr, std::shared_ptr
 #include <type_traits>
 
@@ -103,6 +105,48 @@ static_assert( util::is_string_type_v<char const*&>);
 static_assert( util::is_string_type_v<wchar_t*>);
 static_assert( util::is_string_type_v<char[]>);
 static_assert( util::is_string_type_v<wchar_t const[10U]>);
+
+
+//------------------------------------------------------------------------------
+// util::is_basic_string_type_v
+//------------------------------------------------------------------------------
+static_assert(!util::is_basic_string_type_v<short int>);
+static_assert(!util::is_basic_string_type_v<std::vector<int>>);
+static_assert(!util::is_basic_string_type_v<std::vector<wchar_t>>);
+static_assert( util::is_basic_string_type_v<std::string>);
+static_assert(!util::is_basic_string_type_v<std::string_view>);
+static_assert( util::is_basic_string_type_v<std::wstring>);
+static_assert(!util::is_basic_string_type_v<std::wstring_view>);
+static_assert( util::is_basic_string_type_v<std::string const&>);
+static_assert(!util::is_basic_string_type_v<std::string_view const&>);
+static_assert( util::is_basic_string_type_v<std::wstring const&>);
+static_assert(!util::is_basic_string_type_v<std::wstring_view const&>);
+static_assert(!util::is_basic_string_type_v<char const*>);
+static_assert(!util::is_basic_string_type_v<char const*&>);
+static_assert(!util::is_basic_string_type_v<wchar_t*>);
+static_assert(!util::is_basic_string_type_v<char[]>);
+static_assert(!util::is_basic_string_type_v<wchar_t const[10U]>);
+
+
+//------------------------------------------------------------------------------
+// util::is_basic_string_type_v
+//------------------------------------------------------------------------------
+static_assert(!util::is_basic_string_view_type_v<short int>);
+static_assert(!util::is_basic_string_view_type_v<std::vector<int>>);
+static_assert(!util::is_basic_string_view_type_v<std::vector<wchar_t>>);
+static_assert(!util::is_basic_string_view_type_v<std::string>);
+static_assert( util::is_basic_string_view_type_v<std::string_view>);
+static_assert(!util::is_basic_string_view_type_v<std::wstring>);
+static_assert( util::is_basic_string_view_type_v<std::wstring_view>);
+static_assert(!util::is_basic_string_view_type_v<std::string const&>);
+static_assert( util::is_basic_string_view_type_v<std::string_view const&>);
+static_assert(!util::is_basic_string_view_type_v<std::wstring const&>);
+static_assert( util::is_basic_string_view_type_v<std::wstring_view const&>);
+static_assert(!util::is_basic_string_view_type_v<char const*>);
+static_assert(!util::is_basic_string_view_type_v<char const*&>);
+static_assert(!util::is_basic_string_view_type_v<wchar_t*>);
+static_assert(!util::is_basic_string_view_type_v<char[]>);
+static_assert(!util::is_basic_string_view_type_v<wchar_t const[10U]>);
 
 
 //------------------------------------------------------------------------------
