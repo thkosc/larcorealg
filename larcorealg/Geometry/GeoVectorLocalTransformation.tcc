@@ -103,26 +103,9 @@ geo::LocalTransformation<ROOT::Math::Transform3D>::LocalToWorldVectImpl
 
 
 //------------------------------------------------------------------------------
-template <>
-template <typename ITER>
-ROOT::Math::Transform3D
-geo::LocalTransformation<ROOT::Math::Transform3D>::transformationFromPath
-  (ITER begin, ITER end)
-{
-  if (begin == end) return {}; // identity by default construction
-  auto iNode = begin;
-  ROOT::Math::Transform3D matrix
-    = convertTransformationMatrix<ROOT::Math::Transform3D>
-      (*((*iNode)->GetMatrix()))
-    ;
-  while (++iNode != end) {
-    matrix *= convertTransformationMatrix<ROOT::Math::Transform3D>
-      (*(*iNode)->GetMatrix());
-  }
-  return matrix;
-} // geo::LocalTransformation<ROOT::Transform3D>::transformationFromPath(ITER)
-
-
-//------------------------------------------------------------------------------
 
 #endif // LARCOREALG_GEOMETRY_GEOVECTORLOCALTRANSFORMATION_TCC
+
+// Local variables:
+// mode: c++
+// End:

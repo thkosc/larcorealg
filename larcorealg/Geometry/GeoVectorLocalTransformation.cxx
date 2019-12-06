@@ -87,8 +87,28 @@ void geo::LocalTransformation<ROOT::Math::Transform3D>::WorldToLocalVect
 template <>
 ROOT::Math::Transform3D
 geo::LocalTransformation<ROOT::Math::Transform3D>::transformationFromPath
-  (std::vector<TGeoNode const*> const& path, size_t depth)
+  (GeoNodePath_t const& path, size_t depth)
   { return transformationFromPath(path.begin(), path.begin() + depth + 1); }
+
+
+//------------------------------------------------------------------------------
+template <>
+ROOT::Math::Transform3D
+geo::LocalTransformation<ROOT::Math::Transform3D>::transformationFromPath
+  (GeoNodeIterator_t begin, GeoNodeIterator_t end)
+{
+  if (begin == end) return {}; // identity by default construction
+  auto iNode = begin;
+  TGeoNode const* node = *iNode;
+  ROOT::Math::Transform3D matrix
+    = convertTransformationMatrix<ROOT::Math::Transform3D>
+      (*(node->GetMatrix()));
+  while (++iNode != end) {
+    matrix *= convertTransformationMatrix<ROOT::Math::Transform3D>
+      (*(node->GetMatrix()));
+  }
+  return matrix;
+} // geo::LocalTransformation<ROOT::Transform3D>::transformationFromPath(ITER)
 
 
 //------------------------------------------------------------------------------

@@ -32,6 +32,8 @@ namespace geo {
     struct TransformationMatrixConverter;
   } // namespace details
 
+  using GeoNodePath_t = std::vector<TGeoNode const*>;
+  using GeoNodeIterator_t = GeoNodePath_t::const_iterator;
 
   /**
    * @brief Class to transform between world and local coordinates
@@ -80,7 +82,7 @@ namespace geo {
      * The resulting transformation is the sequence of transformations from
      * `depth` nodes from the first on.
      */
-    LocalTransformation(std::vector<TGeoNode const*> const& path, size_t depth)
+    LocalTransformation(GeoNodePath_t const& path, size_t depth)
       : fGeoMatrix
         (transformationFromPath(path.begin(), path.begin() + depth + 1))
       {}
@@ -93,20 +95,18 @@ namespace geo {
      * The resulting transformation is the sequence of transformations from
      * the first to the last node of the path.
      */
-    LocalTransformation(std::vector<TGeoNode const*> const& path)
+    LocalTransformation(GeoNodePath_t const& path)
       : LocalTransformation(path, path.size()) {}
 
     /**
      * @brief Constructor: sequence of transformations from a node path.
-     * @tparam ITER type of iterator to node pointers
      * @param begin the begin iterator of the path of ROOT geometry nodes
      * @param end the end iterator of the path of ROOT geometry nodes
      *
      * The resulting transformation is the sequence of transformations from
      * the one pointed by `begin` to the one before `end`.
      */
-    template <typename ITER>
-    LocalTransformation(ITER begin, ITER end)
+    LocalTransformation(GeoNodeIterator_t begin, GeoNodeIterator_t end)
       : fGeoMatrix(transformationFromPath(begin, end)) {}
 
 
@@ -287,8 +287,7 @@ namespace geo {
 
 
     /// Builds a matrix to go from local to world coordinates in one step
-    template <typename ITER>
-    static TransformationMatrix_t transformationFromPath(ITER begin, ITER end);
+    static TransformationMatrix_t transformationFromPath(GeoNodeIterator_t begin, GeoNodeIterator_t end);
 
     /// Builds a matrix to go from local to world coordinates in one step
     static TransformationMatrix_t transformationFromPath

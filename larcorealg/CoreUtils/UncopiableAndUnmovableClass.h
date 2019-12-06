@@ -12,35 +12,35 @@
 
 
 namespace lar {
-  
+
   // --- BEGIN -- Non-polymorphic classes --------------------------------------
   /**
    * @name Non-polymorphic classes
    * @anchor LArSoftCoreUtils_NonPolymorphicUncopiableUnmovable
-   * 
+   *
    * These base classes can be used to explicitly control movability and
    * copiability of the derived classes. It's a trade of a long class name
    * (and a long header file include statement) against five or six boilerplate
    * statements.
-   * 
+   *
    * The four classes in this group should be used only for classes with no
    * run-time polymorphism, for example:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * struct UniqueData: protected lar::UncopiableClass {
-   *   
+   *
    *   std::vector<float> fLotsOfData{ 100'000'000U };
-   *   
+   *
    * };
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * The class `UniqueData` in the example can be moved, but not copied.
-   * 
+   *
    * See
    * @ref LArSoftCoreUtils_PolymorphicUncopiableUnmovable "polymorphic classes"
    * for use with classes presenting run-time polymorphism.
-   * 
+   *
    */
   /// @{
-  
+
   /** **************************************************************************
    * @brief An empty class that can't be copied (moving is allowed).
    * @see   `UnmovableClass`, `UncopiableAndUnmovableClass`
@@ -153,28 +153,28 @@ namespace lar {
 
   /// @}
   // --- END -- Non-polymorphic classes ----------------------------------------
-  
-  
-  
+
+
+
   // --- BEGIN -- Run-time-polymorphic classes ---------------------------------
   /**
    * @name Run-time polymorphic classes
    * @anchor LArSoftCoreUtils_PolymorphicUncopiableUnmovable
-   * 
+   *
    * These base classes can be used to explicitly control movability and
    * copiability of the derived classes which feature run-time polymorphism.
    * It's a trade of a long class name (and a long header file include
    * statement) against five or six boilerplate statements.
-   * 
+   *
    * The four relevant classes in this group should be used only for classes
    * with run-time polymorphism, for example:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * struct UniqueAlgorithmBase
    *   : protected lar::PolymorphicUncopiableAndUnmovableClass
    * {
-   *   
+   *
    *   virtual int compute() const = 0;
-   *   
+   *
    * };
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * All the classes derived from `UniqueAlgorithmBase` in the example can't be
@@ -183,35 +183,29 @@ namespace lar {
    * In general this may be a good thing to avoid slicing, that is an incomplete
    * copy produced by the copy or move constructor of a base class being used
    * instead of the actual underlying class.
-   * 
-   * If run-time polymorphism is not needed, stick to 
+   *
+   * If run-time polymorphism is not needed, stick to
    * @ref LArSoftCoreUtils_NonPolymorphicUncopiableUnmovable "non-polymorphic classes"
    * instead.
-   * 
+   *
    */
   /// @{
-  
+
   /**
    * @brief A simple polymorphic class, providing a virtual table.
-   * 
+   *
    * This class (and its derived ones) are going to be copiable and movable.
    */
   struct PolymorphicClass {
-    
+
     PolymorphicClass() = default;
-    
+
     virtual ~PolymorphicClass() = default;
-    
-    PolymorphicClass(PolymorphicClass const&) = default;
-    PolymorphicClass(PolymorphicClass&&) = default;
-    
-    PolymorphicClass& operator= (PolymorphicClass const&) = default;
-    PolymorphicClass& operator= (PolymorphicClass&&) = default;
-    
+
   }; // PolymorphicClass
-  
-  
-  /** 
+
+
+  /**
    * @brief A polymorphic empty class that can't be copied (moving is allowed).
    * @see   `PolymorphicClass`, `PolymorphicUnmovableClass`,
    *        `PolymorphicUncopiableAndUnmovableClass`
@@ -241,17 +235,17 @@ namespace lar {
    *
    */
   struct PolymorphicUncopiableClass: virtual PolymorphicClass {
-    
+
     PolymorphicUncopiableClass() = default;
-    
+
     PolymorphicUncopiableClass(PolymorphicUncopiableClass const&) = delete;
     PolymorphicUncopiableClass(PolymorphicUncopiableClass&&) = default;
-    
+
     PolymorphicUncopiableClass& operator= (PolymorphicUncopiableClass const&)
       = delete;
     PolymorphicUncopiableClass& operator= (PolymorphicUncopiableClass&&)
       = default;
-    
+
   }; // PolymorphicUncopiableClass
 
 
@@ -285,17 +279,17 @@ namespace lar {
    *
    */
   struct PolymorphicUnmovableClass: virtual PolymorphicClass {
-    
+
     PolymorphicUnmovableClass() = default;
-    
+
     PolymorphicUnmovableClass(PolymorphicUnmovableClass const&) = default;
     PolymorphicUnmovableClass(PolymorphicUnmovableClass&&) = delete;
-    
+
     PolymorphicUnmovableClass& operator= (PolymorphicUnmovableClass const&)
       = default;
     PolymorphicUnmovableClass& operator= (PolymorphicUnmovableClass&&)
       = delete;
-    
+
   }; // PolymorphicUnmovableClass
 
 
@@ -314,7 +308,7 @@ namespace lar {
     : PolymorphicUncopiableClass, PolymorphicUnmovableClass
   {};
 
-  
+
   /// @}
   // --- END -- Run-time-polymorphic classes -----------------------------------
 

@@ -82,14 +82,13 @@ namespace geo {
   template <>
   ROOT::Math::Transform3D
   LocalTransformation<ROOT::Math::Transform3D>::transformationFromPath
-    (std::vector<TGeoNode const*> const& path, size_t depth);
+    (GeoNodePath_t const& path, size_t depth);
 
   //------------------------------------------------------------------------------
   template <>
-  template <typename ITER>
   ROOT::Math::Transform3D
   LocalTransformation<ROOT::Math::Transform3D>::transformationFromPath
-    (ITER begin, ITER end);
+    (GeoNodeIterator_t begin, GeoNodeIterator_t end);
 
   //------------------------------------------------------------------------------
 

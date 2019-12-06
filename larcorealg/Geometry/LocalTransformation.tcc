@@ -163,47 +163,24 @@ namespace geo {
   //----------------------------------------------------------------------------
   template <>
   TGeoHMatrix LocalTransformation<TGeoHMatrix>::transformationFromPath
-    (std::vector<TGeoNode const*> const& path, size_t depth);
+    (GeoNodePath_t const& path, size_t depth);
   
   
   template <>
-  template <typename ITER>
   TGeoHMatrix LocalTransformation<TGeoHMatrix>::transformationFromPath
-    (ITER begin, ITER end)
-  {
-    if (begin == end) return { TGeoIdentity() };
-    auto iNode = begin;
-    TGeoHMatrix matrix = *((*iNode)->GetMatrix());
-    while (++iNode != end) matrix.Multiply((*iNode)->GetMatrix());
-    return matrix;
-    
-  } // geo::LocalTransformation<TGeoHMatrix>::transformationFromPath(ITER)
-  
+    (GeoNodeIterator_t begin, GeoNodeIterator_t end);
   
   //----------------------------------------------------------------------------
   template <>
   HepGeom::Transform3D
   LocalTransformation<HepGeom::Transform3D>::transformationFromPath
-    (std::vector<TGeoNode const*> const& path, size_t depth);
+    (GeoNodePath_t const& path, size_t depth);
   
   
   template <>
-  template <typename ITER>
   HepGeom::Transform3D
   LocalTransformation<HepGeom::Transform3D>::transformationFromPath
-    (ITER begin, ITER end)
-  {
-    
-    auto const mat =
-      geo::LocalTransformation<TGeoHMatrix>::transformationFromPath(begin, end);
-    const Double_t* translation = mat.GetTranslation();
-    return HepGeom::Transform3D(
-      CLHEP::HepRotation(CLHEP::HepRep3x3(mat.GetRotationMatrix())),
-      CLHEP::Hep3Vector(translation[0], translation[1], translation[2])
-      );
-    
-  } // geo::LocalTransformation<HepGeom::Transform3D>::transformationFromPath(ITER)
-  
+    (GeoNodeIterator_t begin, GeoNodeIterator_t end);
   
   //----------------------------------------------------------------------------
   namespace details {
@@ -226,3 +203,7 @@ namespace geo {
 //------------------------------------------------------------------------------
   
 #endif // LARCOREALG_GEOMETRY_LOCALTRANSFORMATION_TCC
+
+// Local variables:
+// mode: c++
+// End:
