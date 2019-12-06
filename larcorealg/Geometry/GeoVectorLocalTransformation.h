@@ -79,18 +79,6 @@ namespace geo {
     (SrcVector const& local) const;
 
   //------------------------------------------------------------------------------
-  template <>
-  ROOT::Math::Transform3D
-  LocalTransformation<ROOT::Math::Transform3D>::transformationFromPath
-    (GeoNodePath_t const& path, size_t depth);
-
-  //------------------------------------------------------------------------------
-  template <>
-  ROOT::Math::Transform3D
-  LocalTransformation<ROOT::Math::Transform3D>::transformationFromPath
-    (GeoNodeIterator_t begin, GeoNodeIterator_t end);
-
-  //------------------------------------------------------------------------------
 
 } // namespace geo
 

@@ -32,8 +32,19 @@ namespace geo {
     struct TransformationMatrixConverter;
   } // namespace details
 
-  using GeoNodePath_t = std::vector<TGeoNode const*>;
-  using GeoNodeIterator_t = GeoNodePath_t::const_iterator;
+
+  using GeoNodeIterator_t = std::vector<TGeoNode const*>::const_iterator;
+
+
+  /// Builds a matrix to go from local to world coordinates in one step
+  template <typename StoredMatrix, typename ITER>
+  static StoredMatrix transformationFromPath(ITER begin, ITER end);
+
+  /// Builds a matrix to go from local to world coordinates in one step
+  template <typename StoredMatrix>
+  static StoredMatrix transformationFromPath(std::vector<TGeoNode const*> const& path, size_t depth);
+  //  { return transformationFromPath(path.begin(), path.begin() + depth); }
+
 
   /**
    * @brief Class to transform between world and local coordinates
@@ -82,9 +93,9 @@ namespace geo {
      * The resulting transformation is the sequence of transformations from
      * `depth` nodes from the first on.
      */
-    LocalTransformation(GeoNodePath_t const& path, size_t depth)
+    LocalTransformation(std::vector<TGeoNode const*> const& path, size_t depth)
       : fGeoMatrix
-        (transformationFromPath(path.begin(), path.begin() + depth + 1))
+        (transformationFromPath<StoredMatrix>(path.begin(), path.begin() + depth + 1))
       {}
 
 
@@ -95,19 +106,21 @@ namespace geo {
      * The resulting transformation is the sequence of transformations from
      * the first to the last node of the path.
      */
-    LocalTransformation(GeoNodePath_t const& path)
+    LocalTransformation(std::vector<TGeoNode const*> const& path)
       : LocalTransformation(path, path.size()) {}
 
     /**
      * @brief Constructor: sequence of transformations from a node path.
+     * @tparam ITER type of iterator to node pointers
      * @param begin the begin iterator of the path of ROOT geometry nodes
      * @param end the end iterator of the path of ROOT geometry nodes
      *
      * The resulting transformation is the sequence of transformations from
      * the one pointed by `begin` to the one before `end`.
      */
-    LocalTransformation(GeoNodeIterator_t begin, GeoNodeIterator_t end)
-      : fGeoMatrix(transformationFromPath(begin, end)) {}
+    template <typename ITER>
+    LocalTransformation(ITER begin, ITER end)
+      : fGeoMatrix(transformationFromPath<StoredMatrix>(begin, end)) {}
 
 
     /**
@@ -284,16 +297,6 @@ namespace geo {
 
     /// Direct access to the transformation matrix
     TransformationMatrix_t const& Matrix() const { return fGeoMatrix; }
-
-
-    /// Builds a matrix to go from local to world coordinates in one step
-    static TransformationMatrix_t transformationFromPath(GeoNodeIterator_t begin, GeoNodeIterator_t end);
-
-    /// Builds a matrix to go from local to world coordinates in one step
-    static TransformationMatrix_t transformationFromPath
-      (std::vector<TGeoNode const*> const& path, size_t depth);
-    //  { return transformationFromPath(path.begin(), path.begin() + depth); }
-
 
       protected:
 

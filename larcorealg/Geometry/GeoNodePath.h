@@ -112,8 +112,7 @@ namespace geo {
 //------------------------------------------------------------------------------
 template <typename Matrix /* = TGeoHMatrix */>
 Matrix geo::GeoNodePath::currentTransformation() const {
-  return geo::LocalTransformation<Matrix>::transformationFromPath
-    (fNodes.begin(), fNodes.end());
+  return geo::transformationFromPath<Matrix>(fNodes.begin(), fNodes.end());
 } // geo::GeoNodePath::currentTransformation()
 
 

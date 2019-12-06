@@ -25,65 +25,12 @@
 //
 namespace geo {
 
-  template <>
-  TGeoHMatrix LocalTransformation<TGeoHMatrix>::transformationFromPath
-    (GeoNodePath_t const& path, size_t depth)
-  {
-    TGeoHMatrix matrix = *(path[0]->GetMatrix());
-    for(size_t i = 1; i <= depth; ++i) matrix.Multiply(path[i]->GetMatrix());
-    return matrix;
+  //----------------------------------------------------------------------------
 
-  } // geo::LocalTransformation<TGeoHMatrix>::transformationFromPath()
-
-
-  template <>
-  TGeoHMatrix LocalTransformation<TGeoHMatrix>::transformationFromPath
-    (GeoNodeIterator_t begin, GeoNodeIterator_t end)
-  {
-    if (begin == end) return { TGeoIdentity() };
-    auto iNode = begin;
-    TGeoHMatrix matrix = *((*iNode)->GetMatrix());
-    while (++iNode != end) matrix.Multiply((*iNode)->GetMatrix());
-    return matrix;
-
-  } // geo::LocalTransformation<TGeoHMatrix>::transformationFromPath(ITER)
 
   //----------------------------------------------------------------------------
-  template <>
-  HepGeom::Transform3D
-  LocalTransformation<HepGeom::Transform3D>::transformationFromPath
-    (GeoNodePath_t const& path, size_t depth)
-  {
-
-    auto const mat =
-      geo::LocalTransformation<TGeoHMatrix>::transformationFromPath
-      (path, depth);
-    const Double_t* translation = mat.GetTranslation();
-    return HepGeom::Transform3D(
-      CLHEP::HepRotation(CLHEP::HepRep3x3(mat.GetRotationMatrix())),
-      CLHEP::Hep3Vector(translation[0], translation[1], translation[2])
-      );
-
-  } // geo::LocalTransformation<HepGeom::Transform3D>::transformationFromPath()
 
 
-  template <>
-  HepGeom::Transform3D
-  LocalTransformation<HepGeom::Transform3D>::transformationFromPath
-    (GeoNodeIterator_t begin, GeoNodeIterator_t end)
-  {
-
-    auto const mat =
-      geo::LocalTransformation<TGeoHMatrix>::transformationFromPath(begin, end);
-    const Double_t* translation = mat.GetTranslation();
-    return HepGeom::Transform3D(
-      CLHEP::HepRotation(CLHEP::HepRep3x3(mat.GetRotationMatrix())),
-      CLHEP::Hep3Vector(translation[0], translation[1], translation[2])
-      );
-
-  } // geo::LocalTransformation<HepGeom::Transform3D>::transformationFromPath(ITER)
-
-  //----------------------------------------------------------------------------
 
 } // namespace geo
 
