@@ -133,8 +133,8 @@ namespace util::details {
 //------------------------------------------------------------------------------
 template <typename Coll>
 decltype(auto) util::values(Coll&& coll) {
-  using coll_t = std::remove_reference_t<Coll>;
-  return details::values_impl<coll_t>::iterate(std::forward<Coll>(coll)); 
+  return details::values_impl<std::decay_t<Coll>>::iterate
+    (std::forward<Coll>(coll)); 
 } // util::values()
 
 

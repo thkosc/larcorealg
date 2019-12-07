@@ -132,6 +132,31 @@ void test_values_map() {
 
 
 // -----------------------------------------------------------------------------
+template<template <typename Key, typename Value, typename... Args> typename Map>
+void test_const_values_map() {
+  
+  // prepare the data set
+  constexpr std::size_t N = 7U;
+  constexpr double factor = 5.0;
+  
+  std::vector<int> keys(N);
+  std::iota(keys.begin(), keys.end(), 0U);
+  Map<int, float> data;
+  for (int key: keys) data.emplace(key, key * factor);
+  
+  std::size_t i = 0U;
+  for (auto&& value: util::const_values(data)) {
+    static_assert(std::is_same_v<decltype(value), float const&>);
+    BOOST_CHECK_EQUAL(value, data[i]);
+    BOOST_CHECK_EQUAL(std::addressof(value), std::addressof(data[i]));
+    ++i;
+  } // for
+  BOOST_CHECK_EQUAL(i, data.size());
+  
+} // test_const_values_map()
+
+
+// -----------------------------------------------------------------------------
 void test_values_documentation() {
   /*
    * The promise:
@@ -169,6 +194,7 @@ BOOST_AUTO_TEST_CASE(values_testcase) {
   test_values();
   test_const_values();
   test_values_map<std::map>();
+  test_const_values_map<std::map>();
   
   test_values_documentation();
   
