@@ -84,14 +84,6 @@ void geo::LocalTransformation<ROOT::Math::Transform3D>::WorldToLocalVect
 
 
 //------------------------------------------------------------------------------
-template <>
-ROOT::Math::Transform3D
-geo::LocalTransformation<ROOT::Math::Transform3D>::transformationFromPath
-  (std::vector<TGeoNode const*> const& path, size_t depth)
-  { return transformationFromPath(path.begin(), path.begin() + depth + 1); }
-
-
-//------------------------------------------------------------------------------
 ROOT::Math::Transform3D
 geo::details::TransformationMatrixConverter<ROOT::Math::Transform3D, TGeoMatrix>
   ::convert

@@ -33,6 +33,19 @@ namespace geo {
   } // namespace details
 
 
+  using GeoNodeIterator_t = std::vector<TGeoNode const*>::const_iterator;
+
+
+  /// Builds a matrix to go from local to world coordinates in one step
+  template <typename StoredMatrix, typename ITER>
+  static StoredMatrix transformationFromPath(ITER begin, ITER end);
+
+  /// Builds a matrix to go from local to world coordinates in one step
+  template <typename StoredMatrix>
+  static StoredMatrix transformationFromPath(std::vector<TGeoNode const*> const& path, size_t depth);
+  //  { return transformationFromPath(path.begin(), path.begin() + depth); }
+
+
   /**
    * @brief Class to transform between world and local coordinates
    * @tparam StoredMatrix type of transformation matrix internally stored
@@ -82,7 +95,7 @@ namespace geo {
      */
     LocalTransformation(std::vector<TGeoNode const*> const& path, size_t depth)
       : fGeoMatrix
-        (transformationFromPath(path.begin(), path.begin() + depth + 1))
+        (transformationFromPath<StoredMatrix>(path.begin(), path.begin() + depth + 1))
       {}
 
 
@@ -107,7 +120,7 @@ namespace geo {
      */
     template <typename ITER>
     LocalTransformation(ITER begin, ITER end)
-      : fGeoMatrix(transformationFromPath(begin, end)) {}
+      : fGeoMatrix(transformationFromPath<StoredMatrix>(begin, end)) {}
 
 
     /**
@@ -284,17 +297,6 @@ namespace geo {
 
     /// Direct access to the transformation matrix
     TransformationMatrix_t const& Matrix() const { return fGeoMatrix; }
-
-
-    /// Builds a matrix to go from local to world coordinates in one step
-    template <typename ITER>
-    static TransformationMatrix_t transformationFromPath(ITER begin, ITER end);
-
-    /// Builds a matrix to go from local to world coordinates in one step
-    static TransformationMatrix_t transformationFromPath
-      (std::vector<TGeoNode const*> const& path, size_t depth);
-    //  { return transformationFromPath(path.begin(), path.begin() + depth); }
-
 
       protected:
 

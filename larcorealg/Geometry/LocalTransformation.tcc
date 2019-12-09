@@ -162,48 +162,59 @@ namespace geo {
   
   //----------------------------------------------------------------------------
   template <>
-  TGeoHMatrix LocalTransformation<TGeoHMatrix>::transformationFromPath
-    (std::vector<TGeoNode const*> const& path, size_t depth);
+  inline TGeoHMatrix transformationFromPath<TGeoHMatrix>
+    (std::vector<TGeoNode const*> const& path, size_t depth)
+  {
+    TGeoHMatrix matrix = *(path[0]->GetMatrix());
+    for(size_t i = 1; i <= depth; ++i) matrix.Multiply(path[i]->GetMatrix());
+    return matrix;
+  } // geo::LocalTransformation<TGeoHMatrix>::transformationFromPath()
   
   
   template <>
-  template <typename ITER>
-  TGeoHMatrix LocalTransformation<TGeoHMatrix>::transformationFromPath
-    (ITER begin, ITER end)
+  inline TGeoHMatrix transformationFromPath<TGeoHMatrix, GeoNodeIterator_t>
+    (GeoNodeIterator_t begin, GeoNodeIterator_t end)
   {
     if (begin == end) return { TGeoIdentity() };
     auto iNode = begin;
     TGeoHMatrix matrix = *((*iNode)->GetMatrix());
     while (++iNode != end) matrix.Multiply((*iNode)->GetMatrix());
     return matrix;
-    
+
   } // geo::LocalTransformation<TGeoHMatrix>::transformationFromPath(ITER)
-  
+
   
   //----------------------------------------------------------------------------
   template <>
-  HepGeom::Transform3D
-  LocalTransformation<HepGeom::Transform3D>::transformationFromPath
-    (std::vector<TGeoNode const*> const& path, size_t depth);
-  
-  
-  template <>
-  template <typename ITER>
-  HepGeom::Transform3D
-  LocalTransformation<HepGeom::Transform3D>::transformationFromPath
-    (ITER begin, ITER end)
+  inline HepGeom::Transform3D
+  transformationFromPath<HepGeom::Transform3D>
+    (std::vector<TGeoNode const*> const& path, size_t depth)
   {
-    
-    auto const mat =
-      geo::LocalTransformation<TGeoHMatrix>::transformationFromPath(begin, end);
+  
+    auto const mat = transformationFromPath<TGeoHMatrix>(path, depth);
     const Double_t* translation = mat.GetTranslation();
     return HepGeom::Transform3D(
       CLHEP::HepRotation(CLHEP::HepRep3x3(mat.GetRotationMatrix())),
       CLHEP::Hep3Vector(translation[0], translation[1], translation[2])
       );
-    
-  } // geo::LocalTransformation<HepGeom::Transform3D>::transformationFromPath(ITER)
+
+  } // geo::LocalTransformation<HepGeom::Transform3D>::transformationFromPath()
   
+  template <>
+  HepGeom::Transform3D
+  inline transformationFromPath<HepGeom::Transform3D>
+    (GeoNodeIterator_t begin, GeoNodeIterator_t end)
+  {
+
+    auto const mat = transformationFromPath<TGeoHMatrix>(begin, end);
+    const Double_t* translation = mat.GetTranslation();
+    return HepGeom::Transform3D(
+      CLHEP::HepRotation(CLHEP::HepRep3x3(mat.GetRotationMatrix())),
+      CLHEP::Hep3Vector(translation[0], translation[1], translation[2])
+      );
+
+  } // geo::LocalTransformation<HepGeom::Transform3D>::transformationFromPath()
+
   
   //----------------------------------------------------------------------------
   namespace details {
@@ -226,3 +237,7 @@ namespace geo {
 //------------------------------------------------------------------------------
   
 #endif // LARCOREALG_GEOMETRY_LOCALTRANSFORMATION_TCC
+
+// Local variables:
+// mode: c++
+// End:
