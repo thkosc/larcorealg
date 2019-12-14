@@ -13,6 +13,7 @@
 
 // LArSoft libraries
 #include "larcorealg/CoreUtils/span.h" // util::make_transformed_span()
+#include "larcorealg/CoreUtils/get_elements.h"
 
 // C/C++ libraries
 #include <map>
@@ -98,18 +99,12 @@ namespace util::details {
   
   
   //----------------------------------------------------------------------------
-  template <typename Map>
+  template <typename Map, std::size_t NElement = 1U>
   struct map_values_impl {
-    
-    static constexpr std::size_t NElement = 1U; // this is the value
     
     template <typename T>
     static constexpr decltype(auto) iterate(T&& coll) noexcept
-      {
-        auto extractor = [](auto&& value) -> decltype(auto)
-          { return std::get<NElement>(value); };
-        return util::make_transformed_span(coll, extractor);
-      }
+      { return util::get_elements<NElement>(std::forward<T>(coll)); }
     
   }; // map_values_impl
   

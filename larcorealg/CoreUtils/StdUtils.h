@@ -14,6 +14,7 @@
 // C/C++ standard libraries
 #include <string> // std::to_string()
 #include <iterator> // std::begin(), std::end(), ...
+#include <utility> // std::get()
 
 
 namespace util {
@@ -97,6 +98,16 @@ namespace util {
     { using std::empty; return empty(std::forward<T>(obj)); }
   
   // --- END --- Containers and iterators --------------------------------------
+  
+  
+  
+  // --- BEGIN --- tuples ------------------------------------------------------
+  
+  template <std::size_t I, typename T>
+  decltype(auto) get(T&& obj)
+    { using std::get; return get<I>(std::forward<T>(obj)); }
+  
+  // --- END --- tuples --------------------------------------------------------
   
   /// @}
   
