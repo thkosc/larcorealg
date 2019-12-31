@@ -663,6 +663,53 @@ namespace geo {
     //@}
 
 
+    //@{
+    /**
+     * @brief Returns the distance between wires along the specified direction.
+     * @param projDir the direction, projected on the plane (2D)
+     * @return the distance between wires along that direction [cm]
+     * 
+     * The direction is specified as a `geo::PlaneGeo::WireCoordProjection_t`
+     * vector, defined as in `geo::PlaneGeo::Projection()`.
+     * The modulus of the projection is ignored but expected to be non null.
+     * 
+     * The returned distance is the space that would be covered starting from
+     * a wire toward the `projDir` direction and stopping at the first wire met.
+     * This distance is returned in centimeters and always positive.
+     */
+    double InterWireProjectedDistance
+      (WireCoordProjection_t const& projDir) const;
+    //@}
+    
+    
+    //@{
+    /**
+     * @brief Returns the distance between wires along the specified direction.
+     * @tparam Vector type of 3D vector
+     * @param dir the direction in detector space (3D)
+     * @return the distance between wires along that direction [cm]
+     * @see `InterWireProjectedDistance(geo::PlaneGeo::WireCoordProjection_t const&) const`
+     * 
+     * The direction is specified as a 3D vector.
+     * Its modulus is ignored but expected to be non null.
+     * 
+     * The returned distance is the space that would be covered starting from
+     * a wire toward the direction projection of `dir` on the wire plane,
+     * and stopping at the first wire met.
+     * This distance is returned in centimeters and always positive.
+     * 
+     * @note This is not a 3D distance (for example, it's not useful to compute
+     *       @f$ ds @f$ of a track to get its ionization energy @f$ dE/ds @f$),
+     *       but it is the distance projected on the wire plane.
+     */
+    template <typename Vector>
+    std::enable_if_t<geo::vect::dimension<Vector>() == 3U, double>
+    InterWireProjectedDistance(Vector const& dir) const
+      { return InterWireProjectedDistance(VectorProjection(dir)); }
+    //@}
+    
+    
+    
     /**
      * @brief Returns an area covered by the wires in the plane.
      *

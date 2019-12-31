@@ -60,7 +60,13 @@ namespace {
     return value + symmetricCapDelta(value, limit);
 
   } // symmetricCap()
-
+  
+  
+  /// Returns the square of `v`.
+  template <typename T>
+  T sqr(T v) { return v * v; }
+  
+  
 } // local namespace
 
 
@@ -704,6 +710,18 @@ namespace geo{
   } // PlaneGeo::NearestWire()
 
 
+  //......................................................................
+  double PlaneGeo::InterWireProjectedDistance
+    (WireCoordProjection_t const& projDir) const
+  {
+    return (lar::util::RealComparisons(1e-4).zero(projDir.Y()))
+      ? 0.0
+      : std::sqrt(sqr(projDir.X() / projDir.Y()) + 1.0) * fWirePitch
+      ;
+    
+  } // PlaneGeo::InterWireProjectedDistance()
+  
+  
   //......................................................................
   double PlaneGeo::ThetaZ() const { return FirstWire().ThetaZ(); }
 

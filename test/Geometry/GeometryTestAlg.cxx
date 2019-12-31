@@ -321,6 +321,12 @@ namespace geo{
         MF_LOG_INFO("GeometryTest") << "complete.";
       }
 
+      if (shouldRunTests("InterWireProjectedDistance")) {
+        MF_LOG_INFO("GeometryTest") << "testInterWireProjectedDistance...";
+        testInterWireProjectedDistance();
+        MF_LOG_INFO("GeometryTest") << "complete.";
+      }
+
       if (shouldRunTests("PlanePitch")) {
         MF_LOG_INFO("GeometryTest") << "testPlanePitch...";
         testPlanePitch();
@@ -3043,6 +3049,97 @@ namespace geo{
 
   } // GeometryTestAlg::testWirePitch()
 
+  //......................................................................
+  void GeometryTestAlg::testInterWireProjectedDistance() const {
+  
+    constexpr lar::util::RealComparisons cmp { 1e-4 };
+    
+    constexpr double V3 = std::sqrt(3.0);
+    
+    std::array const testProjections = {
+      geo::PlaneGeo::WireCoordProjection_t{ 0.00, 1.00 },
+      geo::PlaneGeo::WireCoordProjection_t{ 0.75, 1.00 },
+      geo::PlaneGeo::WireCoordProjection_t{ 1.00, 1.00 },
+      geo::PlaneGeo::WireCoordProjection_t{   V3, 1.00 },
+      geo::PlaneGeo::WireCoordProjection_t{ 2.40, 1.00 },
+      geo::PlaneGeo::WireCoordProjection_t{ 1.00, 0.00 }
+    };
+    constexpr std::array testDriftOffsets { -20.0, -10.0, 0.0, +10.0, +20.0 };
+    
+    unsigned int nErrors = 0; // error count for the final report
+    
+    for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
+      
+      double const pitch = plane.WirePitch();
+      auto const normalDir = plane.GetNormalDirection<geo::Vector_t>();
+      
+      for (auto const& testProjBase: testProjections) {
+        
+        //
+        // expected result is kind of encoded in the chosen projections
+        //
+        double const expected
+          = (testProjBase.Y() == 0.0)? 0.0: testProjBase.R() * pitch;
+        
+        // we flip the projection around: result should not change
+        for (double dirL: { -1.0, 1.0 }) for (double dirW: { -1.0, 1.0 }) for (double scale: { 0.5, 1.0, 3.0 }) {
+          
+          //
+          // test the projection directly
+          //
+          geo::PlaneGeo::WireCoordProjection_t const testProj
+           { scale * dirL * testProjBase.X(), scale * dirW * testProjBase.Y() };
+          
+          double const interWireFromProj
+            = plane.InterWireProjectedDistance(testProj);
+          if (cmp.nonEqual(interWireFromProj, expected)) {
+            mf::LogProblem("") << "ERROR: on plane " << plane.ID()
+              << " distance between wires on projected direction " << testProj
+              << " is " << interWireFromProj << " cm (expected: "
+              << expected << ")"
+              ;
+            ++nErrors;
+          } // if unexpected result
+          
+          //
+          // test a 3D direction
+          //
+          
+          // it turns out we don't have a 
+          auto const baseDir
+            = plane.ComposeVector<geo::Vector_t>(0.0, testProj);
+          
+          for (double const driftOffset: testDriftOffsets) {
+            auto const testDir = baseDir + driftOffset * normalDir;
+            
+            double const interWire = plane.InterWireProjectedDistance(testDir);
+            if (cmp.nonEqual(interWire, expected)) {
+              mf::LogProblem("") << "ERROR: on plane " << plane.ID()
+                << " distance between wires on direction " << testDir
+                << " (from projection " << testProj << " and offset "
+                << driftOffset << ") is " << interWire << " cm (expected: "
+                << expected << ")"
+                ;
+              ++nErrors;
+            } // if unexpected result
+            
+          } // for drifts
+          
+        } // for dirL, dirW and scale
+        
+      } // for all test projection directions
+      
+    } // for all planes
+    
+    
+    if (nErrors > 0U) {
+      throw cet::exception("InterWireProjectedDistance")
+        << "unexpected distances in " << nErrors << " tests!";
+    } // end loop over planes
+  
+  } // GeometryTestAlg::testInterWireProjectedDistance()
+  
+  
   //......................................................................
   void GeometryTestAlg::testPlanePitch()
   {

@@ -89,6 +89,7 @@ namespace geo {
    *   + `ThirdPlaneSlope`: tests `ThirdPlaneSlope()`
    *   + `WirePitch`:
    *   + `PlanePitch`:
+   *   + `InterWireProjectedDistance`: tests `geo::PlaneGeo::InterWireProjectedDistance()`
    *   + `Stepping`:
    *   + `FindAuxDet`: test on location of nearest auxiliary detector
    *   + `PrintWires`: (not in default) prints *all* the wires in the geometry
@@ -158,6 +159,7 @@ namespace geo {
     void testPlanePointDecomposition() const;
     void testWireCoordAngle() const;
     void testWirePitch();
+    void testInterWireProjectedDistance() const;
     void testPlanePitch();
     void testStandardWirePos();
     void testAPAWirePos();
