@@ -3054,17 +3054,29 @@ namespace geo{
   
     constexpr lar::util::RealComparisons cmp { 1e-4 };
     
-    constexpr double V3 = std::sqrt(3.0);
+    static double const V3 = std::sqrt(3.0);
     
-    std::array const testProjections = {
+    // BUG the deduction guide for std::array seems not to be implemented yet
+    //     in Clang 5.0.0
+    // BUG the double brace syntax is required to work around clang bug 21629
+    // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+//     std::array const testProjections = {
+    std::array<geo::PlaneGeo::WireCoordProjection_t, 6U> const testProjections {{
       geo::PlaneGeo::WireCoordProjection_t{ 0.00, 1.00 },
       geo::PlaneGeo::WireCoordProjection_t{ 0.75, 1.00 },
       geo::PlaneGeo::WireCoordProjection_t{ 1.00, 1.00 },
       geo::PlaneGeo::WireCoordProjection_t{   V3, 1.00 },
       geo::PlaneGeo::WireCoordProjection_t{ 2.40, 1.00 },
       geo::PlaneGeo::WireCoordProjection_t{ 1.00, 0.00 }
-    };
-    constexpr std::array testDriftOffsets { -20.0, -10.0, 0.0, +10.0, +20.0 };
+//     };
+    }};
+    // BUG the deduction guide for std::array seems not to be implemented yet
+    //     in Clang 5.0.0
+    // BUG the double brace syntax is required to work around clang bug 21629
+    // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+//     constexpr std::array testDriftOffsets { -20.0, -10.0, 0.0, +10.0, +20.0 };
+    constexpr std::array<double, 5U> testDriftOffsets
+      {{ -20.0, -10.0, 0.0, +10.0, +20.0 }};
     
     unsigned int nErrors = 0; // error count for the final report
     
