@@ -3061,13 +3061,12 @@ namespace geo{
     // BUG the double brace syntax is required to work around clang bug 21629
     // (https://bugs.llvm.org/show_bug.cgi?id=21629)
 //     std::array const testProjections = {
-    std::array<geo::PlaneGeo::WireCoordProjection_t, 6U> const testProjections {{
+    std::array<geo::PlaneGeo::WireCoordProjection_t, 5U> const testProjections {{
       geo::PlaneGeo::WireCoordProjection_t{ 0.00, 1.00 },
       geo::PlaneGeo::WireCoordProjection_t{ 0.75, 1.00 },
       geo::PlaneGeo::WireCoordProjection_t{ 1.00, 1.00 },
       geo::PlaneGeo::WireCoordProjection_t{   V3, 1.00 },
-      geo::PlaneGeo::WireCoordProjection_t{ 2.40, 1.00 },
-      geo::PlaneGeo::WireCoordProjection_t{ 1.00, 0.00 }
+      geo::PlaneGeo::WireCoordProjection_t{ 2.40, 1.00 }
 //     };
     }};
     // BUG the deduction guide for std::array seems not to be implemented yet
@@ -3090,8 +3089,7 @@ namespace geo{
         //
         // expected result is kind of encoded in the chosen projections
         //
-        double const expected
-          = (testProjBase.Y() == 0.0)? 0.0: testProjBase.R() * pitch;
+        double const expected = testProjBase.R() * pitch;
         
         // we flip the projection around: result should not change
         for (double dirL: { -1.0, 1.0 }) for (double dirW: { -1.0, 1.0 }) for (double scale: { 0.5, 1.0, 3.0 }) {
@@ -3117,7 +3115,6 @@ namespace geo{
           // test a 3D direction
           //
           
-          // it turns out we don't have a 
           auto const baseDir
             = plane.ComposeVector<geo::Vector_t>(0.0, testProj);
           
@@ -3127,7 +3124,7 @@ namespace geo{
             double const interWire = plane.InterWireProjectedDistance(testDir);
             if (cmp.nonEqual(interWire, expected)) {
               mf::LogProblem("") << "ERROR: on plane " << plane.ID()
-                << " distance between wires on direction " << testDir
+                << " projected distance between wires on direction " << testDir
                 << " (from projection " << testProj << " and offset "
                 << driftOffset << ") is " << interWire << " cm (expected: "
                 << expected << ")"

@@ -714,11 +714,8 @@ namespace geo{
   double PlaneGeo::InterWireProjectedDistance
     (WireCoordProjection_t const& projDir) const
   {
-    return (lar::util::RealComparisons(1e-4).zero(projDir.Y()))
-      ? 0.0
-      : std::sqrt(sqr(projDir.X() / projDir.Y()) + 1.0) * fWirePitch
-      ;
-    
+    assert(lar::util::Vector2DComparison{1e-6}.nonZero(projDir));
+    return std::sqrt(sqr(projDir.X() / projDir.Y()) + 1.0) * fWirePitch;
   } // PlaneGeo::InterWireProjectedDistance()
   
   

@@ -675,7 +675,14 @@ namespace geo {
      * 
      * The returned distance is the space that would be covered starting from
      * a wire toward the `projDir` direction and stopping at the first wire met.
-     * This distance is returned in centimeters and always positive.
+     * This distance is returned in centimeters, always positive and
+     * not smaller than the wire pitch.
+     * 
+     * @note If the direction is too close to the wire direction, the result
+     *       will be numerically unstable and might be infinite (test with
+     *       `std::isinf()`, `std::isfinite()` or `std::isnormal()`).
+     *       It is recommended that the caller take special actions when the
+     *       result is too large.
      */
     double InterWireProjectedDistance
       (WireCoordProjection_t const& projDir) const;
