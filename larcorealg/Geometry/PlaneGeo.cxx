@@ -720,6 +720,19 @@ namespace geo{
   
   
   //......................................................................
+  double PlaneGeo::InterWireDistance(geo::Vector_t const& dir) const {
+    // the secondary component of the wire decomposition basis is wire coord.
+    double const r = dir.R();
+    assert(r >= 1.e-6);
+    
+    double const absWireCoordProj
+      = std::abs(fDecompWire.VectorSecondaryComponent(dir));
+    return r / absWireCoordProj * fWirePitch;
+    
+  } // PlaneGeo::InterWireDistance()
+  
+  
+  //......................................................................
   double PlaneGeo::ThetaZ() const { return FirstWire().ThetaZ(); }
 
 

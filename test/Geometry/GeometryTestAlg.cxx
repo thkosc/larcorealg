@@ -3051,7 +3051,21 @@ namespace geo{
 
   //......................................................................
   void GeometryTestAlg::testInterWireProjectedDistance() const {
-  
+    
+    /*
+     * For each wire plane:
+     *  * we pick some projected directions; for each one:
+     *     * we manipulate it in some way that does not affect the result
+     *     * check that the projected distance is as expected
+     *     * add some arbitrary component on the drift direction; for each one:
+     *       * check that the projected distance is as expected
+     *       * check that the 3D distance is as expected
+     * 
+     * We do not test directions parallel to the wires because they get
+     * numerically unstable and the expectation may potentially differ a lot
+     * being calculated with a different procedure.
+     */
+    
     constexpr lar::util::RealComparisons cmp { 1e-4 };
     
     static double const V3 = std::sqrt(3.0);
@@ -3090,6 +3104,7 @@ namespace geo{
         // expected result is kind of encoded in the chosen projections
         //
         double const expected = testProjBase.R() * pitch;
+        double const expectedSqr = sqr(expected);
         
         // we flip the projection around: result should not change
         for (double dirL: { -1.0, 1.0 }) for (double dirW: { -1.0, 1.0 }) for (double scale: { 0.5, 1.0, 3.0 }) {
@@ -3111,6 +3126,10 @@ namespace geo{
             ++nErrors;
           } // if unexpected result
           
+          // this is how much we needed to expand the test direction vector
+          // (happens to work for the special case expected = 0 too)
+          double const dScale = expected / testProj.R();
+          
           //
           // test a 3D direction
           //
@@ -3131,6 +3150,23 @@ namespace geo{
                 ;
               ++nErrors;
             } // if unexpected result
+            
+            // build the expectation adding the drift component to the projected
+            double const expected3D
+              = std::sqrt(expectedSqr + sqr(driftOffset * dScale));
+            
+            double const interWire3D = plane.InterWireDistance(testDir);
+            if (cmp.nonEqual(interWire3D, expected3D)) {
+              mf::LogProblem("") << "ERROR: on plane " << plane.ID()
+                << " distance between wires on direction " << testDir
+                << " (from projection " << testProj << " and offset "
+                << driftOffset << ") is " << interWire3D << " cm (expected: "
+                << expected3D << ")"
+                ;
+              ++nErrors;
+            } // if unexpected result
+            
+            
             
           } // for drifts
           

@@ -692,6 +692,33 @@ namespace geo {
     //@{
     /**
      * @brief Returns the distance between wires along the specified direction.
+     * @param dir the direction (3D)
+     * @return the distance between wires along that direction [cm]
+     * 
+     * The direction is specified as a 3D vector in the world coordinate frame.
+     * The modulus of the vector is ignored but expected to be non null.
+     * 
+     * The returned distance is the space that would be covered starting from
+     * a wire toward the `dir` direction and stopping when the projection on
+     * the wire plane reaches another wire.
+     * This distance is returned in centimeters, always positive and
+     * not smaller than the wire pitch.
+     * 
+     * @note If the direction is too close to the wire direction, the result
+     *       will be numerically unstable and might be infinite (test with
+     *       `std::isinf()`, `std::isfinite()` or `std::isnormal()`).
+     *       It is recommended that the caller take special actions when the
+     *       result is too large.
+     */
+    double InterWireDistance(geo::Vector_t const& dir) const;
+    double InterWireDistance(TVector3 const& dir) const
+      { return InterWireDistance(geo::vect::toVector(dir)); }
+    //@}
+    
+    
+    //@{
+    /**
+     * @brief Returns the distance between wires along the specified direction.
      * @tparam Vector type of 3D vector
      * @param dir the direction in detector space (3D)
      * @return the distance between wires along that direction [cm]
