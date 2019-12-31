@@ -586,7 +586,7 @@ namespace geo {
      * and if a floating point value is specified for it, it's subject to
      * truncation.
      */
-    geo::WireID ClosestWireID(geo::WireID::WireID_t wireNo) const;
+    geo::WireID ClosestWireID(geo::WireID::WireID_t wireNo) const; // inline
 
 
     /**
@@ -888,9 +888,53 @@ namespace geo {
     //@{
     /**
      * @brief Returns the 3D vector from composition of projection and distance.
+     * @tparam Vector the type of vector to return (current default: `TVector3`)
+     * @param decomp decomposed vector
+     * @return the 3D vector from composition of projection and distance
+     * @see DecomposePoint(),
+     *      ComposeVector(double, WireCoordProjection_t const&),
+     *      ComposePoint(WireDecomposedVector_t const&)
+     *
+     * See `ComposeVector(double, WireCoordProjection_t const&)` for details.
+     */
+    template <typename Vector>
+    Vector ComposeVector(WireDecomposedVector_t const& decomp) const
+      { return geo::vect::convertTo<Vector>(fDecompWire.ComposeVector(decomp)); }
+    DefaultVector_t ComposeVector(WireDecomposedVector_t const& decomp) const
+      { return ComposeVector<DefaultVector_t>(decomp); }
+    //@}
+
+    //@{
+    /**
+     * @brief Returns the 3D vector from composition of projection and distance.
+     * @tparam Vector the type of vector to return (current default: `TVector3`)
+     * @param distance component of target vector orthogonal to the wire plane
+     * @param proj projection of the target vector on the wire plane
+     * @return the 3D vector from composition of projection and distance
+     * @see DecomposePoint()
+     *
+     * The returned vector is the sum of two 3D vectors:
+     *
+     * 1. a vector parallel to the plane normal, with norm the input distance
+     * 2. a vector lying on the plane, whose projection via `VectorProjection()`
+     *    gives the input projection
+     */
+    template <typename Vector>
+    Vector ComposeVector
+      (double distance, WireCoordProjection_t const& proj) const
+      { return geo::vect::convertTo<Vector>(fDecompWire.ComposeVector(distance, proj)); }
+    DefaultVector_t ComposeVector
+      (double distance, WireCoordProjection_t const& proj) const
+      { return ComposeVector<DefaultVector_t>(distance, proj); }
+    //@}
+
+
+    //@{
+    /**
+     * @brief Returns the 3D point from composition of projection and distance.
      * @tparam Point the type of point to return (current default: `TVector3`)
      * @param decomp decomposed point
-     * @return the 3D vector from composition of projection and distance
+     * @return the 3D point from composition of projection and distance
      * @see DecomposePoint(), ComposePoint(double, WireCoordProjection_t const&)
      *
      * See `ComposePoint(double, WireCoordProjection_t const&)` for details.
@@ -901,6 +945,7 @@ namespace geo {
     DefaultPoint_t ComposePoint(WireDecomposedVector_t const& decomp) const
       { return ComposePoint<DefaultPoint_t>(decomp); }
     //@}
+    
 
     //@{
     /**
@@ -908,7 +953,7 @@ namespace geo {
      * @tparam Point the type of point to return (current default: `TVector3`)
      * @param distance distance of the target point from the wire plane
      * @param proj projection of the target point on the wire plane
-     * @return the 3D vector from composition of projection and distance
+     * @return the 3D point from composition of projection and distance
      * @see DecomposePoint()
      *
      * The returned point is the reference point of the frame system (that is,
@@ -922,10 +967,6 @@ namespace geo {
      * used in `PointProjection()` and `DecomposePoint()`.
      * In fact, the strict definition of the result of this method is a 3D point
      * whose decomposition on the plane frame base matches the method arguments.
-     *
-     * Note that currently no equivalent facility is available to compose
-     * vectors instead of points, that is, entities ignoring the reference
-     * point.
      */
     template <typename Point>
     Point ComposePoint
@@ -1491,6 +1532,9 @@ void geo::PlaneGeo::PrintPlaneInfo(
 
   //----------------------------------------------------------------------------
 } // geo::PlaneGeo::PrintPlaneInfo()
+
+
+//------------------------------------------------------------------------------
 
 
 #endif // LARCOREALG_GEOMETRY_PLANEGEO_H
