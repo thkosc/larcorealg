@@ -1,5 +1,5 @@
 /**
- * @file   readoutdatacontainers_test.cc
+ * @file   readoutdatacontainers_test.cxx
  * @brief  Unit test for `ReadoutDataContainers.h` library.
  * @author Gianluca Petrillo (petrillo@slac.stanford.edu)
  * @date   September 7, 2019

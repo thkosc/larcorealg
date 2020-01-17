@@ -1519,11 +1519,11 @@ namespace geo {
     /// @}
     // --- END Support for LArSoft geometry vectors ----------------------------
 
+    /// @}
+    // END Geometry group ------------------------------------------------------
+
 
   } // namespace vect
-
-  /// @}
-  // END Geometry group --------------------------------------------------------
 
 } // namespace geo
 

@@ -21,7 +21,7 @@ namespace util {
   
   /**
    * @name C++ standard library customization for user-defined classes.
-   * @defgroup LArSoft_CoreUtils_StdUtils
+   * @defgroup LArSoft_CoreUtils_StdUtils C++ STL customizations
    * 
    * There are a number of functions that are provided by C++ standard library
    * for the data types and classes defined in the standard.

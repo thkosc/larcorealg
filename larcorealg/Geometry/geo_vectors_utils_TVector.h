@@ -43,6 +43,8 @@ namespace geo::vect {
   TVector3 toTVector3(Vector const& v) { return convertTo<TVector3>(v); }
 
   /// @}
+  // --- END TVector3 conversions ----------------------------------------------
+
   //----------------------------------------------------------------------------
 
   /// Utilities to print vector types.
@@ -84,14 +86,12 @@ namespace geo::vect {
       (std::ostream& out, TLorentzVector const& v)
       { LorentzVector(out, v); return out; }
 
-    // --- END Output of old-style ROOT vectors (TVector3 etc.) ----------------
     /// @}
+    // --- END Output of old-style ROOT vectors (TVector3 etc.) ----------------
 
   } // namespace dump
   //----------------------------------------------------------------------------
 
-  /// @}
-  // --- END TVector3 conversions ----------------------------------------------
 
 } // namespace geo::vect
 

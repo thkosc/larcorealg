@@ -1,9 +1,9 @@
 /**
- * @file    RealComparison_test.cc
- * @brief   Unit test for RealComparisons class
+ * @file    RealComparisons_test.cc
+ * @brief   Unit test for `RealComparisons` class
  * @author  Gianluca Petrillo (petrillo@fnal.gov)
  * @date    November 4th, 2016
- * @see     RealComparisons.h
+ * @see     larcorealg/CoreUtils/RealComparisons.h
  */
 
 // Boost libraries

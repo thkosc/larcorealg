@@ -46,4 +46,3 @@ namespace geoalgo {
   }
 
 }
-/** @} */ // end of doxygen group
