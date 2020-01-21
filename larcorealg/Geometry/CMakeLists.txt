@@ -12,8 +12,8 @@ cet_make(
           ${ROOT_GENVECTOR}
         )
 
-install_headers()
-install_fhicl()
-install_source()
+install_headers(SUBDIRS "details")
+install_fhicl(SUBDIRS "details")
+install_source(SUBDIRS "details")
 
 add_subdirectory(gdml)
