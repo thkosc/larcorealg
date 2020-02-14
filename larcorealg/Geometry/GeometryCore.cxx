@@ -22,6 +22,7 @@
 #include "larcorealg/Geometry/geo_vectors_utils_TVector.h" // geo::vect
 
 // Framework includes
+#include "cetlib/pow.h"
 #include "cetlib_except/exception.h"
 #include "fhiclcpp/types/Table.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -48,11 +49,6 @@
 #include <numeric> // std::accumulate
 
 namespace geo {
-
-  template <typename T>
-  inline T sqr(T v) { return v * v; }
-
-
 
   //......................................................................
   lar::util::RealComparisons<geo::Length_t> GeometryCore::coordIs{ 1e-8 };
@@ -83,13 +79,12 @@ namespace geo {
 
   //......................................................................
   void GeometryCore::ApplyChannelMap
-    (std::shared_ptr<geo::ChannelMapAlg> pChannelMap)
+    (std::unique_ptr<geo::ChannelMapAlg> pChannelMap)
   {
     SortGeometry(pChannelMap->Sorter());
     UpdateAfterSorting(); // after channel mapping has sorted objects, set their IDs
     pChannelMap->Initialize(fGeoData);
-    fChannelMapAlg = pChannelMap;
-
+    fChannelMapAlg = move(pChannelMap);
   } // GeometryCore::ApplyChannelMap()
 
   //......................................................................
@@ -1493,7 +1488,7 @@ namespace geo {
     // note: we are not checking that w1 and w2 are not parallel.
     using geo::vect::dot;
     double const w1w2 = dot(w1, w2); // this is cos(angle), angle between wires
-    double const cscAngle2 = 1.0 / (1.0 - sqr(w1w2)); // this is 1/sin^2(angle)
+    double const cscAngle2 = 1.0 / (1.0 - cet::square(w1w2)); // this is 1/sin^2(angle)
     double const dcw1 = dot(dc, w1);
     double const dcw2 = dot(dc, w2);
     double const t = (dcw1 - (dcw2 * w1w2)) * cscAngle2;

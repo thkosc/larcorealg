@@ -43,22 +43,14 @@ namespace geo {
     , fBuilderParameters(pset.get<fhicl::ParameterSet>("Builder", fhicl::ParameterSet()))
   {
     std::transform(fDetectorName.begin(), fDetectorName.end(), fDetectorName.begin(), ::tolower);
-  } // AuxDetGeometryCore::AuxDetGeometryCore()
-
-
-  //......................................................................
-  AuxDetGeometryCore::~AuxDetGeometryCore()
-  {
-    ClearGeometry();
-  } // AuxDetGeometryCore::~AuxDetGeometryCore()
-
+  }
 
   //......................................................................
-  void AuxDetGeometryCore::ApplyChannelMap(std::shared_ptr<geo::AuxDetChannelMapAlg> pChannelMap)
+  void AuxDetGeometryCore::ApplyChannelMap(std::unique_ptr<geo::AuxDetChannelMapAlg> pChannelMap)
   {
     pChannelMap->Initialize(fGeoData);
-    fChannelMapAlg = pChannelMap;
-  } // AuxDetGeometryCore::ApplyChannelMap()
+    fChannelMapAlg = move(pChannelMap);
+  }
 
   //......................................................................
   void AuxDetGeometryCore::LoadGeometryFile(std::string gdmlfile, std::string rootfile)

@@ -349,14 +349,12 @@ namespace testing {
     //
     // create the new channel map
     //
-    fhicl::ParameterSet SortingParameters
+    auto const SortingParameters
       = ProviderConfig.get<fhicl::ParameterSet>("SortingParameters", {});
-    std::shared_ptr<geo::ChannelMapAlg> pChannelMap
-      (new ChannelMapClass(SortingParameters));
 
     // connect the channel map with the geometry, that shares ownsership
     // (we give up ours at the end of this method)
-    new_geom->ApplyChannelMap(pChannelMap);
+    new_geom->ApplyChannelMap(std::make_unique<ChannelMapClass>(SortingParameters));
 
     return new_geom;
   } // GeometryTesterEnvironment<>::CreateNewGeometry()

@@ -103,9 +103,6 @@ namespace geo {
      */
     AuxDetGeometryCore(fhicl::ParameterSet const& pset);
 
-    /// Destructor
-    ~AuxDetGeometryCore();
-
     // You shall not copy or move or assign me!
     AuxDetGeometryCore(AuxDetGeometryCore const&) = delete;
     AuxDetGeometryCore(AuxDetGeometryCore&&) = delete;
@@ -287,7 +284,7 @@ namespace geo {
      * This method needs to be called after LoadGeometryFile() to complete the
      * geometry initialization.
      */
-    void ApplyChannelMap(std::shared_ptr<geo::AuxDetChannelMapAlg> pChannelMap);
+    void ApplyChannelMap(std::unique_ptr<geo::AuxDetChannelMapAlg> pChannelMap);
     /// @}
 
 
@@ -313,7 +310,7 @@ namespace geo {
     std::string    fGDMLfile;       ///< path to geometry file used for Geant4 simulation
     std::string    fROOTfile;       ///< path to geometry file for geometry in GeometryCore
     fhicl::ParameterSet fBuilderParameters; ///< Configuration of geometry builder.
-    std::shared_ptr<const geo::AuxDetChannelMapAlg> fChannelMapAlg;  ///< Object containing the channel to wire mapping
+    std::unique_ptr<const geo::AuxDetChannelMapAlg> fChannelMapAlg;  ///< Object containing the channel to wire mapping
   }; // class GeometryCore
 
 } // namespace geo

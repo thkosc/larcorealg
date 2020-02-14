@@ -1459,9 +1459,7 @@ namespace geo {
    *    is forbidden and it would yield undefined behaviour (expected to be
    *    catastrophic)
    * 4. acquire the channel mapping algorithm with
-   *    GeometryCore::ApplyChannelMap(); at this point, the ChannelMapAlg object
-   *    is asked to initialize itself and to perform whatever modifications to
-   *    the geometry provider is needed.
+   *    GeometryCore::ApplyChannelMap().
    *
    * Step 3 (creation of the channel mapping algorithm object) can be performed
    * at any time before step 4, provided that no GeometryCore instance is needed
@@ -5498,25 +5496,18 @@ namespace geo {
      * @see LoadGeometryFile()
      *
      * The specified channel mapping is used with this geometry.
-     * The algorithm object is asked and allowed to make the necessary
-     * modifications to the geometry description.
      * These modifications typically involve some resorting of the objects.
-     *
-     * The ownership of the algorithm object is shared, usually with a calling
-     * framework: we maintain it alive as long as we need it (and no other code
-     * can delete it), and we delete it only if no other code is sharing the
-     * ownership.
      *
      * This method needs to be called after LoadGeometryFile() to complete the
      * geometry initialization.
      */
-    void ApplyChannelMap(std::shared_ptr<geo::ChannelMapAlg> pChannelMap);
+    void ApplyChannelMap(std::unique_ptr<geo::ChannelMapAlg> pChannelMap);
     /// @}
 
 
   protected:
     /// Sets the detector name
-    void SetDetectorName(std::string new_name) { fDetectorName = new_name; }
+    void SetDetectorName(std::string const& new_name) { fDetectorName = new_name; }
 
     /// Returns the object handling the channel map
     geo::ChannelMapAlg const* ChannelMap() const
@@ -5549,7 +5540,7 @@ namespace geo {
     /// Configuration for the geometry builder
     /// (needed since builder is created after construction).
     fhicl::ParameterSet fBuilderParameters;
-    std::shared_ptr<const geo::ChannelMapAlg> fChannelMapAlg;
+    std::unique_ptr<const geo::ChannelMapAlg> fChannelMapAlg;
                                     ///< Object containing the channel to wire mapping
 
     // cached values
