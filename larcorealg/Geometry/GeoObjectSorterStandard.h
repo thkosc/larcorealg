@@ -12,8 +12,7 @@
 
 #include "larcorealg/Geometry/GeoObjectSorter.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"  // for DriftDirec...
-
-namespace fhicl { class ParameterSet; }
+#include "fhiclcpp/fwd.h"
 
 namespace geo{
 
@@ -29,18 +28,14 @@ namespace geo{
   public:
 
     GeoObjectSorterStandard(fhicl::ParameterSet const& p);
-    ~GeoObjectSorterStandard();
 
-    void SortAuxDets        (std::vector<geo::AuxDetGeo*>          & adgeo)    const;
-    void SortAuxDetSensitive(std::vector<geo::AuxDetSensitiveGeo*> & adsgeo)   const;
-    void SortCryostats      (std::vector<geo::CryostatGeo*>        & cgeo)     const;
-    void SortTPCs     	    (std::vector<geo::TPCGeo*>      	   & tgeo)     const;
-    void SortPlanes   	    (std::vector<geo::PlaneGeo*>    	   & pgeo,
-		      	     geo::DriftDirection_t     	     const & driftDir) const;
-    void SortWires    	    (std::vector<geo::WireGeo*>     	   & wgeo)     const;
-
-  private:
-
+    void SortAuxDets        (std::vector<geo::AuxDetGeo>         & adgeo)    const override;
+    void SortAuxDetSensitive(std::vector<geo::AuxDetSensitiveGeo>& adsgeo)   const override;
+    void SortCryostats      (std::vector<geo::CryostatGeo>       & cgeo)     const override;
+    void SortTPCs           (std::vector<geo::TPCGeo>            & tgeo)     const override;
+    void SortPlanes         (std::vector<geo::PlaneGeo>          & pgeo,
+                             geo::DriftDirection_t                 driftDir) const override;
+    void SortWires          (std::vector<geo::WireGeo>           & wgeo)     const override;
   };
 
 }

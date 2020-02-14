@@ -8,7 +8,6 @@
 #include "larcorealg/Geometry/CryostatGeo.h"
 
 // LArSoft includes
-#include "larcorealg/CoreUtils/SortByPointers.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"          // for GeoObjectSo...
 
 // Framework includes
@@ -63,23 +62,13 @@ namespace geo{
   // sort the TPCGeo objects, and the PlaneGeo objects inside
   void CryostatGeo::SortSubVolumes(geo::GeoObjectSorter const& sorter)
   {
-    //
-    // TPCs
-    //
-    util::SortByPointers
-      (fTPCs, [&sorter](auto& coll){ sorter.SortTPCs(coll); });
+    sorter.SortTPCs(fTPCs);
 
     for (geo::TPCGeo& TPC: fTPCs) {
       TPC.SortSubVolumes(sorter);
-    } // for TPCs
+    }
 
-    //
-    // optical detectors
-    //
-    util::SortByPointers
-      (fOpDets, [&sorter](auto& coll){ sorter.SortOpDets(coll); });
-
-
+    sorter.SortOpDets(fOpDets);
   } // CryostatGeo::SortSubVolumes()
 
 
@@ -119,7 +108,7 @@ namespace geo{
   {
     if(iopdet >= fOpDets.size()){
       throw cet::exception("OpDetOutOfRange") << "Request for non-existant OpDet "
-					      << iopdet;
+                                              << iopdet;
     }
 
     return fOpDets[iopdet];
@@ -129,7 +118,7 @@ namespace geo{
   //......................................................................
   auto CryostatGeo::IterateElements() const -> ElementIteratorBox
     { return fTPCs; }
-  
+
 
   //......................................................................
   // wiggle is 1+a small number to allow for rounding errors on the

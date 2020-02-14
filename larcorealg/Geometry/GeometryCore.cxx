@@ -12,7 +12,6 @@
 // lar includes
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi<>
 #include "larcorealg/CoreUtils/DereferenceIterator.h" // lar::util::dereferenceIteratorLoop()
-#include "larcorealg/CoreUtils/SortByPointers.h"
 #include "larcorealg/Geometry/OpDetGeo.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
@@ -132,42 +131,30 @@ namespace geo {
     std::string gdmlfile, std::string rootfile,
     bool bForceReload /* = false*/
   ) {
-
-    fhicl::Table<geo::GeometryBuilderStandard::Config> builderConfig
+    fhicl::Table<geo::GeometryBuilderStandard::Config> const builderConfig
       (fBuilderParameters, { "tool_type" });
 
     // this is a wink to the understanding that we might be using a art-based
     // service provider configuration sprinkled with tools.
-    std::unique_ptr<geo::GeometryBuilder> builder
-      = std::make_unique<geo::GeometryBuilderStandard>(builderConfig());
-    LoadGeometryFile(gdmlfile, rootfile, *builder, bForceReload);
+    geo::GeometryBuilderStandard builder{builderConfig()};
+    LoadGeometryFile(gdmlfile, rootfile, builder, bForceReload);
   } // GeometryCore::LoadGeometryFile()
 
   //......................................................................
-  void GeometryCore::ClearGeometry() {
-
+  void GeometryCore::ClearGeometry()
+  {
     Cryostats().clear();
-
-    // auxiliary detectors
-    std::for_each(AuxDets().begin(), AuxDets().end(),
-      std::default_delete<AuxDetGeo>());
     AuxDets().clear();
-
-  } // GeometryCore::ClearGeometry()
+  }
 
 
   //......................................................................
-  void GeometryCore::SortGeometry(geo::GeoObjectSorter const& sorter) {
-
+  void GeometryCore::SortGeometry(geo::GeoObjectSorter const& sorter)
+  {
     mf::LogInfo("GeometryCore") << "Sorting volumes...";
 
     sorter.SortAuxDets(AuxDets());
-
-    //
-    // cryostats
-    //
-    util::SortByPointers(Cryostats(),
-      [&sorter](auto& coll){ sorter.SortCryostats(coll); });
+    sorter.SortCryostats(Cryostats());
 
     geo::CryostatID::CryostatID_t c = 0;
     for (geo::CryostatGeo& cryo: Cryostats())
@@ -294,9 +281,9 @@ namespace geo {
   {
     if( aid > NAuxDets() - 1)
       throw cet::exception("Geometry") << "Requested AuxDet index " << aid
-				       << " is out of range: " << NAuxDets();
+                                       << " is out of range: " << NAuxDets();
 
-    return AuxDets()[aid]->NSensitiveVolume();
+    return AuxDets()[aid].NSensitiveVolume();
   }
 
   //......................................................................
@@ -341,7 +328,7 @@ namespace geo {
     << ad
     << " does not exist\n";
 
-    return *(AuxDets()[ad]);
+    return AuxDets()[ad];
   }
 
 
@@ -550,7 +537,7 @@ namespace geo {
 
   //......................................................................
   const AuxDetGeo& GeometryCore::ChannelToAuxDet(std::string const& auxDetName,
-					     uint32_t    const& channel) const
+                                             uint32_t    const& channel) const
   {
     size_t adIdx = fChannelMapAlg->ChannelToAuxDet(AuxDets(), auxDetName, channel);
     return this->AuxDet(adIdx);
@@ -558,7 +545,7 @@ namespace geo {
 
   //......................................................................
   const AuxDetSensitiveGeo& GeometryCore::ChannelToAuxDetSensitive(std::string const& auxDetName,
-						      uint32_t    const& channel) const
+                                                      uint32_t    const& channel) const
   {
     auto idx = fChannelMapAlg->ChannelToSensitiveAuxDet(AuxDets(), auxDetName, channel);
     return this->AuxDet(idx.first).SensitiveVolume(idx.second);
@@ -1024,24 +1011,12 @@ namespace geo {
 
 
   //......................................................................
-  void GeometryCore::BuildGeometry(geo::GeometryBuilder& builder) {
-
+  void GeometryCore::BuildGeometry(geo::GeometryBuilder& builder)
+  {
     geo::GeoNodePath path{ gGeoManager->GetTopNode() };
-    Cryostats()
-      = geo::GeometryBuilder::moveToColl(builder.extractCryostats(path));
-    // channel mapping interface demands a vector of pointers to auxiliary
-    // detectors for several methods; and Gianluca is not going to fix that
-    // this time; so we waste some time and health in conversions.
-    auto auxDets =
-      geo::GeometryBuilder::moveToColl(builder.extractAuxiliaryDetectors(path));
-    std::transform(
-      auxDets.begin(), auxDets.end(), std::back_inserter(AuxDets()),
-      [](geo::AuxDetGeo& auxDet)
-        { return new geo::AuxDetGeo(std::move(auxDet)); }
-      );
-
-  } // GeometryCore::BuildGeometry()
-
+    Cryostats() = builder.extractCryostats(path);
+    AuxDets() = builder.extractAuxiliaryDetectors(path);
+  }
 
   //......................................................................
   //

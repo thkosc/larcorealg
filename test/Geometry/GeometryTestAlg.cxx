@@ -394,12 +394,12 @@ namespace geo{
       << "\nWire length "        << 2.*testWire.HalfL()
       << "\nWire Rmin  "         << testWire.RMin()
       ;
-    
+
     if (fComputeMass) {
       log
         << "\nTotal mass "         << geom->TotalMass();
     }
-    
+
     log
       << "\nNumber of views "    << geom->Nviews()
       << "\nNumber of channels " << geom->Nchannels()
@@ -678,10 +678,10 @@ namespace geo{
     mf::LogVerbatim("GeometryTest") << "There are " << geom->Ncryostats() << " cryostats in the detector";
 
     for(geo::CryostatGeo const& cryo: geom->IterateCryostats()) {
-      
+
       {
         mf::LogVerbatim log("GeometryTest");
-        
+
         log
           << "\n\tCryostat " << cryo.ID()
           <<   " " << cryo.Volume()->GetName()
@@ -700,7 +700,7 @@ namespace geo{
           <<   "  -z:" << cryo.MinZ() << " +z:" << cryo.MaxZ()
           ;
       }
-      
+
       // pick a position in the middle of the cryostat in the world coordinates
       double const worldLoc[3]
         = { cryo.CenterX(), cryo.CenterY(), cryo.CenterZ() };
@@ -3051,7 +3051,7 @@ namespace geo{
 
   //......................................................................
   void GeometryTestAlg::testInterWireProjectedDistance() const {
-    
+
     /*
      * For each wire plane:
      *  * we pick some projected directions; for each one:
@@ -3060,16 +3060,16 @@ namespace geo{
      *     * add some arbitrary component on the drift direction; for each one:
      *       * check that the projected distance is as expected
      *       * check that the 3D distance is as expected
-     * 
+     *
      * We do not test directions parallel to the wires because they get
      * numerically unstable and the expectation may potentially differ a lot
      * being calculated with a different procedure.
      */
-    
+
     constexpr lar::util::RealComparisons cmp { 1e-4 };
-    
+
     static double const V3 = std::sqrt(3.0);
-    
+
     // BUG the deduction guide for std::array seems not to be implemented yet
     //     in Clang 5.0.0
     // BUG the double brace syntax is required to work around clang bug 21629
@@ -3125,21 +3125,21 @@ namespace geo{
               ;
             ++nErrors;
           } // if unexpected result
-          
+
           // this is how much we needed to expand the test direction vector
           // (happens to work for the special case expected = 0 too)
           double const dScale = expected / testProj.R();
-          
+
           //
           // test a 3D direction
           //
-          
+
           auto const baseDir
             = plane.ComposeVector<geo::Vector_t>(0.0, testProj);
-          
+
           for (double const driftOffset: testDriftOffsets) {
             auto const testDir = baseDir + driftOffset * normalDir;
-            
+
             double const interWire = plane.InterWireProjectedDistance(testDir);
             if (cmp.nonEqual(interWire, expected)) {
               mf::LogProblem("") << "ERROR: on plane " << plane.ID()
@@ -3165,26 +3165,26 @@ namespace geo{
                 ;
               ++nErrors;
             } // if unexpected result
-            
-            
-            
+
+
+
           } // for drifts
-          
+
         } // for dirL, dirW and scale
-        
+
       } // for all test projection directions
-      
+
     } // for all planes
-    
-    
+
+
     if (nErrors > 0U) {
       throw cet::exception("InterWireProjectedDistance")
         << "unexpected distances in " << nErrors << " tests!";
     } // end loop over planes
-  
+
   } // GeometryTestAlg::testInterWireProjectedDistance()
-  
-  
+
+
   //......................................................................
   void GeometryTestAlg::testPlanePitch()
   {

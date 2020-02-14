@@ -7,45 +7,33 @@
  *
  * Structure of the header:
  *
- *     namespace geo {
+ *   namespace geo {
  *
- *       // forward class declarations
+ *     // forward class declarations
  *
- *       namespace details {
+ *     namespace details {
  *
- *         // geometry iterator base class
- *
- *       }
- *
- *       // geometry iterators declaration
- *       //  - cryostat_id_iterator
- *       //  - TPC_id_iterator
- *       //  - plane_id_iterator
- *       //  - wire_id_iterator
- *       //  - TPCset_id_iterator
- *       //  - ROP_id_iterator
- *
- *       // GeometryData_t definition (part of GeometryCore)
- *
- *       // GeometryCore declaration
+ *       // geometry iterator base class
  *
  *     }
  *
+ *     // geometry iterators declaration
+ *     //  - cryostat_id_iterator
+ *     //  - TPC_id_iterator
+ *     //  - plane_id_iterator
+ *     //  - wire_id_iterator
+ *     //  - TPCset_id_iterator
+ *     //  - ROP_id_iterator
  *
+ *     // GeometryData_t definition (part of GeometryCore)
  *
- * Revised <seligman@nevis.columbia.edu> 29-Jan-2009
- *         Revise the class to make it into more of a general detector interface
- * Revised <petrillo@fnal.gov> 27-Apr-2015
- *         Factorization into a framework-independent GeometryCore.h and a
- *         art framework interface
- * Revised <petrillo@fnal.gov> 30-Apr-2015
- *         Redesign of the iterators
- * Revised <petrillo@fnal.gov> 28-Jun-2015
- *         Added interface for readout mapping
+ *     // GeometryCore declaration
+ *   }
+ *
  */
+
 #ifndef LARCOREALG_GEOMETRY_GEOMETRYCORE_H
 #define LARCOREALG_GEOMETRY_GEOMETRYCORE_H
-
 
 // LArSoft libraries
 #include "larcorealg/Geometry/GeoObjectSorter.h"
@@ -85,24 +73,20 @@
 #include <iterator> // std::forward_iterator_tag
 #include <type_traits> // std::is_base_of<>
 
-
 // ROOT class prototypes
 class TGeoManager;
 class TGeoNode;
 class TGeoVolume;
 class TGeoMaterial;
 
-
 /// Namespace collecting geometry-related classes utilities
 namespace geo {
-
 
   // Forward declarations within namespace.
   class AuxDetGeo;
   class AuxDetSensitiveGeo;
   class OpDetGeo;
   class GeometryCore;
-
 
   //
   // iterators
@@ -173,8 +157,8 @@ namespace geo {
       using LocalID_t = geo::CryostatID; ///< type of the ID we change
       static_assert(std::is_base_of<LocalID_t, GEOID>::value,
         "template type GEOID is not a LocalID_t");
-      
-      
+
+
       /// @name Iterator traits
       /// @{
       using difference_type = std::ptrdiff_t;
@@ -183,7 +167,7 @@ namespace geo {
       using pointer  = value_type const*;
       using iterator_category = std::input_iterator_tag;
       /// @}
-      
+
 
       /// Default constructor; effect not defined: assign to it before using!
       cryostat_id_iterator_base() {}
@@ -331,7 +315,7 @@ namespace geo {
       using upper_iterator::begin_pos;
       using upper_iterator::end_pos;
 
-      
+
       /// @name Iterator traits
       /// @{
       using difference_type = std::ptrdiff_t;
@@ -340,8 +324,8 @@ namespace geo {
       using pointer  = value_type const*;
       using iterator_category = std::input_iterator_tag;
       /// @}
-      
-      
+
+
       /// Default constructor; effect not defined: assign to it before using!
       TPC_id_iterator_base() {}
 
@@ -479,7 +463,7 @@ namespace geo {
       using upper_iterator::begin_pos;
       using upper_iterator::end_pos;
 
-      
+
       /// @name Iterator traits
       /// @{
       using difference_type = std::ptrdiff_t;
@@ -488,8 +472,8 @@ namespace geo {
       using pointer  = value_type const*;
       using iterator_category = std::input_iterator_tag;
       /// @}
-      
-      
+
+
       /// Default constructor; effect not defined: assign to it before using!
       plane_id_iterator_base() {}
 
@@ -627,7 +611,7 @@ namespace geo {
       using upper_iterator::begin_pos;
       using upper_iterator::end_pos;
 
-      
+
       /// @name Iterator traits
       /// @{
       using difference_type = std::ptrdiff_t;
@@ -636,8 +620,8 @@ namespace geo {
       using pointer  = value_type const*;
       using iterator_category = std::input_iterator_tag;
       /// @}
-      
-      
+
+
       /// Default constructor; effect not defined: assign to it before using!
       wire_id_iterator_base() {}
 
@@ -813,7 +797,7 @@ namespace geo {
       /// Geometry class pointed by the iterator
       using Element_t = typename std::remove_pointer<ElementPtr_t>::type;
 
-      
+
       /// @name Iterator traits
       /// @{
       using difference_type = std::ptrdiff_t;
@@ -822,8 +806,8 @@ namespace geo {
       using pointer  = value_type const*;
       using iterator_category = std::forward_iterator_tag;
       /// @}
-      
-      
+
+
       /// Default constructor; effect not defined: assign to it before using!
       geometry_element_iterator() = default;
 
@@ -963,8 +947,8 @@ namespace geo {
       using upper_iterator::undefined_pos;
       using upper_iterator::begin_pos;
       using upper_iterator::end_pos;
-      
-      
+
+
       /// @name Iterator traits
       /// @{
       using difference_type = std::ptrdiff_t;
@@ -973,7 +957,7 @@ namespace geo {
       using pointer  = value_type const*;
       using iterator_category = std::input_iterator_tag;
       /// @}
-      
+
 
       /// Default constructor; effect not defined: assign to it before using!
       TPCset_id_iterator_base() {}
@@ -1114,8 +1098,8 @@ namespace geo {
       using upper_iterator::undefined_pos;
       using upper_iterator::begin_pos;
       using upper_iterator::end_pos;
-      
-      
+
+
       /// @name Iterator traits
       /// @{
       using difference_type = std::ptrdiff_t;
@@ -1124,7 +1108,7 @@ namespace geo {
       using pointer  = value_type const*;
       using iterator_category = std::input_iterator_tag;
       /// @}
-      
+
 
       /// Default constructor; effect not defined: assign to it before using!
       ROP_id_iterator_base() = default;
@@ -4506,7 +4490,7 @@ namespace geo {
      * @param c ID of the cryostat the detector is in
      *
      * This name is defined in the geometry (GDML) description.
-	  *
+          *
      * @todo Change to use CryostatID
      */
     std::string OpDetGeoName(unsigned int c = 0) const;
@@ -4648,11 +4632,11 @@ namespace geo {
                                                         size_t     & sv) const;
 
     const AuxDetGeo&         ChannelToAuxDet(std::string const& auxDetName,
-					     uint32_t    const& channel) const; // return the AuxDetGeo for the given detector
+                                             uint32_t    const& channel) const; // return the AuxDetGeo for the given detector
                                                                                 // name and channel
 
     const AuxDetSensitiveGeo& ChannelToAuxDetSensitive(std::string const& auxDetName,
-						       uint32_t    const& channel) const; // return the AuxDetSensitiveGeo for the given
+                                                       uint32_t    const& channel) const; // return the AuxDetSensitiveGeo for the given
 
     /// @} Auxiliary detectors access and information
 
@@ -5030,53 +5014,7 @@ namespace geo {
       >
     IterateTPCsetIDs(geo::CryostatID const& cid) const { return { this, cid }; }
 
-
-#if 0
-    //
-    // single object features
-    //
-
-    /**
-     * @brief Returns the half width of the specified TPC set (x direction)
-     * @param tpcsetid ID of the TPC set
-     * @return the value of the half width of the specified TPC set
-     *
-     * @todo what happens if it does not exist?
-     */
-    double TPCsetHalfWidth(readout::TPCsetID const& tpcsetid) const;
-
-    /**
-     * @brief Returns the half height of the specified TPC set (y direction)
-     * @param tpcsetid ID of the TPC set
-     * @return the value of the half height of the specified TPC set
-     *
-     * @todo what happens if it does not exist?
-     */
-    double TPCsetHalfHeight(readout::TPCsetID const& tpcsetid) const;
-
-    /**
-     * @brief Returns the length of the specified TPC set (z direction)
-     * @param tpcsetid ID of the TPC set
-     * @return the value of the length of the specified TPC set
-     *
-     * @todo what happens if it does not exist?
-     */
-    double TPCsetLength(readout::TPCsetID const& tpcsetid) const;
-
-
-    /**
-     * @brief Returns the centre of side of the detector facing the beam
-     * @param tpcsetid ID of the TPC set
-     * @return vector of the position of centre of TPC set face toward the beam
-     */
-    geo::Point_t GetTPCsetFrontFaceCenter
-      (readout::TPCsetID const& tpcsetid) const;
-
-
-#endif // 0
-
     /// @} TPC set information
-
 
 
     /// @name Readout plane information
@@ -5545,8 +5483,8 @@ namespace geo {
 
     // cached values
     std::set<geo::View_t> allViews; ///< All views in the detector.
-    
-    
+
+
     std::vector<TGeoNode const*> FindDetectorEnclosure
       (std::string const& name = "volDetEnclosure") const;
 

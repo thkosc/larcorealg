@@ -418,7 +418,7 @@ namespace geo{
      * @return index of auxiliary detector within auxDets
      */
     virtual size_t NearestAuxDet
-      (const double* point, std::vector<geo::AuxDetGeo*> const& auxDets) const;
+      (const double* point, std::vector<geo::AuxDetGeo> const& auxDets) const;
 
     /**
      * @brief Returns sensitive auxiliary detector closest to specified point
@@ -427,7 +427,7 @@ namespace geo{
      * @return index of sought sensitive auxiliary detector within auxDets
      */
     virtual size_t NearestSensitiveAuxDet
-      (const double* point, std::vector<geo::AuxDetGeo*> const& auxDets) const;
+      (const double* point, std::vector<geo::AuxDetGeo> const& auxDets) const;
 
     /**
      * @brief Returns the index of the detector containing the specified channel
@@ -440,9 +440,9 @@ namespace geo{
      *      in the arguments and instead relies on a cache that is never filled
      *      by this class (derived classes can fill it though).
      */
-    virtual size_t ChannelToAuxDet(std::vector<geo::AuxDetGeo*> const& auxDets,
-                                   std::string                  const& detName,
-                                   uint32_t                     const& channel
+    virtual size_t ChannelToAuxDet(std::vector<geo::AuxDetGeo> const& auxDets,
+                                   std::string                 const& detName,
+                                   uint32_t                    const& channel
                                    ) const;
 
     /**
@@ -453,9 +453,9 @@ namespace geo{
      * @return index of the sought sensitive auxiliary detector within auxDets
      */
     virtual std::pair<size_t, size_t> ChannelToSensitiveAuxDet(
-      std::vector<geo::AuxDetGeo*> const& auxDets,
-      std::string                  const& detName,
-      uint32_t                     const& channel
+      std::vector<geo::AuxDetGeo> const& auxDets,
+      std::string                 const& detName,
+      uint32_t                    const& channel
       ) const;
 
     /// @}

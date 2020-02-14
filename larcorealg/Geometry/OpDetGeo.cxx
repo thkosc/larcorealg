@@ -35,7 +35,6 @@ namespace geo{
     fOpDetNode = &node;
 
     fCenter = toWorldCoords(geo::origin<LocalPoint_t>());
-
   }
 
   //......................................................................

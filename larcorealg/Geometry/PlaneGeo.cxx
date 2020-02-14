@@ -12,7 +12,6 @@
 #include "larcorealg/Geometry/WireGeo.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect::convertTo()
 #include "larcorealg/CoreUtils/RealComparisons.h"
-#include "larcorealg/CoreUtils/SortByPointers.h"
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi()
 
 // Framework includes
@@ -524,10 +523,7 @@ namespace geo{
   // sort the WireGeo objects
   void PlaneGeo::SortWires(geo::GeoObjectSorter const& sorter )
   {
-    // the sorter interface requires a vector of pointers;
-    // sorting is faster, but some gymnastics is required:
-    util::SortByPointers
-      (fWire, [&sorter](auto& coll){ sorter.SortWires(coll); });
+    sorter.SortWires(fWire);
   }
 
 
@@ -934,11 +930,11 @@ namespace geo{
     // pick long wires around the center of the detector,
     // so that their coordinates are defined with better precision
     assert(Nwires() > 1);
-    
+
     auto const iWire = Nwires() / 2;
-    
+
     fWirePitch = geo::WireGeo::WirePitch(Wire(iWire - 1), Wire(iWire));
-    
+
   } // PlaneGeo::UpdateWirePitch()
 
   //......................................................................
@@ -1210,9 +1206,9 @@ namespace geo{
     fCenter = GetBoxCenter<geo::Point_t>();
 
     DriftPoint(fCenter, DistanceFromPlane(fCenter));
-    
+
     geo::vect::round0(fCenter, 1e-7); // round dimensions less than 1 nm to 0
-    
+
     fDecompFrame.SetOrigin(fCenter); // equivalent to GetCenter() now
 
   } // PlaneGeo::UpdateWirePlaneCenter()

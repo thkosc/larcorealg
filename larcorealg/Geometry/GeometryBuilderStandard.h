@@ -169,7 +169,7 @@ namespace geo {
     /// @name Auxiliary detector sensitive volume information
     /// @{
 
-    using AuxDetSensitive_t = GeoPtrColl_t<geo::AuxDetSensitiveGeo>;
+    using AuxDetSensitive_t = GeoColl_t<geo::AuxDetSensitiveGeo>;
 
     /**
      * @brief Looks for all auxiliary detectors under the specified path.
@@ -230,7 +230,7 @@ namespace geo {
     /// @name Optical detector information
     /// @{
 
-    using OpDets_t = GeoPtrColl_t<geo::OpDetGeo>;
+    using OpDets_t = GeoColl_t<geo::OpDetGeo>;
 
     /**
      * @brief Looks for all optical detectors under the specified path.
@@ -261,7 +261,7 @@ namespace geo {
     /// @name TPC information
     /// @{
 
-    using TPCs_t = GeoPtrColl_t<geo::TPCGeo>;
+    using TPCs_t = GeoColl_t<geo::TPCGeo>;
 
     /**
      * @brief Looks for all TPCs under the specified path.
@@ -294,7 +294,7 @@ namespace geo {
     /// @name Wire plane information
     /// @{
 
-    using Planes_t = GeoPtrColl_t<geo::PlaneGeo>;
+    using Planes_t = GeoColl_t<geo::PlaneGeo>;
 
     /**
      * @brief Looks for all wire planes under the specified path.
@@ -327,7 +327,7 @@ namespace geo {
     /// @name Wire information
     /// @{
 
-    using Wires_t = GeoPtrColl_t<geo::WireGeo>;
+    using Wires_t = GeoColl_t<geo::WireGeo>;
 
     /**
      * @brief Looks for all wires under the specified path.
@@ -420,7 +420,7 @@ namespace geo {
       bool (geo::GeometryBuilderStandard::*IsObj)(TGeoNode const&) const,
       ObjGeo (geo::GeometryBuilderStandard::*MakeObj)(Path_t&)
       >
-    GeoPtrColl_t<ObjGeo> doExtractGeometryObjects(Path_t& path);
+    GeoColl_t<ObjGeo> doExtractGeometryObjects(Path_t& path);
 
 
   }; // class GeometryBuilderStandard
