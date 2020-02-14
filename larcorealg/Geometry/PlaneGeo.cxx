@@ -16,6 +16,7 @@
 
 // Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "cetlib/pow.h"
 #include "cetlib_except/exception.h"
 
 // ROOT includes
@@ -59,15 +60,8 @@ namespace {
     return value + symmetricCapDelta(value, limit);
 
   } // symmetricCap()
-  
-  
-  /// Returns the square of `v`.
-  template <typename T>
-  T sqr(T v) { return v * v; }
-  
-  
-} // local namespace
 
+} // local namespace
 
 
 namespace geo{
@@ -711,23 +705,23 @@ namespace geo{
     (WireCoordProjection_t const& projDir) const
   {
     assert(lar::util::Vector2DComparison{1e-6}.nonZero(projDir));
-    return std::sqrt(sqr(projDir.X() / projDir.Y()) + 1.0) * fWirePitch;
+    return std::sqrt(cet::square(projDir.X() / projDir.Y()) + 1.0) * fWirePitch;
   } // PlaneGeo::InterWireProjectedDistance()
-  
-  
+
+
   //......................................................................
   double PlaneGeo::InterWireDistance(geo::Vector_t const& dir) const {
     // the secondary component of the wire decomposition basis is wire coord.
     double const r = dir.R();
     assert(r >= 1.e-6);
-    
+
     double const absWireCoordProj
       = std::abs(fDecompWire.VectorSecondaryComponent(dir));
     return r / absWireCoordProj * fWirePitch;
-    
+
   } // PlaneGeo::InterWireDistance()
-  
-  
+
+
   //......................................................................
   double PlaneGeo::ThetaZ() const { return FirstWire().ThetaZ(); }
 
