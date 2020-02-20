@@ -20,7 +20,6 @@ cet_make_library( LIBRARY_NAME GeometryTestLib
                         larcorealg_TestUtils
                         canvas
                         ${MF_MESSAGELOGGER}
-                        
                         ${FHICLCPP}
                         cetlib cetlib_except
                         ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
@@ -36,7 +35,6 @@ cet_test(geometry_iterator_test
   LIBRARIES larcorealg_Geometry
             GeometryTestLib
             ${MF_MESSAGELOGGER}
-            
             ${FHICLCPP}
             cetlib cetlib_except
   USE_BOOST_UNIT
@@ -51,7 +49,6 @@ cet_test(geometry_geoid_test
   LIBRARIES larcorealg_Geometry
             GeometryTestLib
             ${MF_MESSAGELOGGER}
-            
             ${FHICLCPP}
             cetlib cetlib_except
   USE_BOOST_UNIT
@@ -67,7 +64,6 @@ cet_test(geometry_test
   LIBRARIES larcorealg_Geometry
             GeometryTestLib
             ${MF_MESSAGELOGGER}
-            
             ${FHICLCPP}
             cetlib cetlib_except
 )
@@ -80,7 +76,6 @@ cet_test(geometry_loader_test
   LIBRARIES larcorealg_Geometry
             GeometryTestLib
             ${MF_MESSAGELOGGER}
-            
             ${FHICLCPP}
             cetlib cetlib_except
 )
@@ -93,7 +88,6 @@ cet_test(geometry_iterator_loop_test
   LIBRARIES larcorealg_Geometry
             GeometryTestLib
             ${MF_MESSAGELOGGER}
-            
             ${FHICLCPP}
             cetlib cetlib_except
 )
@@ -105,7 +99,6 @@ cet_test(geometry_standardchannelmapping_test
   LIBRARIES larcorealg_Geometry
             GeometryTestLib
             ${MF_MESSAGELOGGER}
-            
             ${FHICLCPP}
             cetlib cetlib_except
   USE_BOOST_UNIT
@@ -120,7 +113,6 @@ cet_test(geometry_thirdplaneslope_test
   SOURCES geometry_thirdplaneslope_test.cxx
   LIBRARIES larcorealg_Geometry
             ${MF_MESSAGELOGGER}
-            
             ${FHICLCPP}
             cetlib cetlib_except
   USE_BOOST_UNIT
@@ -151,7 +143,6 @@ cet_test(driftvolumes_test
   TEST_ARGS ./test_geometry.fcl
   LIBRARIES larcorealg_Geometry
             ${MF_MESSAGELOGGER}
-            
             ${FHICLCPP}
             cetlib cetlib_except
   USE_BOOST_UNIT
@@ -187,7 +178,7 @@ if( NOT mrb_build_dir )
   set_tests_properties( geometry_iterator_test geometry_test geometry_loader_test
                         geometry_iterator_loop_test geometry_standardchannelmapping_test
                         geometry_geoid_test geometry_thirdplaneslope_test
-                        PROPERTIES ENVIRONMENT 
+                        PROPERTIES ENVIRONMENT
                         "FHICL_FILE_PATH=.:${CMAKE_BINARY_DIR}/job;FW_SEARCH_PATH=${CMAKE_BINARY_DIR}/gdml" )
 endif()
 
