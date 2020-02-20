@@ -2,9 +2,9 @@ cet_enable_asserts()
 
 cet_test( geo_vectors_utils_test
   LIBRARIES
-    ${ROOT_CORE}
-    ${ROOT_PHYSICS}
-    ${ROOT_GENVECTOR}
+    ROOT::Core
+    ROOT::Physics
+    ROOT::GenVector
   USE_BOOST_UNIT
   )
 
@@ -133,9 +133,9 @@ cet_test(geometry_thirdplaneslope_test
 cet_test(Decomposer_test
   SOURCES Decomposer_test.cxx
   LIBRARIES
-    ${ROOT_PHYSICS}
-    ${ROOT_GENVECTOR}
-    ${ROOT_CORE} # TVersionCheck
+    ROOT::Physics
+    ROOT::GenVector
+    ROOT::Core # TVersionCheck
   USE_BOOST_UNIT
   )
 

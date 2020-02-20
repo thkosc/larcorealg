@@ -6,10 +6,10 @@ cet_make(
           ${FHICLCPP}
           cetlib
           cetlib_except
-          ${ROOT_CORE}
-          ${ROOT_PHYSICS}
-          ${ROOT_GEOM}
-          ${ROOT_GENVECTOR}
+          ROOT::Core
+          ROOT::Physics
+          ROOT::Geom
+          ROOT::GenVector
         )
 
 install_headers(SUBDIRS "details")

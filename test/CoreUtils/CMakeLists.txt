@@ -20,8 +20,8 @@ cet_test( NumericUtils_test USE_BOOST_UNIT )
 cet_test( DereferenceIterator_test USE_BOOST_UNIT )
 cet_test( DumpUtils_test
   LIBRARIES
-    ${ROOT_CORE}
-    ${ROOT_PHYSICS}
+    ROOT::Core
+    ROOT::Physics
   USE_BOOST_UNIT
   )
 cet_test( SortByPointers_test USE_BOOST_UNIT )
