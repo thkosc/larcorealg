@@ -9,6 +9,7 @@
 #define GEO_AUXDETGEOMETRYCORE_H
 
 // LArSoft libraries
+#include "larcorealg/Geometry/AuxDetGeo.h"
 
 // Framework and infrastructure libraries
 #include "fhiclcpp/ParameterSet.h"
@@ -28,7 +29,6 @@ namespace geo {
 
   // Forward declarations within namespace.
   class AuxDetChannelMapAlg;
-  class AuxDetGeo;
   class AuxDetSensitiveGeo;
 
   /// Data in the geometry description
@@ -36,7 +36,7 @@ namespace geo {
   struct AuxDetGeometryData_t {
 
     /// Type of list of auxiliary detectors
-    using AuxDetList_t = std::vector<AuxDetGeo*>;
+    using AuxDetList_t = std::vector<AuxDetGeo>;
 
     AuxDetList_t   auxDets;   ///< The auxiliary detectors
 
@@ -103,9 +103,6 @@ namespace geo {
      */
     AuxDetGeometryCore(fhicl::ParameterSet const& pset);
 
-    /// Destructor
-    ~AuxDetGeometryCore();
-
     // You shall not copy or move or assign me!
     AuxDetGeometryCore(AuxDetGeometryCore const&) = delete;
     AuxDetGeometryCore(AuxDetGeometryCore&&) = delete;
@@ -168,7 +165,7 @@ namespace geo {
     //
 
     /// Returns the full list of pointer to the auxiliary detectors
-    std::vector<AuxDetGeo*> const& AuxDetGeoVec() const { return AuxDets(); }
+    std::vector<AuxDetGeo> const& AuxDetGeoVec() const { return AuxDets(); }
 
     /**
      * @brief Returns the specified auxiliary detector
@@ -208,7 +205,7 @@ namespace geo {
      * @todo what happens if it does not exist?
      */
     AuxDetGeo const& PositionToAuxDet(double const worldLoc[3],
-				      unsigned int &ad) const;
+                                      unsigned int &ad) const;
 
     /**
      * @brief Returns the auxiliary detector at specified location
@@ -224,18 +221,18 @@ namespace geo {
                                                         size_t     & sv) const;
 
     uint32_t                 PositionToAuxDetChannel(double const worldLoc[3],
-						     size_t     & ad,
-						     size_t     & sv) const;
+                                                     size_t     & ad,
+                                                     size_t     & sv) const;
     TVector3                 AuxDetChannelToPosition(uint32_t    const& channel,
-						     std::string const& auxDetName) const;
+                                                     std::string const& auxDetName) const;
 
 
     const AuxDetGeo&         ChannelToAuxDet(std::string const& auxDetName,
-					     uint32_t    const& channel) const; // return the AuxDetGeo for the given detector
+                                             uint32_t    const& channel) const; // return the AuxDetGeo for the given detector
                                                                                 // name and channel
 
     const AuxDetSensitiveGeo& ChannelToAuxDetSensitive(std::string const& auxDetName,
-						       uint32_t    const& channel) const; // return the AuxDetSensitiveGeo for the given
+                                                       uint32_t    const& channel) const; // return the AuxDetSensitiveGeo for the given
 
     /// @name Geometry initialization
     /// @{
@@ -287,7 +284,7 @@ namespace geo {
      * This method needs to be called after LoadGeometryFile() to complete the
      * geometry initialization.
      */
-    void ApplyChannelMap(std::shared_ptr<geo::AuxDetChannelMapAlg> pChannelMap);
+    void ApplyChannelMap(std::unique_ptr<geo::AuxDetChannelMapAlg> pChannelMap);
     /// @}
 
 
@@ -313,7 +310,7 @@ namespace geo {
     std::string    fGDMLfile;       ///< path to geometry file used for Geant4 simulation
     std::string    fROOTfile;       ///< path to geometry file for geometry in GeometryCore
     fhicl::ParameterSet fBuilderParameters; ///< Configuration of geometry builder.
-    std::shared_ptr<const geo::AuxDetChannelMapAlg> fChannelMapAlg;  ///< Object containing the channel to wire mapping
+    std::unique_ptr<const geo::AuxDetChannelMapAlg> fChannelMapAlg;  ///< Object containing the channel to wire mapping
   }; // class GeometryCore
 
 } // namespace geo

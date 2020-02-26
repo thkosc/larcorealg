@@ -12,11 +12,11 @@
 #include "larcorealg/Geometry/WireGeo.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect::convertTo()
 #include "larcorealg/CoreUtils/RealComparisons.h"
-#include "larcorealg/CoreUtils/SortByPointers.h"
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi()
 
 // Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
+#include "cetlib/pow.h"
 #include "cetlib_except/exception.h"
 
 // ROOT includes
@@ -60,15 +60,8 @@ namespace {
     return value + symmetricCapDelta(value, limit);
 
   } // symmetricCap()
-  
-  
-  /// Returns the square of `v`.
-  template <typename T>
-  T sqr(T v) { return v * v; }
-  
-  
-} // local namespace
 
+} // local namespace
 
 
 namespace geo{
@@ -524,10 +517,7 @@ namespace geo{
   // sort the WireGeo objects
   void PlaneGeo::SortWires(geo::GeoObjectSorter const& sorter )
   {
-    // the sorter interface requires a vector of pointers;
-    // sorting is faster, but some gymnastics is required:
-    util::SortByPointers
-      (fWire, [&sorter](auto& coll){ sorter.SortWires(coll); });
+    sorter.SortWires(fWire);
   }
 
 
@@ -715,23 +705,23 @@ namespace geo{
     (WireCoordProjection_t const& projDir) const
   {
     assert(lar::util::Vector2DComparison{1e-6}.nonZero(projDir));
-    return std::sqrt(sqr(projDir.X() / projDir.Y()) + 1.0) * fWirePitch;
+    return std::sqrt(cet::square(projDir.X() / projDir.Y()) + 1.0) * fWirePitch;
   } // PlaneGeo::InterWireProjectedDistance()
-  
-  
+
+
   //......................................................................
   double PlaneGeo::InterWireDistance(geo::Vector_t const& dir) const {
     // the secondary component of the wire decomposition basis is wire coord.
     double const r = dir.R();
     assert(r >= 1.e-6);
-    
+
     double const absWireCoordProj
       = std::abs(fDecompWire.VectorSecondaryComponent(dir));
     return r / absWireCoordProj * fWirePitch;
-    
+
   } // PlaneGeo::InterWireDistance()
-  
-  
+
+
   //......................................................................
   double PlaneGeo::ThetaZ() const { return FirstWire().ThetaZ(); }
 
@@ -934,11 +924,11 @@ namespace geo{
     // pick long wires around the center of the detector,
     // so that their coordinates are defined with better precision
     assert(Nwires() > 1);
-    
+
     auto const iWire = Nwires() / 2;
-    
+
     fWirePitch = geo::WireGeo::WirePitch(Wire(iWire - 1), Wire(iWire));
-    
+
   } // PlaneGeo::UpdateWirePitch()
 
   //......................................................................
@@ -1210,9 +1200,9 @@ namespace geo{
     fCenter = GetBoxCenter<geo::Point_t>();
 
     DriftPoint(fCenter, DistanceFromPlane(fCenter));
-    
+
     geo::vect::round0(fCenter, 1e-7); // round dimensions less than 1 nm to 0
-    
+
     fDecompFrame.SetOrigin(fCenter); // equivalent to GetCenter() now
 
   } // PlaneGeo::UpdateWirePlaneCenter()

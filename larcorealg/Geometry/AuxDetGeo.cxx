@@ -11,7 +11,6 @@
 // LArSoft libraries
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect namespace
 #include "larcorealg/Geometry/GeoObjectSorter.h"
-#include "larcorealg/CoreUtils/SortByPointers.h"
 
 // ROOT
 #include "TGeoTrd2.h"
@@ -143,10 +142,7 @@ namespace geo{
   //......................................................................
   void AuxDetGeo::SortSubVolumes(GeoObjectSorter const& sorter)
   {
-    // the sorter interface requires a vector of pointers;
-    // sorting is faster, but some gymnastics is required:
-    util::SortByPointers
-      (fSensitive, [&sorter](auto& coll){ sorter.SortAuxDetSensitive(coll); });
+    sorter.SortAuxDetSensitive(fSensitive);
   }
 
   //......................................................................

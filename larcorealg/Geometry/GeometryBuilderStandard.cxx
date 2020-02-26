@@ -61,7 +61,7 @@ geo::AuxDetGeo geo::GeometryBuilderStandard::doMakeAuxDet(Path_t& path) {
 
   return geo::AuxDetGeo(
     path.current(), path.currentTransformation<geo::TransformationMatrix>(),
-    geo::GeometryBuilder::moveToColl(extractAuxDetSensitive(path))
+    extractAuxDetSensitive(path)
     );
 
 } // geo::GeometryBuilderStandard::doMakeAuxDet()
@@ -107,8 +107,8 @@ geo::CryostatGeo geo::GeometryBuilderStandard::doMakeCryostat(Path_t& path) {
 
   return geo::CryostatGeo(
     path.current(), path.currentTransformation<geo::TransformationMatrix>(),
-    geo::GeometryBuilder::moveToColl(extractTPCs(path)),
-    geo::GeometryBuilder::moveToColl(extractOpDets(path))
+    extractTPCs(path),
+    extractOpDets(path)
     );
 
 } // geo::GeometryBuilderStandard::doMakeCryostat()
@@ -151,7 +151,7 @@ geo::GeometryBuilderStandard::TPCs_t geo::GeometryBuilderStandard::doExtractTPCs
 geo::TPCGeo geo::GeometryBuilderStandard::doMakeTPC(Path_t& path) {
   return geo::TPCGeo(
     path.current(), path.currentTransformation<geo::TransformationMatrix>(),
-     geo::GeometryBuilder::moveToColl(extractPlanes(path))
+     extractPlanes(path)
     );
 } // geo::GeometryBuilderStandard::doMakeTPC()
 
@@ -174,7 +174,7 @@ geo::GeometryBuilderStandard::doExtractPlanes(Path_t& path)
 geo::PlaneGeo geo::GeometryBuilderStandard::doMakePlane(Path_t& path) {
   return geo::PlaneGeo(
     path.current(), path.currentTransformation<geo::TransformationMatrix>(),
-     geo::GeometryBuilder::moveToColl(extractWires(path))
+     extractWires(path)
     );
 } // geo::GeometryBuilderStandard::doMakePlane()
 
@@ -259,18 +259,18 @@ template <
   bool (geo::GeometryBuilderStandard::*IsObj)(TGeoNode const&) const,
   ObjGeo (geo::GeometryBuilderStandard::*MakeObj)(geo::GeometryBuilder::Path_t&)
   >
-geo::GeometryBuilder::GeoPtrColl_t<ObjGeo>
+geo::GeometryBuilder::GeoColl_t<ObjGeo>
 geo::GeometryBuilderStandard::doExtractGeometryObjects(
   Path_t& path
 ) {
 
-  geo::GeometryBuilder::GeoPtrColl_t<ObjGeo> objs;
+  geo::GeometryBuilder::GeoColl_t<ObjGeo> objs;
 
   //
   // if this is a wire, we are set
   //
   if ((this->*IsObj)(path.current())) {
-    objs.emplace_back(std::make_unique<ObjGeo>((this->*MakeObj)(path)));
+    objs.push_back((this->*MakeObj)(path));
     return objs;
   }
 
@@ -293,4 +293,3 @@ geo::GeometryBuilderStandard::doExtractGeometryObjects(
 
 
 //------------------------------------------------------------------------------
-

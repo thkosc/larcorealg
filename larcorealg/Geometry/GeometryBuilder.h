@@ -24,10 +24,7 @@
 #include <iterator> // std::back_inserter()
 #include <algorithm> // std::transform()
 
-
-
 namespace geo {
-
 
   /**
    * @brief Manages the extraction of LArSoft geometry information from ROOT.
@@ -54,20 +51,15 @@ namespace geo {
    */
   class GeometryBuilder {
 
-      public:
+  public:
 
     // --- BEGIN Data types ----------------------------------------------------
     /// Identification of a single node in ROOT geometry.
     using Path_t = geo::GeoNodePath;
 
-
-    /// Type of collection of geometry objects via (owning) pointers.
-    template <typename GeoObj>
-    using GeoColl_t = std::vector<GeoObj>;
-
     /// Type of direct collection of geometry objects.
     template <typename GeoObj>
-    using GeoPtrColl_t = std::vector<std::unique_ptr<GeoObj>>;
+    using GeoColl_t = std::vector<GeoObj>;
 
     // --- END Data types ------------------------------------------------------
 
@@ -84,7 +76,7 @@ namespace geo {
     /// @{
 
     /// Collection of cryostat information objects.
-    using Cryostats_t = GeoPtrColl_t<geo::CryostatGeo>;
+    using Cryostats_t = GeoColl_t<geo::CryostatGeo>;
 
     /**
      * @brief Looks for all cryostats under the specified path.
@@ -107,7 +99,7 @@ namespace geo {
     /// @{
 
     /// Collection of auxiliary detector information objects.
-    using AuxDets_t = GeoPtrColl_t<geo::AuxDetGeo>;
+    using AuxDets_t = GeoColl_t<geo::AuxDetGeo>;
 
     /**
      * @brief Looks for all auxiliary detectors under the specified path.
@@ -125,28 +117,9 @@ namespace geo {
     // --- END Auxiliary detector information ----------------------------------
 
 
-    // --- BEGIN Static utility methods ----------------------------------------
-    /**
-     * @brief Moves geometry objects of a indirect storage collection into a
-     *        direct storage one.
-     * @param src collection of pointers to geometry objects
-     * @return a collection of geometry objects
-     *
-     * The source collection `src`, contains pointers to the geometry objects,
-     * and the pointers own the objects.
-     * This function empties the source collection, its content moved into a
-     * collection of geometry objects. The returned collection directly owns
-     * the geometry objects.
-     */
-    template <typename GeoObj>
-    static GeoColl_t<GeoObj> moveToColl(GeoPtrColl_t<GeoObj>&& src);
-    template <typename GeoObj>
-    static GeoColl_t<GeoObj> moveToColl(GeoPtrColl_t<GeoObj>& src)
-      { return moveToColl(std::move(src)); }
-
     // --- END Static utility methods ------------------------------------------
 
-      protected:
+  protected:
 
     /// Custom implementation of `extractCryostats()`.
     virtual Cryostats_t doExtractCryostats(Path_t& path) = 0;
@@ -159,25 +132,5 @@ namespace geo {
 
 } // namespace geo
 
-
-//------------------------------------------------------------------------------
-//---  template implementation
-//------------------------------------------------------------------------------
-template <typename GeoObj>
-geo::GeometryBuilder::GeoColl_t<GeoObj> geo::GeometryBuilder::moveToColl
-  (GeoPtrColl_t<GeoObj>&& src)
-{
-  geo::GeometryBuilder::GeoColl_t<GeoObj> dest;
-  dest.reserve(src.size());
-  std::transform(
-    src.begin(), src.end(), std::back_inserter(dest),
-    [](auto& ptr){ return std::move(*(ptr.release())); }
-    );
-  src.clear();
-  return dest;
-} // geo::GeometryBuilder::moveToColl()
-
-
-//------------------------------------------------------------------------------
 
 #endif // LARCOREALG_GEOMETRY_GEOMETRYBUILDER_H

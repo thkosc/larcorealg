@@ -31,6 +31,7 @@
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi<>
 
 // Framework includes
+#include "cetlib/pow.h"
 #include "cetlib_except/exception.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -84,9 +85,6 @@ std::ostream& operator<< (std::ostream& out, TVector2 const& v) {
 
 //------------------------------------------------------------------------------
 namespace {
-  template <typename T>
-  inline T sqr(T v) { return v*v; }
-
 
   /// Returns whether the CET exception e contains the specified category cat
   bool hasCategory(cet::exception const& e, std::string const& cat) {
@@ -394,12 +392,12 @@ namespace geo{
       << "\nWire length "        << 2.*testWire.HalfL()
       << "\nWire Rmin  "         << testWire.RMin()
       ;
-    
+
     if (fComputeMass) {
       log
         << "\nTotal mass "         << geom->TotalMass();
     }
-    
+
     log
       << "\nNumber of views "    << geom->Nviews()
       << "\nNumber of channels " << geom->Nchannels()
@@ -678,10 +676,10 @@ namespace geo{
     mf::LogVerbatim("GeometryTest") << "There are " << geom->Ncryostats() << " cryostats in the detector";
 
     for(geo::CryostatGeo const& cryo: geom->IterateCryostats()) {
-      
+
       {
         mf::LogVerbatim log("GeometryTest");
-        
+
         log
           << "\n\tCryostat " << cryo.ID()
           <<   " " << cryo.Volume()->GetName()
@@ -700,7 +698,7 @@ namespace geo{
           <<   "  -z:" << cryo.MinZ() << " +z:" << cryo.MaxZ()
           ;
       }
-      
+
       // pick a position in the middle of the cryostat in the world coordinates
       double const worldLoc[3]
         = { cryo.CenterX(), cryo.CenterY(), cryo.CenterZ() };
@@ -2565,7 +2563,7 @@ namespace geo{
         const double d1 = WireDistances[iPlane1], d2 = WireDistances[iPlane2],
           cosAlpha = dot(WireCoordDirs[iPlane1], WireCoordDirs[iPlane2]);
         const double expected_d = std::sqrt(
-          (sqr(d1) + sqr(d2) - 2.0 * d1 * d2 * cosAlpha) / (1 - sqr(cosAlpha))
+          (cet::square(d1) + cet::square(d2) - 2.0 * d1 * d2 * cosAlpha) / (1 - cet::square(cosAlpha))
           );
         // the actual distance we have found:
         double const d = plane1.VectorProjection(xingPoint - geo::vect::toPoint(point)).R();
@@ -3051,7 +3049,7 @@ namespace geo{
 
   //......................................................................
   void GeometryTestAlg::testInterWireProjectedDistance() const {
-    
+
     /*
      * For each wire plane:
      *  * we pick some projected directions; for each one:
@@ -3060,16 +3058,16 @@ namespace geo{
      *     * add some arbitrary component on the drift direction; for each one:
      *       * check that the projected distance is as expected
      *       * check that the 3D distance is as expected
-     * 
+     *
      * We do not test directions parallel to the wires because they get
      * numerically unstable and the expectation may potentially differ a lot
      * being calculated with a different procedure.
      */
-    
+
     constexpr lar::util::RealComparisons cmp { 1e-4 };
-    
+
     static double const V3 = std::sqrt(3.0);
-    
+
     // BUG the deduction guide for std::array seems not to be implemented yet
     //     in Clang 5.0.0
     // BUG the double brace syntax is required to work around clang bug 21629
@@ -3090,31 +3088,31 @@ namespace geo{
 //     constexpr std::array testDriftOffsets { -20.0, -10.0, 0.0, +10.0, +20.0 };
     constexpr std::array<double, 5U> testDriftOffsets
       {{ -20.0, -10.0, 0.0, +10.0, +20.0 }};
-    
+
     unsigned int nErrors = 0; // error count for the final report
-    
+
     for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
-      
+
       double const pitch = plane.WirePitch();
       auto const normalDir = plane.GetNormalDirection<geo::Vector_t>();
-      
+
       for (auto const& testProjBase: testProjections) {
-        
+
         //
         // expected result is kind of encoded in the chosen projections
         //
         double const expected = testProjBase.R() * pitch;
-        double const expectedSqr = sqr(expected);
-        
+        double const expectedSqr = cet::square(expected);
+
         // we flip the projection around: result should not change
         for (double dirL: { -1.0, 1.0 }) for (double dirW: { -1.0, 1.0 }) for (double scale: { 0.5, 1.0, 3.0 }) {
-          
+
           //
           // test the projection directly
           //
           geo::PlaneGeo::WireCoordProjection_t const testProj
            { scale * dirL * testProjBase.X(), scale * dirW * testProjBase.Y() };
-          
+
           double const interWireFromProj
             = plane.InterWireProjectedDistance(testProj);
           if (cmp.nonEqual(interWireFromProj, expected)) {
@@ -3125,21 +3123,21 @@ namespace geo{
               ;
             ++nErrors;
           } // if unexpected result
-          
+
           // this is how much we needed to expand the test direction vector
           // (happens to work for the special case expected = 0 too)
           double const dScale = expected / testProj.R();
-          
+
           //
           // test a 3D direction
           //
-          
+
           auto const baseDir
             = plane.ComposeVector<geo::Vector_t>(0.0, testProj);
-          
+
           for (double const driftOffset: testDriftOffsets) {
             auto const testDir = baseDir + driftOffset * normalDir;
-            
+
             double const interWire = plane.InterWireProjectedDistance(testDir);
             if (cmp.nonEqual(interWire, expected)) {
               mf::LogProblem("") << "ERROR: on plane " << plane.ID()
@@ -3150,11 +3148,11 @@ namespace geo{
                 ;
               ++nErrors;
             } // if unexpected result
-            
+
             // build the expectation adding the drift component to the projected
             double const expected3D
-              = std::sqrt(expectedSqr + sqr(driftOffset * dScale));
-            
+              = std::sqrt(expectedSqr + cet::square(driftOffset * dScale));
+
             double const interWire3D = plane.InterWireDistance(testDir);
             if (cmp.nonEqual(interWire3D, expected3D)) {
               mf::LogProblem("") << "ERROR: on plane " << plane.ID()
@@ -3165,26 +3163,26 @@ namespace geo{
                 ;
               ++nErrors;
             } // if unexpected result
-            
-            
-            
+
+
+
           } // for drifts
-          
+
         } // for dirL, dirW and scale
-        
+
       } // for all test projection directions
-      
+
     } // for all planes
-    
-    
+
+
     if (nErrors > 0U) {
       throw cet::exception("InterWireProjectedDistance")
         << "unexpected distances in " << nErrors << " tests!";
     } // end loop over planes
-  
+
   } // GeometryTestAlg::testInterWireProjectedDistance()
-  
-  
+
+
   //......................................................................
   void GeometryTestAlg::testPlanePitch()
   {

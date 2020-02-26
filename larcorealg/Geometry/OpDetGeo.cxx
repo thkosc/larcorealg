@@ -20,12 +20,6 @@
 // C/C++ standard libraries
 #include <cmath>
 
-
-namespace {
-  template <typename T>
-  inline T sqr(T v) { return v*v; }
-} // local namespace
-
 namespace geo{
 
   //-----------------------------------------
@@ -35,7 +29,6 @@ namespace geo{
     fOpDetNode = &node;
 
     fCenter = toWorldCoords(geo::origin<LocalPoint_t>());
-
   }
 
   //......................................................................

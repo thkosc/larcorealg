@@ -29,7 +29,7 @@ std::unique_ptr<geo::GeometryCore>
 lar::standalone::SetupGeometryWithChannelMapping
   (
     fhicl::ParameterSet const& pset,
-    std::shared_ptr<geo::ChannelMapAlg> channelMap
+    std::unique_ptr<geo::ChannelMapAlg> channelMap
   )
 {
   auto const bForceReload = true;
@@ -98,11 +98,10 @@ lar::standalone::SetupGeometryWithChannelMapping
   // create and apply channel mapping
   //
 
-  geom->ApplyChannelMap(channelMap);
+  geom->ApplyChannelMap(move(channelMap));
 
   return geom;
 } // lar::standalone::SetupGeometryWithChannelMapping()
 
 
 //------------------------------------------------------------------------------
-
