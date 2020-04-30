@@ -1,5 +1,5 @@
 /**
- * @file   StandaloneGeometrySetup.h
+ * @file   larcorealg/Geometry/StandaloneGeometrySetup.h
  * @brief  Utilities for one-line geometry initialization.
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   June 22, 2017
@@ -10,8 +10,8 @@
  */
 
 
-#ifndef STATICGEOMETRYLOADER_H
-#define STATICGEOMETRYLOADER_H
+#ifndef LARCOREALG_GEOMETRY_STANDALONEGEOMETRYSETUP_H
+#define LARCOREALG_GEOMETRY_STANDALONEGEOMETRYSETUP_H
 
 // LArSoft libraries
 #include "larcorealg/Geometry/ChannelMapAlg.h"
@@ -152,4 +152,4 @@ lar::standalone::SetupGeometry(fhicl::ParameterSet const& pset, Args&&... args)
 
 //------------------------------------------------------------------------------
 
-#endif // STATICGEOMETRYLOADER_H
+#endif // LARCOREALG_GEOMETRY_STANDALONEGEOMETRYSETUP_H
