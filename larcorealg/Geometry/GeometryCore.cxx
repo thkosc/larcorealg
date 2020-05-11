@@ -1132,7 +1132,7 @@ namespace geo {
   unsigned int GeometryCore::NearestWire
     (const double worldPos[3], geo::PlaneID const& planeid) const
   {
-    return NearestWire(TVector3(worldPos), planeid);
+    return NearestWire(geo::vect::makePointFromCoords(worldPos), planeid);
   }
 
   //----------------------------------------------------------------------------
@@ -1142,8 +1142,7 @@ namespace geo {
     if(worldPos.size() > 3) throw cet::exception("GeometryCore") << "bad size vector for "
                                                              << "worldPos: "
                                                              << worldPos.size() << "\n";
-    TVector3 wp(&(worldPos[0]));
-    return NearestWire(wp, planeid);
+    return NearestWire(worldPos.data(), planeid);
   }
 
   //----------------------------------------------------------------------------
@@ -1160,22 +1159,21 @@ namespace geo {
     if(worldPos.size() > 3) throw cet::exception("GeometryCore") << "bad size vector for "
                                                              << "worldPos: "
                                                              << worldPos.size() << "\n";
-    TVector3 wp(&(worldPos[0]));
-    return NearestWireID(wp, planeid);
+    return NearestWireID(worldPos.data(), planeid);
   }
 
   //----------------------------------------------------------------------------
   geo::WireID GeometryCore::NearestWireID
     (const double worldPos[3], geo::PlaneID const& planeid) const
   {
-    return NearestWireID(TVector3(worldPos), planeid);
+    return NearestWireID(geo::vect::makePointFromCoords(worldPos), planeid);
   }
 
   //----------------------------------------------------------------------------
   raw::ChannelID_t GeometryCore::NearestChannel
     (const double worldPos[3], geo::PlaneID const& planeid) const
   {
-    return NearestChannel(TVector3(worldPos), planeid);
+    return NearestChannel(geo::vect::makePointFromCoords(worldPos), planeid);
   }
 
   //----------------------------------------------------------------------------
@@ -1185,8 +1183,7 @@ namespace geo {
     if(worldPos.size() > 3) throw cet::exception("GeometryCore") << "bad size vector for "
                                                              << "worldPos: "
                                                              << worldPos.size() << "\n";
-    TVector3 wp(&(worldPos[0]));
-    return NearestChannel(wp, planeid);
+    return NearestChannel(worldPos.data(), planeid);
   }
 
   //----------------------------------------------------------------------------
