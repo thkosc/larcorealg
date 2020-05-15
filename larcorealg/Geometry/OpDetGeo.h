@@ -12,6 +12,7 @@
 // LArSoft libraries
 #include "larcorealg/Geometry/TransformationMatrix.h"
 #include "larcorealg/Geometry/LocalTransformationGeo.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_optical_vectors.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h" // geo::OpDetID
 
@@ -51,14 +52,11 @@ namespace geo {
      * instances of `geo::OpDetGeo` have the same type but are not compatible.
      */
 
-    /// Tag for vectors in the "local" GDML coordinate frame of the TPC.
-    struct OpDetGeoCoordinatesTag {};
-
     /// Type of points in the local GDML TPC frame.
-    using LocalPoint_t = geo::Point3DBase_t<OpDetGeoCoordinatesTag>;
+    using LocalPoint_t = geo::OpticalPoint3D_t;
 
     /// Type of displacement vectors in the local GDML TPC frame.
-    using LocalVector_t = geo::Vector3DBase_t<OpDetGeoCoordinatesTag>;
+    using LocalVector_t = geo::OpticalVector3D_t;
 
     ///@}
 
