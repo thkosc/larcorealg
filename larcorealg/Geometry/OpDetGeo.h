@@ -53,10 +53,10 @@ namespace geo {
      */
 
     /// Type of points in the local GDML TPC frame.
-    using LocalPoint_t = geo::OpticalPoint3D_t;
+    using LocalPoint_t = geo::OpticalPoint_t;
 
     /// Type of displacement vectors in the local GDML TPC frame.
-    using LocalVector_t = geo::OpticalVector3D_t;
+    using LocalVector_t = geo::OpticalVector_t;
 
     ///@}
 
