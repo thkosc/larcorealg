@@ -2424,7 +2424,7 @@ namespace geo{
 
           auto const depthOffset = (iD * stepD) * refPlane.DepthDir();
 
-          auto const point = refPoint + widthOffset + driftOffset;
+          auto const point = refPoint + widthOffset + depthOffset;
 
           // finally, let's test this point...
           nErrors += testWireIntersectionAt(TPC, point);
