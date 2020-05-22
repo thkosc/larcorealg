@@ -1,5 +1,5 @@
 /**
- * @file   StandaloneBasicSetup.h
+ * @file   larcorealg/Geometry/StandaloneBasicSetup.h
  * @brief  Collection of functions for quick setup of basic facilities.
  * @author Gianluca Petrillo (petrillo@fnal.gov)
  * @date   June 22, 2017
@@ -27,8 +27,8 @@
  *
  */
 
-#ifndef STANDALONEBASICSETUP_H
-#define STANDALONEBASICSETUP_H
+#ifndef LARCOREALG_GEOMETRY_STANDALONEBASICSETUP_H
+#define LARCOREALG_GEOMETRY_STANDALONEBASICSETUP_H
 
 // utility libraries
 #include "messagefacility/MessageLogger/MessageLogger.h"
@@ -134,4 +134,4 @@ inline void lar::standalone::SetupMessageFacility
 
 //------------------------------------------------------------------------------
 
-#endif // STANDALONEBASICSETUP_H
+#endif // LARCOREALG_GEOMETRY_STANDALONEBASICSETUP_H

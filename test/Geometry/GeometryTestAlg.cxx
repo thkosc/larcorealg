@@ -2407,7 +2407,7 @@ namespace geo{
       constexpr unsigned int SplitW = 19, SplitD = 17;
 
       auto const driftOffset = -TPC.DriftDistance() / 2.0 * TPC.DriftDir();
-      auto const refPoint = TPC.GetCenter() + driftOffset;
+      auto const refPoint = refPlane.GetCenter() + driftOffset;
 
       decltype(auto) coverage = refPlane.ActiveArea();
       const double stepW = coverage.width.length() / SplitW;
@@ -2424,7 +2424,7 @@ namespace geo{
 
           auto const depthOffset = (iD * stepD) * refPlane.DepthDir();
 
-          auto const point = refPoint + widthOffset + driftOffset;
+          auto const point = refPoint + widthOffset + depthOffset;
 
           // finally, let's test this point...
           nErrors += testWireIntersectionAt(TPC, point);
