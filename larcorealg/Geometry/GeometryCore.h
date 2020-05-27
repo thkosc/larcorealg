@@ -2764,21 +2764,34 @@ namespace geo {
     //@{
     /**
      * @brief Returns the center of side of the detector facing the beam.
+     * @tparam Point _(default: `DefaultPoint_t`)_ return this point type
      * @param tpcid ID of the TPC
-     * @param tpc tpc number within the cryostat
-     * @param cstat number of cryostat
-     * @return the position of center of TPC face toward the beam
+     * @return position of center of TPC face toward the beam,
+     *         in world coordinates [cm]
      *
      * Effectively, this is the center of the side of TPC active volume
      * which faces the negative _z_ direction, the first that a beam following
-     *
+     * the positive _z_ direction crosses.
      */
     template <typename Point>
     Point GetTPCFrontFaceCenter(geo::TPCID const& tpcid) const
       { return TPC(tpcid).GetFrontFaceCenter<Point>(); }
     DefaultPoint_t GetTPCFrontFaceCenter(geo::TPCID const& tpcid) const
       { return GetTPCFrontFaceCenter<DefaultPoint_t>(tpcid); }
-
+    //@}
+    
+    //@{
+    /**
+     * @brief Returns the center of side of the detector facing the beam.
+     * @tparam Point _(default: `DefaultPoint_t`)_ return this point type
+     * @param tpc _(default: `0`)_ TPC number within the cryostat `cstat`
+     * @param cstat _(default: `0`)_ number of cryostat
+     * @return position of center of TPC face toward the beam,
+     *         in world coordinates [cm]
+     * @see `GetTPCFrontFaceCenter(geo::TPCID const&)`
+     *
+     * @note Please use `GetTPCFrontFaceCenter(geo::TPCID const&)` instead.
+     */
     template <typename Point>
     Point GetTPCFrontFaceCenter
       (unsigned int tpc = 0, unsigned int cstat = 0) const
