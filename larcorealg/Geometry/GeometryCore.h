@@ -2777,7 +2777,7 @@ namespace geo {
     Point GetTPCFrontFaceCenter(geo::TPCID const& tpcid) const
       { return TPC(tpcid).GetFrontFaceCenter<Point>(); }
     DefaultPoint_t GetTPCFrontFaceCenter(geo::TPCID const& tpcid) const
-      { return GetTPCFrontFaceCenter<DefaultPoint_t>(); }
+      { return GetTPCFrontFaceCenter<DefaultPoint_t>(tpcid); }
 
     template <typename Point>
     Point GetTPCFrontFaceCenter
@@ -2785,7 +2785,7 @@ namespace geo {
       { return GetTPCFrontFaceCenter<Point>(geo::TPCID(cstat, tpc)); }
     DefaultPoint_t GetTPCFrontFaceCenter
       (unsigned int tpc = 0, unsigned int cstat = 0) const
-      { return GetTPCFrontFaceCenter<DefaultPoint_t>(cstat, tpc); }
+      { return GetTPCFrontFaceCenter<DefaultPoint_t>(tpc, cstat); }
     //@}
 
 
