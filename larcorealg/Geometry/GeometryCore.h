@@ -5326,6 +5326,9 @@ namespace geo {
     geo::SigType_t SignalType(readout::ROPID const& ropid) const;
 
 
+    /// Returns the name of the specified signal type.
+    static std::string SignalTypeName(geo::SigType_t sigType);
+    
     /// @} Readout plane information
 
 
@@ -5709,6 +5712,10 @@ void geo::GeometryCore::Print
         out << "\n" << indent << "    ";
         plane.PrintPlaneInfo
           (std::forward<Stream>(out), indent + "      ", plane.MaxVerbosity);
+        geo::SigType_t const sigType = SignalType(plane.ID());
+        out << "\n" << indent << "      "
+          << "signal type: " << SignalTypeName(sigType)
+          << " (" << static_cast<int>(sigType) << ")";
 
         for(unsigned int w = 0;  w < nWires; ++w) {
           const geo::WireGeo& wire = plane.Wire(w);
