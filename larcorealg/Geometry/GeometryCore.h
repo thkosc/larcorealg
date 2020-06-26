@@ -5326,9 +5326,6 @@ namespace geo {
     geo::SigType_t SignalType(readout::ROPID const& ropid) const;
 
 
-    /// Returns the name of the specified signal type.
-    static std::string SignalTypeName(geo::SigType_t sigType);
-    
     /// @} Readout plane information
 
 

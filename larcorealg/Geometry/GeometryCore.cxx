@@ -576,19 +576,6 @@ namespace geo {
 
 
   //......................................................................
-  std::string GeometryCore::SignalTypeName(geo::SigType_t sigType) {
-    switch (sigType) {
-      case kInduction: return "induction";
-      case kCollection: return "collection";
-      case kMysteryType: return "unknown";
-    } // switch
-    throw cet::exception("GeometryCore")
-      << "SignalTypeName(): Logic error: unexpected signal type "
-      << static_cast<int>(sigType) << "\n";
-  } // GeometryCore::SignalTypeName()
-  
-  
-  //......................................................................
   View_t GeometryCore::View(raw::ChannelID_t const channel) const {
     return (channel == raw::InvalidChannelID)
       ? geo::kUnknown: View(ChannelToROP(channel));
