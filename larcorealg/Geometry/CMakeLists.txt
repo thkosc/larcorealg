@@ -2,6 +2,7 @@ cet_make(
   SUBDIRS
     "details"
   LIBRARIES
+          larcoreobj_SimpleTypesAndConstants
           ${MF_MESSAGELOGGER}
           ${FHICLCPP}
           cetlib
