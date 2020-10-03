@@ -47,7 +47,15 @@ namespace geo{
 
   double OpDetGeo::RMax() const
   {
-    return asTube()->GetRmax();
+    if (TGeoSphere const* sphere = asSphere(); sphere) {
+      return sphere->GetRmax();
+    }
+    else if (TGeoTube const* tube = asTube(); tube) {
+      return tube->GetRmax();
+    }
+    else {
+      throw std::bad_cast{};
+    }
   }
 
   //......................................................................
@@ -78,7 +86,15 @@ namespace geo{
 
   double OpDetGeo::RMin() const
   {
-    return asTube()->GetRmin();
+    if (TGeoSphere const* sphere = asSphere(); sphere) {
+      return sphere->GetRmin();
+    }
+    else if (TGeoTube const* tube = asTube(); tube) {
+      return tube->GetRmin();
+    }
+    else {
+      throw std::bad_cast{};
+    }
   }
 
   //......................................................................
@@ -88,7 +104,7 @@ namespace geo{
     auto const& end = toWorldCoords(LocalPoint_t{ 0.0, 0.0, HalfL() });
 
     // TODO change this into something generic
-    //either y or x will be 0, so ading both will always catch the right
+    //either y or x will be 0, so adding both will always catch the right
     //one
     double angle = (end.Y()-center.Y()+end.X()-center.X()) /
       std::abs(end.Y()-center.Y()+center.X()-end.X()) *
