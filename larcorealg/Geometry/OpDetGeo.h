@@ -275,7 +275,7 @@ bool geo::OpDetGeo::isShape() const {
   static_assert(std::is_base_of_v<TGeoShape, std::decay_t<ShapeObj>>);
   
   // C++ understanding of the business instead of ROOT's (no strong reason)
-  return typeid(Shape()) == typeid(std::decay_t<ShapeObj>);
+  return typeid(*(Shape())) == typeid(std::decay_t<ShapeObj>);
   
 } // geo::OpDetGeo::isShape()
 
@@ -316,6 +316,7 @@ void geo::OpDetGeo::PrintOpDetInfo(
       << " cm";
   }
   else if (TGeoSphere const* sphere = asSphere(); sphere) {
+    assert(isSphere());
     auto const [ th1, th2 ]
       = std::minmax({ sphere->GetTheta1(), sphere->GetTheta2() });
     out << ", ";
