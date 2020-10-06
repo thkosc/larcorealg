@@ -275,7 +275,8 @@ bool geo::OpDetGeo::isShape() const {
   static_assert(std::is_base_of_v<TGeoShape, std::decay_t<ShapeObj>>);
   
   // C++ understanding of the business instead of ROOT's (no strong reason)
-  return typeid(*(Shape())) == typeid(std::decay_t<ShapeObj>);
+  TGeoShape const* shape = Shape(); // needed to convince Clang 7 I really mean it
+  return typeid(*shape) == typeid(std::decay_t<ShapeObj>);
   
 } // geo::OpDetGeo::isShape()
 
