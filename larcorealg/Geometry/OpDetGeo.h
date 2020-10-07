@@ -12,6 +12,7 @@
 // LArSoft libraries
 #include "larcorealg/Geometry/TransformationMatrix.h"
 #include "larcorealg/Geometry/LocalTransformationGeo.h"
+#include "larcorealg/CoreUtils/RealComparisons.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_optical_vectors.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h" // geo::OpDetID
@@ -19,6 +20,7 @@
 // ROOT libraries
 #include "TGeoMatrix.h" // TGeoHMatrix
 #include "TGeoTube.h"
+#include "TGeoSphere.h"
 #include "TGeoBBox.h"
 #include "TClass.h"
 
@@ -26,6 +28,10 @@
 #include <vector>
 #include <string>
 #include <array>
+#include <algorithm> // std::minmax()
+#include <typeinfo> // typeid()
+#include <type_traits> // std::decay_t(), std::is_base_of_v
+#include <cassert>
 
 
 // forward declarations
@@ -139,15 +145,60 @@ namespace geo {
     /// Returns the ROOT object describing the detector geometry.
     const TGeoNode*     Node() const { return fOpDetNode; }
 
+    
+    // --- BEGIN -- detector shape ---------------------------------------------
+    /// @name Detector shape
+    /// @{
+    
     /// Returns the geometry object as `TGeoShape`.
     TGeoShape const* Shape() const { return Node()->GetVolume()->GetShape(); }
 
-    /// Returns whether the detector shape is a cilynder (`TGeoTube`).
-    bool isTube() const { return asTube() != nullptr; }
+    /**
+     * @brief Returns whether the detector has the specified shape.
+     * @tparam ShapeObj type of ROOT geometry object representing the shape
+     * @return whether this detector has the specified shape
+     * @see `isShapeLike()`, `isBox()`, `isSphere()`, `isTube()`
+     * 
+     * Example:
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+     * bool const isSphere = opDet.isShape<TGeoSphere>();
+     * bool const isBox = opDet.isShape<TGeoBBox>();
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * will have `isSphere` `true` only if the shape of this object is a sphere
+     * (`TGeoSphere`), and `isBox` `true` only if the shape of this object is a
+     * box (`TGeoBBox`).
+     */
+    template <typename ShapeObj>
+    bool isShape() const;
+    
+    /**
+     * @brief Returns whether the detector inherits from the specified shape.
+     * @tparam ShapeObj type of ROOT geometry object representing the shape
+     * @return whether this detector has a shape derived from the specified one
+     * @see `isShape()`, `isBox()`, `isSphere()`, `isTube()`
+     * 
+     * Example:
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+     * bool const isTubeLike = opDet.isShapeLike<TGeoTube>();
+     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     * `isTubeLike` will be `true` if its shape is either a box (`TGeoTube`)
+     * or any other whose shape object is derived from `TGeoTube` (including
+     * for example a C-shape, half-cylinder).
+     */
+    template <typename ShapeObj>
+    bool isShapeLike() const;
+    
+    /// Returns whether the detector shape is a cylinder (`TGeoTube`).
+    bool isTube() const { return isShapeLike<TGeoTube>(); }
 
     /// Returns whether the detector shape is a bar (`TGeoBBox`).
-    bool isBar() const { return (asBox() != nullptr) && !isTube(); }
+    bool isBar() const { return isShape<TGeoBBox>(); }
 
+    /// Returns whether the detector shape is a hemisphere (`TGeoSphere`).
+    bool isSphere() const { return isShape<TGeoSphere>(); }
+
+    /// @}
+    // --- END -- detector shape -----------------------------------------------
 
     /// Performs all updates after cryostat has sorted the optical detectors.
     void UpdateAfterSorting(geo::OpDetID opdetid);
@@ -202,7 +253,11 @@ namespace geo {
     TGeoTube const* asTube() const
       { return dynamic_cast<TGeoTube const*>(Shape()); }
 
-    /// Returns the geometry object as `TGeoBBox`, `nullptr` if not a tube.
+    /// Returns the geometry object as `TGeoSphere`, `nullptr` if not a sphere.
+    TGeoSphere const* asSphere() const
+      { return dynamic_cast<TGeoSphere const*>(Shape()); }
+
+    /// Returns the geometry object as `TGeoBBox`, `nullptr` if not box-derived.
     TGeoBBox const* asBox() const
       { return dynamic_cast<TGeoBBox const*>(Shape()); }
 
@@ -214,13 +269,38 @@ namespace geo {
 //------------------------------------------------------------------------------
 //--- template implementation
 //---
+
+template <typename ShapeObj>
+bool geo::OpDetGeo::isShape() const {
+  static_assert(std::is_base_of_v<TGeoShape, std::decay_t<ShapeObj>>);
+  
+  // C++ understanding of the business instead of ROOT's (no strong reason)
+  TGeoShape const* shape = Shape(); // needed to convince Clang 7 I really mean it
+  return typeid(*shape) == typeid(std::decay_t<ShapeObj>);
+  
+} // geo::OpDetGeo::isShape()
+
+//------------------------------------------------------------------------------
+template <typename ShapeObj>
+bool geo::OpDetGeo::isShapeLike() const {
+  static_assert(std::is_base_of_v<TGeoShape, std::decay_t<ShapeObj>>);
+  
+  // C++ understanding of the business instead of ROOT's (no strong reason)
+  return dynamic_cast<std::decay_t<ShapeObj> const*>(Shape()) != nullptr;
+  
+} // geo::OpDetGeo::isShapeLike()
+
+
+//------------------------------------------------------------------------------
 template <typename Stream>
 void geo::OpDetGeo::PrintOpDetInfo(
   Stream&& out,
   std::string indent /* = "" */,
   unsigned int verbosity /* = 0 */
 ) const {
-
+  
+  lar::util::RealComparisons<double> cmp(1e-5);  
+  
   //----------------------------------------------------------------------------
   out << "optical detector " << ID() << " centered at " << GetCenter() << " cm";
 
@@ -229,12 +309,27 @@ void geo::OpDetGeo::PrintOpDetInfo(
   //----------------------------------------------------------------------------
   if (isTube()) {
     out << ", radius: " << RMax() << " cm";
-    if (RMin() != 0.0) out << " (inner: " << RMin() << " cm)";
+    if (cmp.nonZero(RMin())) out << " (inner: " << RMin() << " cm)";
     out << ", length: " << Length() << " cm";
   }
   else if (isBar()) {
     out << ", bar size " << Width() << " x " << Height() << " x " << Length()
       << " cm";
+  }
+  else if (TGeoSphere const* sphere = asSphere(); sphere) {
+    assert(isSphere());
+    auto const [ th1, th2 ]
+      = std::minmax({ sphere->GetTheta1(), sphere->GetTheta2() });
+    out << ", ";
+    // some information out of the interface
+    if (cmp.zero(th1) && cmp.equal(th2, 180.0)) out << "spherical";
+    else if ((cmp.zero(th1) && cmp.equal(th2, 90.0))
+      || (cmp.equal(th1, 90.0) && cmp.equal(th2, 180.0)))
+    {
+      out << "hemispherical";
+    }
+    else out << "spherical portion (" << th1 << " -> " << th2 << " degree)";
+    out << " with external radius " << RMax() << " cm";
   }
   else out << ", shape: '" << Shape()->IsA()->GetName() << "'";
 
@@ -248,6 +343,8 @@ void geo::OpDetGeo::PrintOpDetInfo(
   //----------------------------------------------------------------------------
 
 } // geo::OpDetGeo::PrintOpDetInfo()
+
+//------------------------------------------------------------------------------
 
 
 #endif // LARCOREALG_GEOMETRY_OPDETGEO_H
