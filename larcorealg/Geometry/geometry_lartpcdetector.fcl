@@ -61,8 +61,9 @@ lartpcdetector_geometry_helper: {
 
 
 lartpcdetector_geometry_services: {
-  Geometry:               @local::lartpcdetector_geometry
-  ExptGeoInterfaceHelper: @local::lartpcdetector_geometry_helper
+  GeometryConfigurationWriter: {}
+  Geometry:                    @local::lartpcdetector_geometry
+  ExptGeoInterfaceHelper:      @local::lartpcdetector_geometry_helper
 }
 
 
