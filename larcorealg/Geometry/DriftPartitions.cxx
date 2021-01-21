@@ -1087,7 +1087,7 @@ std::unique_ptr<geo::DriftPartitions::TPCPartition_t> makePartition
   (std::vector<TPCwithArea_t> const& TPCs)
 {
   // TODO use range library instead:
-//  auto TPCptrs = TPCs | ranges::view::transform(std::addressof);
+//  auto TPCptrs = TPCs | ranges::views::transform(std::addressof);
   auto TPCptrs = makeCPointerVector(TPCs);
   using std::cbegin;
   using std::cend;
