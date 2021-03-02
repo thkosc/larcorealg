@@ -20,8 +20,10 @@
 #include "TGeoNode.h"
 
 // C/C++ libraries
-#include <cmath> // std::cos(), ...
+#include <algorithm> // std::clamp()...
+#include <cmath> // std::cos(), std::isfinite()...
 #include <sstream>
+#include <cassert>
 
 
 namespace geo{
@@ -49,7 +51,7 @@ namespace geo{
     lp.SetZ(fHalfL);
     auto end = toWorldCoords(lp);
 
-    fThetaZ = std::acos((end.Z() - fCenter.Z())/fHalfL);
+    fThetaZ = std::acos(std::clamp((end.Z() - fCenter.Z())/fHalfL, -1.0, +1.0));
 
     // check to see if it runs "forward" or "backwards" in z
     // check is made looking at the y position of the end point
@@ -61,6 +63,8 @@ namespace geo{
     //This ensures we are looking at the angle between 0 and Pi
     //as if the wire runs at one angle it also runs at that angle +-Pi
     if(fThetaZ < 0) fThetaZ += util::pi();
+    
+    assert(std::isfinite(fThetaZ));
 
   } // geo::WireGeo::WireGeo()
 
