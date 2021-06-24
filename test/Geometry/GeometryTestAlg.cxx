@@ -2340,8 +2340,8 @@ namespace geo{
   //......................................................................
   void GeometryTestAlg::testWireIntersection() const {
     /*
-     * This is a test for WireIDsIntersect() function, that returns whether
-     * two wires intersect, and where.
+     * This is a test for WireIDsIntersect() and WiresIntersect() functions;
+     * that returns whether two wires intersect, and where.
      *
      * The test strategy is to check all the TPC one by one:
      * - if a query for wires on different cryostats fails
@@ -2371,6 +2371,15 @@ namespace geo{
             << " cm, while should have reported no intersection at all";
           ++nErrors;
         } // if intersect
+        try {
+          // the value of result is not checked here
+          geom->WiresIntersect(geom->Wire(w1), geom->Wire(w2));
+        }
+        catch(...) {
+          MF_LOG_ERROR("GeometryTest") << "WiresIntersect() on " << w1
+            << " and " << w2 << " threw an exception, which should not have";
+          ++nErrors;
+        }
       } // if not the last cryostat
 
       // sanity: wires on different TPC
@@ -2384,6 +2393,15 @@ namespace geo{
             << ", while should have reported no intersection at all";
           ++nErrors;
         } // if intersect
+        try {
+          // the value of result is not checked here
+          geom->WiresIntersect(geom->Wire(w1), geom->Wire(w2));
+        }
+        catch(...) {
+          MF_LOG_ERROR("GeometryTest") << "WiresIntersect() on " << w1
+            << " and " << w2 << " threw an exception, which should not have";
+          ++nErrors;
+        }
       } // if not the last TPC
 
       // sanity: wires on same plane
@@ -2398,6 +2416,7 @@ namespace geo{
             << ", while should have reported no intersection at all";
           ++nErrors;
         } // if intersect
+        // prerequisites of WiresIntersect() are not met here, no test possible
       } // for all planes
 
 
@@ -2443,8 +2462,8 @@ namespace geo{
   unsigned int GeometryTestAlg::testWireIntersectionAt
     (const geo::TPCGeo& TPC, TVector3 const& point) const
   {
-    /* Tests WireIDsIntersect() on the specified point on the wire planes of
-     * a given TPC.
+    /* Tests WireIDsIntersect() and WiresIntersect() on the specified point on
+     * the wire planes of a given TPC.
      *
      * The test follows this strategy:
      * - find the ID of the wires closest to the point on each plane
@@ -2497,9 +2516,11 @@ namespace geo{
 
       const geo::WireID& w1 = WireIDs[iPlane1];
       geo::PlaneGeo const& plane1 = TPC.Plane(w1);
+      geo::WireGeo const& w1obj = plane1.Wire(w1);
 
       for (unsigned int iPlane2 = iPlane1 + 1; iPlane2 < NPlanes; ++iPlane2) {
         const geo::WireID& w2 = WireIDs[iPlane2];
+        geo::WireGeo const& w2obj = geom->Wire(w2);
 
         geo::Point_t xingPoint;
         if (!geom->WireIDsIntersect(w1, w2, xingPoint)) {
@@ -2510,7 +2531,7 @@ namespace geo{
           continue;
         }
 
-        if (bDriftOnX) { // legacy check
+        if (bDriftOnX) { // legacy code check
 
           geo::WireIDIntersection widIntersect;
           if (!geom->WireIDsIntersect(w1, w2, widIntersect)) {
@@ -2585,6 +2606,18 @@ namespace geo{
           ++nErrors;
           continue;
         } // if too far
+
+        // test that geom->WiresIntersect() gives the same result as the already
+        // validated one from geom->WireIDsIntersect()
+        geo::Point_t const objXingPoint = geom->WiresIntersect(w1obj, w2obj);
+        if (vectorIs.nonEqual(objXingPoint, xingPoint)) {
+          MF_LOG_ERROR("GeometryTest")
+            << "WiresIntersect() gives wrong intersection for "
+            << w1 << " and " << w2
+            << ": " << objXingPoint << " vs. " << xingPoint << " (expected)";
+          ++nErrors;
+          continue;
+        }
 
       } // for iPlane2
     } // for iPlane1
