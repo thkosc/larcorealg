@@ -5527,13 +5527,6 @@ namespace geo {
     /// @param builder the algorithm to be used
     void BuildGeometry(geo::GeometryBuilder& builder);
 
-    /// Geometry implementation of wire intersection,
-    /// also fills intersection location (from center) on the wires.
-    geo::Point_t WiresIntersectImpl(
-      geo::WireGeo const& wire1, geo::WireGeo const& wire2,
-      std::pair<double, double>* locOnWires = nullptr
-      ) const;
-    
     /// Wire ID check for WireIDsIntersect methods
     bool WireIDIntersectionCheck
       (const geo::WireID& wid1, const geo::WireID& wid2) const;

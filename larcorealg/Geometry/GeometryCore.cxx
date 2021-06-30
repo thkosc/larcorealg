@@ -1359,7 +1359,7 @@ namespace geo {
     (geo::WireGeo const& wire1, geo::WireGeo const& wire2) const
   {
     assert(!wire2.isParallelTo(wire1));
-    return WiresIntersectImpl(wire1, wire2);
+    return geo::WiresIntersection(wire1, wire2);
   } // GeometryCore::WiresIntersect()
 
 
@@ -1443,7 +1443,7 @@ namespace geo {
     geo::WireGeo const& wire2 = Wire(wid2);
 
     std::pair<double, double> locOnWires;
-    intersection = WiresIntersectImpl(wire1, wire2, &locOnWires);
+    intersection = geo::WiresIntersection(wire1, wire2, &locOnWires);
     // distance of the intersection point from the center of the two wires:
     auto const [ t, u ] = locOnWires;
 
@@ -1868,55 +1868,6 @@ namespace geo {
   // Find the closest OpChannel to this point, in the appropriate cryostat
   unsigned int GeometryCore::GetClosestOpDet(double const* point) const
     { return GetClosestOpDet(geo::vect::makePointFromCoords(point)); }
-
-
-  //--------------------------------------------------------------------
-  geo::Point_t GeometryCore::WiresIntersectImpl(
-    geo::WireGeo const& wire1, geo::WireGeo const& wire2,
-    std::pair<double, double>* locOnWires /* = nullptr */
-  ) const {
-    /*
-     * The point on the first wire:
-     *
-     *     p1(t) = c1 + t w1 (c1 the center of the wire, w1 its direction[1])
-     *
-     * has the minimal distance from the other wire (c2 + u w2, with the same
-     * notation) at
-     *
-     *     t = [(dc,w1) - (dc,w2)(w1,w2)] / [ 1 - (w1,w2)^2 ]
-     *     u = [-(dc,w2) + (dc,w1)(w1,w2)] / [ 1 - (w1,w2)^2 ]
-     *
-     * (where (a,b) is a scalar product and dc = (c2 - c1) ).
-     * If w1 and w2 are unit vectors, t and u are in fact the distance of the
-     * point from the center of the respective wires in "standard" geometry
-     * units.
-     * 
-     * If `locOnWires` is non-null, it is filled with { t, u }.
-     */
-
-    geo::Point_t const& c1 = wire1.GetCenter<geo::Point_t>();
-    geo::Vector_t const& w1 = wire1.Direction<geo::Vector_t>();
-
-    geo::Point_t const& c2 = wire2.GetCenter<geo::Point_t>();
-    geo::Vector_t const& w2 = wire2.Direction<geo::Vector_t>();
-
-    geo::Vector_t const dc = c2 - c1;
-
-    // note: we are not checking that w1 and w2 are not parallel.
-    using geo::vect::dot;
-    double const w1w2 = dot(w1, w2); // this is cos(angle), angle between wires
-    double const cscAngle2 = 1.0 / (1.0 - cet::square(w1w2)); // this is 1/sin^2(angle)
-    double const dcw1 = dot(dc, w1);
-    double const dcw2 = dot(dc, w2);
-    
-    double const t = (dcw1 - (dcw2 * w1w2)) * cscAngle2;
-    if (locOnWires) {
-      double const u = (-dcw2 + (dcw1 * w1w2)) * cscAngle2;
-      *locOnWires = { t, u };
-    }
-    
-    return c1 + t * w1;
-  } // GeometryCore::WiresIntersectImpl()
 
 
   //--------------------------------------------------------------------

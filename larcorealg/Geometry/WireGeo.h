@@ -12,6 +12,7 @@
 // LArSoft
 #include "larcorealg/Geometry/TransformationMatrix.h"
 #include "larcorealg/Geometry/LocalTransformationGeo.h"
+#include "larcorealg/Geometry/LineClosestPoint.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect
 
 // ROOT
@@ -349,6 +350,34 @@ namespace geo {
 
     const TGeoNode*     Node() const { return fWireNode; }
 
+    
+    /// @name Geometric properties and algorithms
+    /// @{
+    
+    
+    /**
+     * @brief Returns the point of this wire that is closest to `other` wire.
+     * @tparam Point the type of point returned
+     * @param other the other wire
+     * @param[out] locOnLines pointer to additional output (see description)
+     * @return the point of this wire closest to `other`
+     *
+     * The point of this wire that is closest to any point of the `other` wire
+     * is returned.
+     * 
+     * The `other` wire is _assumed_ not to be parallel to this one, and when
+     * this prerequisite is not met the behaviour is undefined.
+     * 
+     * If `locOnLines` is specified, a pair is returned with the distance of the
+     * closest point from the reference points on this wire (`first`) and
+     * `other` (`second`), in centimeters.
+     */
+    template <typename Point = DefaultPoint_t>
+    Point IntersectionWith(
+      geo::WireGeo const& other,
+      std::pair<double, double>* locOnLines = nullptr
+      ) const;
+
     /// Returns the z coordinate, in centimetres, at the point where y = 0.
     /// Assumes the wire orthogonal to x axis and the wire not parallel to z.
     double ComputeZatY0() const
@@ -362,12 +391,14 @@ namespace geo {
      * returned negative.
      */
     double DistanceFrom(geo::WireGeo const& wire) const;
+    
+    /// @}
 
 
     /// Internal updates after the relative position of the wire is known
     /// (currently no-op)
     void UpdateAfterSorting(geo::WireID const&, bool flip);
-
+    
     /// Returns the pitch (distance on y/z plane) between two wires, in cm
     static double WirePitch(geo::WireGeo const& w1, geo::WireGeo const& w2)
       { return std::abs(w2.DistanceFrom(w1)); }
@@ -408,6 +439,30 @@ namespace geo {
 
   static_assert(std::is_move_assignable_v<geo::WireGeo>);
   static_assert(std::is_move_constructible_v<geo::WireGeo>);
+  
+  
+  /**
+   * @brief Returns the point of `wireA` that is closest to `wireB`.
+   * @param wireA the first wire
+   * @param wireB the other wire
+   * @param[out] locOnLines pointer to additional output (see description)
+   * @return the point of `wireA` closest to `wireB`
+   *
+   * The point of `wireA` that is closest to `wireB` is returned.
+   * 
+   * The two wires are _assumed_ not to be parallel, and when this prerequisite
+   * is not met the behaviour is undefined.
+   * 
+   * If `locOnLines` is specified, a pair is returned with the distance of the
+   * closest point from the reference points on `wireA` (`first`) and `wireB`
+   * (`second`), in centimeters.
+   * 
+   */
+  geo::Point_t WiresIntersection(
+    geo::WireGeo const& wireA, geo::WireGeo const& wireB,
+    std::pair<double, double>* locOnLines = nullptr
+    );
+  
 
 } // namespace geo
 
@@ -471,6 +526,35 @@ void geo::WireGeo::PrintWireInfo(
 
   //----------------------------------------------------------------------------
 } // geo::WireGeo::PrintWireInfo()
+
+
+//------------------------------------------------------------------------------
+template <typename Point /* = DefaultPoint_t */>
+Point geo::WireGeo::IntersectionWith(
+  geo::WireGeo const& other,
+  std::pair<double, double>* locOnLines /* = nullptr */
+  ) const
+{
+  return 
+    geo::vect::convertTo<Point>(WiresIntersection(*this, other, locOnLines));
+} // geo::WireGeo::IntersectionWith()
+
+
+//------------------------------------------------------------------------------
+inline geo::Point_t geo::WiresIntersection(
+  geo::WireGeo const& wireA, geo::WireGeo const& wireB,
+  std::pair<double, double>* locOnLines /* = nullptr */
+  )
+{
+  
+  return LineClosestPointWithUnitVectors(
+    wireA.GetCenter<geo::Point_t>(), wireA.Direction<geo::Vector_t>(),
+    wireB.GetCenter<geo::Point_t>(), wireB.Direction<geo::Vector_t>(),
+    locOnLines
+    );
+  
+} // geo::WiresIntersection()
+
 
 
 //------------------------------------------------------------------------------
