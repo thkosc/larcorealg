@@ -71,6 +71,7 @@ namespace geo {
 
     using GeoNodePath_t = std::vector<TGeoNode const*>;
 
+    // -- BEGIN -- Types for geometry-local reference vectors ------------------
     /// @{
     /**
      * @name Types for geometry-local reference vectors.
@@ -96,6 +97,7 @@ namespace geo {
     using LocalVector_t = geo::Vector3DBase_t<WireGeoCoordinatesTag>;
 
     ///@}
+    // -- END ---- Types for geometry-local reference vectors ------------------
 
     /**
      * @brief Constructor from a ROOT geometry node and a transformation.
@@ -112,18 +114,26 @@ namespace geo {
     WireGeo(TGeoNode const& node, geo::TransformationMatrix&& trans);
 
 
-    /// @{
+    // -- BEGIN -- Size and coordinates ----------------------------------------
     /// @name Size and coordinates
+    /// @{
 
+    //@{
     /// Returns the outer half-size of the wire [cm]
     double RMax() const;
+    //@}
 
+    //@{
     /// Returns half the length of the wire [cm]
     double HalfL() const { return fHalfL; }
+    //@}
 
+    //@{
     /// Returns the inner radius of the wire (usually 0) [cm]
     double RMin() const;
+    //@}
 
+    //@{
     /**
      * @brief Fills the world coordinate of a point on the wire
      * @param xyz _(output)_ the position to be filled, as [ x, y, z ] (in cm)
@@ -139,14 +149,19 @@ namespace geo {
      * @deprecated Use the version returning a vector instead.
      */
     void GetCenter(double* xyz, double localz=0.0) const;
+    //@}
 
+    //@{
     /// Fills the world coordinate of one end of the wire
     /// @deprecated Use the version returning a vector instead.
     void GetStart(double* xyz) const { GetCenter(xyz, -fHalfL); }
+    //@}
 
+    //@{
     /// Fills the world coordinate of one end of the wire
     /// @deprecated Use the version returning a vector instead.
     void GetEnd(double* xyz) const { GetCenter(xyz, +fHalfL); }
+    //@}
 
     //@{
     /**
@@ -216,23 +231,33 @@ namespace geo {
     DefaultPoint_t GetEnd() const { return GetEnd<DefaultPoint_t>(); }
     //@}
 
+    //@{
     /// Returns the wire length in centimeters
     double Length() const { return 2. * HalfL(); }
+    //@}
+
 
     /// @}
+    // -- END ---- Size and coordinates  ---------------------------------------
 
-    /// @{
+
+    // -- BEGIN -- Orientation and angles --------------------------------------
     /// @name Orientation and angles
+    /// @{
 
+    //@{
     /// Returns angle of wire with respect to z axis in the Y-Z plane in radians
     double ThetaZ() const { return fThetaZ; }
+    //@}
 
+    //@{
     /**
      * Returns angle of wire with respect to z axis in the Y-Z plane
      * @param degrees return the angle in degrees rather than radians
      * @return wire angle
      */
     double ThetaZ(bool degrees) const;
+    //@}
 
     //@{
     /// Returns trigonometric operations on ThetaZ()
@@ -241,18 +266,24 @@ namespace geo {
     double TanThetaZ() const { return std::tan(ThetaZ()); }
     //@}
 
+    //@{
     /// Returns if this wire is horizontal (theta_z ~ 0)
     bool isHorizontal() const { return std::abs(SinThetaZ()) < 1e-5; }
+    //@}
 
+    //@{
     /// Returns if this wire is vertical (theta_z ~ pi/2)
     bool isVertical() const { return std::abs(CosThetaZ()) < 1e-5; }
+    //@}
 
+    //@{
     /// Returns if this wire is parallel to another
     bool isParallelTo(geo::WireGeo const& wire) const
       {
         return // parallel if the dot product of the directions is about +/- 1
           std::abs(std::abs(Direction<geo::Vector_t>().Dot(wire.Direction<geo::Vector_t>())) - 1.) < 1e-5;
       }
+    //@}
 
     //@{
     /// Returns the wire direction as a norm-one vector.
@@ -261,6 +292,14 @@ namespace geo {
     Vector Direction() const;
     DefaultVector_t Direction() const { return Direction<DefaultVector_t>(); }
     //@}
+
+    /// @}
+    // -- END ---- Orientation and angles --------------------------------------
+
+
+    // -- BEGIN -- Printing ----------------------------------------------------
+    /// @name Printing
+    /// @{
 
     /**
      * @brief Prints information about this wire.
@@ -299,12 +338,10 @@ namespace geo {
     static constexpr unsigned int MaxVerbosity = 4;
 
     /// @}
+    // -- END ---- Printing ----------------------------------------------------
 
 
-    /// @{
-    /// @name Coordinate conversion
-
-    /// @{
+    // -- BEGIN -- Coordinate transformation -----------------------------------
     /**
      * @name Coordinate transformation
      *
@@ -312,6 +349,7 @@ namespace geo {
      * `geo::WireGeo::LocalPoint_t` and `geo::WireGeo::LocalVector_t`,
      * respectively.
      */
+    /// @{
 
     /// Transform point from local wire frame to world frame.
     void LocalToWorld(const double* wire, double* world) const
@@ -346,14 +384,29 @@ namespace geo {
       { return fTrans.toLocalCoords(world); }
 
     /// @}
+    // -- END ---- Coordinate transformation -----------------------------------
 
 
     const TGeoNode*     Node() const { return fWireNode; }
 
     
+    // -- BEGIN -- Geometric properties and algorithms -------------------------
     /// @name Geometric properties and algorithms
     /// @{
     
+    /// Returns the z coordinate, in centimetres, at the point where y = 0.
+    /// Assumes the wire orthogonal to x axis and the wire not parallel to z.
+    double ComputeZatY0() const
+      { return fCenter.Z() - fCenter.Y() / TanThetaZ(); }
+
+    /**
+     * @brief Returns 3D distance from the specified wire
+     * @return the signed distance in centimetres (0 if wires are not parallel)
+     *
+     * If the specified wire is "ahead" in z respect to this, the distance is
+     * returned negative.
+     */
+    double DistanceFrom(geo::WireGeo const& wire) const;
     
     /**
      * @brief Returns the point of this wire that is closest to `other` wire.
@@ -378,21 +431,8 @@ namespace geo {
       std::pair<double, double>* locOnLines = nullptr
       ) const;
 
-    /// Returns the z coordinate, in centimetres, at the point where y = 0.
-    /// Assumes the wire orthogonal to x axis and the wire not parallel to z.
-    double ComputeZatY0() const
-      { return fCenter.Z() - fCenter.Y() / TanThetaZ(); }
-
-    /**
-     * @brief Returns 3D distance from the specified wire
-     * @return the signed distance in centimetres (0 if wires are not parallel)
-     *
-     * If the specified wire is "ahead" in z respect to this, the distance is
-     * returned negative.
-     */
-    double DistanceFrom(geo::WireGeo const& wire) const;
-    
     /// @}
+    // -- END ---- Geometric properties and algorithms -------------------------
 
 
     /// Internal updates after the relative position of the wire is known
