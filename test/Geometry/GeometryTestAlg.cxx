@@ -2520,7 +2520,8 @@ namespace geo{
 
       for (unsigned int iPlane2 = iPlane1 + 1; iPlane2 < NPlanes; ++iPlane2) {
         const geo::WireID& w2 = WireIDs[iPlane2];
-        geo::WireGeo const& w2obj = geom->Wire(w2);
+        geo::PlaneGeo const& plane2 = TPC.Plane(w2);
+        geo::WireGeo const& w2obj = plane2.Wire(w2);
 
         geo::Point_t xingPoint;
         if (!geom->WireIDsIntersect(w1, w2, xingPoint)) {
@@ -2530,6 +2531,8 @@ namespace geo{
           ++nErrors;
           continue;
         }
+        geo::Point_t xingPoint2 = xingPoint; // matching point on plane 2
+        plane2.DriftPoint(xingPoint2);
 
         if (bDriftOnX) { // legacy code check
 
@@ -2563,12 +2566,11 @@ namespace geo{
           ++nErrors;
           continue;
         }
-        plane1.DriftPoint(xingPointInv); // bring the point on plane 1
-        if (vectorIs.nonEqual(xingPoint, xingPointInv)) {
+        if (vectorIs.nonEqual(xingPointInv, xingPoint2)) {
           MF_LOG_ERROR("GeometryTest")
             << "WireIDsIntersect() gives different intersections for "
             << w1 << " and " << w2
-            << ": " << xingPoint << " (direct) and " << xingPointInv
+            << ": " << xingPoint2 << " (direct+shift) and " << xingPointInv
             << " (reversed)";
           ++nErrors;
           continue;
@@ -2607,13 +2609,49 @@ namespace geo{
           continue;
         } // if too far
 
+        geo::Point_t objXingPoint;
+        
         // test that geom->WiresIntersect() gives the same result as the already
         // validated one from geom->WireIDsIntersect()
-        geo::Point_t const objXingPoint = geom->WiresIntersect(w1obj, w2obj);
+        objXingPoint = geom->WiresIntersect(w1obj, w2obj);
         if (vectorIs.nonEqual(objXingPoint, xingPoint)) {
           MF_LOG_ERROR("GeometryTest")
             << "WiresIntersect() gives wrong intersection for "
             << w1 << " and " << w2
+            << ": " << objXingPoint << " vs. " << xingPoint << " (expected)";
+          ++nErrors;
+          continue;
+        }
+
+        // test that geo::WiresIntersection() gives the same result as
+        // the already validated one from geom->WireIDsIntersect()
+        objXingPoint = geo::WiresIntersection(w1obj, w2obj);
+        if (vectorIs.nonEqual(objXingPoint, xingPoint)) {
+          MF_LOG_ERROR("GeometryTest")
+            << "geo::WiresIntersection() gives wrong intersection for "
+            << w1 << " and " << w2
+            << ": " << objXingPoint << " vs. " << xingPoint << " (expected)";
+          ++nErrors;
+          continue;
+        }
+
+        // test that geo::WireGeo::IntersectionWith() gives the same result as
+        // the already validated one from geom->WireIDsIntersect()
+        objXingPoint = w1obj.IntersectionWith(w2obj);
+        if (vectorIs.nonEqual(objXingPoint, xingPoint)) {
+          MF_LOG_ERROR("GeometryTest")
+            << "geo::WireGeo[" << w1
+            << "]::IntersectionWith() gives wrong intersection with " << w2
+            << ": " << objXingPoint << " vs. " << xingPoint << " (expected)";
+          ++nErrors;
+          continue;
+        }
+
+        objXingPoint = w2obj.IntersectionWith(w1obj);
+        if (vectorIs.nonEqual(objXingPoint, xingPointInv)) {
+          MF_LOG_ERROR("GeometryTest")
+            << "geo::WireGeo[" << w2
+            << "]::IntersectionWith() gives wrong intersection with " << w1
             << ": " << objXingPoint << " vs. " << xingPoint << " (expected)";
           ++nErrors;
           continue;
