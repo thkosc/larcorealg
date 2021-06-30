@@ -113,11 +113,9 @@ namespace geo {
       if (gGeoManager) TGeoManager::UnlockGeometry();
       else { // very first time (or so it should)
         // [20210630, petrillo@slac.stanford.edu]
-        // we apparently need to tell ROOT 6.22.08 that when we write in
-        // GDML "cm" we expect the numbers that come out of its parsing
-        // to be expressed in centimeters.
-        // And we do that... telling ROOT to use millimeters as default,
-        // as ROOT default units are millimeters.
+        // ROOT 6.22.08 allows us to choose the representation of lengths
+        // in the geometry objects parsed from GDML.
+        // In LArSoft we want them to be centimeters (ROOT standard).
         // This was tracked as Redmine issue #25990, and I leave this mark
         // because I feel that we'll be back to it not too far in the future.
         // Despite the documentation (ROOT 6.22/08),
