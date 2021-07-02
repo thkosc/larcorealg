@@ -71,14 +71,11 @@ namespace geo {
     // the file, then the gGeoManager will be non-null.  If not, import it.
     // Then lock the gGeoManager to prevent future imports.
     if( !gGeoManager ){
-      if (gGeoManager) TGeoManager::UnlockGeometry();
-      else { // very first time (or so it should)
-        // [20210701, petrillo@slac.stanford.edu]
-        // same code, same comment as in geo::GeometryCore::LoadGeometryFile().
-        TGeoManager::LockDefaultUnits(false);
-        TGeoManager::SetDefaultUnits(TGeoManager::kRootUnits);
-        TGeoManager::LockDefaultUnits(true);
-      }
+      // [20210701, petrillo@slac.stanford.edu]
+      // same code, same comment as in `geo::GeometryCore::LoadGeometryFile()`.
+      TGeoManager::LockDefaultUnits(false);
+      TGeoManager::SetDefaultUnits(TGeoManager::kRootUnits);
+      TGeoManager::LockDefaultUnits(true);
       TGeoManager::Import(rootfile.c_str());
       gGeoManager->LockGeometry();
     }
