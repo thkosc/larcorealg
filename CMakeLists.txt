@@ -34,6 +34,7 @@ find_ups_product(messagefacility)
 find_ups_product( larcoreobj )
 find_ups_product( clhep )
 find_ups_root()
+find_ups_boost()
 
 # macros for artdaq_dictionary and simple_plugin
 include(ArtDictionary)
