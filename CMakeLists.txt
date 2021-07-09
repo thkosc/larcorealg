@@ -28,7 +28,11 @@ cet_report_compiler_flags()
 
 # these are minimum required versions, not the actual product versions
 find_ups_product( canvas )
+find_ups_product( cetlib )
+find_ups_product( cetlib_except )
+find_ups_product(messagefacility)
 find_ups_product( larcoreobj )
+find_ups_product( clhep )
 find_ups_root()
 
 # macros for artdaq_dictionary and simple_plugin
