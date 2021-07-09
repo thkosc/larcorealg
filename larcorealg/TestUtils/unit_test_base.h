@@ -1107,7 +1107,7 @@ namespace testing {
 
     // parse a configuration file; obtain intermediate form
     fhicl::intermediate_table table;
-    fhicl::parse_document(config_path, policy, table);
+    table = fhicl::parse_document(config_path, policy);
 
     // translate into a parameter set
     fhicl::ParameterSet global_pset;
