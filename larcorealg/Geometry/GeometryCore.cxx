@@ -93,6 +93,7 @@ namespace geo {
     bool bForceReload /* = false*/
   ) {
 
+
     if (gdmlfile.empty()) {
       throw cet::exception("GeometryCore")
         << "No GDML Geometry file specified!\n";
@@ -110,6 +111,20 @@ namespace geo {
     // in AuxDetGeometry
     if( !gGeoManager || bForceReload ){
       if (gGeoManager) TGeoManager::UnlockGeometry();
+      else { // very first time (or so it should)
+        // [20210630, petrillo@slac.stanford.edu]
+        // ROOT 6.22.08 allows us to choose the representation of lengths
+        // in the geometry objects parsed from GDML.
+        // In LArSoft we want them to be centimeters (ROOT standard).
+        // This was tracked as Redmine issue #25990, and I leave this mark
+        // because I feel that we'll be back to it not too far in the future.
+        // Despite the documentation (ROOT 6.22/08),
+        // it seems the units are locked from the beginning,
+        // so we unlock without prejudice.
+        TGeoManager::LockDefaultUnits(false);
+        TGeoManager::SetDefaultUnits(TGeoManager::kRootUnits);
+        TGeoManager::LockDefaultUnits(true);
+      }
       TGeoManager::Import(rootfile.c_str());
       gGeoManager->LockGeometry();
     }
