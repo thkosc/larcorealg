@@ -148,20 +148,20 @@ cet_test(driftvolumes_test
   USE_BOOST_UNIT
   )
 
-cet_test(geometrydatacontainers_test
-  SOURCES geometrydatacontainers_test.cxx
-  USE_BOOST_UNIT
-  )
+##cet_test(geometrydatacontainers_test
+##  SOURCES geometrydatacontainers_test.cxx
+##  USE_BOOST_UNIT
+##  )
 
-cet_test(geoidmapper_test
-  SOURCES geoidmapper_test.cxx
-  USE_BOOST_UNIT
-  )
+##cet_test(geoidmapper_test
+##  SOURCES geoidmapper_test.cxx
+##  USE_BOOST_UNIT
+##  )
 
-cet_test(readoutdatacontainers_test
-  SOURCES readoutdatacontainers_test.cxx
-  USE_BOOST_UNIT
-  )
+##cet_test(readoutdatacontainers_test
+##  SOURCES readoutdatacontainers_test.cxx
+##  USE_BOOST_UNIT
+##  )
 
 cet_test(topology_test
   SOURCES topology_test.cxx
