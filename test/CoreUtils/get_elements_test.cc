@@ -42,12 +42,12 @@ void test_get_elements() {
     for (auto&& [ index, a ]: util::get_elements<0U, 2U>(std::as_const(data))) {
       static_assert(std::is_same_v<decltype(index), int const&>);
       static_assert(std::is_same_v<decltype(a), A const&>);
-      BOOST_CHECK_EQUAL(index, std::get<0U>(*iItem));
-      BOOST_CHECK_EQUAL(&index, &(std::get<0U>(*iItem)));
-      BOOST_CHECK_EQUAL(&a, &(std::get<2U>(*iItem)));
+      BOOST_TEST(index == std::get<0U>(*iItem));
+      BOOST_TEST(&index == &std::get<0U>(*iItem));
+      BOOST_TEST(&a == &std::get<2U>(*iItem));
       ++iItem;
     }
-    BOOST_CHECK(iItem == data.cend());
+    BOOST_TEST((iItem == data.cend()));
   }
   
   //
@@ -58,12 +58,12 @@ void test_get_elements() {
     for (auto&& [ index, a ]: util::get_elements<0U, 2U>(data)) {
       static_assert(std::is_same_v<decltype(index), int&>);
       static_assert(std::is_same_v<decltype(a), A&>);
-      BOOST_CHECK_EQUAL(index, std::get<0U>(*iItem));
-      BOOST_CHECK_EQUAL(&index, &(std::get<0U>(*iItem)));
-      BOOST_CHECK_EQUAL(&a, &(std::get<2U>(*iItem)));
+      BOOST_TEST(index == std::get<0U>(*iItem));
+      BOOST_TEST(&index == &std::get<0U>(*iItem));
+      BOOST_TEST(&a == &std::get<2U>(*iItem));
       ++iItem;
     }
-    BOOST_CHECK(iItem == data.cend());
+    BOOST_TEST((iItem == data.cend()));
   }
   
 } // test_get_elements()
@@ -86,12 +86,12 @@ void test_get_const_elements() {
     for (auto&& [ index, a ]: util::get_elements<0U, 2U>(std::as_const(data))) {
       static_assert(std::is_same_v<decltype(index), int const&>);
       static_assert(std::is_same_v<decltype(a), A const&>);
-      BOOST_CHECK_EQUAL(index, std::get<0U>(*iItem));
-      BOOST_CHECK_EQUAL(&index, &(std::get<0U>(*iItem)));
-      BOOST_CHECK_EQUAL(&a, &(std::get<2U>(*iItem)));
+      BOOST_TEST(index == std::get<0U>(*iItem));
+      BOOST_TEST(&index == &std::get<0U>(*iItem));
+      BOOST_TEST(&a == &std::get<2U>(*iItem));
       ++iItem;
     }
-    BOOST_CHECK(iItem == data.cend());
+    BOOST_TEST((iItem == data.cend()));
   }
     
   //
@@ -102,12 +102,12 @@ void test_get_const_elements() {
     for (auto&& [ index, a ]: util::get_elements<0U, 2U>(data)) {
       static_assert(std::is_same_v<decltype(index), int const&>);
       static_assert(std::is_same_v<decltype(a), A const&>);
-      BOOST_CHECK_EQUAL(index, std::get<0U>(*iItem));
-      BOOST_CHECK_EQUAL(&index, &(std::get<0U>(*iItem)));
-      BOOST_CHECK_EQUAL(&a, &(std::get<2U>(*iItem)));
+      BOOST_TEST(index == std::get<0U>(*iItem));
+      BOOST_TEST(&index == &std::get<0U>(*iItem));
+      BOOST_TEST(&a == &std::get<2U>(*iItem));
       ++iItem;
     }
-    BOOST_CHECK(iItem == data.cend());
+    BOOST_TEST((iItem == data.cend()));
   }
   
 } // test_get_const_elements()
@@ -131,11 +131,11 @@ void test_get_elements_single() {
     auto iItem = data.cbegin();
     for (auto&& index: util::get_elements<0U>(std::as_const(data))) {
       static_assert(std::is_same_v<decltype(index), int const&>);
-      BOOST_CHECK_EQUAL(index, std::get<0U>(*iItem));
-      BOOST_CHECK_EQUAL(&index, &(std::get<0U>(*iItem)));
+      BOOST_TEST(index == std::get<0U>(*iItem));
+      BOOST_TEST(&index == &std::get<0U>(*iItem));
       ++iItem;
     }
-    BOOST_CHECK(iItem == data.cend());
+    BOOST_TEST((iItem == data.cend()));
   }
     
   //
@@ -145,11 +145,11 @@ void test_get_elements_single() {
     auto iItem = data.cbegin();
     for (auto&& index: util::get_elements<0U>(data)) {
       static_assert(std::is_same_v<decltype(index), int&>);
-      BOOST_CHECK_EQUAL(index, std::get<0U>(*iItem));
-      BOOST_CHECK_EQUAL(&index, &(std::get<0U>(*iItem)));
+      BOOST_TEST(index == std::get<0U>(*iItem));
+      BOOST_TEST(&index == &std::get<0U>(*iItem));
       ++iItem;
     }
-    BOOST_CHECK(iItem == data.cend());
+    BOOST_TEST((iItem == data.cend()));
   }
   
 } // test_get_elements_single()
@@ -171,11 +171,11 @@ void test_get_const_elements_single() {
     auto iItem = data.cbegin();
     for (auto&& index: util::get_elements<0U>(std::as_const(data))) {
       static_assert(std::is_same_v<decltype(index), int const&>);
-      BOOST_CHECK_EQUAL(index, std::get<0U>(*iItem));
-      BOOST_CHECK_EQUAL(&index, &(std::get<0U>(*iItem)));
+      BOOST_TEST(index == std::get<0U>(*iItem));
+      BOOST_TEST(&index == &std::get<0U>(*iItem));
       ++iItem;
     }
-    BOOST_CHECK(iItem == data.cend());
+    BOOST_TEST((iItem == data.cend()));
   }
     
   //
@@ -185,11 +185,11 @@ void test_get_const_elements_single() {
     auto iItem = data.cbegin();
     for (auto&& index: util::get_elements<0U>(data)) {
       static_assert(std::is_same_v<decltype(index), int const&>);
-      BOOST_CHECK_EQUAL(index, std::get<0U>(*iItem));
-      BOOST_CHECK_EQUAL(&index, &(std::get<0U>(*iItem)));
+      BOOST_TEST(index == std::get<0U>(*iItem));
+      BOOST_TEST(&index == &std::get<0U>(*iItem));
       ++iItem;
     }
-    BOOST_CHECK(iItem == data.cend());
+    BOOST_TEST((iItem == data.cend()));
   }
   
 } // test_get_const_elements_single()
@@ -240,10 +240,10 @@ void get_elements_documentation_test() {
     { { 'z', 1.0F }, { 'o', 3.0F }, { 't', 9.0F } };
   std::vector<int> const expected_exponents{ 0, 1, 2 };
   
-  BOOST_CHECK_EQUAL(factors.size(), expected_factors.size());
+  BOOST_TEST(factors.size() == expected_factors.size());
   for (auto const& [ f, expected_f ]: util::zip(factors, expected_factors)) {
-    BOOST_CHECK_EQUAL(f.first, expected_f.first);
-    BOOST_CHECK_EQUAL(f.second, expected_f.second);
+    BOOST_TEST(f.first == expected_f.first);
+    BOOST_TEST(f.second == expected_f.second);
   } // for
   
   BOOST_CHECK_EQUAL_COLLECTIONS(

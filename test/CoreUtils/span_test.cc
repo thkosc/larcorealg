@@ -43,11 +43,11 @@ void test_span(Cont& v) {
   static_assert
     (std::is_same<typename decltype(r)::reference, typename Iter::reference>());
 
-  BOOST_CHECK(r.begin() == v.begin());
-  BOOST_CHECK(r.end() == v.end());
+  BOOST_TEST((r.begin() == v.begin()));
+  BOOST_TEST((r.end() == v.end()));
 
-  BOOST_CHECK_EQUAL(r.empty(), v.empty());
-  BOOST_CHECK_EQUAL(r.size(), v.size());
+  BOOST_TEST(r.empty() == v.empty());
+  BOOST_TEST(r.size() == v.size());
 
   auto iV = v.cbegin();
   unsigned int n = 0;
@@ -77,20 +77,20 @@ void test_const_span(Cont& v) {
   static_assert
     (std::is_same<typename decltype(r)::reference, typename Iter::reference>());
 
-  BOOST_CHECK(r.begin() == v.cbegin());
-  BOOST_CHECK(r.end() == v.cend());
+  BOOST_TEST((r.begin() == v.cbegin()));
+  BOOST_TEST((r.end() == v.cend()));
 
-  BOOST_CHECK_EQUAL(r.empty(), v.empty());
-  BOOST_CHECK_EQUAL(r.size(), v.size());
+  BOOST_TEST(r.empty() == v.empty());
+  BOOST_TEST(r.size() == v.size());
 
   auto iV = v.cbegin();
   unsigned int n = 0;
   for (auto i: r) {
-    BOOST_CHECK_EQUAL(i, *iV);
+    BOOST_TEST(i == *iV);
     ++n;
     ++iV;
   } // for
-  BOOST_CHECK_EQUAL(n, v.size());
+  BOOST_TEST(n == v.size());
 
 } // test_const_span()
 
