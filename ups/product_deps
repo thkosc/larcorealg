@@ -25,6 +25,12 @@ larcoreobj      v09_30_00_rc0
 cetbuildtools	v8_10_01	-	only_for_build
 end_product_list
 
+# table fragment to set FW_SEARCH_PATH needed
+# to find gdml files:
+table_fragment_begin
+    pathPrepend(FW_SEARCH_PATH, ${UPS_PROD_DIR}/gdml)
+table_fragment_end
+
 qualifier	larcoreobj		notes
 e20:debug	e20:debug
 e20:prof	e20:prof
