@@ -17,6 +17,7 @@
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect::dot()
 
 // C++ standard library
+#include <tuple> // std::tie()
 #include <cmath> // std::abs()
 #include <cassert>
 
@@ -48,11 +49,8 @@ Point geo::LineClosestPoint(
    */
 
   // aliases for quick notation
-  Point const& c1 = startA;
-  Vector const& w1 = dirA;
-
-  Point const& c2 = startB;
-  Vector const& w2 = dirB;
+  auto const& [ c1, w1 ] = std::tie(startA, dirA);
+  auto const& [ c2, w2 ] = std::tie(startB, dirB);
 
   auto const dc = c2 - c1;
 
