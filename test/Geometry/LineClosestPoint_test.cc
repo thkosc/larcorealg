@@ -8,8 +8,8 @@
 
 
 // Boost libraries
-#define BOOST_TEST_MODULE ( LineClosestPoint_test )
-#include <cetlib/quiet_unit_test.hpp> // BOOST_AUTO_TEST_CASE()
+#define BOOST_TEST_MODULE LineClosestPoint_test
+#include <cetlib/quiet_unit_test.hpp> // BOOST_AUTO_TEST_CASE(), BOOST_TEST()
 #include <boost/test/test_tools.hpp> // BOOST_CHECK(), BOOST_CHECK_CLOSE()
 
 // LArSoft libraries
@@ -25,16 +25,16 @@
 // =============================================================================
 void LineClosestPointSimple_test() {
   
-  constexpr double tol = 0.001; // percent in CLOSE, absolute in SMALL!
+  auto const tol = boost::test_tools::tolerance(0.001);
   
   geo::Point_t const p = geo::LineClosestPoint(
     geo::origin() - geo::Zaxis() - 3.0 * geo::Xaxis(), geo::Xaxis(),
     geo::origin() + geo::Zaxis() + 2.0 * geo::Yaxis(), geo::Yaxis()
     );
   
-  BOOST_CHECK_SMALL(p.X(),       tol);
-  BOOST_CHECK_SMALL(p.Y(),       tol);
-  BOOST_CHECK_CLOSE(p.Z(), -1.0, tol);
+  BOOST_TEST(p.X() ==  0.0, tol);
+  BOOST_TEST(p.Y() ==  0.0, tol);
+  BOOST_TEST(p.Z() == -1.0, tol);
   
 } // LineClosestPointSimple_test()
 
@@ -42,16 +42,16 @@ void LineClosestPointSimple_test() {
 // -----------------------------------------------------------------------------
 void LineClosestPointSimple45_test() {
   
-  constexpr double tol = 0.001; // absolute
+  auto const tol = boost::test_tools::tolerance(0.001);
   
   geo::Point_t const p = geo::LineClosestPoint(
     geo::origin(),                geo::Xaxis(),
     geo::origin() + geo::Yaxis(), (geo::Xaxis() + geo::Zaxis()) / std::sqrt(2.0)
     );
   
-  BOOST_CHECK_SMALL(p.X(), tol);
-  BOOST_CHECK_SMALL(p.Y(), tol);
-  BOOST_CHECK_SMALL(p.Z(), tol);
+  BOOST_TEST(p.X() == 0.0, tol);
+  BOOST_TEST(p.Y() == 0.0, tol);
+  BOOST_TEST(p.Z() == 0.0, tol);
   
 } // LineClosestPointSimple45_test()
 
@@ -59,18 +59,18 @@ void LineClosestPointSimple45_test() {
 // -----------------------------------------------------------------------------
 void LineClosestPointAndOffsets_test() {
   
-  constexpr double tol = 0.001; // percent in CLOSE, absolute in SMALL!
+  auto const tol = boost::test_tools::tolerance(0.001);
   
   auto const [ p, ofsA, ofsB ] = geo::LineClosestPointAndOffsets(
     geo::origin()                - 3.0 * geo::Xaxis(), geo::Xaxis(),
     geo::origin() + geo::Zaxis() + 2.0 * geo::Yaxis(), geo::Yaxis()
     );
   
-  BOOST_CHECK_SMALL(p.X(), tol);
-  BOOST_CHECK_SMALL(p.Y(), tol);
-  BOOST_CHECK_SMALL(p.Z(), tol);
-  BOOST_CHECK_CLOSE(ofsA,  +3.0, tol);
-  BOOST_CHECK_CLOSE(ofsB, -2.0, tol);
+  BOOST_TEST(p.X() ==  0.0, tol);
+  BOOST_TEST(p.Y() ==  0.0, tol);
+  BOOST_TEST(p.Z() ==  0.0, tol);
+  BOOST_TEST(ofsA  == +3.0, tol);
+  BOOST_TEST(ofsB  == -2.0, tol);
   
 } // LineClosestPointAndOffsets_test()
 
@@ -78,18 +78,18 @@ void LineClosestPointAndOffsets_test() {
 // -----------------------------------------------------------------------------
 void LineClosestPointWithScaledDirs_test() {
   
-  constexpr double tol = 0.001; // percent in CLOSE, absolute in SMALL!
+  auto const tol = boost::test_tools::tolerance(0.001);
   
   auto const [ p, ofsA, ofsB ] = geo::LineClosestPointAndOffsets(
     geo::origin()                - 3.0 * geo::Xaxis(),  2.0 * geo::Xaxis(),
     geo::origin() + geo::Zaxis() + 2.0 * geo::Yaxis(), -2.0 * geo::Yaxis()
     );
   
-  BOOST_CHECK_SMALL(p.X(), tol);
-  BOOST_CHECK_SMALL(p.Y(), tol);
-  BOOST_CHECK_SMALL(p.Z(), tol);
-  BOOST_CHECK_CLOSE(ofsA, +3.0 /  2.0, tol);
-  BOOST_CHECK_CLOSE(ofsB, -2.0 / -2.0, tol);
+  BOOST_TEST(p.X() ==  0.0, tol);
+  BOOST_TEST(p.Y() ==  0.0, tol);
+  BOOST_TEST(p.Z() ==  0.0, tol);
+  BOOST_TEST(ofsA  == (+3.0 /  2.0), tol);
+  BOOST_TEST(ofsB  == (-2.0 / -2.0), tol);
   
 } // LineClosestPointWithScaledDirs_test()
 
@@ -97,18 +97,18 @@ void LineClosestPointWithScaledDirs_test() {
 // -----------------------------------------------------------------------------
 void LineClosestPointWithNonHomogeneousDirs_test() {
   
-  constexpr double tol = 0.001; // percent in CLOSE, absolute in SMALL!
+  auto const tol = boost::test_tools::tolerance(0.001);
   
   auto const [ p, ofsA, ofsB ] = geo::LineClosestPointAndOffsets(
     geo::origin()                - 3.0 * geo::Xaxis(),  1.5 * geo::Xaxis(),
     geo::origin() + geo::Zaxis() + 2.0 * geo::Yaxis(), -2.0 * geo::Yaxis()
     );
   
-  BOOST_CHECK_SMALL(p.X(), tol);
-  BOOST_CHECK_SMALL(p.Y(), tol);
-  BOOST_CHECK_SMALL(p.Z(), tol);
-  BOOST_CHECK_CLOSE(ofsA, +3.0 /  1.5, tol);
-  BOOST_CHECK_CLOSE(ofsB, -2.0 / -2.0, tol);
+  BOOST_TEST(p.X() ==  0.0, tol);
+  BOOST_TEST(p.Y() ==  0.0, tol);
+  BOOST_TEST(p.Z() ==  0.0, tol);
+  BOOST_TEST(ofsA  == (+3.0 /  1.5), tol);
+  BOOST_TEST(ofsB  == (-2.0 / -2.0), tol);
   
 } // LineClosestPointWithNonHomogeneousDirs_test()
 
@@ -116,7 +116,7 @@ void LineClosestPointWithNonHomogeneousDirs_test() {
 // -----------------------------------------------------------------------------
 void LineClosestPointAndOffsetsDocumentation_test() {
   
-  constexpr double tol = 0.001; // percent in CLOSE, absolute in SMALL!
+  auto const tol = boost::test_tools::tolerance(0.001);
   
   /*
    * The promise:
@@ -156,22 +156,22 @@ void LineClosestPointAndOffsetsDocumentation_test() {
   static_assert
     (std::is_same_v<decltype(offsetB), double>, "Unexpected second offset type");
   
-  BOOST_CHECK_CLOSE(point.X(), 2.0, tol);
-  BOOST_CHECK_CLOSE(point.Y(), 1.0, tol);
-  BOOST_CHECK_CLOSE(point.Z(), 1.0, tol);
-  BOOST_CHECK_CLOSE(offsetA, 2.0, tol);
-  BOOST_CHECK_CLOSE(offsetB, 2.0/0.866, tol);
+  BOOST_TEST(point.X() == 2.0, tol);
+  BOOST_TEST(point.Y() == 1.0, tol);
+  BOOST_TEST(point.Z() == 1.0, tol);
+  BOOST_TEST(offsetA   == 2.0, tol);
+  BOOST_TEST(offsetB   == (2.0/0.866), tol);
   
   std::tie(point, offsetA, offsetB) = geo::LineClosestPointAndOffsets(
     geo::Point_t{ 0, 1, 0 }, geo::Vector_t{ 0.866, 0.0, 0.0 },
     geo::Point_t{ 2, 0, 1 }, geo::Vector_t{ 0.0,   0.5, 0.0 }
     );
   
-  BOOST_CHECK_CLOSE(point.X(), 2.0, tol);
-  BOOST_CHECK_CLOSE(point.Y(), 1.0, tol);
-  BOOST_CHECK_CLOSE(point.Z(), 0.0, tol);
-  BOOST_CHECK_CLOSE(offsetA, 2.0/0.866, tol);
-  BOOST_CHECK_CLOSE(offsetB, 2.0, tol);
+  BOOST_TEST(point.X() == 2.0, tol);
+  BOOST_TEST(point.Y() == 1.0, tol);
+  BOOST_TEST(point.Z() == 0.0, tol);
+  BOOST_TEST(offsetA   == 2.0/0.866, tol);
+  BOOST_TEST(offsetB   == 2.0, tol);
   
 } // LineClosestPointAndOffsetsDocumentation_test()
 
@@ -179,16 +179,16 @@ void LineClosestPointAndOffsetsDocumentation_test() {
 // =============================================================================
 void LineClosestPointWithUnitVectorsSimple_test() {
   
-  constexpr double tol = 0.001; // percent in CLOSE, absolute in SMALL!
+  auto const tol = boost::test_tools::tolerance(0.001);
   
   geo::Point_t const p = geo::LineClosestPointWithUnitVectors(
     geo::origin() - geo::Zaxis() - 3.0 * geo::Xaxis(), geo::Xaxis(),
     geo::origin() + geo::Zaxis() + 2.0 * geo::Yaxis(), geo::Yaxis()
     );
   
-  BOOST_CHECK_SMALL(p.X(),       tol);
-  BOOST_CHECK_SMALL(p.Y(),       tol);
-  BOOST_CHECK_CLOSE(p.Z(), -1.0, tol);
+  BOOST_TEST(p.X() ==  0.0, tol);
+  BOOST_TEST(p.Y() ==  0.0, tol);
+  BOOST_TEST(p.Z() == -1.0, tol);
   
 } // LineClosestPointWithUnitVectorsSimple_test()
 
@@ -196,16 +196,16 @@ void LineClosestPointWithUnitVectorsSimple_test() {
 // -----------------------------------------------------------------------------
 void LineClosestPointWithUnitVectorsSimple45_test() {
   
-  constexpr double tol = 0.001; // absolute
+  auto const tol = boost::test_tools::tolerance(0.001);
   
   geo::Point_t const p = geo::LineClosestPointWithUnitVectors(
     geo::origin(),                geo::Xaxis(),
     geo::origin() + geo::Yaxis(), (geo::Xaxis() + geo::Zaxis()) / std::sqrt(2.0)
     );
   
-  BOOST_CHECK_SMALL(p.X(), tol);
-  BOOST_CHECK_SMALL(p.Y(), tol);
-  BOOST_CHECK_SMALL(p.Z(), tol);
+  BOOST_TEST(p.X() == 0.0, tol);
+  BOOST_TEST(p.Y() == 0.0, tol);
+  BOOST_TEST(p.Z() == 0.0, tol);
   
 } // LineClosestPointWithUnitVectorsSimple45_test()
 
@@ -213,18 +213,18 @@ void LineClosestPointWithUnitVectorsSimple45_test() {
 // -----------------------------------------------------------------------------
 void LineClosestPointWithUnitVectorsAndOffsets_test() {
   
-  constexpr double tol = 0.001; // percent in CLOSE, absolute in SMALL!
+  auto const tol = boost::test_tools::tolerance(0.001);
   
   auto const [ p, ofsA, ofsB ] = geo::LineClosestPointAndOffsetsWithUnitVectors(
     geo::origin()                - 3.0 * geo::Xaxis(), geo::Xaxis(),
     geo::origin() + geo::Zaxis() + 2.0 * geo::Yaxis(), geo::Yaxis()
     );
   
-  BOOST_CHECK_SMALL(p.X(), tol);
-  BOOST_CHECK_SMALL(p.Y(), tol);
-  BOOST_CHECK_SMALL(p.Z(), tol);
-  BOOST_CHECK_CLOSE(ofsA, +3.0, tol);
-  BOOST_CHECK_CLOSE(ofsB, -2.0, tol);
+  BOOST_TEST(p.X() ==  0.0, tol);
+  BOOST_TEST(p.Y() ==  0.0, tol);
+  BOOST_TEST(p.Z() ==  0.0, tol);
+  BOOST_TEST(ofsA  == +3.0, tol);
+  BOOST_TEST(ofsB  == -2.0, tol);
   
 } // LineClosestPointWithUnitVectorsAndOffsets_test()
 
@@ -232,7 +232,7 @@ void LineClosestPointWithUnitVectorsAndOffsets_test() {
 // -----------------------------------------------------------------------------
 void LineClosestPointAndOffsetsWithUnitVectorsDocumentation_test() {
   
-  constexpr double tol = 0.001; // percent in CLOSE, absolute in SMALL!
+  auto const tol = boost::test_tools::tolerance(0.001);
   
   /*
    * The promise:
@@ -272,22 +272,22 @@ void LineClosestPointAndOffsetsWithUnitVectorsDocumentation_test() {
   static_assert
     (std::is_same_v<decltype(offsetB), double>, "Unexpected second offset type");
   
-  BOOST_CHECK_CLOSE(point.X(), 2.0, tol);
-  BOOST_CHECK_CLOSE(point.Y(), 1.0, tol);
-  BOOST_CHECK_CLOSE(point.Z(), 1.0, tol);
-  BOOST_CHECK_CLOSE(offsetA, 1.0, tol);
-  BOOST_CHECK_CLOSE(offsetB, 2.0, tol);
+  BOOST_TEST(point.X() == 2.0, tol);
+  BOOST_TEST(point.Y() == 1.0, tol);
+  BOOST_TEST(point.Z() == 1.0, tol);
+  BOOST_TEST(offsetA   == 1.0, tol);
+  BOOST_TEST(offsetB   == 2.0, tol);
   
   std::tie(point, offsetA, offsetB) = geo::LineClosestPointAndOffsetsWithUnitVectors(
     geo::Point_t{ 0, 1, 0 }, geo::Vector_t{ 1, 0, 0 },
     geo::Point_t{ 2, 0, 1 }, geo::Vector_t{ 0, 1, 0 }
     );
   
-  BOOST_CHECK_CLOSE(point.X(), 2.0, tol);
-  BOOST_CHECK_CLOSE(point.Y(), 1.0, tol);
-  BOOST_CHECK_CLOSE(point.Z(), 0.0, tol);
-  BOOST_CHECK_CLOSE(offsetA, 2.0, tol);
-  BOOST_CHECK_CLOSE(offsetB, 1.0, tol);
+  BOOST_TEST(point.X() == 2.0, tol);
+  BOOST_TEST(point.Y() == 1.0, tol);
+  BOOST_TEST(point.Z() == 0.0, tol);
+  BOOST_TEST(offsetA   == 2.0, tol);
+  BOOST_TEST(offsetB   == 1.0, tol);
   
 } // LineClosestPointAndOffsetsWithUnitVectorsDocumentation_test()
 
