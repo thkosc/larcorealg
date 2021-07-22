@@ -32,6 +32,10 @@ namespace geo {
     double offset1; ///< Distance from reference point of first line.
     double offset2; ///< Distance from reference point of second line.
     
+    /// Helper to assign to `std::tie()`.
+    operator std::tuple<Point&, double&, double&>() noexcept
+      { return { point, offset1, offset2 }; }
+    
   }; // IntersectionPointAndOffsets<>
   
   

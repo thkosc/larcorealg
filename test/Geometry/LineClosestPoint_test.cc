@@ -179,6 +179,18 @@ void LineClosestPointAndOffsetsDocumentation_test() {
   BOOST_TEST(offsetA   == 2.0/0.866, tol);
   BOOST_TEST(offsetB   == 2.0, tol);
   
+  // actually we _can_ assign with `std::tie()`:
+  std::tie(point, offsetA, offsetB) = geo::LineClosestPointAndOffsets(
+    geo::Point_t{ 2, 0, 1 }, geo::Vector_t{ 0.0,   0.5, 0.0 },
+    geo::Point_t{ 0, 1, 0 }, geo::Vector_t{ 0.866, 0.0, 0.0 }
+    );
+  
+  BOOST_TEST(point.X() == 2.0, tol);
+  BOOST_TEST(point.Y() == 1.0, tol);
+  BOOST_TEST(point.Z() == 1.0, tol);
+  BOOST_TEST(offsetA   == 2.0, tol);
+  BOOST_TEST(offsetB   == (2.0/0.866), tol);
+  
 } // LineClosestPointAndOffsetsDocumentation_test()
 
 
@@ -300,6 +312,18 @@ void LineClosestPointAndOffsetsWithUnitVectorsDocumentation_test() {
   BOOST_TEST(point.Z() == 0.0, tol);
   BOOST_TEST(offsetA   == 2.0, tol);
   BOOST_TEST(offsetB   == 1.0, tol);
+  
+  // actually we _can_ assign with `std::tie()`:
+  std::tie(point, offsetA, offsetB) = geo::LineClosestPointAndOffsetsWithUnitVectors(
+    geo::Point_t{ 2, 0, 1 }, geo::Vector_t{ 0, 1, 0 },
+    geo::Point_t{ 0, 1, 0 }, geo::Vector_t{ 1, 0, 0 }
+    );
+  
+  BOOST_TEST(point.X() == 2.0, tol);
+  BOOST_TEST(point.Y() == 1.0, tol);
+  BOOST_TEST(point.Z() == 1.0, tol);
+  BOOST_TEST(offsetA   == 1.0, tol);
+  BOOST_TEST(offsetB   == 2.0, tol);
   
 } // LineClosestPointAndOffsetsWithUnitVectorsDocumentation_test()
 
