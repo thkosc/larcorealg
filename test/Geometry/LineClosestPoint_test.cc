@@ -133,10 +133,13 @@ void LineClosestPointAndOffsetsDocumentation_test() {
    * to `2.309...`.
    * To reassign the variables after they have been defined, instead:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-   * std::tie(point, offsetA, offsetB) = geo::LineClosestPointAndOffsets(
+   * auto const xsectAndOfs = geo::LineClosestPointAndOffsets(
    *   geo::Point_t{ 0, 1, 0 }, geo::Vector_t{ 0.866, 0.0, 0.0 },
    *   geo::Point_t{ 2, 0, 1 }, geo::Vector_t{ 0.0,   0.5, 0.0 }
    *   );
+   * point = xsectAndOfs.point;
+   * offsetA = xsectAndOfs.offset1;
+   * offsetB = xsectAndOfs.offset2;
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * (`point` to `geo::Point{ 2, 1, 0 }`, `offsetA` to `2.039...` and `offsetB`
    * to `2`, because the intersection point is always on the first line).
@@ -162,10 +165,13 @@ void LineClosestPointAndOffsetsDocumentation_test() {
   BOOST_TEST(offsetA   == 2.0, tol);
   BOOST_TEST(offsetB   == (2.0/0.866), tol);
   
-  std::tie(point, offsetA, offsetB) = geo::LineClosestPointAndOffsets(
+  auto const xsectAndOfs = geo::LineClosestPointAndOffsets(
     geo::Point_t{ 0, 1, 0 }, geo::Vector_t{ 0.866, 0.0, 0.0 },
     geo::Point_t{ 2, 0, 1 }, geo::Vector_t{ 0.0,   0.5, 0.0 }
     );
+  point = xsectAndOfs.point;
+  offsetA = xsectAndOfs.offset1;
+  offsetB = xsectAndOfs.offset2;
   
   BOOST_TEST(point.X() == 2.0, tol);
   BOOST_TEST(point.Y() == 1.0, tol);
@@ -249,10 +255,13 @@ void LineClosestPointAndOffsetsWithUnitVectorsDocumentation_test() {
    * to `2`.
    * To reassign the variables after they have been defined, instead:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-   * std::tie(point, offsetA, offsetB) = geo::LineClosestPointAndOffsetsWithUnitVectors(
+   * auto const xsectAndOfs = geo::LineClosestPointAndOffsetsWithUnitVectors(
    *   geo::Point_t{ 0, 1, 0 }, geo::Vector_t{ 1, 0, 0 },
    *   geo::Point_t{ 2, 0, 1 }, geo::Vector_t{ 0, 1, 0 }
    *   );
+   * point = xsectAndOfs.point;
+   * offsetA = xsectAndOfs.offset1;
+   * offsetB = xsectAndOfs.offset2;
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * (`point` to `geo::Point{ 2, 1, 0 }`, `offsetA` to `2` and `offsetB` to `1`,
    * because the intersection point is always on the first line).
@@ -278,10 +287,13 @@ void LineClosestPointAndOffsetsWithUnitVectorsDocumentation_test() {
   BOOST_TEST(offsetA   == 1.0, tol);
   BOOST_TEST(offsetB   == 2.0, tol);
   
-  std::tie(point, offsetA, offsetB) = geo::LineClosestPointAndOffsetsWithUnitVectors(
+  auto const xsectAndOfs = geo::LineClosestPointAndOffsetsWithUnitVectors(
     geo::Point_t{ 0, 1, 0 }, geo::Vector_t{ 1, 0, 0 },
     geo::Point_t{ 2, 0, 1 }, geo::Vector_t{ 0, 1, 0 }
     );
+  point = xsectAndOfs.point;
+  offsetA = xsectAndOfs.offset1;
+  offsetB = xsectAndOfs.offset2;
   
   BOOST_TEST(point.X() == 2.0, tol);
   BOOST_TEST(point.Y() == 1.0, tol);

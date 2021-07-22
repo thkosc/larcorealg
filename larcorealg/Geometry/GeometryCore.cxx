@@ -1444,12 +1444,14 @@ namespace geo {
     geo::WireGeo const& wire2 = Wire(wid2);
 
     // distance of the intersection point from the center of the two wires:
-    double ofs1, ofs2;
-    std::tie(intersection, ofs1, ofs2)
+    geo::IntersectionPointAndOffsets<geo::Point_t> intersectionAndOffset
       = geo::WiresIntersectionAndOffsets(wire1, wire2);
+    intersection = intersectionAndOffset.point;
     
-    bool const within
-      = (std::abs(ofs1) <= wire1.HalfL()) && (std::abs(ofs2) <= wire2.HalfL());
+    bool const within = (
+      (std::abs(intersectionAndOffset.offset1) <= wire1.HalfL())
+      && (std::abs(intersectionAndOffset.offset2) <= wire2.HalfL())
+      );
 
     // return whether the intersection is within the length of both wires
     return within;

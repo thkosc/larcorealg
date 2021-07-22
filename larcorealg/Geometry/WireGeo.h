@@ -431,9 +431,10 @@ namespace geo {
      * @brief Returns the point of this wire that is closest to `other` wire.
      * @tparam Point the type of point returned
      * @param other the other wire
-     * @return a triplet: `<0>`: the point of this wire closest to `other`;
-     *         `<1>`: its offset on this wire [cm];
-     *         `<2>`: its offset on the `other` wire [cm]
+     * @return a data structure with three fields:
+     *         `point`: the point of this wire closest to `other`;
+     *         `offset1`: its offset on this wire [cm];
+     *         `offset2`: its offset on the `other` wire [cm]
      * @see IntersectionWith()
      *
      * The point of this wire that is closest to any point of the `other` wire
@@ -460,7 +461,7 @@ namespace geo {
      * 
      */
     template <typename Point = DefaultPoint_t>
-    std::tuple<Point, double, double> IntersectionAndOffsetsWith
+    geo::IntersectionPointAndOffsets<Point> IntersectionAndOffsetsWith
       (geo::WireGeo const& other) const;
 
     /// @}
@@ -536,9 +537,10 @@ namespace geo {
    * @brief Returns the point of `wireA` that is closest to `wireB`.
    * @param wireA the first wire
    * @param wireB the other wire
-   * @return a triplet: `<0>`: the point of `wireA` closest to `wireB`;
-   *         `<1>`: its offset on this wire [cm];
-   *         `<2>`: its offset on the `other` wire [cm]
+   * @return a data structure with three fields:
+   *         `point`: the point of `wireA` closest to `wireB`;
+   *         `offset1`: its offset on `wireA` [cm];
+   *         `offset2`: its offset on `wireB` [cm]
    * @see WiresIntersection()
    *
    * Computes the point of `wireA` that is closest to `wireB`.
@@ -562,7 +564,7 @@ namespace geo {
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * 
    */
-  std::tuple<geo::Point_t, double, double> WiresIntersectionAndOffsets
+  geo::IntersectionPointAndOffsets<geo::Point_t> WiresIntersectionAndOffsets
     (geo::WireGeo const& wireA, geo::WireGeo const& wireB);
   
 
@@ -639,7 +641,7 @@ Point geo::WireGeo::IntersectionWith(geo::WireGeo const& other) const {
 
 //------------------------------------------------------------------------------
 template <typename Point /* = DefaultPoint_t */>
-std::tuple<Point, double, double> geo::WireGeo::IntersectionAndOffsetsWith
+geo::IntersectionPointAndOffsets<Point> geo::WireGeo::IntersectionAndOffsetsWith
   (geo::WireGeo const& other) const
 {
   auto const& [ point, ofsA, ofsB ] = WiresIntersectionAndOffsets(*this, other);
@@ -661,7 +663,8 @@ inline geo::Point_t geo::WiresIntersection
 
 
 //------------------------------------------------------------------------------
-inline std::tuple<geo::Point_t, double, double> geo::WiresIntersectionAndOffsets
+inline geo::IntersectionPointAndOffsets<geo::Point_t>
+geo::WiresIntersectionAndOffsets
   (geo::WireGeo const& wireA, geo::WireGeo const& wireB)
 {
   

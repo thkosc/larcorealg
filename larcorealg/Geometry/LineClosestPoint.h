@@ -22,6 +22,19 @@
 
 // -----------------------------------------------------------------------------
 namespace geo {
+  
+  
+  /// Data structure for return values of `LineClosestPointAndOffsets()`.
+  template <typename Point>
+  struct IntersectionPointAndOffsets {
+    
+    Point point;    ///< Intersection point.
+    double offset1; ///< Distance from reference point of first line.
+    double offset2; ///< Distance from reference point of second line.
+    
+  }; // IntersectionPointAndOffsets<>
+  
+  
 
   /**
    * @brief Returns the point of a line that is closest to a second line.
@@ -31,9 +44,10 @@ namespace geo {
    * @param dirA the direction of the first line
    * @param refB a reference point on the second line
    * @param dirB the direction of the second line
-   * @return a triplet: `<0>`: the point of `A` closest to `B`,
-   *         `<1>`: its offset on `A` in units of `dirA`,
-   *         `<2>`: its offset on `B` in units of `dirB`
+   * @return a data structure with three fields:
+   *         `point`: the point of `A` closest to `B`,
+   *         `offset1`: its offset on `A` in units of `dirA`,
+   *         `offset2`: its offset on `B` in units of `dirB`
    * @see `LineClosestPointWithUnitVectors()`
    * @see `LineClosestPointAndOffsets()`
    *
@@ -44,7 +58,9 @@ namespace geo {
    * reference points of the two lines, in the direction specified by
    * `dirA`/`dirB`.
    * 
-   * The return value is a triplet, which is most easily unpacked immediately:
+   * The return value is a data structure of type
+   * `geo::IntersectionPointAndOffsets`, which is most easily unpacked
+   * immediately:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * auto [ point, offsetA, offsetB ] = geo::LineClosestPointAndOffsets(
    *   geo::Point_t{ 2, 0, 1 }, geo::Vector_t{ 0.0,   0.5, 0.0 },
@@ -53,19 +69,23 @@ namespace geo {
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * will set `point` to `geo::Point{ 2, 1, 1 }`, `offsetA` to `2` and `offsetB`
    * to `2.309...`.
-   * To reassign the variables after they have been defined, instead:
+   * To reassign the variables after they have been defined, though, a temporary
+   * structure is needed:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-   * std::tie(point, offsetA, offsetB) = geo::LineClosestPointAndOffsets(
+   * auto const xsectAndOfs = geo::LineClosestPointAndOffsets(
    *   geo::Point_t{ 0, 1, 0 }, geo::Vector_t{ 0.866, 0.0, 0.0 },
    *   geo::Point_t{ 2, 0, 1 }, geo::Vector_t{ 0.0,   0.5, 0.0 }
    *   );
+   * point = xsectAndOfs.point;
+   * offsetA = xsectAndOfs.offset1;
+   * offsetB = xsectAndOfs.offset2;
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * (`point` to `geo::Point{ 2, 1, 0 }`, `offsetA` to `2.039...` and `offsetB`
    * to `2`, because the intersection point is always on the first line).
    * 
    */
   template <typename Point, typename Vector>
-  std::tuple<Point, double, double> LineClosestPointAndOffsets(
+  IntersectionPointAndOffsets<Point> LineClosestPointAndOffsets(
     Point const& startA, Vector const& dirA,
     Point const& startB, Vector const& dirB
     );
@@ -123,15 +143,18 @@ namespace geo {
    * @param dirA the direction of the first line (unity-normed)
    * @param refB a reference point on the second line
    * @param dirB the direction of the second line (unity-normed)
-   * @return a triplet: `<0>`: the point of `A` closest to `B`,
-   *         `<1>`: its offset on `A` in units of `dirA` (i.e. unity),
-   *         `<2>`: its offset on `B` in units of `dirB` (i.e. unity)
+   * @return a data structure with three fields:
+   *         `point`: the point of `A` closest to `B`,
+   *         `offset1`: its offset on `A` in units of `dirA` (i.e. unity),
+   *         `offset2`: its offset on `B` in units of `dirB` (i.e. unity)
    * @see `LineClosestPointWithUnitVectors()`
    * @see `LineClosestPointAndOffsets()`
    *
    * The point of line `A` that is closest to line `B` is returned.
    * 
-   * The return value is a triplet, which is most easily unpacked immediately:
+   * The return value is a data structure of type
+   * `geo::IntersectionPointAndOffsets`, which is most easily unpacked
+   * immediately:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * auto [ point, offsetA, offsetB ] = geo::LineClosestPointAndOffsetsWithUnitVectors(
    *   geo::Point_t{ 2, 0, 1 }, geo::Vector_t{ 0, 1, 0 },
@@ -142,17 +165,20 @@ namespace geo {
    * to `2`.
    * To reassign the variables after they have been defined, instead:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-   * std::tie(point, offsetA, offsetB) = geo::LineClosestPointAndOffsetsWithUnitVectors(
+   * auto const xsectAndOfs = geo::LineClosestPointAndOffsetsWithUnitVectors(
    *   geo::Point_t{ 0, 1, 0 }, geo::Vector_t{ 1, 0, 0 },
    *   geo::Point_t{ 2, 0, 1 }, geo::Vector_t{ 0, 1, 0 }
    *   );
+   * point = xsectAndOfs.point;
+   * offsetA = xsectAndOfs.offset1;
+   * offsetB = xsectAndOfs.offset2;
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * (`point` to `geo::Point{ 2, 1, 0 }`, `offsetA` to `2` and `offsetB` to `1`,
    * because the intersection point is always on the first line).
    * 
    */
   template <typename Point, typename UnitVector>
-  std::tuple<Point, double, double> LineClosestPointAndOffsetsWithUnitVectors(
+  IntersectionPointAndOffsets<Point> LineClosestPointAndOffsetsWithUnitVectors(
     Point const& startA, UnitVector const& dirA,
     Point const& startB, UnitVector const& dirB
     );

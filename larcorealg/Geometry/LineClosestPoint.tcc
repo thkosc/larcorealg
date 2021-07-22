@@ -137,7 +137,7 @@ namespace geo::details {
 // ---  interface
 // -----------------------------------------------------------------------------
 template <typename Point, typename Vector>
-std::tuple<Point, double, double> geo::LineClosestPointAndOffsets(
+geo::IntersectionPointAndOffsets<Point> geo::LineClosestPointAndOffsets(
   Point const& startA, Vector const& dirA,
   Point const& startB, Vector const& dirB
 ) {
@@ -160,8 +160,8 @@ Point geo::LineClosestPoint(
 
 // -----------------------------------------------------------------------------
 template <typename Point, typename UnitVector>
-std::tuple<Point, double, double> geo::LineClosestPointAndOffsetsWithUnitVectors
-(
+geo::IntersectionPointAndOffsets<Point>
+geo::LineClosestPointAndOffsetsWithUnitVectors(
   Point const& startA, UnitVector const& dirA,
   Point const& startB, UnitVector const& dirB
 ) {
