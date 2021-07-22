@@ -41,6 +41,7 @@
 #include <cmath> // std::abs() ...
 #include <sstream> // std::ostringstream
 #include <vector>
+#include <tuple>
 #include <algorithm> // std::for_each(), std::transform()
 #include <iterator> // std::back_inserter()
 #include <utility> // std::swap()
@@ -1442,13 +1443,13 @@ namespace geo {
     geo::WireGeo const& wire1 = Wire(wid1);
     geo::WireGeo const& wire2 = Wire(wid2);
 
-    std::pair<double, double> locOnWires;
-    intersection = geo::WiresIntersection(wire1, wire2, &locOnWires);
     // distance of the intersection point from the center of the two wires:
-    auto const [ t, u ] = locOnWires;
-
+    double ofs1, ofs2;
+    std::tie(intersection, ofs1, ofs2)
+      = geo::WiresIntersectionAndOffsets(wire1, wire2);
+    
     bool const within
-      = (std::abs(t) <= wire1.HalfL()) && (std::abs(u) <= wire2.HalfL());
+      = (std::abs(ofs1) <= wire1.HalfL()) && (std::abs(ofs2) <= wire2.HalfL());
 
     // return whether the intersection is within the length of both wires
     return within;
