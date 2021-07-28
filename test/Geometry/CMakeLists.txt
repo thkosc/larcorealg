@@ -18,10 +18,10 @@ cet_make_library( LIBRARY_NAME GeometryTestLib
                     ChannelMapStandardTestAlg.cxx
                   LIBRARIES larcorealg_Geometry
                         larcorealg_TestUtils
-                        canvas
-                        ${MF_MESSAGELOGGER}
-                        ${FHICLCPP}
-                        cetlib cetlib_except
+                        canvas::canvas
+                        messagefacility::MF_MessageLogger
+                        fhiclcpp::fhiclcpp
+                        cetlib::cetlib cetlib_except
                         ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
           )
 
@@ -34,9 +34,9 @@ cet_test(geometry_iterator_test
   SOURCES geometry_iterator_test.cxx
   LIBRARIES larcorealg_Geometry
             GeometryTestLib
-            ${MF_MESSAGELOGGER}
-            ${FHICLCPP}
-            cetlib cetlib_except
+            messagefacility::MF_MessageLogger
+            fhiclcpp::fhiclcpp
+            cetlib::cetlib cetlib_except
   USE_BOOST_UNIT
   DATAFILES test_geometry.fcl
   TEST_ARGS -- ./test_geometry.fcl
@@ -48,9 +48,9 @@ cet_test(geometry_geoid_test
   SOURCES geometry_geoid_test.cxx
   LIBRARIES larcorealg_Geometry
             GeometryTestLib
-            ${MF_MESSAGELOGGER}
-            ${FHICLCPP}
-            cetlib cetlib_except
+            messagefacility::MF_MessageLogger
+            fhiclcpp::fhiclcpp
+            cetlib::cetlib cetlib_except
   USE_BOOST_UNIT
   DATAFILES test_geometry.fcl
   TEST_ARGS -- ./test_geometry.fcl
@@ -63,9 +63,9 @@ cet_test(geometry_test
   TEST_ARGS ./test_geometry.fcl
   LIBRARIES larcorealg_Geometry
             GeometryTestLib
-            ${MF_MESSAGELOGGER}
-            ${FHICLCPP}
-            cetlib cetlib_except
+            messagefacility::MF_MessageLogger
+            fhiclcpp::fhiclcpp
+            cetlib::cetlib cetlib_except
 )
 
 # test of standalone geometry loading (use the hard-coded channel mapping for "standard" LArTPCdetector)
@@ -75,9 +75,9 @@ cet_test(geometry_loader_test
   TEST_ARGS ./test_geometry.fcl
   LIBRARIES larcorealg_Geometry
             GeometryTestLib
-            ${MF_MESSAGELOGGER}
-            ${FHICLCPP}
-            cetlib cetlib_except
+            messagefacility::MF_MessageLogger
+            fhiclcpp::fhiclcpp
+            cetlib::cetlib cetlib_except
 )
 
 # test to verify loops on geometry elements by geometry iterators (hard-coded channel mapping for "standard" LArTPCdetector)
@@ -87,9 +87,9 @@ cet_test(geometry_iterator_loop_test
   TEST_ARGS ./test_geometry_iterator_loop.fcl
   LIBRARIES larcorealg_Geometry
             GeometryTestLib
-            ${MF_MESSAGELOGGER}
-            ${FHICLCPP}
-            cetlib cetlib_except
+            messagefacility::MF_MessageLogger
+            fhiclcpp::fhiclcpp
+            cetlib::cetlib cetlib_except
 )
 
 
@@ -98,9 +98,9 @@ cet_test(geometry_standardchannelmapping_test
   SOURCES geometry_standardchannelmapping_test.cxx
   LIBRARIES larcorealg_Geometry
             GeometryTestLib
-            ${MF_MESSAGELOGGER}
-            ${FHICLCPP}
-            cetlib cetlib_except
+            messagefacility::MF_MessageLogger
+            fhiclcpp::fhiclcpp
+            cetlib::cetlib cetlib_except
   USE_BOOST_UNIT
   DATAFILES test_geometry.fcl
   TEST_ARGS ./test_geometry.fcl
@@ -112,9 +112,9 @@ cet_test(geometry_standardchannelmapping_test
 cet_test(geometry_thirdplaneslope_test
   SOURCES geometry_thirdplaneslope_test.cxx
   LIBRARIES larcorealg_Geometry
-            ${MF_MESSAGELOGGER}
-            ${FHICLCPP}
-            cetlib cetlib_except
+            messagefacility::MF_MessageLogger
+            fhiclcpp::fhiclcpp
+            cetlib::cetlib cetlib_except
   USE_BOOST_UNIT
   DATAFILES test_geometry.fcl
   TEST_ARGS -- ./test_geometry.fcl
@@ -142,9 +142,9 @@ cet_test(driftvolumes_test
   DATAFILES test_geometry.fcl
   TEST_ARGS ./test_geometry.fcl
   LIBRARIES larcorealg_Geometry
-            ${MF_MESSAGELOGGER}
-            ${FHICLCPP}
-            cetlib cetlib_except
+            messagefacility::MF_MessageLogger
+            fhiclcpp::fhiclcpp
+            cetlib::cetlib cetlib_except
   USE_BOOST_UNIT
   )
 
