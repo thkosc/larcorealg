@@ -1356,15 +1356,6 @@ namespace geo {
 
 
   //......................................................................
-  geo::Point_t GeometryCore::WiresIntersect
-    (geo::WireGeo const& wire1, geo::WireGeo const& wire2) const
-  {
-    assert(!wire2.isParallelTo(wire1));
-    return geo::WiresIntersection(wire1, wire2);
-  } // GeometryCore::WiresIntersect()
-
-
-  //......................................................................
   bool GeometryCore::WireIDsIntersect(
     const geo::WireID& wid1, const geo::WireID& wid2,
     geo::WireIDIntersection & widIntersect

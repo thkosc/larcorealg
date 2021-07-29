@@ -4151,6 +4151,7 @@ namespace geo {
      * @param wid2 ID of the other wire
      * @param[out] intersection the intersection point (global coordinates)
      * @return whether an intersection was found inside the TPC the wires belong
+     * @see `geo::WiresIntersection()`, `geo::LineClosestPoint()`
      *
      * The "intersection" refers to the projection of the wires into the same
      * wire plane. The coordinate along the drift direction is arbitrarily set
@@ -4164,6 +4165,11 @@ namespace geo {
      * To test that the result is not infinity (nor NaN), use
      * `geo::vect::isfinite(intersection)` etc.
      *
+     * @note If `geo::WireGeo` objects are already available, using instead
+     *       the free function `geo::WiresIntersection()` or the method
+     *       `geo::WireGeo::IntersectionWith()` is faster (and _recommended_).
+     *       For purely geometric intersection, `geo::LineClosestPoint()` is
+     *       also available.
      */
     bool WireIDsIntersect(
       WireID const& wid1, WireID const& wid2,
@@ -4171,23 +4177,6 @@ namespace geo {
       ) const;
     bool WireIDsIntersect
       (WireID const& wid1, WireID const& wid2, TVector3& intersection) const;
-    //@}
-
-    //@{
-    /**
-     * @brief Computes the intersection between two wires.
-     * @param wire1 the first wire
-     * @param wire2 the other wire
-     * @return the intersection point (global coordinates)
-     *
-     * The "intersection" point lies on `wire1` and it is defined as the point
-     * on that wire closest to `wire2`.
-     * The two wires are assumed not to be parallel, and when this prerequisite
-     * is not met the behaviour is undefined. The caller can check that
-     * condition by requiring e.g. `!wire1.isParallelTo(wire2)`.
-     */
-    geo::Point_t WiresIntersect
-      (geo::WireGeo const& wire1, geo::WireGeo const& wire2) const;
     //@}
 
     //@{

@@ -2340,8 +2340,9 @@ namespace geo{
   //......................................................................
   void GeometryTestAlg::testWireIntersection() const {
     /*
-     * This is a test for WireIDsIntersect() and WiresIntersect() functions;
-     * that returns whether two wires intersect, and where.
+     * This is a test for geo::GeometryCore::WireIDsIntersect() and 
+     * geo::WireGeo::IntersectionWith() methods, that return whether two wires
+     * intersect, and where.
      *
      * The test strategy is to check all the TPC one by one:
      * - if a query for wires on different cryostats fails
@@ -2373,7 +2374,7 @@ namespace geo{
         } // if intersect
         try {
           // the value of result is not checked here
-          geom->WiresIntersect(geom->Wire(w1), geom->Wire(w2));
+          geom->Wire(w1).IntersectionWith(geom->Wire(w2));
         }
         catch(...) {
           MF_LOG_ERROR("GeometryTest") << "WiresIntersect() on " << w1
@@ -2395,7 +2396,7 @@ namespace geo{
         } // if intersect
         try {
           // the value of result is not checked here
-          geom->WiresIntersect(geom->Wire(w1), geom->Wire(w2));
+          geom->Wire(w1).IntersectionWith(geom->Wire(w2));
         }
         catch(...) {
           MF_LOG_ERROR("GeometryTest") << "WiresIntersect() on " << w1
@@ -2611,18 +2612,6 @@ namespace geo{
 
         geo::Point_t objXingPoint;
         
-        // test that geom->WiresIntersect() gives the same result as the already
-        // validated one from geom->WireIDsIntersect()
-        objXingPoint = geom->WiresIntersect(w1obj, w2obj);
-        if (vectorIs.nonEqual(objXingPoint, xingPoint)) {
-          MF_LOG_ERROR("GeometryTest")
-            << "WiresIntersect() gives wrong intersection for "
-            << w1 << " and " << w2
-            << ": " << objXingPoint << " vs. " << xingPoint << " (expected)";
-          ++nErrors;
-          continue;
-        }
-
         // test that geo::WiresIntersection() gives the same result as
         // the already validated one from geom->WireIDsIntersect()
         objXingPoint = geo::WiresIntersection(w1obj, w2obj);
