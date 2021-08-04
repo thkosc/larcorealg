@@ -4149,8 +4149,9 @@ namespace geo {
      * @brief Computes the intersection between two wires.
      * @param wid1 ID of the first wire
      * @param wid2 ID of the other wire
-     * @param intersection (output) the intersection point (global coordinates)
+     * @param[out] intersection the intersection point (global coordinates)
      * @return whether an intersection was found inside the TPC the wires belong
+     * @see `geo::WiresIntersection()`, `geo::LineClosestPoint()`
      *
      * The "intersection" refers to the projection of the wires into the same
      * wire plane. The coordinate along the drift direction is arbitrarily set
@@ -4164,6 +4165,11 @@ namespace geo {
      * To test that the result is not infinity (nor NaN), use
      * `geo::vect::isfinite(intersection)` etc.
      *
+     * @note If `geo::WireGeo` objects are already available, using instead
+     *       the free function `geo::WiresIntersection()` or the method
+     *       `geo::WireGeo::IntersectionWith()` is faster (and _recommended_).
+     *       For purely geometric intersection, `geo::LineClosestPoint()` is
+     *       also available.
      */
     bool WireIDsIntersect(
       WireID const& wid1, WireID const& wid2,
@@ -4173,6 +4179,7 @@ namespace geo {
       (WireID const& wid1, WireID const& wid2, TVector3& intersection) const;
     //@}
 
+    //@{
     /**
      * @brief Computes the intersection between two wires.
      * @param wid1 ID of the first wire
@@ -4198,6 +4205,7 @@ namespace geo {
     bool WireIDsIntersect
       (WireID const& wid1, WireID const& wid2, WireIDIntersection& widIntersect)
       const;
+    //@}
 
     /**
      * @brief Returns the intersection point of two wires

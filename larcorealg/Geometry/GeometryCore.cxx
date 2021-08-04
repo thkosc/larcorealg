@@ -41,6 +41,7 @@
 #include <cmath> // std::abs() ...
 #include <sstream> // std::ostringstream
 #include <vector>
+#include <tuple>
 #include <algorithm> // std::for_each(), std::transform()
 #include <iterator> // std::back_inserter()
 #include <utility> // std::swap()
@@ -1368,6 +1369,7 @@ namespace geo {
 
   } // GeometryCore::IntersectSegments()
 
+
   //......................................................................
   bool GeometryCore::WireIDsIntersect(
     const geo::WireID& wid1, const geo::WireID& wid2,
@@ -1444,47 +1446,18 @@ namespace geo {
       return false;
     }
 
-    /*
-     * the point on the first wire:
-     *
-     *     p1(t) = c1 + t w1 (c1 the center of the wire, w1 its direction[1])
-     *
-     * has the minimal distance from the other wire (c2 + u w2, with the same
-     * notation) at
-     *
-     *     t = [(dc,w1) - (dc,w2)(w1,w2)] / [ 1 - (w1,w2)^2 ]
-     *     u = [-(dc,w2) + (dc,w1)(w1,w2)] / [ 1 - (w1,w2)^2 ]
-     *
-     * (where (a,b) is a scalar product and dc = (c2 - c1) ).
-     * If w1 and w2 are unit vectors, t and u are in fact the distance of the
-     * point from the center of the respective wires in "standard" geometry
-     * units.
-     *
-     */
-
     geo::WireGeo const& wire1 = Wire(wid1);
-    decltype(auto) c1 = wire1.GetCenter();
-    decltype(auto) w1 = wire1.Direction();
-
     geo::WireGeo const& wire2 = Wire(wid2);
-    decltype(auto) c2 = wire2.GetCenter();
-    decltype(auto) w2 = wire2.Direction();
 
-    auto const dc = c2 - c1;
-
-    // note: we are not checking that w1 and w2 are not parallel.
-    using geo::vect::dot;
-    double const w1w2 = dot(w1, w2); // this is cos(angle), angle between wires
-    double const cscAngle2 = 1.0 / (1.0 - cet::square(w1w2)); // this is 1/sin^2(angle)
-    double const dcw1 = dot(dc, w1);
-    double const dcw2 = dot(dc, w2);
-    double const t = (dcw1 - (dcw2 * w1w2)) * cscAngle2;
-    double const u = (-dcw2 + (dcw1 * w1w2)) * cscAngle2;
-
-    intersection = c1 + t * w1;
-
-    bool const within
-      = (std::abs(t) <= wire1.HalfL()) && (std::abs(u) <= wire2.HalfL());
+    // distance of the intersection point from the center of the two wires:
+    geo::IntersectionPointAndOffsets<geo::Point_t> intersectionAndOffset
+      = geo::WiresIntersectionAndOffsets(wire1, wire2);
+    intersection = intersectionAndOffset.point;
+    
+    bool const within = (
+      (std::abs(intersectionAndOffset.offset1) <= wire1.HalfL())
+      && (std::abs(intersectionAndOffset.offset2) <= wire2.HalfL())
+      );
 
     // return whether the intersection is within the length of both wires
     return within;
