@@ -25,7 +25,7 @@
 #include "larcorealg/CoreUtils/RealComparisons.h"
 #include "larcorealg/CoreUtils/DumpUtils.h" // lar::dump::vector3D(), ...
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
-#include "larcoreobj/SimpleTypesAndConstants/readout_types.h"      // for ROPID
+#include "larcoreobj/SimpleTypesAndConstants/readout_types.h" // readout::ROPID
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi<>
@@ -2344,33 +2344,29 @@ namespace geo{
   }
 
   //......................................................................
-  unsigned int GeometryTestAlg::planeAlignmentTo
+  bool GeometryTestAlg::isWireAlignedToPlaneDirections
     (geo::PlaneGeo const& plane, geo::Vector_t const& wireDir) const
   {
     /*
-     * Return value:
-     *  * 0: not aligned with anything
-     *  * 1: aligned to width
-     *  * 2: aligned to depth
-     *  * 3: aligned to wires
+     * Returns `true` if `wireDir` is aligned with plane frame or wire direction
      */
     
     auto const isOrthogonalTo = [&wireDir](geo::Vector_t const& other)
       { return std::abs(geo::vect::dot(wireDir, other)) < 1.0e-5; };
     
-    // we dislike well-aligned wires; and we assume that if a wire is
-    // orthogonal to one of the main plane directions (dot product zero)
-    // it is parallel to the other one
-    if (isOrthogonalTo(plane.WidthDir<geo::Vector_t>()))
-      return 1;
-    if (isOrthogonalTo(plane.DepthDir<geo::Vector_t>()))
-      return 2;
+    // we dislike wires aligned to plane frame:
+    if (isOrthogonalTo(plane.WidthDir<geo::Vector_t>())) // || to `DepthDir()`?
+      return true;
+    if (isOrthogonalTo(plane.DepthDir<geo::Vector_t>())) // || to `WidthDir()`?
+      return true;
+    
+    // || to `GetWireDirection()`?
     if (isOrthogonalTo(plane.GetIncreasingWireDirection<geo::Vector_t>()))
-      return 3;
+      return true;
     
-    return 0;
+    return false;
     
-  } // planeAlignmentTo()
+  } // isWireAlignedToPlaneDirections()
   
   
   void GeometryTestAlg::testWireIntersection() const {
@@ -2405,7 +2401,7 @@ namespace geo{
           = geom->Cryostat(TPC.ID().Cryostat + 1);
         geo::PlaneGeo const* otherPlane = nullptr;
         for (geo::PlaneGeo const& plane: geom->IteratePlanes(otherCryo.ID())) {
-          if (planeAlignmentTo(plane, wireDir) != 0) continue;
+          if (isWireAlignedToPlaneDirections(plane, wireDir)) continue;
           otherPlane = &plane;
           break;
         }
@@ -2451,7 +2447,7 @@ namespace geo{
         geo::PlaneGeo const* otherPlane = nullptr;
         for (geo::PlaneGeo const& plane: geom->IteratePlanes(cryo.ID())) {
           if (plane.ID().asTPCID() == TPC.ID()) continue; // on the same TPC
-          if (planeAlignmentTo(plane, wireDir) != 0) continue;
+          if (isWireAlignedToPlaneDirections(plane, wireDir)) continue;
           otherPlane = &plane;
           break;
         }

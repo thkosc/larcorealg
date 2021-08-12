@@ -224,7 +224,7 @@ namespace geo {
       const;
 
     /// Helper function for `testWireIntersection()`.
-    unsigned int planeAlignmentTo
+    bool isWireAlignedToPlaneDirections
       (geo::PlaneGeo const& plane, geo::Vector_t const& wireDir) const;
 
     /// Performs the wire intersection test at a single point
