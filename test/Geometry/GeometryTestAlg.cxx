@@ -2384,20 +2384,19 @@ namespace geo{
      */
 
     unsigned int nErrors = 0;
-    for (geo::GeometryCore::TPC_id_iterator iTPC(&*geom); iTPC; ++iTPC) {
-      const geo::TPCGeo& TPC = *(iTPC.get());
+    for (geo::TPCGeo const& TPC: geom->IterateTPCs()) {
 
-      MF_LOG_DEBUG("GeometryTest") << "Wire intersection test on " << *iTPC;
+      MF_LOG_DEBUG("GeometryTest") << "Wire intersection test on " << TPC.ID();
 
       // sanity: wires on different cryostats
-      if (iTPC->Cryostat < geom->Ncryostats() - 1) {
+      if (TPC.ID().Cryostat < geom->Ncryostats() - 1) {
         
-        geo::PlaneID const refPlaneID { *iTPC, 0 };
-        geo::WireID const w1 { refPlaneID, 0 };
+        geo::WireID const w1 { geo::PlaneID{ TPC.ID(), 0 }, 0 };
         geo::WireGeo const& wire1 = geom->Wire(w1);
         geo::Vector_t const& wireDir = wire1.Direction<geo::Vector_t>();
         
-        geo::CryostatGeo const& otherCryo = geom->Cryostat(iTPC->Cryostat + 1);
+        geo::CryostatGeo const& otherCryo
+          = geom->Cryostat(TPC.ID().Cryostat + 1);
         geo::PlaneGeo const* otherPlane = nullptr;
         for (geo::PlaneGeo const& plane: geom->IteratePlanes(otherCryo.ID())) {
           if (planeAlignmentTo(plane, wireDir) != 0) continue;
@@ -2428,24 +2427,24 @@ namespace geo{
         else {
           MF_LOG_WARNING("GeometryTest")
             << "No wire plane found in " << otherCryo.ID()
-            << " with wires not aligned with " << refPlaneID
+            << " with wires not aligned with " << w1.asPlaneID()
             << ", " << wireDir << "; off-cryostat sanity check skipped.";
         }
         
       } // if not the last cryostat
 
       // sanity: wires on different TPC
-      if (iTPC->TPC < geom->NTPC(iTPC->Cryostat) - 1) {
+      if (TPC.ID().TPC < geom->NTPC(TPC.ID().asCryostatID()) - 1) {
         
-        geo::PlaneID const refPlaneID { *iTPC, 0 };
+        geo::PlaneID const refPlaneID { TPC.ID(), 0 };
         geo::WireID const w1 { refPlaneID, 0 };
         geo::WireGeo const& wire1 = geom->Wire(w1);
         geo::Vector_t const& wireDir = wire1.Direction<geo::Vector_t>();
         
-        geo::CryostatGeo const& cryo = geom->Cryostat(*iTPC);
+        geo::CryostatGeo const& cryo = geom->Cryostat(TPC.ID());
         geo::PlaneGeo const* otherPlane = nullptr;
         for (geo::PlaneGeo const& plane: geom->IteratePlanes(cryo.ID())) {
-          if (plane.ID().asTPCID() == *iTPC) continue; // on the same TPC
+          if (plane.ID().asTPCID() == TPC.ID()) continue; // on the same TPC
           if (planeAlignmentTo(plane, wireDir) != 0) continue;
           otherPlane = &plane;
           break;
@@ -2480,10 +2479,8 @@ namespace geo{
       } // if not the last TPC
 
       // sanity: wires on same plane
-      const unsigned int nPlanes = TPC.Nplanes();
-      for (unsigned int plane = 0; plane < nPlanes; ++plane) {
-        geo::WireID w1 { iTPC->Cryostat, iTPC->TPC, plane, 0 },
-          w2 { iTPC->Cryostat, iTPC->TPC, plane, 1 };
+      for (geo::PlaneGeo const& plane: TPC.IteratePlanes()) {
+        geo::WireID const w1 { plane.ID(), 0 }, w2 { plane.ID(), 1 };
         geo::Point_t xingPoint;
         if (geom->WireIDsIntersect(w1, w2, xingPoint)) {
           MF_LOG_ERROR("GeometryTest") << "WireIDsIntersect() on " << w1
@@ -2524,7 +2521,7 @@ namespace geo{
           nErrors += testWireIntersectionAt(TPC, point);
         } // for y
       } // for z
-    } // for iTPC
+    } // for TPC
 
     if (nErrors > 0) {
       throw cet::exception("GeoTestWireIntersection")
