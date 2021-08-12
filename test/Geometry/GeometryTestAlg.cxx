@@ -864,27 +864,33 @@ namespace geo{
       geo::TPCGeo const& tpc = cryo.TPC(tpcid);
       decltype(auto) activeCenter = tpc.GetActiveVolumeCenter();
 
-      mf::LogVerbatim("GeometryTest")
-        << "\n\t\tTPC " << tpcid
-          << " " << geom->GetLArTPCVolumeName(tpcid)
-          << " has " << tpc.Nplanes() << " planes."
-        << "\n\t\tTPC location: ( "
-          << tpc.MinX() << " ; " << tpc.MinY() << " ; "<< tpc.MinZ()
-          << " ) =>  ( "
-          << tpc.MaxX() << " ; " << tpc.MaxY() << " ; "<< tpc.MaxZ()
-          << " ) [cm]"
-        << "\n\t\tTPC Dimensions (W x H x L, cm): "
-          << tpc.Width() << " (" << directionName(tpc.WidthDir()) << ")"
-          << " x " << tpc.Height() << " (" << directionName(tpc.HeightDir()) << ")"
-          << " x " << tpc.Length() << " (" << directionName(tpc.LengthDir()) << ")"
-        << "\n\t\tTPC Active Dimensions: "
-          << 2.*tpc.ActiveHalfWidth() << " x " << 2.*tpc.ActiveHalfHeight() << " x " << tpc.ActiveLength()
-          << " around ( " << activeCenter.X() << " ; " << activeCenter.Y()
-          << " ; "<< activeCenter.Z() << " ) cm"
-        << "\n\t\tTPC mass: " << tpc.ActiveMass()
-        << "\n\t\tTPC drift distance: " << tpc.DriftDistance()
-          << ", direction: " << tpc.DriftDir();
-
+      {
+        mf::LogVerbatim log { "GeometryTest" };
+        log
+          << "\n\t\tTPC " << tpcid
+            << " " << geom->GetLArTPCVolumeName(tpcid)
+            << " has " << tpc.Nplanes() << " planes."
+          << "\n\t\tTPC location: ( "
+            << tpc.MinX() << " ; " << tpc.MinY() << " ; "<< tpc.MinZ()
+            << " ) =>  ( "
+            << tpc.MaxX() << " ; " << tpc.MaxY() << " ; "<< tpc.MaxZ()
+            << " ) [cm]"
+          << "\n\t\tTPC Dimensions (W x H x L, cm): "
+            << tpc.Width() << " (" << directionName(tpc.WidthDir()) << ")"
+            << " x " << tpc.Height() << " (" << directionName(tpc.HeightDir()) << ")"
+            << " x " << tpc.Length() << " (" << directionName(tpc.LengthDir()) << ")"
+          << "\n\t\tTPC Active Dimensions: "
+            << 2.*tpc.ActiveHalfWidth() << " x " << 2.*tpc.ActiveHalfHeight() << " x " << tpc.ActiveLength()
+            << " around ( " << activeCenter.X() << " ; " << activeCenter.Y()
+            << " ; "<< activeCenter.Z() << " ) cm"
+          ;
+        if (fComputeMass)
+          log << "\n\t\tTPC mass: " << tpc.ActiveMass();
+        log
+          << "\n\t\tTPC drift distance: " << tpc.DriftDistance()
+            << ", direction: " << tpc.DriftDir();
+      }
+      
       for(size_t p = 0; p < tpc.Nplanes(); ++p) {
         geo::PlaneGeo const& plane = tpc.Plane(p);
 
