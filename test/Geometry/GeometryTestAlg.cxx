@@ -2338,6 +2338,35 @@ namespace geo{
   }
 
   //......................................................................
+  unsigned int GeometryTestAlg::planeAlignmentTo
+    (geo::PlaneGeo const& plane, geo::Vector_t const& wireDir) const
+  {
+    /*
+     * Return value:
+     *  * 0: not aligned with anything
+     *  * 1: aligned to width
+     *  * 2: aligned to depth
+     *  * 3: aligned to wires
+     */
+    
+    auto const isOrthogonalTo = [&wireDir](geo::Vector_t const& other)
+      { return std::abs(geo::vect::dot(wireDir, other)) < 1.0e-3; };
+    
+    // we dislike well-aligned wires; and we assume that if a wire is
+    // orthogonal to one of the main plane directions (dot product zero)
+    // it is parallel to the other one
+    if (isOrthogonalTo(plane.WidthDir<geo::Vector_t>()))
+      return 1;
+    if (isOrthogonalTo(plane.DepthDir<geo::Vector_t>()))
+      return 2;
+    if (isOrthogonalTo(plane.GetIncreasingWireDirection<geo::Vector_t>()))
+      return 3;
+    
+    return 0;
+    
+  } // planeAlignmentTo()
+  
+  
   void GeometryTestAlg::testWireIntersection() const {
     /*
      * This is a test for geo::GeometryCore::WireIDsIntersect() and 
@@ -2358,50 +2387,95 @@ namespace geo{
     for (geo::GeometryCore::TPC_id_iterator iTPC(&*geom); iTPC; ++iTPC) {
       const geo::TPCGeo& TPC = *(iTPC.get());
 
-      MF_LOG_DEBUG("GeometryTest") << "Cryostat #" << iTPC->Cryostat
-        << " TPC #" << iTPC->TPC;
+      MF_LOG_DEBUG("GeometryTest") << "Wire intersection test on " << *iTPC;
 
       // sanity: wires on different cryostats
       if (iTPC->Cryostat < geom->Ncryostats() - 1) {
-        geo::WireID w1 { iTPC->Cryostat, iTPC->TPC, 0, 0 },
-          w2 { iTPC->Cryostat + 1, iTPC->TPC, 1, 1 };
-        geo::Point_t xingPoint;
-        if (geom->WireIDsIntersect(w1, w2, xingPoint)) {
-          MF_LOG_ERROR("GeometryTest") << "WireIDsIntersect() on " << w1
-            << " and " << w2 << " returned " << xingPoint
-            << " cm, while should have reported no intersection at all";
-          ++nErrors;
-        } // if intersect
-        try {
-          // the value of result is not checked here
-          geom->Wire(w1).IntersectionWith(geom->Wire(w2));
+        
+        geo::PlaneID const refPlaneID { *iTPC, 0 };
+        geo::WireID const w1 { refPlaneID, 0 };
+        geo::WireGeo const& wire1 = geom->Wire(w1);
+        geo::Vector_t const& wireDir = wire1.Direction<geo::Vector_t>();
+        
+        geo::CryostatGeo const& otherCryo = geom->Cryostat(iTPC->Cryostat + 1);
+        geo::PlaneGeo const* otherPlane = nullptr;
+        for (geo::PlaneGeo const& plane: geom->IteratePlanes(otherCryo.ID())) {
+          if (planeAlignmentTo(plane, wireDir) != 0) continue;
+          otherPlane = &plane;
+          break;
         }
-        catch(...) {
-          MF_LOG_ERROR("GeometryTest") << "WiresIntersect() on " << w1
-            << " and " << w2 << " threw an exception, which should not have";
-          ++nErrors;
+        if (otherPlane) {
+          geo::WireID const w2 { otherPlane->ID(), 1 };
+          MF_LOG_TRACE("GeometryTest")
+            << "Off cryostat test (" << w1 << "): chosen wire " << w2;
+          geo::Point_t xingPoint;
+          if (geom->WireIDsIntersect(w1, w2, xingPoint)) {
+            MF_LOG_ERROR("GeometryTest") << "WireIDsIntersect() on " << w1
+              << " and " << w2 << " returned " << xingPoint
+              << " cm, while should have reported no intersection at all";
+            ++nErrors;
+          } // if intersect
+          try {
+            // the value of result is not checked here
+            wire1.IntersectionWith(geom->Wire(w2));
+          }
+          catch(...) {
+            MF_LOG_ERROR("GeometryTest") << "WiresIntersect() on " << w1
+              << " and " << w2 << " threw an exception, which should not have";
+            ++nErrors;
+          }
         }
+        else {
+          MF_LOG_WARNING("GeometryTest")
+            << "No wire plane found in " << otherCryo.ID()
+            << " with wires not aligned with " << refPlaneID
+            << ", " << wireDir << "; off-cryostat sanity check skipped.";
+        }
+        
       } // if not the last cryostat
 
       // sanity: wires on different TPC
       if (iTPC->TPC < geom->NTPC(iTPC->Cryostat) - 1) {
-        geo::WireID w1 { iTPC->Cryostat, iTPC->TPC, 0, 0 },
-          w2 { iTPC->Cryostat, iTPC->TPC + 1, 1, 1 };
-        geo::Point_t xingPoint;
-        if (geom->WireIDsIntersect(w1, w2, xingPoint)) {
-          MF_LOG_ERROR("GeometryTest") << "WireIDsIntersect() on " << w1
-            << " and " << w2 << " returned " << xingPoint
-            << ", while should have reported no intersection at all";
-          ++nErrors;
-        } // if intersect
-        try {
-          // the value of result is not checked here
-          geom->Wire(w1).IntersectionWith(geom->Wire(w2));
+        
+        geo::PlaneID const refPlaneID { *iTPC, 0 };
+        geo::WireID const w1 { refPlaneID, 0 };
+        geo::WireGeo const& wire1 = geom->Wire(w1);
+        geo::Vector_t const& wireDir = wire1.Direction<geo::Vector_t>();
+        
+        geo::CryostatGeo const& cryo = geom->Cryostat(*iTPC);
+        geo::PlaneGeo const* otherPlane = nullptr;
+        for (geo::PlaneGeo const& plane: geom->IteratePlanes(cryo.ID())) {
+          if (plane.ID().asTPCID() == *iTPC) continue; // on the same TPC
+          if (planeAlignmentTo(plane, wireDir) != 0) continue;
+          otherPlane = &plane;
+          break;
         }
-        catch(...) {
-          MF_LOG_ERROR("GeometryTest") << "WiresIntersect() on " << w1
-            << " and " << w2 << " threw an exception, which should not have";
-          ++nErrors;
+        if (otherPlane) {
+          geo::WireID const w2 { otherPlane->ID(), 1 };
+          MF_LOG_TRACE("GeometryTest")
+            << "Off TPC test (" << w1 << "): chosen wire " << w2;
+          geo::Point_t xingPoint;
+          if (geom->WireIDsIntersect(w1, w2, xingPoint)) {
+            MF_LOG_ERROR("GeometryTest") << "WireIDsIntersect() on " << w1
+              << " and " << w2 << " returned " << xingPoint
+              << ", while should have reported no intersection at all";
+            ++nErrors;
+          } // if intersect
+          try {
+            // the value of result is not checked here
+            wire1.IntersectionWith(geom->Wire(w2));
+          }
+          catch(...) {
+            MF_LOG_ERROR("GeometryTest") << "WiresIntersect() on " << w1
+              << " and " << w2 << " threw an exception, which should not have";
+            ++nErrors;
+          }
+        }
+        else {
+          MF_LOG_WARNING("GeometryTest")
+            << "No wire plane found in any TPC of " << cryo.ID()
+            << " with wires not aligned with " << refPlaneID
+            << ", " << wireDir << "; off-TPC sanity check skipped.";
         }
       } // if not the last TPC
 
