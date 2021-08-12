@@ -2356,7 +2356,7 @@ namespace geo{
      */
     
     auto const isOrthogonalTo = [&wireDir](geo::Vector_t const& other)
-      { return std::abs(geo::vect::dot(wireDir, other)) < 1.0e-3; };
+      { return std::abs(geo::vect::dot(wireDir, other)) < 1.0e-5; };
     
     // we dislike well-aligned wires; and we assume that if a wire is
     // orthogonal to one of the main plane directions (dot product zero)
