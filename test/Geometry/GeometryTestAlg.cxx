@@ -2355,12 +2355,11 @@ namespace geo{
       { return std::abs(geo::vect::dot(wireDir, other)) < 1.0e-5; };
     
     // we dislike wires aligned to plane frame:
-    if (isOrthogonalTo(plane.WidthDir<geo::Vector_t>())) // || to `DepthDir()`?
+    if (isOrthogonalTo(plane.WidthDir<geo::Vector_t>()))
       return true;
-    if (isOrthogonalTo(plane.DepthDir<geo::Vector_t>())) // || to `WidthDir()`?
+    if (isOrthogonalTo(plane.DepthDir<geo::Vector_t>()))
       return true;
     
-    // || to `GetWireDirection()`?
     if (isOrthogonalTo(plane.GetIncreasingWireDirection<geo::Vector_t>()))
       return true;
     
