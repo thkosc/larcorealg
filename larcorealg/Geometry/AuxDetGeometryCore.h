@@ -184,7 +184,7 @@ namespace geo {
      *
      * @todo replace with numeric_limits<>?
      */
-    unsigned int FindAuxDetAtPosition(double const worldLoc[3]) const;
+    unsigned int FindAuxDetAtPosition(double const worldLoc[3], double tolerance = 0) const;
 
     /**
      * @brief Fills the indices of the sensitive auxiliary detector at location
@@ -194,7 +194,8 @@ namespace geo {
      */
     void  FindAuxDetSensitiveAtPosition(double const worldLoc[3],
                                         size_t     & adg,
-                                        size_t     & sv) const;
+                                        size_t     & sv,
+					double tolerance = 0) const;
 
     /**
      * @brief Returns the auxiliary detector at specified location

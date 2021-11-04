@@ -78,7 +78,7 @@ namespace geo{
 
   //----------------------------------------------------------------------------
   size_t ChannelMapAlg::NearestAuxDet(const double* point,
-                                      std::vector<geo::AuxDetGeo> const& auxDets) const
+                                      std::vector<geo::AuxDetGeo> const& auxDets, double tolerance) const
   {
     double HalfCenterWidth = 0.;
     double localPoint[3] = {0.};
@@ -88,14 +88,31 @@ namespace geo{
       auxDets[a].WorldToLocal(point, localPoint);
 
       HalfCenterWidth = 0.5 * (auxDets[a].HalfWidth1() + auxDets[a].HalfWidth2());
+      /*      
+      std::cout << "AuxDet " << a << std::endl;
+      std::cout << "Local location: (" << localPoint[0] << "," << localPoint[1] << "," << localPoint[2] << ")" << std::endl;
+      std::cout << "Point location: (" << point[0] << "," << point[1] << "," << point[2] << ")" << std::endl;
+      std::cout << "Length()/2: "  << auxDets[a].Length()/2 << ", HalfHeight(): " << auxDets[a].HalfHeight() << ", Third Check: " << HalfCenterWidth + localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length()) << std::endl; 
+      
+      if (localPoint[2] >= - (auxDets[a].Length()/2) && localPoint[2] <=  (auxDets[a].Length()/2)) {std::cout << "Check 1 OK, ";}
+      else {std::cout << "Check 1 Failed, ";}
 
-      if( localPoint[2] >= - auxDets[a].Length()/2       &&
-          localPoint[2] <=   auxDets[a].Length()/2       &&
-          localPoint[1] >= - auxDets[a].HalfHeight()     &&
-          localPoint[1] <=   auxDets[a].HalfHeight()     &&
+      if (localPoint[1] >= - auxDets[a].HalfHeight() && localPoint[1] <=   auxDets[a].HalfHeight()) {std::cout << "Check 2 OK, ";;}
+      else {std::cout << "Check 2 Failed, ";}
+
+      if (localPoint[0] >= - HalfCenterWidth + localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length()) &&
+          localPoint[0] <=   HalfCenterWidth - localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length())) {
+	std::cout << "Check 3 OK" << std::endl;
+      }
+      else {std::cout << "Check 3 Failed" << std::endl;}
+      */
+      if( localPoint[2] >= - (auxDets[a].Length()/2 + tolerance)       &&
+          localPoint[2] <=   (auxDets[a].Length()/2 + tolerance)       &&
+          localPoint[1] >= - auxDets[a].HalfHeight() - tolerance       &&
+          localPoint[1] <=   auxDets[a].HalfHeight() + tolerance      &&
           // if AuxDet a is a box, then HalfSmallWidth = HalfWidth
-          localPoint[0] >= - HalfCenterWidth + localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length()) &&
-          localPoint[0] <=   HalfCenterWidth - localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length())
+          localPoint[0] >= - HalfCenterWidth + localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length()) - tolerance  &&
+          localPoint[0] <=   HalfCenterWidth - localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length()) + tolerance
           ) return a;
 
     }// for loop over AudDet a
@@ -112,12 +129,12 @@ namespace geo{
 
   //----------------------------------------------------------------------------
   size_t ChannelMapAlg::NearestSensitiveAuxDet(const double* point,
-                                               std::vector<geo::AuxDetGeo> const& auxDets) const
+                                               std::vector<geo::AuxDetGeo> const& auxDets, double tolerance) const
   {
     double HalfCenterWidth = 0.;
     double localPoint[3] = {0.};
 
-    size_t auxDetIdx = this->NearestAuxDet(point, auxDets);
+    size_t auxDetIdx = this->NearestAuxDet(point, auxDets, tolerance);
 
     geo::AuxDetGeo const& adg = auxDets[auxDetIdx];
 
@@ -128,13 +145,13 @@ namespace geo{
 
       HalfCenterWidth = 0.5 * (adsg.HalfWidth1() + adsg.HalfWidth2());
 
-      if( localPoint[2] >= - adsg.Length()/2       &&
-          localPoint[2] <=   adsg.Length()/2       &&
-          localPoint[1] >= - adsg.HalfHeight()     &&
-          localPoint[1] <=   adsg.HalfHeight()     &&
+      if( localPoint[2] >= - (adsg.Length()/2 + tolerance)     &&
+          localPoint[2] <=   (adsg.Length()/2 + tolerance)     &&
+          localPoint[1] >= - adsg.HalfHeight() - tolerance     &&
+          localPoint[1] <=   adsg.HalfHeight() + tolerance     &&
           // if AuxDet a is a box, then HalfSmallWidth = HalfWidth
-          localPoint[0] >= - HalfCenterWidth + localPoint[2]*(HalfCenterWidth - adsg.HalfWidth2())/(0.5 * adsg.Length()) &&
-          localPoint[0] <=   HalfCenterWidth - localPoint[2]*(HalfCenterWidth - adsg.HalfWidth2())/(0.5 * adsg.Length())
+          localPoint[0] >= - HalfCenterWidth + localPoint[2]*(HalfCenterWidth - adsg.HalfWidth2())/(0.5 * adsg.Length()) - tolerance  &&
+          localPoint[0] <=   HalfCenterWidth - localPoint[2]*(HalfCenterWidth - adsg.HalfWidth2())/(0.5 * adsg.Length()) + tolerance 
           ) return a;
     }// for loop over AuxDetSensitive a
 

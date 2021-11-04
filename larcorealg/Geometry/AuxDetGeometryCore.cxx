@@ -136,9 +136,9 @@ namespace geo {
 
 
   //......................................................................
-  unsigned int AuxDetGeometryCore::FindAuxDetAtPosition(double const  worldPos[3]) const
+  unsigned int AuxDetGeometryCore::FindAuxDetAtPosition(double const  worldPos[3], double tolerance) const
   {
-    return fChannelMapAlg->NearestAuxDet(worldPos, AuxDets());
+    return fChannelMapAlg->NearestAuxDet(worldPos, AuxDets(), tolerance);
   }
 
   //......................................................................
@@ -154,10 +154,11 @@ namespace geo {
   //......................................................................
   void AuxDetGeometryCore::FindAuxDetSensitiveAtPosition(double const worldPos[3],
                                                          size_t     & adg,
-                                                         size_t     & sv) const
+                                                         size_t     & sv,
+							 double tolerance) const
   {
-    adg = this->FindAuxDetAtPosition(worldPos);
-    sv  = fChannelMapAlg->NearestSensitiveAuxDet(worldPos, AuxDets(), adg);
+    adg = this->FindAuxDetAtPosition(worldPos, tolerance);
+    sv  = fChannelMapAlg->NearestSensitiveAuxDet(worldPos, AuxDets(), adg, tolerance);
   }
 
   //......................................................................

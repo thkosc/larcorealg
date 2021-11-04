@@ -39,10 +39,12 @@ namespace geo{
     // method returns the entry in the sorted AuxDetGeo vector so that the
     // Geometry in turn can return that object
     virtual size_t  NearestAuxDet          (const double*                       point,
-                                            std::vector<geo::AuxDetGeo> const& auxDets) const;
+                                            std::vector<geo::AuxDetGeo> const& auxDets,
+					    double tolerance = 0) const;
     virtual size_t  NearestSensitiveAuxDet (const double*                       point,
                                             std::vector<geo::AuxDetGeo> const& auxDets,
-                                            size_t                            & ad) const;
+                                            size_t                            & ad,
+					    double tolerance = 0) const;
     virtual size_t  ChannelToAuxDet        (std::vector<geo::AuxDetGeo> const& auxDets,
                                             std::string                  const& detName,
                                             uint32_t                     const& channel) const;

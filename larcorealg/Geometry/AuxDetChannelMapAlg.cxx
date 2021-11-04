@@ -18,7 +18,7 @@ namespace geo{
 
   //----------------------------------------------------------------------------
   size_t AuxDetChannelMapAlg::NearestAuxDet(const double* point,
-                                            std::vector<geo::AuxDetGeo> const& auxDets) const
+                                            std::vector<geo::AuxDetGeo> const& auxDets, double tolerance) const
   {
     double HalfCenterWidth = 0.;
     double localPoint[3] = {0.};
@@ -29,19 +29,19 @@ namespace geo{
 
       HalfCenterWidth = 0.5 * (auxDets[a].HalfWidth1() + auxDets[a].HalfWidth2());
 
-      if(localPoint[2] >= - auxDets[a].Length()/2       &&
-         localPoint[2] <=   auxDets[a].Length()/2       &&
-         localPoint[1] >= - auxDets[a].HalfHeight()     &&
-         localPoint[1] <=   auxDets[a].HalfHeight()     &&
+      if(localPoint[2] >= - auxDets[a].Length()/2 - tolerance      &&
+         localPoint[2] <=   auxDets[a].Length()/2 + tolerance      &&
+         localPoint[1] >= - auxDets[a].HalfHeight() - tolerance    &&
+         localPoint[1] <=   auxDets[a].HalfHeight() + tolerance    &&
          // if AuxDet a is a box, then HalfSmallWidth = HalfWidth
-         localPoint[0] >= - HalfCenterWidth + localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length()) &&
-         localPoint[0] <=   HalfCenterWidth - localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length())
+         localPoint[0] >= - HalfCenterWidth + localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length()) - tolerance &&
+         localPoint[0] <=   HalfCenterWidth - localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length()) + tolerance
          ) return a;
 
     }// for loop over AudDet a
 
     // throw an exception because we couldn't find the sensitive volume
-    throw cet::exception("AuxDetChannelMapAlg") << "Can't find AuxDet for position ("
+    throw cet::exception("AuxDetChannelMapAlg") << "NEW TEXT Can't find AuxDet for position ("
                                              << point[0] << ","
                                              << point[1] << ","
                                              << point[2] << ")\n";
@@ -53,7 +53,8 @@ namespace geo{
   //----------------------------------------------------------------------------
   size_t AuxDetChannelMapAlg::NearestSensitiveAuxDet(const double*                       point,
                                                      std::vector<geo::AuxDetGeo> const& auxDets,
-                                                     size_t                            & ad) const
+                                                     size_t                            & ad,
+						     double tolerance) const
   {
     double HalfCenterWidth = 0.;
     double localPoint[3] = {0.};
@@ -69,18 +70,18 @@ namespace geo{
 
       HalfCenterWidth = 0.5 * (adsg.HalfWidth1() + adsg.HalfWidth2());
 
-      if(localPoint[2] >= - adsg.Length()/2       &&
-         localPoint[2] <=   adsg.Length()/2       &&
-         localPoint[1] >= - adsg.HalfHeight()     &&
-         localPoint[1] <=   adsg.HalfHeight()     &&
+      if(localPoint[2] >= - adsg.Length()/2 - tolerance      &&
+         localPoint[2] <=   adsg.Length()/2 + tolerance      &&
+         localPoint[1] >= - adsg.HalfHeight() - tolerance    &&
+         localPoint[1] <=   adsg.HalfHeight() + tolerance    &&
          // if AuxDet a is a box, then HalfSmallWidth = HalfWidth
-         localPoint[0] >= - HalfCenterWidth + localPoint[2]*(HalfCenterWidth - adsg.HalfWidth2())/(0.5 * adsg.Length()) &&
-         localPoint[0] <=   HalfCenterWidth - localPoint[2]*(HalfCenterWidth - adsg.HalfWidth2())/(0.5 * adsg.Length())
+         localPoint[0] >= - HalfCenterWidth + localPoint[2]*(HalfCenterWidth - adsg.HalfWidth2())/(0.5 * adsg.Length()) - tolerance &&
+         localPoint[0] <=   HalfCenterWidth - localPoint[2]*(HalfCenterWidth - adsg.HalfWidth2())/(0.5 * adsg.Length()) + tolerance
          ) return a;
     }// for loop over AuxDetSensitive a
 
     // throw an exception because we couldn't find the sensitive volume
-    throw cet::exception("Geometry") << "Can't find AuxDetSensitive for position ("
+    throw cet::exception("Geometry") << "NEW TEXT Can't find AuxDetSensitive for position ("
                                      << point[0] << ","
                                      << point[1] << ","
                                      << point[2] << ")\n";

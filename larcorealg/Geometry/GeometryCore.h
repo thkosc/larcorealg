@@ -4599,7 +4599,8 @@ namespace geo {
      */
     void  FindAuxDetSensitiveAtPosition(geo::Point_t const& point,
                                         std::size_t       & adg,
-                                        std::size_t       & sv) const;
+                                        std::size_t       & sv,
+					double tolerance = 0) const;
 
     /**
      * @brief Fills the indices of the sensitive auxiliary detector at location
@@ -4610,7 +4611,8 @@ namespace geo {
      */
     void  FindAuxDetSensitiveAtPosition(double const worldLoc[3],
                                         size_t     & adg,
-                                        size_t     & sv) const;
+                                        size_t     & sv,
+					double tolerance = 0) const;
 
     /**
      * @brief Returns the auxiliary detector at specified location
@@ -4640,18 +4642,20 @@ namespace geo {
      * @param point location to be tested
      * @param ad _(output)_ the auxiliary detector index
      * @param sv _(output)_ the auxiliary detector sensitive volume index
+     * @param tolerance tolerance for matches. Default 0.
      * @return reference to AuxDetSensitiveGeo object of the auxiliary detector
      *
      * @todo what happens if it does not exist?
      */
     const AuxDetSensitiveGeo& PositionToAuxDetSensitive
-      (geo::Point_t const& point, size_t& ad, size_t& sv) const;
+      (geo::Point_t const& point, size_t& ad, size_t& sv, double tolerance = 0) const;
 
     /**
      * @brief Returns the auxiliary detector at specified location
      * @param worldLoc 3D coordinates of the point (world reference frame)
      * @param ad (output) the auxiliary detector index
      * @param sv (output) the auxiliary detector sensitive volume index
+     * @param tolerance tolerance for matches. Default 0.
      * @return reference to AuxDetSensitiveGeo object of the auxiliary detector
      *
      * @todo what happens if it does not exist?
@@ -4659,7 +4663,8 @@ namespace geo {
      */
     const AuxDetSensitiveGeo& PositionToAuxDetSensitive(double const worldLoc[3],
                                                         size_t     & ad,
-                                                        size_t     & sv) const;
+                                                        size_t     & sv,
+							double tolerance = 0) const;
 
     const AuxDetGeo&         ChannelToAuxDet(std::string const& auxDetName,
                                              uint32_t    const& channel) const; // return the AuxDetGeo for the given detector

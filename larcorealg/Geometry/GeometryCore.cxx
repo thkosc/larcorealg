@@ -522,34 +522,34 @@ namespace geo {
 
   //......................................................................
   void GeometryCore::FindAuxDetSensitiveAtPosition
-    (geo::Point_t const& point, std::size_t& adg, std::size_t& sv) const
+  (geo::Point_t const& point, std::size_t& adg, std::size_t& sv, double tolerance) const
   {
     adg = FindAuxDetAtPosition(point);
     // BUG the double brace syntax is required to work around clang bug 21629
     // (https://bugs.llvm.org/show_bug.cgi?id=21629)
     std::array<double, 3U> const worldPos = {{ point.X(), point.Y(), point.Z() }};
-    sv  = fChannelMapAlg->NearestSensitiveAuxDet(worldPos.data(), AuxDets());
+    sv  = fChannelMapAlg->NearestSensitiveAuxDet(worldPos.data(), AuxDets(), tolerance);
   } // GeometryCore::FindAuxDetAtPosition()
 
   //......................................................................
   void GeometryCore::FindAuxDetSensitiveAtPosition
-    (double const worldPos[3], size_t& adg, size_t& sv) const
-    { return FindAuxDetSensitiveAtPosition(geo::vect::makePointFromCoords(worldPos), adg, sv); }
+  (double const worldPos[3], size_t& adg, size_t& sv, double tolerance) const
+  { return FindAuxDetSensitiveAtPosition(geo::vect::makePointFromCoords(worldPos), adg, sv, tolerance); }
 
 
   //......................................................................
   const AuxDetSensitiveGeo& GeometryCore::PositionToAuxDetSensitive
-    (geo::Point_t const& point, size_t& ad, size_t& sv) const
+  (geo::Point_t const& point, size_t& ad, size_t& sv, double tolerance) const
   {
     // locate the desired Auxiliary Detector
-    FindAuxDetSensitiveAtPosition(point, ad, sv);
+    FindAuxDetSensitiveAtPosition(point, ad, sv, tolerance);
     return AuxDet(ad).SensitiveVolume(sv);
   }
 
   //......................................................................
   const AuxDetSensitiveGeo& GeometryCore::PositionToAuxDetSensitive
-    (double const worldLoc[3], size_t& ad, size_t& sv) const
-    { return PositionToAuxDetSensitive(geo::vect::makePointFromCoords(worldLoc), ad, sv); }
+  (double const worldLoc[3], size_t& ad, size_t& sv, double tolerance) const
+  { return PositionToAuxDetSensitive(geo::vect::makePointFromCoords(worldLoc), ad, sv, tolerance); }
 
   //......................................................................
   const AuxDetGeo& GeometryCore::ChannelToAuxDet(std::string const& auxDetName,

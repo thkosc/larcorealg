@@ -415,19 +415,21 @@ namespace geo{
      * @brief Returns the auxiliary detector closest to the specified point
      * @param point coordinates of the position to be investigated (x, y, z)
      * @param auxDets list of the sought auxiliary detectors
+     * @param tolerance tolerance for comparison. Default 0.
      * @return index of auxiliary detector within auxDets
      */
     virtual size_t NearestAuxDet
-      (const double* point, std::vector<geo::AuxDetGeo> const& auxDets) const;
+      (const double* point, std::vector<geo::AuxDetGeo> const& auxDets, double tolerance = 0) const;
 
     /**
      * @brief Returns sensitive auxiliary detector closest to specified point
      * @param point coordinates of the position to be investigated (x, y, z)
      * @param auxDets list of the auxiliary detectors
+     * @param tolerance tolerance for comparison. Default 0.
      * @return index of sought sensitive auxiliary detector within auxDets
      */
     virtual size_t NearestSensitiveAuxDet
-      (const double* point, std::vector<geo::AuxDetGeo> const& auxDets) const;
+      (const double* point, std::vector<geo::AuxDetGeo> const& auxDets, double tolerance = 0) const;
 
     /**
      * @brief Returns the index of the detector containing the specified channel
