@@ -83,30 +83,12 @@ namespace geo{
     double HalfCenterWidth = 0.;
     double localPoint[3] = {0.};
 
-    std::cout << "Number of AuxDets: " << auxDets.size() << std::endl;
 
     for(size_t a = 0; a < auxDets.size(); ++a) {
 
       auxDets[a].WorldToLocal(point, localPoint);
 
       HalfCenterWidth = 0.5 * (auxDets[a].HalfWidth1() + auxDets[a].HalfWidth2());
-            
-      std::cout << "AuxDet " << a << std::endl;
-      std::cout << "Local location: (" << localPoint[0] << "," << localPoint[1] << "," << localPoint[2] << ")" << std::endl;
-      std::cout << "Point location: (" << point[0] << "," << point[1] << "," << point[2] << ")" << std::endl;
-      std::cout << "Length()/2: "  << auxDets[a].Length()/2 << ", HalfHeight(): " << auxDets[a].HalfHeight() << ", Third Check: " << HalfCenterWidth + localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length()) << std::endl; 
-      std::cout << "Tolerance: " << tolerance << std::endl;
-      if (localPoint[2] >= - (auxDets[a].Length()/2 + tolerance) && localPoint[2] <=  (auxDets[a].Length()/2 + tolerance)) {std::cout << "Check 1 OK, ";}
-      else {std::cout << "Check 1 Failed, ";}
-
-      if (localPoint[1] >= - auxDets[a].HalfHeight() + tolerance && localPoint[1] <=   auxDets[a].HalfHeight() + tolerance) {std::cout << "Check 2 OK, ";;}
-      else {std::cout << "Check 2 Failed, ";}
-
-      if (localPoint[0] >= - HalfCenterWidth + localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length()) + tolerance  &&
-          localPoint[0] <=   HalfCenterWidth - localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length()) + tolerance) {
-	std::cout << "Check 3 OK" << std::endl;
-      }
-      else {std::cout << "Check 3 Failed" << std::endl;}
       
       if( localPoint[2] >= - (auxDets[a].Length()/2 + tolerance)       &&
           localPoint[2] <=   (auxDets[a].Length()/2 + tolerance)       &&
@@ -120,7 +102,7 @@ namespace geo{
     }// for loop over AudDet a
 
     // throw an exception because we couldn't find the sensitive volume
-    throw cet::exception("ChannelMap") << "CMA1 Can't find AuxDet for position ("
+    throw cet::exception("ChannelMap") << "Can't find AuxDet for position ("
                                              << point[0] << ","
                                              << point[1] << ","
                                              << point[2] << ")\n";
@@ -146,13 +128,6 @@ namespace geo{
       adsg.WorldToLocal(point, localPoint);
 
       HalfCenterWidth = 0.5 * (adsg.HalfWidth1() + adsg.HalfWidth2());
-      std::cout << "Tolerance: " << tolerance << std::endl;
-      if (localPoint[2] >= (- adsg.Length()/2 - tolerance) && localPoint[2] <=   (adsg.Length()/2 + tolerance)) {std::cout << "Check 1 OK" << std::endl;}
-      else {std::cout << "Check 1 Failed" << std::endl;}
-      if (localPoint[1] >= (- adsg.HalfHeight() - tolerance) && localPoint[1] <=   (adsg.HalfHeight() + tolerance)) {std::cout << "Check 2 OK" << std::endl;}
-      else {std::cout << "Check 2 Failed" << std::endl;}
-      if (localPoint[0] >= (- HalfCenterWidth + localPoint[2]*(HalfCenterWidth - adsg.HalfWidth2())/(0.5 * adsg.Length()) - tolerance) && localPoint[0] <=   (HalfCenterWidth - localPoint[2]*(HalfCenterWidth - adsg.HalfWidth2())/(0.5 * adsg.Length()) + tolerance)) {std::cout << "Check 3 OK" << std::endl;}
-      else {std::cout << "Check 3 Failed" << std::endl;}
 
       if( localPoint[2] >= - (adsg.Length()/2 + tolerance)     &&
           localPoint[2] <=   (adsg.Length()/2 + tolerance)     &&
@@ -165,7 +140,7 @@ namespace geo{
     }// for loop over AuxDetSensitive a
 
     // throw an exception because we couldn't find the sensitive volume
-    throw cet::exception("Geometry") << "CMA2 Can't find AuxDetSensitive for position ("
+    throw cet::exception("Geometry") << "Can't find AuxDetSensitive for position ("
                                      << point[0] << ","
                                      << point[1] << ","
                                      << point[2] << ")\n";
