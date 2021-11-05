@@ -201,16 +201,19 @@ namespace geo {
      * @brief Returns the auxiliary detector at specified location
      * @param worldLoc 3D coordinates of the point (world reference frame)
      * @param ad (output) the auxiliary detector index
+     * @param tolerance tolerance for matches. Default 0
      * @return constant reference to AuxDetGeo object of the auxiliary detector
      *
      * @todo what happens if it does not exist?
      */
     AuxDetGeo const& PositionToAuxDet(double const worldLoc[3],
-                                      unsigned int &ad) const;
+                                      unsigned int &ad,
+				      double tolerance = 0) const;
 
     /**
      * @brief Returns the auxiliary detector at specified location
-     * @param worldLoc 3D coordinates of the point (world reference frame)
+     * @param worldLoc 3D coordinates of the point (world reference frame
+     * @param tolerance tolerance for matches. Default 0.
      * @param ad (output) the auxiliary detector index
      * @param sv (output) the auxiliary detector sensitive volume index
      * @return reference to AuxDetSensitiveGeo object of the auxiliary detector
@@ -219,11 +222,13 @@ namespace geo {
      */
     const AuxDetSensitiveGeo& PositionToAuxDetSensitive(double const worldLoc[3],
                                                         size_t     & ad,
-                                                        size_t     & sv) const;
+                                                        size_t     & sv,
+							double tolerance = 0) const;
 
     uint32_t                 PositionToAuxDetChannel(double const worldLoc[3],
                                                      size_t     & ad,
-                                                     size_t     & sv) const;
+                                                     size_t     & sv,
+						     double tolerance = 0) const;
     TVector3                 AuxDetChannelToPosition(uint32_t    const& channel,
                                                      std::string const& auxDetName) const;
 

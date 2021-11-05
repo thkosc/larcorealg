@@ -143,10 +143,11 @@ namespace geo {
 
   //......................................................................
   const AuxDetGeo& AuxDetGeometryCore::PositionToAuxDet(double const  worldLoc[3],
-                                                        unsigned int &ad) const
+                                                        unsigned int &ad,
+							double tolerance) const
   {
     // locate the desired Auxiliary Detector
-    ad = this->FindAuxDetAtPosition(worldLoc);
+    ad = this->FindAuxDetAtPosition(worldLoc, tolerance);
 
     return this->AuxDet(ad);
   }
@@ -164,19 +165,21 @@ namespace geo {
   //......................................................................
   const AuxDetSensitiveGeo& AuxDetGeometryCore::PositionToAuxDetSensitive(double const worldLoc[3],
                                                                           size_t      &ad,
-                                                                          size_t      &sv) const
+                                                                          size_t      &sv,
+									  double tolerance) const
   {
     // locate the desired Auxiliary Detector
-    this->FindAuxDetSensitiveAtPosition(worldLoc, ad, sv);
+    this->FindAuxDetSensitiveAtPosition(worldLoc, ad, sv, tolerance);
     return this->AuxDet(ad).SensitiveVolume(sv);
   }
 
   //......................................................................
   uint32_t AuxDetGeometryCore::PositionToAuxDetChannel(double const worldLoc[3],
                                                        size_t      &ad,
-                                                       size_t      &sv) const
+                                                       size_t      &sv,
+						       double tolerance) const
   {
-    return fChannelMapAlg->PositionToAuxDetChannel(worldLoc, AuxDets(), ad, sv);
+    return fChannelMapAlg->PositionToAuxDetChannel(worldLoc, AuxDets(), ad, sv, tolerance);
   }
 
   //......................................................................

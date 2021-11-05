@@ -4573,29 +4573,32 @@ namespace geo {
     /**
      * @brief Returns the index of the auxiliary detector at specified location.
      * @param worldLoc 3D coordinates of the point (world reference frame)
+     * @param tolerance tolerance for matches. Default 0
      * @return the index of the detector, or
      *        `std::numeric_limits<unsigned int>::max()` if no detector is there
      *
      * @bug Actually, an exception is thrown.
      * @deprecated Use the version with `geo::Point_t`.
      */
-    unsigned int FindAuxDetAtPosition(double const worldLoc[3]) const;
+    unsigned int FindAuxDetAtPosition(double const worldLoc[3], double tolerance = 0) const;
 
     /**
      * @brief Returns the index of the auxiliary detector at specified location.
      * @param point location to be tested
+     * @param tolerance tolerance for matches. Default 0
      * @return the index of the detector, or
      *        `std::numeric_limits<unsigned int>::max()` if no detector is there
      *
      * @bug Actually, an exception is thrown.
      */
-    unsigned int FindAuxDetAtPosition(geo::Point_t const& point) const;
+    unsigned int FindAuxDetAtPosition(geo::Point_t const& point, double tolerance = 0) const;
 
     /**
      * @brief Fills the indices of the sensitive auxiliary detector at location
      * @param point location to be tested
      * @param adg _(output)_ auxiliary detector index
      * @param sv _(output)_ sensitive volume index
+     * @param tolerance tolerance for matches. Default 0.
      */
     void  FindAuxDetSensitiveAtPosition(geo::Point_t const& point,
                                         std::size_t       & adg,
@@ -4607,6 +4610,7 @@ namespace geo {
      * @param worldLoc 3D coordinates of the point (world reference frame)
      * @param adg (output) auxiliary detector index
      * @param sv (output) sensitive volume index
+     * @param tolerance tolerance for matches. Default 0.  
      * @deprecated Use the version with `geo::Point_t`.
      */
     void  FindAuxDetSensitiveAtPosition(double const worldLoc[3],
@@ -4618,24 +4622,26 @@ namespace geo {
      * @brief Returns the auxiliary detector at specified location
      * @param point location to be tested
      * @param ad _(output)_ the auxiliary detector index
+     * @param tolerance tolerance for matches. Default 0.
      * @return constant reference to AuxDetGeo object of the auxiliary detector
      *
      * @todo what happens if it does not exist?
      */
     AuxDetGeo const& PositionToAuxDet
-      (geo::Point_t const& point, unsigned int& ad) const;
+      (geo::Point_t const& point, unsigned int& ad, double tolerance = 0) const;
 
     /**
      * @brief Returns the auxiliary detector at specified location
      * @param worldLoc 3D coordinates of the point (world reference frame)
      * @param ad (output) the auxiliary detector index
+     * @param tolerance tolerance for matches. Default 0.
      * @return constant reference to AuxDetGeo object of the auxiliary detector
      *
      * @deprecated Use the version with `geo::Point_t`.
      * @todo what happens if it does not exist?
      */
     AuxDetGeo const& PositionToAuxDet
-      (double const worldLoc[3], unsigned int& ad) const;
+      (double const worldLoc[3], unsigned int& ad, double tolerance = 0) const;
 
     /**
      * @brief Returns the auxiliary detector at specified location

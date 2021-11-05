@@ -493,38 +493,38 @@ namespace geo {
   } // GeometryCore::PositionToCryostat(double[3], unsigned int)
 
   //......................................................................
-  unsigned int GeometryCore::FindAuxDetAtPosition(geo::Point_t const& point) const
+  unsigned int GeometryCore::FindAuxDetAtPosition(geo::Point_t const& point, double tolerance) const
   {
     // BUG the double brace syntax is required to work around clang bug 21629
     // (https://bugs.llvm.org/show_bug.cgi?id=21629)
     std::array<double, 3U> worldPos = {{ point.X(), point.Y(), point.Z() }};
-    return fChannelMapAlg->NearestAuxDet(worldPos.data(), AuxDets());
+    return fChannelMapAlg->NearestAuxDet(worldPos.data(), AuxDets(), tolerance);
   } // GeometryCore::FindAuxDetAtPosition()
 
   //......................................................................
-  unsigned int GeometryCore::FindAuxDetAtPosition(double const  worldPos[3]) const
-    { return FindAuxDetAtPosition(geo::vect::makePointFromCoords(worldPos)); }
+  unsigned int GeometryCore::FindAuxDetAtPosition(double const  worldPos[3], double tolerance) const
+  { return FindAuxDetAtPosition(geo::vect::makePointFromCoords(worldPos), tolerance); }
 
 
   //......................................................................
   const AuxDetGeo& GeometryCore::PositionToAuxDet
-    (geo::Point_t const& point, unsigned int &ad) const
+  (geo::Point_t const& point, unsigned int &ad, double tolerance) const
   {
     // locate the desired Auxiliary Detector
-    ad = FindAuxDetAtPosition(point);
+    ad = FindAuxDetAtPosition(point, tolerance);
     return AuxDet(ad);
   }
 
   //......................................................................
   const AuxDetGeo& GeometryCore::PositionToAuxDet
-    (double const  worldLoc[3], unsigned int &ad) const
-    { return PositionToAuxDet(geo::vect::makePointFromCoords(worldLoc), ad); }
+  (double const  worldLoc[3], unsigned int &ad, double tolerance) const
+  { return PositionToAuxDet(geo::vect::makePointFromCoords(worldLoc), ad, tolerance); }
 
   //......................................................................
   void GeometryCore::FindAuxDetSensitiveAtPosition
   (geo::Point_t const& point, std::size_t& adg, std::size_t& sv, double tolerance) const
   {
-    adg = FindAuxDetAtPosition(point);
+    adg = FindAuxDetAtPosition(point, tolerance);
     // BUG the double brace syntax is required to work around clang bug 21629
     // (https://bugs.llvm.org/show_bug.cgi?id=21629)
     std::array<double, 3U> const worldPos = {{ point.X(), point.Y(), point.Z() }};
