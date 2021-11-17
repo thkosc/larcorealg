@@ -191,6 +191,7 @@ namespace geo {
      * @param worldLoc 3D coordinates of the point (world reference frame)
      * @param adg (output) auxiliary detector index
      * @param sv (output) sensitive volume index
+     * @param tolerance tolerance (cm) for matches. Default 0.
      */
     void  FindAuxDetSensitiveAtPosition(double const worldLoc[3],
                                         size_t     & adg,
@@ -201,7 +202,7 @@ namespace geo {
      * @brief Returns the auxiliary detector at specified location
      * @param worldLoc 3D coordinates of the point (world reference frame)
      * @param ad (output) the auxiliary detector index
-     * @param tolerance tolerance for matches. Default 0
+     * @param tolerance tolerance (cm) for matches. Default 0
      * @return constant reference to AuxDetGeo object of the auxiliary detector
      *
      * @todo what happens if it does not exist?
@@ -213,7 +214,7 @@ namespace geo {
     /**
      * @brief Returns the auxiliary detector at specified location
      * @param worldLoc 3D coordinates of the point (world reference frame
-     * @param tolerance tolerance for matches. Default 0.
+     * @param tolerance tolerance (cm) for matches. Default 0.
      * @param ad (output) the auxiliary detector index
      * @param sv (output) the auxiliary detector sensitive volume index
      * @return reference to AuxDetSensitiveGeo object of the auxiliary detector
