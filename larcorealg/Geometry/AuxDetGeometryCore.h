@@ -228,8 +228,8 @@ namespace geo {
 
     uint32_t                 PositionToAuxDetChannel(double const worldLoc[3],
                                                      size_t     & ad,
-                                                     size_t     & sv,
-						     double tolerance = 0) const;
+                                                     size_t     & sv) const;
+
     TVector3                 AuxDetChannelToPosition(uint32_t    const& channel,
                                                      std::string const& auxDetName) const;
 

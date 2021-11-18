@@ -176,10 +176,9 @@ namespace geo {
   //......................................................................
   uint32_t AuxDetGeometryCore::PositionToAuxDetChannel(double const worldLoc[3],
                                                        size_t      &ad,
-                                                       size_t      &sv,
-						       double tolerance) const
+                                                       size_t      &sv) const
   {
-    return fChannelMapAlg->PositionToAuxDetChannel(worldLoc, AuxDets(), ad, sv, tolerance);
+    return fChannelMapAlg->PositionToAuxDetChannel(worldLoc, AuxDets(), ad, sv);
   }
 
   //......................................................................
