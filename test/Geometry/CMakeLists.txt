@@ -39,7 +39,7 @@ cet_make_library( LIBRARY_NAME GeometryTestLib
 cet_test(geometry_iterator_test
   SOURCES geometry_iterator_test.cxx
   LIBRARIES larcorealg_Geometry
-            GeometryTestLib
+            larcorealg::GeometryTestLib
             messagefacility::MF_MessageLogger
             fhiclcpp::fhiclcpp
             cetlib::cetlib cetlib_except
@@ -53,7 +53,7 @@ cet_test(geometry_iterator_test
 cet_test(geometry_geoid_test
   SOURCES geometry_geoid_test.cxx
   LIBRARIES larcorealg_Geometry
-            GeometryTestLib
+            larcorealg::GeometryTestLib
             messagefacility::MF_MessageLogger
             fhiclcpp::fhiclcpp
             cetlib::cetlib cetlib_except
@@ -68,7 +68,7 @@ cet_test(geometry_test
   DATAFILES test_geometry.fcl
   TEST_ARGS ./test_geometry.fcl
   LIBRARIES larcorealg_Geometry
-            GeometryTestLib
+            larcorealg::GeometryTestLib
             messagefacility::MF_MessageLogger
             fhiclcpp::fhiclcpp
             cetlib::cetlib cetlib_except
@@ -80,7 +80,7 @@ cet_test(geometry_loader_test
   DATAFILES test_geometry.fcl
   TEST_ARGS ./test_geometry.fcl
   LIBRARIES larcorealg_Geometry
-            GeometryTestLib
+            larcorealg::GeometryTestLib
             messagefacility::MF_MessageLogger
             fhiclcpp::fhiclcpp
             cetlib::cetlib cetlib_except
@@ -92,7 +92,7 @@ cet_test(geometry_iterator_loop_test
   DATAFILES test_geometry_iterator_loop.fcl
   TEST_ARGS ./test_geometry_iterator_loop.fcl
   LIBRARIES larcorealg_Geometry
-            GeometryTestLib
+            larcorealg::GeometryTestLib
             messagefacility::MF_MessageLogger
             fhiclcpp::fhiclcpp
             cetlib::cetlib cetlib_except
@@ -103,7 +103,7 @@ cet_test(geometry_iterator_loop_test
 cet_test(geometry_standardchannelmapping_test
   SOURCES geometry_standardchannelmapping_test.cxx
   LIBRARIES larcorealg_Geometry
-            GeometryTestLib
+            larcorealg::GeometryTestLib
             messagefacility::MF_MessageLogger
             fhiclcpp::fhiclcpp
             cetlib::cetlib cetlib_except
