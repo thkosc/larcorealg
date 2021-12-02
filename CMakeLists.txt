@@ -13,8 +13,6 @@ project(larcorealg VERSION 09.04.00 LANGUAGES CXX)
 # cetbuildtools contains our cmake modules
 find_package(cetbuildtools REQUIRED)
 
-list(APPEND CMAKE_MODULE_PATH $ENV{CANVAS_ROOT_IO_DIR}/Modules)
-
 include(CetCMakeEnv)
 cet_cmake_env()
 
@@ -26,16 +24,16 @@ cet_set_compiler_flags(DIAGS CAUTIOUS
 
 cet_report_compiler_flags()
 
-# these are minimum required versions, not the actual product versions
-find_ups_boost()
-find_ups_root()
+find_package(cetlib_except REQUIRED PUBLIC)
+find_package(cetlib REQUIRED PUBLIC)
+find_package(messagefacility REQUIRED)
+find_package(canvas REQUIRED)
+find_package(canvas_root_io REQUIRED)
+find_package(CLHEP COMPONENTS Geometry Vector REQUIRED)
+find_package(Boost REQUIRED)
+find_package(ROOT COMPONENTS Core Physics Geom GenVector REQUIRED)
 
-find_ups_product( canvas )
-find_ups_product( cetlib )
-find_ups_product( cetlib_except )
-find_ups_product(messagefacility)
 find_ups_product( larcoreobj )
-find_ups_product(clhep)
 
 # macros for artdaq_dictionary and simple_plugin
 include(ArtDictionary)

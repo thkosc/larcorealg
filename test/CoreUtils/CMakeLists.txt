@@ -24,11 +24,15 @@ cet_test( DumpUtils_test
     ROOT::Physics
   USE_BOOST_UNIT
   )
-cet_test( SortByPointers_test USE_BOOST_UNIT )
+cet_test( SortByPointers_test
+          LIBRARIES cetlib_except::cetlib_except
+          USE_BOOST_UNIT )
 cet_test( span_test USE_BOOST_UNIT )
 cet_test( MetaUtils_test USE_BOOST_UNIT )
 cet_test( ContainerMeta_test USE_BOOST_UNIT )
-cet_test( DebugUtils_test USE_BOOST_UNIT )
+cet_test( DebugUtils_test
+          LIBRARIES cetlib_except::cetlib_except
+          USE_BOOST_UNIT )
 cet_test( counter_test USE_BOOST_UNIT )
 cet_test( zip_test USE_BOOST_UNIT )
 cet_test( enumerate_test USE_BOOST_UNIT )

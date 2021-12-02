@@ -11,6 +11,7 @@ cet_make(
           ROOT::Physics
           ROOT::Geom
           ROOT::GenVector
+          CLHEP::Geometry
         )
 
 install_headers(SUBDIRS "details")
