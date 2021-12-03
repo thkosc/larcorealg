@@ -26,12 +26,12 @@ cet_report_compiler_flags()
 
 find_package(cetlib_except REQUIRED PUBLIC)
 find_package(cetlib REQUIRED PUBLIC)
-find_package(messagefacility REQUIRED)
-find_package(canvas REQUIRED)
+find_package(messagefacility REQUIRED PUBLIC)
+find_package(canvas REQUIRED PUBLIC)
 find_package(canvas_root_io REQUIRED)
-find_package(CLHEP COMPONENTS Geometry Vector REQUIRED)
+find_package(CLHEP COMPONENTS Geometry Vector REQUIRED PUBLIC)
 find_package(Boost REQUIRED)
-find_package(ROOT COMPONENTS Core Physics Geom GenVector REQUIRED)
+find_package(ROOT COMPONENTS Core Physics Geom GenVector REQUIRED PUBLIC)
 
 find_ups_product( larcoreobj )
 
