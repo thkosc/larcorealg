@@ -1,8 +1,28 @@
-cet_make(
-  SUBDIRS
-    "details"
+cet_make_library(
+  SOURCE AuxDetChannelMapAlg.cxx
+         AuxDetGeo.cxx
+         AuxDetGeometryCore.cxx
+         AuxDetSensitiveGeo.cxx
+         BoxBoundedGeo.cxx
+         ChannelMapAlg.cxx
+         ChannelMapStandardAlg.cxx
+         CryostatGeo.cxx
+         DriftPartitions.cxx
+         GeometryBuilderStandard.cxx
+         GeometryBuilderWireless.cxx
+         GeometryCore.cxx
+         GeoNodePath.cxx
+         GeoObjectSorter.cxx
+         GeoObjectSorterStandard.cxx
+         GeoVectorLocalTransformation.cxx
+         LocalTransformation.cxx
+         OpDetGeo.cxx
+         PlaneGeo.cxx
+         StandaloneGeometrySetup.cxx
+         TPCGeo.cxx
+         WireGeo.cxx
   LIBRARIES
-          larcoreobj_SimpleTypesAndConstants
+          larcoreobj::SimpleTypesAndConstants
           messagefacility::MF_MessageLogger
           fhiclcpp::fhiclcpp
           cetlib::cetlib
@@ -12,7 +32,8 @@ cet_make(
           ROOT::Geom
           ROOT::GenVector
           CLHEP::Geometry
-        ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.05.03) - deprecated: use cet_make_library(), build_dictonary(), cet_plugin() with explicit source lists and plugin base types
+        ) 
+
 
 install_headers(SUBDIRS "details")
 install_fhicl(SUBDIRS "details")

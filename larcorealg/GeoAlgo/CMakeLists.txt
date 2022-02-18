@@ -1,11 +1,22 @@
-cet_make(NO_DICTIONARY
+cet_make_library(
+         SOURCE GeoAABox.cxx
+                GeoAlgo.cxx
+                GeoCone.cxx
+                GeoCylinder.cxx
+                GeoDirectedLine.cxx
+                GeoHalfLine.cxx
+                GeoLine.cxx
+                GeoLineSegment.cxx
+                GeoObjCollection.cxx
+                GeoSphere.cxx
+                GeoTrajectory.cxx
+                GeoVector.cxx
          LIBRARIES
            ROOT::Core
            ROOT::Physics
-         ) ### MIGRATE-ACTION-RECOMMENDED (migrate-3.05.03) - deprecated: use cet_make_library(), build_dictonary(), cet_plugin() with explicit source lists and plugin base types
+         )
 
-art_dictionary(DICTIONARY_LIBRARIES larcorealg_GeoAlgo)
-
+build_dictionary(DICTIONARY_LIBRARIES larcorealg_GeoAlgo)
 
 install_headers()
 install_source()
