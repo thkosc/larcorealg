@@ -5,6 +5,7 @@ cet_test( geo_vectors_utils_test
     ROOT::Core
     ROOT::Physics
     ROOT::GenVector
+    larcorealg::geoVectorUtils
   USE_BOOST_UNIT
   )
 
@@ -13,6 +14,7 @@ cet_test( LineClosestPoint_test
     ROOT::GenVector
     cetlib::cetlib
     cetlib_except::cetlib_except
+    larcorealg::geoVectorUtils
   USE_BOOST_UNIT
   )
 
@@ -144,6 +146,7 @@ cet_test(Decomposer_test
     ROOT::Physics
     ROOT::GenVector
     ROOT::Core # TVersionCheck
+    larcorealg::geoVectorUtils
   USE_BOOST_UNIT
   )
 
@@ -168,16 +171,19 @@ cet_test(driftvolumes_test
 cet_test(geometrydatacontainers_test
   SOURCE geometrydatacontainers_test.cxx
   LIBRARIES cetlib_except::cetlib_except
+       larcorealg::GeometryIDmapper
   USE_BOOST_UNIT
   )
 
 cet_test(geoidmapper_test
   SOURCE geoidmapper_test.cxx
+  LIBRARIES larcorealg::GeometryIDmapper
   USE_BOOST_UNIT
   )
 
 cet_test(readoutdatacontainers_test
   SOURCE readoutdatacontainers_test.cxx
+  LIBRARIES larcorealg::GeometryIDmapper
   USE_BOOST_UNIT
   )
 
