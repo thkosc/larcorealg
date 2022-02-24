@@ -33,7 +33,7 @@ find_package(CLHEP COMPONENTS Geometry Vector REQUIRED EXPORT)
 find_package(Boost REQUIRED)
 find_package(ROOT COMPONENTS Core Physics Geom GenVector REQUIRED EXPORT)
 
-find_package( larcoreobj REQUIRED )
+find_package( larcoreobj REQUIRED EXPORT)
 
 include(BuildDictionary)
 
