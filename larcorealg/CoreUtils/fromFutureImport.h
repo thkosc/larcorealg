@@ -10,6 +10,9 @@
 #ifndef LARCOREALG_COREUTILS_FROMFUTUREIMPORT_H
 #define LARCOREALG_COREUTILS_FROMFUTUREIMPORT_H
 
+
+#include <utility> // std::forward()
+
 /**
  * @defgroup FutureStandards Future C++ features
  * @brief Features expected to be provided by future C++ standards.
