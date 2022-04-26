@@ -9,8 +9,7 @@
 
 // Boost libraries
 #define BOOST_TEST_MODULE LineClosestPoint_test
-#include <cetlib/quiet_unit_test.hpp> // BOOST_AUTO_TEST_CASE(), BOOST_TEST()
-#include <boost/test/test_tools.hpp> // BOOST_CHECK(), BOOST_CHECK_CLOSE()
+#include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_CASE(), BOOST_TEST()
 
 // LArSoft libraries
 #include "larcorealg/Geometry/LineClosestPoint.h"

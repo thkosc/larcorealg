@@ -8,7 +8,7 @@
  */
 
 // LArSoft libraries
-#include "test/Geometry/GeometryIteratorTestAlg.h"
+#include "GeometryIteratorTestAlg.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcorealg/Geometry/GeometryCore.h"
 

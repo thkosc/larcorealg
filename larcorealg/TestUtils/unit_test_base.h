@@ -7,7 +7,7 @@
  * Provides an environment for easy set up of a message-facility-aware test.
  *
  * For an example of how to expand it to host services,
- * see larcore/test/Geometry/geometry_unit_test_base.h
+ * see geometry_unit_test_base.h
  *
  * Currently provides:
  * - BasicEnvironmentConfiguration: a test environment configuration

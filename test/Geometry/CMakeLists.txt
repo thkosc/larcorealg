@@ -1,98 +1,85 @@
 cet_enable_asserts()
 
-cet_test( geo_vectors_utils_test
-  LIBRARIES
-    ROOT::Core
-    ROOT::Physics
-    ROOT::GenVector
-    larcorealg::geoVectorUtils
-  USE_BOOST_UNIT
-  )
+cet_test(geo_vectors_utils_test USE_BOOST_UNIT
+  LIBRARIES PRIVATE
+  larcorealg::geo_vectors_utils_TVector
+  larcorealg::geo_vectors_utils
+)
 
-cet_test( LineClosestPoint_test
-  LIBRARIES
-    ROOT::GenVector
-    cetlib::cetlib
-    cetlib_except::cetlib_except
-    larcorealg::geoVectorUtils
-  USE_BOOST_UNIT
-  )
+cet_test(LineClosestPoint_test USE_BOOST_UNIT
+  LIBRARIES PRIVATE
+  larcorealg::LineClosestPoint
+  larcoreobj::geo_vectors
+)
 
 # test libraries
-cet_make_library( LIBRARY_NAME larcorealg::GeometryTestLib
-                  SOURCE
-                    GeometryTestAlg.cxx
-                    GeometryGeoIDTestAlg.cxx
-                    GeometryIteratorTestAlg.cxx
-                    GeometryIteratorLoopTestAlg.cxx
-                    ChannelMapStandardTestAlg.cxx
-                  LIBRARIES larcorealg_Geometry
-                        larcorealg_TestUtils
-                        canvas::canvas
-                        messagefacility::MF_MessageLogger
-                        fhiclcpp::fhiclcpp
-                        cetlib::cetlib
-                        cetlib_except::cetlib_except
-                  USE_BOOST_UNIT
-          )
-
+cet_make_library(LIBRARY_NAME GeometryTestLib USE_PROJECT_NAME USE_BOOST_UNIT
+  SOURCE
+  GeometryTestAlg.cxx
+  GeometryGeoIDTestAlg.cxx
+  GeometryIteratorTestAlg.cxx
+  GeometryIteratorLoopTestAlg.cxx
+  ChannelMapStandardTestAlg.cxx
+  LIBRARIES
+  PUBLIC
+  larcorealg::TestUtils
+  larcoreobj::geo_vectors
+  PRIVATE
+  larcorealg::Exceptions
+  larcorealg::Geometry
+  larcorealg::geo
+  larcorealg::geo_vectors_utils
+  larcoreobj::SimpleTypesAndConstants
+  messagefacility::MF_MessageLogger
+  cetlib::cetlib
+  cetlib_except::cetlib_except
+  ROOT::Core
+)
 
 # geometry test on "standard" geometry
 
 # unit test (use geometry configuration from config file, the rest is ignored)
 # this uses BOOST for the test
-cet_test(geometry_iterator_test
+cet_test(geometry_iterator_test USE_BOOST_UNIT
   SOURCE geometry_iterator_test.cxx
-  LIBRARIES larcorealg_Geometry
-            larcorealg::GeometryTestLib
-            messagefacility::MF_MessageLogger
-            fhiclcpp::fhiclcpp
-            cetlib::cetlib
-            cetlib_except::cetlib_except
-  USE_BOOST_UNIT
   DATAFILES test_geometry.fcl
   TEST_ARGS -- ./test_geometry.fcl
+  LIBRARIES PRIVATE
+  larcorealg::Geometry
+  larcorealg::GeometryTestLib
+  larcorealg::geometry_unit_test_base
 )
 
 # unit test (use geometry configuration from config file, the rest is ignored)
 # this uses BOOST for the test
-cet_test(geometry_geoid_test
-  SOURCE geometry_geoid_test.cxx
-  LIBRARIES larcorealg_Geometry
-            larcorealg::GeometryTestLib
-            messagefacility::MF_MessageLogger
-            fhiclcpp::fhiclcpp
-            cetlib::cetlib
-            cetlib_except::cetlib_except
-  USE_BOOST_UNIT
+cet_test(geometry_geoid_test SOURCE geometry_geoid_test.cxx USE_BOOST_UNIT
   DATAFILES test_geometry.fcl
   TEST_ARGS -- ./test_geometry.fcl
+  LIBRARIES PRIVATE
+  larcorealg::Geometry
+  larcorealg::GeometryTestLib
+  larcorealg::geometry_unit_test_base
 )
 
 # unit test (use the hard-coded channel mapping for "standard" LArTPCdetector)
-cet_test(geometry_test
-  SOURCE geometry_test.cxx
+cet_test(geometry_test SOURCE geometry_test.cxx
   DATAFILES test_geometry.fcl
   TEST_ARGS ./test_geometry.fcl
-  LIBRARIES larcorealg_Geometry
-            larcorealg::GeometryTestLib
-            messagefacility::MF_MessageLogger
-            fhiclcpp::fhiclcpp
-            cetlib::cetlib
-            cetlib_except::cetlib_except
+  LIBRARIES PRIVATE
+  larcorealg::Geometry
+  larcorealg::GeometryTestLib
+  larcorealg::geometry_unit_test_base
 )
 
 # test of standalone geometry loading (use the hard-coded channel mapping for "standard" LArTPCdetector)
-cet_test(geometry_loader_test
-  SOURCE geometry_loader_test.cxx
+cet_test(geometry_loader_test SOURCE geometry_loader_test.cxx
   DATAFILES test_geometry.fcl
   TEST_ARGS ./test_geometry.fcl
-  LIBRARIES larcorealg_Geometry
-            larcorealg::GeometryTestLib
-            messagefacility::MF_MessageLogger
-            fhiclcpp::fhiclcpp
-            cetlib::cetlib
-            cetlib_except::cetlib_except
+  LIBRARIES PRIVATE
+  larcorealg::GeometryTestLib
+  larcorealg::Geometry
+  messagefacility::MF_MessageLogger
+  fhiclcpp::fhiclcpp
 )
 
 # test to verify loops on geometry elements by geometry iterators (hard-coded channel mapping for "standard" LArTPCdetector)
@@ -100,113 +87,91 @@ cet_test(geometry_iterator_loop_test
   SOURCE geometry_iterator_loop_test.cxx
   DATAFILES test_geometry_iterator_loop.fcl
   TEST_ARGS ./test_geometry_iterator_loop.fcl
-  LIBRARIES larcorealg_Geometry
-            larcorealg::GeometryTestLib
-            messagefacility::MF_MessageLogger
-            fhiclcpp::fhiclcpp
-            cetlib::cetlib
-            cetlib_except::cetlib_except
+  LIBRARIES PRIVATE
+  larcorealg::Geometry
+  larcorealg::GeometryTestLib
+  larcorealg::geometry_unit_test_base
+  messagefacility::MF_MessageLogger
 )
 
 
 # test for standard channel mapping (BOOST unit test)
-cet_test(geometry_standardchannelmapping_test
+cet_test(geometry_standardchannelmapping_test USE_BOOST_UNIT
   SOURCE geometry_standardchannelmapping_test.cxx
-  LIBRARIES larcorealg_Geometry
-            larcorealg::GeometryTestLib
-            messagefacility::MF_MessageLogger
-            fhiclcpp::fhiclcpp
-            cetlib::cetlib
-            cetlib_except::cetlib_except
-  USE_BOOST_UNIT
   DATAFILES test_geometry.fcl
   TEST_ARGS ./test_geometry.fcl
+  LIBRARIES PRIVATE
+  larcorealg::Geometry
+  larcorealg::GeometryTestLib
+  larcorealg::geometry_unit_test_base
 )
 
 
 # simple unit test
 # this uses BOOST for the test
-cet_test(geometry_thirdplaneslope_test
+cet_test(geometry_thirdplaneslope_test USE_BOOST_UNIT
   SOURCE geometry_thirdplaneslope_test.cxx
-  LIBRARIES larcorealg_Geometry
-            messagefacility::MF_MessageLogger
-            fhiclcpp::fhiclcpp
-            cetlib::cetlib
-            cetlib_except::cetlib_except
-  USE_BOOST_UNIT
   DATAFILES test_geometry.fcl
   TEST_ARGS -- ./test_geometry.fcl
+  LIBRARIES PRIVATE
+  larcorealg::Geometry
+  larcorealg::GeometryTestLib
+  larcorealg::geometry_unit_test_base
+  larcoreobj::headers
 )
-
 
 # decomposition engine tests
-cet_test(Decomposer_test
+cet_test(Decomposer_test USE_BOOST_UNIT
   SOURCE Decomposer_test.cxx
-  LIBRARIES
-    ROOT::Physics
-    ROOT::GenVector
-    ROOT::Core # TVersionCheck
-    larcorealg::geoVectorUtils
-  USE_BOOST_UNIT
-  )
-
-cet_test(SimpleGeo_test
-  SOURCE SimpleGeo_test.cxx
-  USE_BOOST_UNIT
+  LIBRARIES PRIVATE
+  larcorealg::Geometry
+  larcorealg::geo_vectors_utils_TVector
+  ROOT::Physics
+  ROOT::GenVector
 )
 
+cet_test(SimpleGeo_test USE_BOOST_UNIT SOURCE SimpleGeo_test.cxx)
 
-cet_test(driftvolumes_test
-  SOURCE driftvolumes_test.cxx
+cet_test(driftvolumes_test SOURCE driftvolumes_test.cxx
   DATAFILES test_geometry.fcl
   TEST_ARGS ./test_geometry.fcl
-  LIBRARIES larcorealg_Geometry
-            messagefacility::MF_MessageLogger
-            fhiclcpp::fhiclcpp
-            cetlib::cetlib
-            cetlib_except::cetlib_except
-  USE_BOOST_UNIT
-  )
+  LIBRARIES PRIVATE
+  larcorealg::Geometry
+  larcorealg::geometry_unit_test_base
+  messagefacility::MF_MessageLogger
+)
 
-cet_test(geometrydatacontainers_test
+cet_test(geometrydatacontainers_test USE_BOOST_UNIT
   SOURCE geometrydatacontainers_test.cxx
-  LIBRARIES cetlib_except::cetlib_except
-       larcorealg::GeometryIDmapper
-  USE_BOOST_UNIT
-  )
+  LIBRARIES PRIVATE
+  larcorealg::GeometryDataContainers
+  larcorealg::CoreUtils
+  larcoreobj::SimpleTypesAndConstants
+)
 
-cet_test(geoidmapper_test
-  SOURCE geoidmapper_test.cxx
-  LIBRARIES larcorealg::GeometryIDmapper
-  USE_BOOST_UNIT
-  )
+cet_test(geoidmapper_test USE_BOOST_UNIT SOURCE geoidmapper_test.cxx
+  LIBRARIES PRIVATE
+  larcorealg::GeometryIDmapper
+  larcoreobj::SimpleTypesAndConstants
+)
 
-cet_test(readoutdatacontainers_test
+cet_test(readoutdatacontainers_test USE_BOOST_UNIT
   SOURCE readoutdatacontainers_test.cxx
-  LIBRARIES larcorealg::GeometryIDmapper
-  USE_BOOST_UNIT
-  )
+  LIBRARIES PRIVATE
+  larcorealg::ReadoutDataContainers
+  larcoreobj::SimpleTypesAndConstants
+)
 
-cet_test(topology_test
-  SOURCE topology_test.cxx
-  LIBRARIES larcorealg_Geometry
-  USE_BOOST_UNIT
-  )
+cet_test(topology_test USE_BOOST_UNIT SOURCE topology_test.cxx
+  LIBRARIES PRIVATE larcorealg::Geometry)
 
+set_property(TEST geometry_iterator_test geometry_test geometry_loader_test
+  geometry_iterator_loop_test geometry_standardchannelmapping_test
+  geometry_geoid_test geometry_thirdplaneslope_test
+  APPEND PROPERTY ENVIRONMENT
+  "FHICL_FILE_PATH=.:${PROJECT_BINARY_DIR}/job;FW_SEARCH_PATH=${PROJECT_BINARY_DIR}/gdml"
+)
 
-# set FHICL_FILE_PATH and FW_SEARCH_PATH for the case where building without mrb
-# this is not generic, we take advantage of knowing the subdirectories for the fcl and gdml files
-set( mrb_build_dir $ENV{MRB_BUILDDIR} )
-if( NOT mrb_build_dir )
-  #message(STATUS "MRB_BUILDDIR is undefined, set FHICL_FILE_PATH and FW_SEARCH_PATH")
-  set_tests_properties( geometry_iterator_test geometry_test geometry_loader_test
-                        geometry_iterator_loop_test geometry_standardchannelmapping_test
-                        geometry_geoid_test geometry_thirdplaneslope_test
-                        PROPERTIES ENVIRONMENT
-                        "FHICL_FILE_PATH=.:${CMAKE_BINARY_DIR}/job;FW_SEARCH_PATH=${CMAKE_BINARY_DIR}/gdml" )
-endif()
-
-
-install_headers()
+install_headers(SUBDIRNAME larcorealg)
 install_fhicl()
 install_source()

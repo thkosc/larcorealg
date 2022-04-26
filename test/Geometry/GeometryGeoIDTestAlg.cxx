@@ -8,7 +8,7 @@
  */
 
 // LArSoft libraries
-#include "test/Geometry/GeometryGeoIDTestAlg.h"
+#include "GeometryGeoIDTestAlg.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcorealg/Geometry/GeometryCore.h"
 

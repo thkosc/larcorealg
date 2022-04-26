@@ -14,7 +14,7 @@
  */
 
 // LArSoft libraries
-#include "test/Geometry/geometry_unit_test_base.h"
+#include "larcorealg/TestUtils/geometry_unit_test_base.h"
 #include "larcorealg/Geometry/ChannelMapStandardAlg.h"
 #include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/Geometry/DriftPartitions.h" // BuildDriftVolumes()

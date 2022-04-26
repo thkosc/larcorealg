@@ -19,7 +19,7 @@
 
 
 // LArSoft libraries
-#include "test/Geometry/GeometryTestAlg.h"
+#include "GeometryTestAlg.h"
 #include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/Geometry/StandaloneGeometrySetup.h" // SetupGeometry()
 #include "larcorealg/Geometry/StandaloneBasicSetup.h" // SetupMessageFacility()...

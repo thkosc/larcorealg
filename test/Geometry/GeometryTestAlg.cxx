@@ -7,7 +7,7 @@
  */
 
 // our header
-#include "test/Geometry/GeometryTestAlg.h"
+#include "GeometryTestAlg.h"
 
 // LArSoft includes
 #include "larcorealg/Geometry/Decomposer.h"

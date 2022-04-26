@@ -9,6 +9,7 @@
 #define GEO_AUXDETGEOMETRYCORE_H
 
 // LArSoft libraries
+#include "larcorealg/Geometry/AuxDetChannelMapAlg.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 
 // Framework and infrastructure libraries
@@ -28,7 +29,6 @@
 namespace geo {
 
   // Forward declarations within namespace.
-  class AuxDetChannelMapAlg;
   class AuxDetSensitiveGeo;
 
   /// Data in the geometry description

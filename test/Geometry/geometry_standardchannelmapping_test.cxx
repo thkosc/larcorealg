@@ -13,8 +13,8 @@
 #define BOOST_TEST_MODULE GeometryStandardChannelMappingTest
 
 // LArSoft libraries
-#include "test/Geometry/geometry_unit_test_base.h"
-#include "test/Geometry/ChannelMapStandardTestAlg.h"
+#include "larcorealg/TestUtils/geometry_unit_test_base.h"
+#include "ChannelMapStandardTestAlg.h"
 #include "larcorealg/TestUtils/boost_unit_test_base.h"
 #include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/Geometry/ChannelMapStandardAlg.h"

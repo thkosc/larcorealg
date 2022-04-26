@@ -18,8 +18,8 @@
 
 
 // LArSoft libraries
-#include "test/Geometry/GeometryIteratorLoopTestAlg.h"
-#include "test/Geometry/geometry_unit_test_base.h"
+#include "GeometryIteratorLoopTestAlg.h"
+#include "larcorealg/TestUtils/geometry_unit_test_base.h"
 #include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/Geometry/ChannelMapStandardAlg.h"
 

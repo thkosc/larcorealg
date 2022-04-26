@@ -12,7 +12,7 @@
 #define BOOST_TEST_MODULE GeometryThirdPlaneSlopeTest
 
 // LArSoft libraries
-#include "test/Geometry/geometry_unit_test_base.h"
+#include "larcorealg/TestUtils/geometry_unit_test_base.h"
 #include "larcorealg/TestUtils/boost_unit_test_base.h"
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi()
 #include "larcorealg/Geometry/GeometryCore.h"

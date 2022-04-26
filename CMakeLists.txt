@@ -24,16 +24,15 @@ cet_set_compiler_flags(DIAGS CAUTIOUS
 
 cet_report_compiler_flags(REPORT_THRESHOLD VERBOSE)
 
-find_package(cetlib_except REQUIRED EXPORT)
-find_package(cetlib REQUIRED EXPORT)
+find_package(canvas_root_io REQUIRED EXPORT)
 find_package(messagefacility REQUIRED EXPORT)
-find_package(canvas REQUIRED EXPORT)
-find_package(canvas_root_io REQUIRED)
+find_package(cetlib REQUIRED EXPORT)
+find_package(cetlib_except REQUIRED EXPORT)
+find_package(Boost COMPONENTS headers unit_test_framework REQUIRED EXPORT)
 find_package(CLHEP COMPONENTS Geometry Vector REQUIRED EXPORT)
-find_package(Boost REQUIRED)
-find_package(ROOT COMPONENTS Core Physics Geom GenVector REQUIRED EXPORT)
+find_package(ROOT COMPONENTS Core GenVector Geom MathCore Matrix Physics REQUIRED EXPORT)
 
-find_package( larcoreobj REQUIRED EXPORT)
+find_package(larcoreobj REQUIRED EXPORT)
 
 include(BuildDictionary)
 

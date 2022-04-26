@@ -8,7 +8,7 @@
  */
 
 // LArSoft libraries
-#include "test/Geometry/ChannelMapStandardTestAlg.h"
+#include "ChannelMapStandardTestAlg.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
 #include "larcorealg/Geometry/GeometryCore.h"

@@ -1,52 +1,163 @@
-cet_make_library(
-  SOURCE AuxDetChannelMapAlg.cxx
-         AuxDetGeo.cxx
-         AuxDetGeometryCore.cxx
-         AuxDetSensitiveGeo.cxx
-         BoxBoundedGeo.cxx
-         ChannelMapAlg.cxx
-         ChannelMapStandardAlg.cxx
-         CryostatGeo.cxx
-         DriftPartitions.cxx
-         GeometryBuilderStandard.cxx
-         GeometryBuilderWireless.cxx
-         GeometryCore.cxx
-         GeoNodePath.cxx
-         GeoObjectSorter.cxx
-         GeoObjectSorterStandard.cxx
-         GeoVectorLocalTransformation.cxx
-         LocalTransformation.cxx
-         OpDetGeo.cxx
-         PlaneGeo.cxx
-         StandaloneGeometrySetup.cxx
-         TPCGeo.cxx
-         WireGeo.cxx
-  LIBRARIES
-          messagefacility::MF_MessageLogger
-          fhiclcpp::fhiclcpp
-          cetlib::cetlib
-          cetlib_except::cetlib_except
-          ROOT::Core
-          ROOT::Physics
-          ROOT::Geom
-          ROOT::GenVector
-          CLHEP::Geometry
-          PUBLIC
-          larcoreobj::SimpleTypesAndConstants
-        ) 
-
-cet_make_library(LIBRARY_NAME geoVectorUtils INTERFACE
- SOURCE geo_vectors_fhicl.h geo_vectors_utils.h geo_vectors_utils_TVector.h
+cet_make_library(LIBRARY_NAME AuxDetGeoObjectSorter INTERFACE
+  SOURCE AuxDetGeoObjectSorter.h
   LIBRARIES INTERFACE
-          larcoreobj::headers
-          fhiclcpp::fhiclcpp
-          ROOT::GenVector
+  larcoreobj::SimpleTypesAndConstants
+  fhiclcpp::fhiclcpp
+)
+
+cet_make_library(LIBRARY_NAME Exceptions INTERFACE
+  SOURCE Exceptions.h
+  LIBRARIES INTERFACE
+  larcoreobj::SimpleTypesAndConstants
+  cetlib_except::cetlib_except
 )
 
 cet_make_library(LIBRARY_NAME GeometryIDmapper INTERFACE
- SOURCE  GeometryIDmapper.h
+  SOURCE GeometryIDmapper.h
   LIBRARIES INTERFACE
-          larcoreobj::SimpleTypesAndConstants
+  larcoreobj::SimpleTypesAndConstants
+)
+
+cet_make_library(LIBRARY_NAME GeometryDataContainers INTERFACE
+  SOURCE GeometryDataContainers.h
+  LIBRARIES INTERFACE
+  larcorealg::GeometryIDmapper
+  larcoreobj::SimpleTypesAndConstants
+  Boost::headers
+)
+
+cet_make_library(LIBRARY_NAME geo_vectors_utils INTERFACE
+  SOURCE geo_vectors_utils.h
+  LIBRARIES INTERFACE
+  larcoreobj::geo_vectors
+  ROOT::GenVector
+)
+
+cet_make_library(LIBRARY_NAME geo_vectors_utils_TVector INTERFACE
+  SOURCE geo_vectors_utils_TVector.h
+  LIBRARIES INTERFACE
+  larcorealg::geo_vectors_utils
+  ROOT::Physics
+)
+
+cet_make_library(LIBRARY_NAME LineClosestPoint INTERFACE
+  SOURCE LineClosestPoint.h LineClosestPoint.tcc
+  LIBRARIES INTERFACE
+  larcorealg::geo_vectors_utils
+  cetlib::cetlib
+)
+
+cet_make_library(LIBRARY_NAME Partitions INTERFACE
+  SOURCE Partitions.h
+  LIBRARIES INTERFACE
+  larcorealg::CoreUtils
+)
+
+cet_make_library(LIBRARY_NAME ReadoutIDmapper INTERFACE
+  SOURCE ReadoutIDmapper.h
+  LIBRARIES INTERFACE
+  larcorealg::GeometryIDmapper
+  larcoreobj::SimpleTypesAndConstants
+)
+
+cet_make_library(LIBRARY_NAME ReadoutDataContainers INTERFACE
+  SOURCE ReadoutDataContainers.h
+  LIBRARIES INTERFACE
+  larcorealg::GeometryDataContainers
+  larcorealg::ReadoutIDmapper
+  larcoreobj::SimpleTypesAndConstants
+)
+
+cet_make_library(LIBRARY_NAME StandaloneBasicSetup INTERFACE
+  SOURCE StandaloneBasicSetup.h
+  LIBRARIES INTERFACE
+  messagefacility::MF_MessageLogger
+  fhiclcpp::fhiclcpp
+  cetlib::cetlib
+)
+
+cet_make_library(LIBRARY_NAME TransformationMatrix INTERFACE
+  SOURCE TransformationMatrix.h
+  LIBRARIES INTERFACE
+  larcorealg::Geometry
+  ROOT::Matrix
+)
+
+cet_make_library(LIBRARY_NAME geo INTERFACE
+  SOURCE geo.h
+  LIBRARIES INTERFACE
+  cetlib_except::cetlib_except
+)
+
+cet_make_library(LIBRARY_NAME geo_vectors_fhicl INTERFACE
+  SOURCE geo_vectors_fhicl.h
+  LIBRARIES INTERFACE
+  larcoreobj::geo_vectors
+  fhiclcpp::types
+)
+
+cet_make_library(LIBRARY_NAME geoVectorUtils INTERFACE
+  NO_SOURCE
+  LIBRARIES INTERFACE
+  larcorealg::geo_vectors_fhicl
+  larcorealg::geo_vectors_utils_TVector
+  larcorealg::geo_vectors_utils
+)
+
+cet_make_library(SOURCE
+  AuxDetChannelMapAlg.cxx
+  AuxDetGeo.cxx
+  AuxDetGeometryCore.cxx
+  AuxDetSensitiveGeo.cxx
+  BoxBoundedGeo.cxx
+  ChannelMapAlg.cxx
+  ChannelMapStandardAlg.cxx
+  CryostatGeo.cxx
+  Decomposer.h
+  DriftPartitions.cxx
+  GeometryBuilder.h
+  GeometryBuilderStandard.cxx
+  GeometryBuilderWireless.cxx
+  GeometryCore.cxx
+  GeoNodePath.cxx
+  GeoObjectSorter.cxx
+  GeoObjectSorterStandard.cxx
+  GeoVectorLocalTransformation.cxx
+  LocalTransformation.cxx
+  OpDetGeo.cxx
+  PlaneGeo.cxx
+  ROOTGeometryNavigator.h
+  StandaloneGeometrySetup.cxx
+  TPCGeo.cxx
+  WireGeo.cxx
+  details/extractMaxGeometryElements.h
+  LIBRARIES
+  PUBLIC
+  larcorealg::GeometryDataContainers
+  larcorealg::GeometryIDmapper
+  larcorealg::LineClosestPoint
+  larcorealg::Partitions
+  larcorealg::ReadoutDataContainers
+  larcorealg::geo_vectors_utils
+  larcorealg::TransformationMatrix
+  larcoreobj::SimpleTypesAndConstants
+  larcoreobj::geo_vectors
+  fhiclcpp::types
+  fhiclcpp::fhiclcpp
+  cetlib::cetlib
+  cetlib_except::cetlib_except
+  CLHEP::Geometry
+  CLHEP::Vector
+  ROOT::Core
+  ROOT::GenVector
+  ROOT::Geom
+  ROOT::Physics
+  PRIVATE
+  larcorealg::Exceptions
+  larcorealg::geo_vectors_utils_TVector
+  messagefacility::MF_MessageLogger
+  cetlib::container_algorithms
+  ROOT::MathCore
 )
 
 install_headers(SUBDIRS "details")
