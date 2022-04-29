@@ -6,6 +6,8 @@ cet_test(NameSelector_test USE_BOOST_UNIT
 )
 
 cet_test(ProviderList_test USE_BOOST_UNIT
-  LIBRARIES PRIVATE larcorealg::ProviderTestHelpers)
+  LIBRARIES PRIVATE
+  larcorealg::ProviderTestHelpers
+)
 
 cet_test(StopWatch_test)

@@ -4,22 +4,33 @@
 #
 # ======================================================================
 
-cet_test(printBacktrace_test LIBRARIES PRIVATE larcorealg::CoreUtils)
+cet_test(printBacktrace_test
+  LIBRARIES PRIVATE
+  larcorealg::CoreUtils
+)
 cet_test(UncopiableAndUnmovableClass_test USE_BOOST_UNIT)
 cet_test(ProviderPack_test USE_BOOST_UNIT)
 cet_test(RealComparisons_test USE_BOOST_UNIT)
 cet_test(NumericUtils_test USE_BOOST_UNIT)
 cet_test(DereferenceIterator_test USE_BOOST_UNIT)
 cet_test(DumpUtils_test USE_BOOST_UNIT
-  LIBRARIES PRIVATE ROOT::Physics)
+  LIBRARIES PRIVATE
+  ROOT::Physics
+)
 cet_test(SortByPointers_test USE_BOOST_UNIT
-  LIBRARIES PRIVATE larcorealg::CoreUtils)
+  LIBRARIES PRIVATE
+  larcorealg::CoreUtils
+)
 cet_test(span_test USE_BOOST_UNIT
-  LIBRARIES PRIVATE Boost::headers)
+  LIBRARIES PRIVATE
+  Boost::headers
+)
 cet_test(MetaUtils_test USE_BOOST_UNIT)
 cet_test(ContainerMeta_test USE_BOOST_UNIT)
 cet_test(DebugUtils_test USE_BOOST_UNIT
-  LIBRARIES PRIVATE larcorealg::CoreUtils)
+  LIBRARIES PRIVATE
+  larcorealg::CoreUtils
+)
 cet_test(counter_test USE_BOOST_UNIT)
 cet_test(zip_test USE_BOOST_UNIT)
 cet_test(enumerate_test USE_BOOST_UNIT)

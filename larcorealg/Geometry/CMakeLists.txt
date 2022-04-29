@@ -41,7 +41,9 @@ cet_make_library(LIBRARY_NAME geo_vectors_utils_TVector INTERFACE
 )
 
 cet_make_library(LIBRARY_NAME LineClosestPoint INTERFACE
-  SOURCE LineClosestPoint.h LineClosestPoint.tcc
+  SOURCE
+  LineClosestPoint.h
+  LineClosestPoint.tcc
   LIBRARIES INTERFACE
   larcorealg::geo_vectors_utils
   cetlib::cetlib

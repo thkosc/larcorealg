@@ -52,7 +52,8 @@ cet_test(geometry_iterator_test USE_BOOST_UNIT
 
 # unit test (use geometry configuration from config file, the rest is ignored)
 # this uses BOOST for the test
-cet_test(geometry_geoid_test SOURCE geometry_geoid_test.cxx USE_BOOST_UNIT
+cet_test(geometry_geoid_test USE_BOOST_UNIT
+  SOURCE geometry_geoid_test.cxx
   DATAFILES test_geometry.fcl
   TEST_ARGS -- ./test_geometry.fcl
   LIBRARIES PRIVATE
@@ -62,7 +63,8 @@ cet_test(geometry_geoid_test SOURCE geometry_geoid_test.cxx USE_BOOST_UNIT
 )
 
 # unit test (use the hard-coded channel mapping for "standard" LArTPCdetector)
-cet_test(geometry_test SOURCE geometry_test.cxx
+cet_test(geometry_test
+  SOURCE geometry_test.cxx
   DATAFILES test_geometry.fcl
   TEST_ARGS ./test_geometry.fcl
   LIBRARIES PRIVATE
@@ -72,7 +74,8 @@ cet_test(geometry_test SOURCE geometry_test.cxx
 )
 
 # test of standalone geometry loading (use the hard-coded channel mapping for "standard" LArTPCdetector)
-cet_test(geometry_loader_test SOURCE geometry_loader_test.cxx
+cet_test(geometry_loader_test
+  SOURCE geometry_loader_test.cxx
   DATAFILES test_geometry.fcl
   TEST_ARGS ./test_geometry.fcl
   LIBRARIES PRIVATE
@@ -130,7 +133,9 @@ cet_test(Decomposer_test USE_BOOST_UNIT
   ROOT::GenVector
 )
 
-cet_test(SimpleGeo_test USE_BOOST_UNIT SOURCE SimpleGeo_test.cxx)
+cet_test(SimpleGeo_test USE_BOOST_UNIT
+  SOURCE SimpleGeo_test.cxx
+)
 
 cet_test(driftvolumes_test SOURCE driftvolumes_test.cxx
   DATAFILES test_geometry.fcl
@@ -149,7 +154,8 @@ cet_test(geometrydatacontainers_test USE_BOOST_UNIT
   larcoreobj::SimpleTypesAndConstants
 )
 
-cet_test(geoidmapper_test USE_BOOST_UNIT SOURCE geoidmapper_test.cxx
+cet_test(geoidmapper_test USE_BOOST_UNIT
+  SOURCE geoidmapper_test.cxx
   LIBRARIES PRIVATE
   larcorealg::GeometryIDmapper
   larcoreobj::SimpleTypesAndConstants
@@ -162,8 +168,11 @@ cet_test(readoutdatacontainers_test USE_BOOST_UNIT
   larcoreobj::SimpleTypesAndConstants
 )
 
-cet_test(topology_test USE_BOOST_UNIT SOURCE topology_test.cxx
-  LIBRARIES PRIVATE larcorealg::Geometry)
+cet_test(topology_test USE_BOOST_UNIT
+  SOURCE topology_test.cxx
+  LIBRARIES PRIVATE
+  larcorealg::Geometry
+)
 
 set_property(TEST geometry_iterator_test geometry_test geometry_loader_test
   geometry_iterator_loop_test geometry_standardchannelmapping_test

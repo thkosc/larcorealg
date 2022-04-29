@@ -1,8 +1,12 @@
 cet_make_library(LIBRARY_NAME ProviderTestHelpers INTERFACE
-  SOURCE ProviderList.h ProviderTestHelpers.h)
+  SOURCE
+  ProviderList.h
+  ProviderTestHelpers.h
+)
 
 cet_make_library(LIBRARY_NAME StopWatch INTERFACE
-  SOURCE StopWatch.h)
+  SOURCE StopWatch.h
+)
 
 cet_make_library(LIBRARY_NAME unit_test_base INTERFACE
   SOURCE unit_test_base.h
@@ -31,7 +35,9 @@ cet_make_library(LIBRARY_NAME geometry_unit_test_base INTERFACE
 )
 
 cet_make_library(SOURCE NameSelector.cxx
-  LIBRARIES PRIVATE canvas::canvas)
+  LIBRARIES PRIVATE
+  canvas::canvas
+)
 
 install_headers()
 install_source()

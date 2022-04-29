@@ -18,7 +18,9 @@ cet_make_library(SOURCE
   ROOT::Core
 )
 
-build_dictionary(DICTIONARY_LIBRARIES larcorealg_GeoAlgo)
+build_dictionary(DICTIONARY_LIBRARIES
+  larcorealg::GeoAlgo
+)
 
 install_headers()
 install_source()
