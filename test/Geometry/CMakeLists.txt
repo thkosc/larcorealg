@@ -13,13 +13,19 @@ cet_test(LineClosestPoint_test USE_BOOST_UNIT
 )
 
 # test libraries
-cet_make_library(LIBRARY_NAME GeometryTestLib USE_PROJECT_NAME USE_BOOST_UNIT
-  SOURCE
+set(GeometryTestLib_SOURCES
   GeometryTestAlg.cxx
   GeometryGeoIDTestAlg.cxx
   GeometryIteratorTestAlg.cxx
   GeometryIteratorLoopTestAlg.cxx
   ChannelMapStandardTestAlg.cxx
+)
+
+list(TRANSFORM GeometryTestLib_SOURCES REPLACE "\\.cxx$" ".h"
+  OUTPUT_VARIABLE GeometryTestLib_HEADERS)
+
+cet_make_library(LIBRARY_NAME GeometryTestLib USE_PROJECT_NAME USE_BOOST_UNIT
+  SOURCE ${GeometryTestLib_SOURCES}
   LIBRARIES
   PUBLIC
   larcorealg::TestUtils
@@ -181,6 +187,8 @@ set_property(TEST geometry_iterator_test geometry_test geometry_loader_test
   "FHICL_FILE_PATH=.:${PROJECT_BINARY_DIR}/job;FW_SEARCH_PATH=${PROJECT_BINARY_DIR}/gdml"
 )
 
+file(COPY ${GeometryTestLib_HEADERS}
+  DESTINATION "${PROJECT_BINARY_DIR}/larcorealg/test/Geometry")
 install_headers(SUBDIRNAME larcorealg)
 install_fhicl()
 install_source()
