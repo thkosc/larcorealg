@@ -714,6 +714,14 @@ namespace geo {
     }; // class wire_id_iterator_base
 
 
+    /// Stream output for all geometry ID iterator types: prints the pointed ID.
+    template <typename GEOIT>
+    std::enable_if_t
+      <std::is_base_of_v<geometry_iterator_base, GEOIT>, std::ostream&>
+    operator<< (std::ostream& out, GEOIT const& it)
+      { return out << "geometry_iterator{ " << *it << " }"; }
+
+
     // forward declarations:
     template <typename GEOIDITER>
     class geometry_element_iterator;
@@ -2525,8 +2533,7 @@ namespace geo {
       { GetBeginID(id.asCryostatID()); id.TPC = 0; }
 
     /// Initializes the specified ID with the invalid ID after the last TPC.
-    void GetEndID(geo::TPCID& id) const
-      { GetEndID(id.asCryostatID()); id.TPC = 0; }
+    void GetEndID(geo::TPCID& id) const;
 
     /// Sets the ID to the ID after the specified one.
     /// @return whether the ID is actually valid (validity flag is also set)
@@ -2538,8 +2545,7 @@ namespace geo {
 
     /// Returns the (possibly invalid) ID after the last TPC of the specified
     /// cryostat.
-    geo::TPCID GetEndTPCID(geo::CryostatID const& id) const
-      { return { id.Cryostat + 1, 0 }; }
+    geo::TPCID GetEndTPCID(geo::CryostatID const& id) const;
 
 
     /// Returns an iterator pointing to the first TPC ID in the detector.
@@ -3027,8 +3033,7 @@ namespace geo {
       { GetBeginID(id.asTPCID()); id.Plane = 0; }
 
     /// Initializes the specified ID with the invalid ID after the last plane.
-    void GetEndID(geo::PlaneID& id) const
-      { GetEndID(id.asTPCID()); id.Plane = 0; }
+    void GetEndID(geo::PlaneID& id) const;
 
     /// Sets the ID to the ID after the specified one.
     /// @return whether the ID is actually valid (validity flag is also set)
@@ -3040,8 +3045,7 @@ namespace geo {
 
     /// Returns the (possibly invalid) ID after the last plane of the specified
     /// cryostat.
-    geo::PlaneID GetEndPlaneID(geo::CryostatID const& id) const
-      { return { GetEndTPCID(id), 0 }; }
+    geo::PlaneID GetEndPlaneID(geo::CryostatID const& id) const;
 
     /// Returns the ID of the first plane of the specified TPC.
     geo::PlaneID GetBeginPlaneID(geo::TPCID const& id) const
@@ -3049,8 +3053,7 @@ namespace geo {
 
     /// Returns the (possibly invalid) ID after the last plane of the specified
     /// TPC.
-    geo::PlaneID GetEndPlaneID(geo::TPCID const& id) const
-      { return { GetNextID(id), 0 }; }
+    geo::PlaneID GetEndPlaneID(geo::TPCID const& id) const;
 
     /// Returns an iterator pointing to the first plane ID in the detector
     plane_id_iterator begin_plane_id() const
@@ -3433,8 +3436,7 @@ namespace geo {
       { GetBeginID(id.asPlaneID()); id.Wire = 0; }
 
     /// Initializes the specified ID with the invalid ID after the last wire.
-    void GetEndID(geo::WireID& id) const
-      { GetEndID(id.asPlaneID()); id.Wire = 0; }
+    void GetEndID(geo::WireID& id) const;
 
     /// Sets the ID to the ID after the specified one.
     /// @return whether the ID is actually valid (validity flag is also set)
@@ -3446,8 +3448,7 @@ namespace geo {
 
     /// Returns the (possibly invalid) ID after the last wire in the specified
     /// cryostat.
-    geo::WireID GetEndWireID(geo::CryostatID const& id) const
-      { return { GetEndPlaneID(id), 0 }; }
+    geo::WireID GetEndWireID(geo::CryostatID const& id) const;
 
     /// Returns the ID of the first wire of the specified TPC.
     geo::WireID GetBeginWireID(geo::TPCID const& id) const
@@ -3455,8 +3456,7 @@ namespace geo {
 
     /// Returns the (possibly invalid) ID after the last wire of the specified
     /// TPC.
-    geo::WireID GetEndWireID(geo::TPCID const& id) const
-      { return { geo::PlaneID(GetNextID(id), 0), 0 }; }
+    geo::WireID GetEndWireID(geo::TPCID const& id) const;
 
     /// Returns the ID of the first wire of the specified wire plane.
     geo::WireID GetBeginWireID(geo::PlaneID const& id) const
@@ -3464,8 +3464,7 @@ namespace geo {
 
     /// Returns the (possibly invalid) ID after the last wire of the specified
     /// wire plane.
-    geo::WireID GetEndWireID(geo::PlaneID const& id) const
-      { return { GetNextID(id), 0 }; }
+    geo::WireID GetEndWireID(geo::PlaneID const& id) const;
 
     /// Returns an iterator pointing to the first wire ID in the detector.
     wire_id_iterator begin_wire_id() const
