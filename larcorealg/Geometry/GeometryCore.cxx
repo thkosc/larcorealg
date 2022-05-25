@@ -456,6 +456,27 @@ namespace geo {
 
 
   //......................................................................
+  void GeometryCore::GetEndID(geo::TPCID& id) const {
+    if (MaxTPCs() == 0) {
+      GetBeginID(id);
+      id.markInvalid();
+    }
+    else {
+      GetEndID(id.asCryostatID());
+      id.TPC = 0;
+    }
+  } // GeometryCore::GetEndID(geo::TPCID)
+
+  //......................................................................
+  geo::TPCID GeometryCore::GetEndTPCID(geo::CryostatID const& id) const {
+    if (geo::CryostatGeo const* cryo = CryostatPtr(id); cryo && cryo->NTPC() > 0)
+      return { id.Cryostat + 1, 0 };
+    geo::TPCID tpcid = GetBeginTPCID(id);
+    tpcid.markInvalid();
+    return tpcid;
+  } // GeometryCore::GetEndTPCID()
+
+  //......................................................................
   geo::CryostatGeo const& GeometryCore::PositionToCryostat
     (geo::Point_t const& point) const
   {
@@ -795,6 +816,34 @@ namespace geo {
   } // GeometryCore::CryostatBoundaries()
 
   //......................................................................
+  void GeometryCore::GetEndID(geo::PlaneID& id) const {
+    if (MaxPlanes() == 0) {
+      GetBeginID(id);
+      id.markInvalid();
+    }
+    else {
+      GetEndID(id.asTPCID());
+      id.Plane = 0;
+    }
+  } // GeometryCore::GetEndID(PlaneID)
+
+  //......................................................................
+  geo::PlaneID GeometryCore::GetEndPlaneID(geo::CryostatID const& id) const {
+    geo::CryostatGeo const* cryo = CryostatPtr(id);
+    return (cryo && cryo->MaxPlanes() > 0)
+      ? geo::PlaneID{ GetEndTPCID(id), 0 }: GetBeginPlaneID(id);
+  } // GeometryCore::GetEndPlaneID(CryostatID)
+
+  //......................................................................
+  geo::PlaneID GeometryCore::GetEndPlaneID(geo::TPCID const& id) const {
+    if (geo::TPCGeo const* TPC = TPCPtr(id); TPC && TPC->Nplanes() > 0)
+      return { GetNextID(id), 0 };
+    geo::PlaneID pid = GetBeginPlaneID(id);
+    pid.markInvalid();
+    return pid;
+  } // GeometryCore::GetEndPlaneID(TPCID)
+
+  //......................................................................
   // This method returns the distance between the specified planes.
   // p1 < p2
   double GeometryCore::PlanePitch(
@@ -893,6 +942,46 @@ namespace geo {
     } // for
     return maxWires;
   } // GeometryCore::MaxWires()
+
+  //......................................................................
+  void GeometryCore::GetEndID(geo::WireID& id) const {
+    if (MaxWires() == 0) {
+      GetBeginID(id);
+      id.markInvalid();
+    }
+    else {
+      GetEndID(id.asPlaneID());
+      id.Wire = 0;
+    }
+  } // GeometryCore::GetEndID(WireID)
+
+  //......................................................................
+  geo::WireID GeometryCore::GetEndWireID(geo::CryostatID const& id) const {
+    geo::CryostatGeo const* cryo = CryostatPtr(id);
+    if (cryo && cryo->MaxWires() > 0) return { GetEndPlaneID(id), 0 };
+    geo::WireID wid = GetBeginWireID(id);
+    wid.markInvalid();
+    return wid;
+  } // GeometryCore::GetEndWireID(CryostatID)
+
+  //......................................................................
+  geo::WireID GeometryCore::GetEndWireID(geo::TPCID const& id) const {
+    geo::TPCGeo const* TPC = TPCPtr(id);
+    if (TPC && TPC->MaxWires() > 0) return { GetEndPlaneID(id), 0 };
+    geo::WireID wid = GetBeginWireID(id);
+    wid.markInvalid();
+    return wid;
+  } // GeometryCore::GetEndWireID(TPCID)
+
+  //......................................................................
+  geo::WireID GeometryCore::GetEndWireID(geo::PlaneID const& id) const {
+
+    if (geo::PlaneGeo const* plane = PlanePtr(id); plane && plane->Nwires() > 0)
+      return { GetNextID(id), 0 };
+    geo::WireID wid = GetBeginWireID(id);
+    wid.markInvalid();
+    return wid;
+  } // GeometryCore::GetEndWireID(PlaneID)
 
   //......................................................................
   TGeoVolume const* GeometryCore::WorldVolume() const {
