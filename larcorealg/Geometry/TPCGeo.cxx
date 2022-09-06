@@ -352,10 +352,6 @@ namespace geo {
   } // TPCGeo::GetFrontFaceCenterImpl()
 
   //......................................................................
-  // returns xyz location of planes in TPC
-  const double* TPCGeo::PlaneLocation(unsigned int p) const { return &fPlaneLocation[p][0]; }
-
-  //......................................................................
   double TPCGeo::PlanePitch(unsigned int p1, unsigned int p2) const
   {
     return std::abs(fPlane0Pitch[p2] - fPlane0Pitch[p1]);

@@ -8,7 +8,6 @@
  *
  * It offers:
  * - InvalidWireError (for bad wire numbers)
- * - InvalidWireIDError (deprecated in favor of the former)
  *
  */
 
@@ -41,10 +40,6 @@ namespace geo {
   public:
     /// Value used to represent an invalid wire number
     static constexpr int InvalidWireNo = std::numeric_limits<int>::max();
-
-    /// Constructor: we don't have any information
-    /// @deprecated Specify at least the wrong wire number!
-    InvalidWireError(std::string cat) : cet::exception(cat) {}
 
     /// Constructor with the complete information
     InvalidWireError(std::string cat, geo::PlaneID const& planeID, int badWireNo, int betterWireNo)
@@ -117,23 +112,6 @@ namespace geo {
     geo::WireID makeWireID(int wireNo) const { return {fPlaneID, (geo::WireID::WireID_t)wireNo}; }
 
   }; // class InvalidWireError
-
-  /** **************************************************************************
-   * @brief Exception thrown on invalid wire number (e.g. NearestWireID())
-   *
-   * @deprecated Use InvalidWireError instead
-   */
-  class InvalidWireIDError : public cet::exception {
-  public:
-    InvalidWireIDError(std::string cat) : cet::exception(cat) {}
-
-    InvalidWireIDError(std::string cat, int bad_wire, int better_wire = -1)
-      : cet::exception(cat), wire_number(bad_wire), better_wire_number(better_wire)
-    {}
-
-    int wire_number = -1;        ///< the invalid wire number
-    int better_wire_number = -1; ///< a suggestion for a good wire number
-  };                             // class InvalidWireIDError
 
 } // namespace geo
 

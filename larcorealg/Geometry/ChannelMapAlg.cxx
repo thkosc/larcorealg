@@ -11,13 +11,6 @@
 namespace geo {
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMapAlg::NearestWire(const TVector3& worldPos,
-                                          geo::PlaneID const& planeID) const
-  {
-    return NearestWireID(worldPos, planeID).Wire;
-  }
-
-  //----------------------------------------------------------------------------
   unsigned int ChannelMapAlg::NOpChannels(unsigned int NOpDets) const
   {
     // By default just return the number of optical detectos
@@ -104,8 +97,6 @@ namespace geo {
     // throw an exception because we couldn't find the sensitive volume
     throw cet::exception("ChannelMap") << "Can't find AuxDet for position (" << point[0] << ","
                                        << point[1] << "," << point[2] << ")\n";
-
-    return UINT_MAX;
   }
 
   //----------------------------------------------------------------------------
@@ -146,8 +137,6 @@ namespace geo {
     // throw an exception because we couldn't find the sensitive volume
     throw cet::exception("Geometry") << "Can't find AuxDetSensitive for position (" << point[0]
                                      << "," << point[1] << "," << point[2] << ")\n";
-
-    return UINT_MAX;
   }
 
   //----------------------------------------------------------------------------
@@ -161,8 +150,6 @@ namespace geo {
       if (itr.first.compare(detName) == 0) return itr.second;
 
     throw cet::exception("Geometry") << "No AuxDetGeo matching name: " << detName;
-
-    return UINT_MAX;
   }
 
   //----------------------------------------------------------------------------
@@ -191,8 +178,6 @@ namespace geo {
 
     throw cet::exception("Geometry") << "Given AuxDetGeo with index " << adGeoIdx
                                      << " does not correspond to any vector of sensitive volumes";
-
-    return std::make_pair(adGeoIdx, UINT_MAX);
   }
 
   geo::SigType_t ChannelMapAlg::SignalTypeForChannel(raw::ChannelID_t const channel) const

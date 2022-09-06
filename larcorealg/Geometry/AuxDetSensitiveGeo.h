@@ -64,15 +64,6 @@ namespace geo {
     AuxDetSensitiveGeo(TGeoNode const& node, geo::TransformationMatrix&& trans);
 
     /**
-     * @brief Return the center position of an AuxDet.
-     * @param xyz _(output)_ the returned location: `{ x, y, z }` [cm]
-     * @param localz (default: `0`) distance along the length of the volume (z)
-     *               [cm]
-     * @deprecated Use the version returning a vector instead.
-     */
-    void GetCenter(double* xyz, double localz = 0.0) const;
-
-    /**
      * @brief Returns the geometric center of the sensitive volume.
      * @param localz (default: `0`) distance from the center along the length
      *               of the volume (z) [cm]
@@ -82,10 +73,6 @@ namespace geo {
 
     /// Returns the unit normal vector to the detector.
     geo::Vector_t GetNormalVector() const;
-
-    /// Fills the unit normal vector to the detector.
-    /// @deprecated Use the version returning a vector instead.
-    void GetNormalVector(double* xyzDir) const;
 
     //box geometry
     double Length() const { return fLength; }

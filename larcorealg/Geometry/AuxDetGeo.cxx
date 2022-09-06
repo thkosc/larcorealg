@@ -112,15 +112,7 @@ namespace geo {
 
     throw cet::exception("AuxDetGeo")
       << "Can't find AuxDetSensitive for position " << point << "\n";
-    // the following is not very useful right now...
-    return std::numeric_limits<std::size_t>::max();
   } // AuxDetGeo::FindSensitiveVolume(geo::Point_t)
-
-  //......................................................................
-  std::size_t AuxDetGeo::FindSensitiveVolume(double const worldPos[3]) const
-  {
-    return FindSensitiveVolume(geo::vect::makePointFromCoords(worldPos));
-  }
 
   //......................................................................
   AuxDetSensitiveGeo const& AuxDetGeo::PositionToSensitiveVolume(geo::Point_t const& point,
@@ -132,13 +124,6 @@ namespace geo {
         << "Can't find AuxDetSensitiveGeo for position " << point << "\n";
     }
     return SensitiveVolume(sv);
-  }
-
-  //......................................................................
-  AuxDetSensitiveGeo const& AuxDetGeo::PositionToSensitiveVolume(double const worldLoc[3],
-                                                                 size_t& sv) const
-  {
-    return PositionToSensitiveVolume(geo::vect::makePointFromCoords(worldLoc), sv);
   }
 
   //......................................................................

@@ -10,7 +10,6 @@
 #include "larcorealg/Geometry/GeometryCore.h"
 
 // lar includes
-#include "larcorealg/CoreUtils/DereferenceIterator.h" // lar::util::dereferenceIteratorLoop()
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 #include "larcorealg/Geometry/Decomposer.h" // geo::vect::dot()
@@ -144,11 +143,7 @@ namespace geo {
   } // GeometryCore::LoadGeometryFile()
 
   //......................................................................
-  void GeometryCore::ClearGeometry()
-  {
-    Cryostats().clear();
-    AuxDets().clear();
-  }
+  void GeometryCore::ClearGeometry() { fGeoData = {}; }
 
   //......................................................................
   void GeometryCore::SortGeometry(geo::GeoObjectSorter const& sorter)
@@ -352,20 +347,6 @@ namespace geo {
   } // GeometryCore::PositionToCryostatID()
 
   //......................................................................
-  geo::CryostatID::CryostatID_t GeometryCore::FindCryostatAtPosition(
-    geo::Point_t const& worldLoc) const
-  {
-    geo::CryostatGeo const* cryo = PositionToCryostatPtr(worldLoc);
-    return cryo ? cryo->ID().Cryostat : geo::CryostatID::InvalidID;
-  } // GeometryCore::FindCryostatAtPosition(Point)
-
-  //......................................................................
-  geo::CryostatID::CryostatID_t GeometryCore::FindCryostatAtPosition(double const worldLoc[3]) const
-  {
-    return FindCryostatAtPosition(geo::vect::makePointFromCoords(worldLoc));
-  } // GeometryCore::FindCryostatAtPosition(double[])
-
-  //......................................................................
   geo::TPCGeo const* GeometryCore::PositionToTPCptr(geo::Point_t const& point) const
   {
     geo::CryostatGeo const* cryo = PositionToCryostatPtr(point);
@@ -381,25 +362,6 @@ namespace geo {
     }
     return *tpc;
   } // GeometryCore::PositionToTPC()
-
-  //......................................................................
-  TPCGeo const& GeometryCore::PositionToTPC(double const worldLoc[3], TPCID& tpcid) const
-  {
-    geo::TPCGeo const& TPC = PositionToTPC(worldLoc);
-    tpcid = TPC.ID();
-    return TPC;
-  } // GeometryCore::PositionToTPC(double*, TPCID&)
-
-  //......................................................................
-  TPCGeo const& GeometryCore::PositionToTPC(double const worldLoc[3],
-                                            unsigned int& tpc,
-                                            unsigned int& cstat) const
-  {
-    geo::TPCGeo const& TPC = PositionToTPC(worldLoc);
-    cstat = TPC.ID().Cryostat;
-    tpc = TPC.ID().TPC;
-    return TPC;
-  } // GeometryCore::PositionToTPC(double*, TPCID&)
 
   //......................................................................
   geo::TPCID GeometryCore::PositionToTPCID(geo::Point_t const& point) const
@@ -443,28 +405,6 @@ namespace geo {
   } // GeometryCore::PositionToCryostat()
 
   //......................................................................
-  const CryostatGeo& GeometryCore::PositionToCryostat(double const worldLoc[3],
-                                                      geo::CryostatID& cid) const
-  {
-    geo::CryostatID::CryostatID_t cstat = FindCryostatAtPosition(worldLoc);
-
-    if (cstat == geo::CryostatID::InvalidID)
-      throw cet::exception("GeometryCore") << "Can't find Cryostat for position (" << worldLoc[0]
-                                           << "," << worldLoc[1] << "," << worldLoc[2] << ")\n";
-    cid = geo::CryostatID(cstat);
-    return Cryostat(cid);
-  } // GeometryCore::PositionToCryostat(double[3], CryostatID)
-
-  const CryostatGeo& GeometryCore::PositionToCryostat(double const worldLoc[3],
-                                                      unsigned int& cstat) const
-  {
-    geo::CryostatID cid;
-    geo::CryostatGeo const& cryo = PositionToCryostat(worldLoc, cid);
-    cstat = cid.Cryostat;
-    return cryo;
-  } // GeometryCore::PositionToCryostat(double[3], unsigned int)
-
-  //......................................................................
   unsigned int GeometryCore::FindAuxDetAtPosition(geo::Point_t const& point, double tolerance) const
   {
     // BUG the double brace syntax is required to work around clang bug 21629
@@ -474,12 +414,6 @@ namespace geo {
   } // GeometryCore::FindAuxDetAtPosition()
 
   //......................................................................
-  unsigned int GeometryCore::FindAuxDetAtPosition(double const worldPos[3], double tolerance) const
-  {
-    return FindAuxDetAtPosition(geo::vect::makePointFromCoords(worldPos), tolerance);
-  }
-
-  //......................................................................
   const AuxDetGeo& GeometryCore::PositionToAuxDet(geo::Point_t const& point,
                                                   unsigned int& ad,
                                                   double tolerance) const
@@ -487,14 +421,6 @@ namespace geo {
     // locate the desired Auxiliary Detector
     ad = FindAuxDetAtPosition(point, tolerance);
     return AuxDet(ad);
-  }
-
-  //......................................................................
-  const AuxDetGeo& GeometryCore::PositionToAuxDet(double const worldLoc[3],
-                                                  unsigned int& ad,
-                                                  double tolerance) const
-  {
-    return PositionToAuxDet(geo::vect::makePointFromCoords(worldLoc), ad, tolerance);
   }
 
   //......................................................................
@@ -511,16 +437,6 @@ namespace geo {
   } // GeometryCore::FindAuxDetAtPosition()
 
   //......................................................................
-  void GeometryCore::FindAuxDetSensitiveAtPosition(double const worldPos[3],
-                                                   size_t& adg,
-                                                   size_t& sv,
-                                                   double tolerance) const
-  {
-    return FindAuxDetSensitiveAtPosition(
-      geo::vect::makePointFromCoords(worldPos), adg, sv, tolerance);
-  }
-
-  //......................................................................
   const AuxDetSensitiveGeo& GeometryCore::PositionToAuxDetSensitive(geo::Point_t const& point,
                                                                     size_t& ad,
                                                                     size_t& sv,
@@ -529,15 +445,6 @@ namespace geo {
     // locate the desired Auxiliary Detector
     FindAuxDetSensitiveAtPosition(point, ad, sv, tolerance);
     return AuxDet(ad).SensitiveVolume(sv);
-  }
-
-  //......................................................................
-  const AuxDetSensitiveGeo& GeometryCore::PositionToAuxDetSensitive(double const worldLoc[3],
-                                                                    size_t& ad,
-                                                                    size_t& sv,
-                                                                    double tolerance) const
-  {
-    return PositionToAuxDetSensitive(geo::vect::makePointFromCoords(worldLoc), ad, sv, tolerance);
   }
 
   //......................................................................
@@ -594,9 +501,6 @@ namespace geo {
   {
     return fChannelMapAlg->HasChannel(channel);
   } // GeometryCore::HasChannel()
-
-  //......................................................................
-  std::set<PlaneID> const& GeometryCore::PlaneIDs() const { return fChannelMapAlg->PlaneIDs(); }
 
   //......................................................................
   const std::string GeometryCore::GetWorldVolumeName() const
@@ -762,13 +666,6 @@ namespace geo {
   {
     return Cryostat(cid).Length();
   }
-
-  //......................................................................
-  void GeometryCore::CryostatBoundaries(double* boundaries, geo::CryostatID const& cid) const
-  {
-    geo::CryostatGeo const& cryo = Cryostat(cid);
-    cryo.Boundaries(boundaries);
-  } // GeometryCore::CryostatBoundaries()
 
   //......................................................................
   void GeometryCore::GetEndID(geo::PlaneID& id) const
@@ -1166,66 +1063,10 @@ namespace geo {
   }
 
   //----------------------------------------------------------------------------
-  geo::Length_t GeometryCore::WireCoordinate(double YPos,
-                                             double ZPos,
-                                             geo::PlaneID const& planeid) const
-  {
-    return fChannelMapAlg->WireCoordinate(YPos, ZPos, planeid);
-  }
-
-  //----------------------------------------------------------------------------
-  // The NearestWire and PlaneWireToChannel are attempts to speed
-  // up the simulation by memorizing the computationally intensive
-  // setup steps for some geometry calculations.  The results are
-  // valid assuming the wire planes are comprised of straight,
-  // parallel wires with constant pitch across the entire plane, with
-  // a hierarchical numbering scheme - Ben J Oct 2011
-  unsigned int GeometryCore::NearestWire(geo::Point_t const& point,
-                                         geo::PlaneID const& planeid) const
-  {
-    return NearestWireID(point, planeid).Wire;
-    // return fChannelMapAlg->NearestWire(worldPos, planeid);
-  }
-
-  //----------------------------------------------------------------------------
-  unsigned int GeometryCore::NearestWire(const double worldPos[3],
-                                         geo::PlaneID const& planeid) const
-  {
-    return NearestWire(geo::vect::makePointFromCoords(worldPos), planeid);
-  }
-
-  //----------------------------------------------------------------------------
-  unsigned int GeometryCore::NearestWire(std::vector<double> const& worldPos,
-                                         geo::PlaneID const& planeid) const
-  {
-    if (worldPos.size() > 3)
-      throw cet::exception("GeometryCore") << "bad size vector for "
-                                           << "worldPos: " << worldPos.size() << "\n";
-    return NearestWire(worldPos.data(), planeid);
-  }
-
-  //----------------------------------------------------------------------------
   geo::WireID GeometryCore::NearestWireID(geo::Point_t const& worldPos,
                                           geo::PlaneID const& planeid) const
   {
     return Plane(planeid).NearestWireID(worldPos);
-  }
-
-  //----------------------------------------------------------------------------
-  geo::WireID GeometryCore::NearestWireID(std::vector<double> const& worldPos,
-                                          geo::PlaneID const& planeid) const
-  {
-    if (worldPos.size() > 3)
-      throw cet::exception("GeometryCore") << "bad size vector for "
-                                           << "worldPos: " << worldPos.size() << "\n";
-    return NearestWireID(worldPos.data(), planeid);
-  }
-
-  //----------------------------------------------------------------------------
-  geo::WireID GeometryCore::NearestWireID(const double worldPos[3],
-                                          geo::PlaneID const& planeid) const
-  {
-    return NearestWireID(geo::vect::makePointFromCoords(worldPos), planeid);
   }
 
   //----------------------------------------------------------------------------

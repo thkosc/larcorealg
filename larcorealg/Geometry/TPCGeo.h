@@ -317,9 +317,6 @@ namespace geo {
     /// Returns the box of the active volume of this TPC.
     geo::BoxBoundedGeo const& ActiveBoundingBox() const { return fActiveBox; }
 
-    /// Returns the coordinates of the center of the specified plane [cm]
-    /// @deprecated Use `Plane(p).GetCenter()` or equivalent.
-    const double* PlaneLocation(unsigned int p) const;
     double Plane0Pitch(unsigned int p) const;
     double PlanePitch(unsigned int p1 = 0, unsigned int p2 = 1) const;
     double WirePitch(unsigned plane = 0) const;

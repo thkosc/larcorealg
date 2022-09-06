@@ -12,7 +12,6 @@ cet_test(UncopiableAndUnmovableClass_test USE_BOOST_UNIT)
 cet_test(ProviderPack_test USE_BOOST_UNIT)
 cet_test(RealComparisons_test USE_BOOST_UNIT)
 cet_test(NumericUtils_test USE_BOOST_UNIT)
-cet_test(DereferenceIterator_test USE_BOOST_UNIT)
 cet_test(DumpUtils_test USE_BOOST_UNIT
   LIBRARIES PRIVATE
   ROOT::Physics
@@ -37,12 +36,3 @@ cet_test(enumerate_test USE_BOOST_UNIT)
 cet_test(values_test USE_BOOST_UNIT)
 cet_test(get_elements_test USE_BOOST_UNIT)
 cet_test(operations_test USE_BOOST_UNIT)
-
-# test quiet_Math_Functor.h
-get_property(IncludeDirectories DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-
-cet_test(MathFunctor_workaround HANDBUILT
-  TEST_EXEC ./quiet_Math_Functor_test.sh
-  TEST_ARGS ${IncludeDirectories}
-  DATAFILES quiet_Math_Functor_test.sh
-)

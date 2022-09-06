@@ -9,7 +9,6 @@
 #define LARCOREALG_GEOMETRY_PLANEGEO_H
 
 // LArSoft libraries
-#include "larcorealg/CoreUtils/DereferenceIterator.h"
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
 #include "larcorealg/Geometry/Decomposer.h"
 #include "larcorealg/Geometry/GeoObjectSorter.h"

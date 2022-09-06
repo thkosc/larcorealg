@@ -247,23 +247,6 @@ namespace geo {
     ElementIteratorBox IterateTPCs() const { return IterateElements(); }
 
     /**
-     * @brief Returns an object suitable for iterating through all TPCs.
-     * @see `IterateTPCs()`, `IterateElements()`
-     *
-     * The returned value can be used in a range-for loop like:
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-     * for (geo::TPCGeo const& tpc: cryo.TPCs()) { ... }
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * The resulting sequence exposes the TPCs within the cryostat in their
-     * ID order, from TPC `0` to `NTPC() - 1`.
-     *
-     * @deprecated `TPCs()` is informally deprecated because it used to return
-     *             a collection of `geo::TPCGeo` and it might soon be unable to
-     *             do so. For iterations, `IterateTPCs()` is just as good.
-     */
-    auto const& TPCs() const { return fTPCs; }
-
-    /**
      * @brief Returns the TPC number itpc from this cryostat.
      * @param itpc the number of local TPC
      * @return a constant pointer to the TPC, or nullptr if it does not exist
@@ -284,15 +267,6 @@ namespace geo {
     TPCGeo const* TPCPtr(TPCID const& tpcid) const { return TPCPtr(tpcid.TPC); }
     /// Alias for `TPCPtr()`.
     TPCGeo const* GetElementPtr(TPCID const& tpcid) const { return TPCPtr(tpcid); }
-
-    /**
-     * @brief Returns the index of the TPC at specified location
-     * @param worldLoc 3D coordinates of the point (world reference frame)
-     * @param wiggle a small factor (like 1+epsilon) to avoid rounding errors
-     * @return the TPC index, or `geo::TPCID::InvalidID` if no TPC is there
-     * @deprecated Use `PositionToTPCID()` instead
-     */
-    geo::TPCID::TPCID_t FindTPCAtPosition(double const worldLoc[3], double const wiggle) const;
 
     /**
      * @brief Returns the ID of the TPC at specified location.
@@ -371,19 +345,6 @@ namespace geo {
     void LocalToWorld(const double* cryo, double* world) const { fTrans.LocalToWorld(cryo, world); }
 
     /// Transform point from local cryostat frame to world frame.
-    /// @deprecated This method breaks the distinction between local and global
-    ///             vectors, since input and output vectors share the same type;
-    ///             use the "official" vector types `geo::Point_t`,
-    ///             `geo::CryostatGeo::LocalPoint_t`, `geo::Vector_t` and
-    ///             `geo::CryostatGeo::LocalVector_t`, and then use the method
-    ///             `geo::CryostatGeo::toWorldCoords()` instead.
-    template <typename Point>
-    [[deprecated("use toWorldCoords() instead")]] Point LocalToWorld(Point const& local) const
-    {
-      return fTrans.LocalToWorld(local);
-    }
-
-    /// Transform point from local cryostat frame to world frame.
     geo::Point_t toWorldCoords(LocalPoint_t const& local) const
     {
       return fTrans.toWorldCoords(local);
@@ -403,19 +364,6 @@ namespace geo {
 
     /// Transform point from world frame to local cryostat frame.
     void WorldToLocal(const double* world, double* cryo) const { fTrans.WorldToLocal(world, cryo); }
-
-    /// Transform point from world frame to local cryostat frame.
-    /// @deprecated This method breaks the distinction between local and global
-    ///             vectors, since input and output vectors share the same type;
-    ///             use the "official" vector types `geo::Point_t`,
-    ///             `geo::CryostatGeo::LocalPoint_t`, `geo::Vector_t` and
-    ///             `geo::CryostatGeo::LocalVector_t`, and then use the method
-    ///             `geo::CryostatGeo::toLocalCoords()` instead.
-    template <typename Point>
-    [[deprecated("use toLocalCoords() instead")]] Point WorldToLocal(Point const& world) const
-    {
-      return fTrans.WorldToLocal(world);
-    }
 
     /// Transform point from world frame to local cryostat frame.
     LocalPoint_t toLocalCoords(geo::Point_t const& world) const

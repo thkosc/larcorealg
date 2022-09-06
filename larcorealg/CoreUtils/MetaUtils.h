@@ -161,14 +161,6 @@ namespace util {
   template <typename>
   constexpr bool always_true_v = true;
 
-  template <bool Value>
-  using bool_constant [[deprecated("use `std::bool_constant` instead (`#include <type_traits>`")]] =
-    std::bool_constant<Value>;
-
-  template <typename BoolTrait>
-  using negation [[deprecated("use `std::bool_constant` instead (`#include <type_traits>`")]] =
-    std::negation<BoolTrait>;
-
   /// The negation of `std::is_same`.
   template <typename A, typename B>
   using is_not_same = std::negation<std::is_same<A, B>>;

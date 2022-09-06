@@ -3,9 +3,9 @@
  * @brief  Provides `util::makeValueIndex()` helper function.
  * @author Gianluca Petrillo (petrillo@slac.stanford.edu)
  * @date   April 24, 2019
- * 
+ *
  * This is a header-only library.
- * 
+ *
  * This utility belongs to the same cetegory as `util::MakeIndex()`, but that
  * one is definded in `lardataalg` and we need this one for geometry.
  */
@@ -28,7 +28,7 @@
 
 
 namespace util {
-  
+
   /**
    * @brief Returns a map of value to index.
    * @tparam Coll type of container
@@ -37,30 +37,30 @@ namespace util {
    * @param getter function applied to each element to extract the value for map
    * @return a value-to-index associative container
    * @throw std::runtime_error if multiple elements yield the same value
-   * 
+   *
    * The collection `coll` is navigated in sequence from `begin()` to `end()`,
    * and a map is created where to each key, `getter(coll[i])`, the index `i`
    * is associated. The value returned by `getter()` is copied into the key.
    * Therefore that value needs to satisfy all the requirements of the key of
    * the STL associative container `std::map`.
    * Duplicate values will trigger an exception.
-   * 
+   *
    * Requirements
    * -------------
-   * 
+   *
    * The collection type `Coll` must have:
    *  * `value_type` type defining the content of the container
    *  * support `begin()` and `end()` free functions returning input iterators,
    *    that is support a ranged-for loop
-   * 
+   *
    */
   template <typename Coll, typename Extractor>
   decltype(auto) makeValueIndex(Coll const& coll, Extractor getter);
-  
+
   template <typename Coll>
   auto makeValueIndex(Coll const& coll)
     { return makeValueIndex(coll, util::pre_std::identity()); }
-    
+
 } // namespace util
 
 
@@ -69,7 +69,7 @@ namespace util {
 //------------------------------------------------------------------------------
 template <typename Coll, typename Extractor>
 decltype(auto) util::makeValueIndex(Coll const& coll, Extractor getter) {
-  
+
   using Value_t = typename Coll::value_type;
   using Key_t
 #if 0 // this is C++17...
@@ -77,12 +77,12 @@ decltype(auto) util::makeValueIndex(Coll const& coll, Extractor getter) {
 #else // ... and this is what Clang 5.0 understands:
     = std::remove_reference_t<decltype(getter(std::declval<Value_t>()))>;
 #endif // 0
-  
+
   using Map_t = std::map<Key_t, std::size_t>;
-  
+
   Map_t index;
   for (auto&& [ iValue, collValue ]: util::enumerate(coll)) {
-    
+
     Key_t const& key = getter(collValue);
     auto const iKey = index.lower_bound(key);
     if ((iKey != index.end()) && (iKey->first == key)) {
@@ -94,9 +94,9 @@ decltype(auto) util::makeValueIndex(Coll const& coll, Extractor getter) {
     }
     index.emplace_hint(iKey, key, iValue);
   } // for
-  
+
   return index;
-  
+
 } // util::makeValueIndex()
 
 

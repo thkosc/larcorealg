@@ -484,10 +484,7 @@ namespace geo {
     for (unsigned int t = 0; t < std::floor(geom->NTPC() / 12) + 1; ++t) {
       for (unsigned int p = 0; p < 3; ++p) {
         for (unsigned int w = 0; w < geom->Cryostat(0).TPC(t).Plane(p).Nwires(); w++) {
-
-          double xyz[3] = {0.};
-          geom->Cryostat(0).TPC(t).Plane(p).Wire(w).GetCenter(xyz);
-
+          auto const xyz = geom->Cryostat(0).TPC(t).Plane(p).Wire(w).GetCenter();
           std::cout << "WireID (" << cs << ", " << t << ", " << p << ", " << w
                     << "):  x = " << xyz[0] << ", y = " << xyz[1] << ", z = " << xyz[2]
                     << std::endl;
@@ -619,9 +616,8 @@ namespace geo {
 
     lar::util::RealComparisons<double> coordIs(1e-4);
 
-    std::array<double, 3U> center, normal;
-    auxDetSens.GetCenter(center.data());
-    auxDetSens.GetNormalVector(normal.data());
+    auto const center = auxDetSens.GetCenter();
+    auto const normal = auxDetSens.GetNormalVector();
 
     out << firstIndent << "centered at " << lar::dump::array<3U>(center) << " cm, size ( "
         << (2.0 * auxDetSens.HalfWidth1());
@@ -652,13 +648,10 @@ namespace geo {
             << " +y:" << cryo.MaxY() << "  -z:" << cryo.MinZ() << " +z:" << cryo.MaxZ();
       }
 
-      // pick a position in the middle of the cryostat in the world coordinates
-      double const worldLoc[3] = {cryo.CenterX(), cryo.CenterY(), cryo.CenterZ()};
-
       MF_LOG_DEBUG("GeometryTest") << "\t testing GeometryCore::PoitionToCryostat....";
       geo::CryostatID cid;
       try {
-        geom->PositionToCryostat(worldLoc, cid);
+        cid = geom->PositionToCryostatID(cryo.GetCenter());
       }
       catch (cet::exception& e) {
         mf::LogWarning("FailedToLocateCryostat") << "\n exception caught:" << e;
@@ -857,7 +850,8 @@ namespace geo {
       double localLoc[3] = {0.};
       tpc.LocalToWorld(localLoc, worldLoc);
 
-      const unsigned int tpcNo = cryo.FindTPCAtPosition(worldLoc, 1 + 1.e-4);
+      const unsigned int tpcNo =
+        cryo.PositionToTPCID(geo::vect::makePointFromCoords(worldLoc), 1 + 1.e-4).TPC;
 
       if (tpcNo != t)
         throw cet::exception("BadTPCLookupFromPosition")
@@ -1320,7 +1314,7 @@ namespace geo {
       }
 
       geo::WireGeo const& middle_wire = geom->Wire(middle_wire_id);
-      decltype(auto) middle_wire_center = middle_wire.GetCenter();
+      decltype(auto) middle_wire_center = middle_wire.GetCenter<Point_t>();
       MF_LOG_TRACE("GeometryTest")
         << "Center of " << middle_wire_id << " at " << middle_wire_center;
 
@@ -1329,14 +1323,15 @@ namespace geo {
 
       if (std::abs(middle_coord - double(middle_wire_id.Wire)) > 2e-3) {
         throw cet::exception("WireCoordAngle")
-          << "Center of " << std::string(middle_wire_id) << " at (" << middle_wire_center[0] << "; "
-          << middle_wire_center[1] << "; " << middle_wire_center[2] << ") has wire coordinate "
-          << middle_coord << " (" << middle_wire_id.Wire << " expected)\n";
+          << "Center of " << std::string(middle_wire_id) << " at (" << middle_wire_center.X()
+          << "; " << middle_wire_center.Y() << "; " << middle_wire_center.Z()
+          << ") has wire coordinate " << middle_coord << " (" << middle_wire_id.Wire
+          << " expected)\n";
       } // if
 
       // the check: this coordinate should lie on the next wire
       const double pitch = plane.WirePitch();
-      decltype(auto) wireCoordDir = plane.GetIncreasingWireDirection();
+      decltype(auto) wireCoordDir = plane.GetIncreasingWireDirection<Vector_t>();
 
       MF_LOG_TRACE("GeometryTest")
         << "  pitch: " << pitch << " wire coord dir: cos(phi_z): " << wireCoordDir;
@@ -1866,8 +1861,6 @@ namespace geo {
   //......................................................................
   void GeometryTestAlg::testStandardWirePos()
   {
-    double xyz[3] = {0.};
-    double xyzprev[3] = {0.};
     for (size_t cs = 0; cs < geom->Ncryostats(); ++cs) {
       for (size_t t = 0; t < geom->Cryostat(cs).NTPC(); ++t) {
         const geo::TPCGeo* tpc = &geom->Cryostat(cs).TPC(t);
@@ -1880,8 +1873,8 @@ namespace geo {
             geo::WireGeo const& wire = plane->Wire(j);
             geo::WireGeo const& wireprev = plane->Wire(j - 1);
 
-            wire.GetCenter(xyz);
-            wireprev.GetCenter(xyzprev);
+            auto const xyz = wire.GetCenter();
+            auto const xyzprev = wireprev.GetCenter();
 
             // wires increase in +z order
             if (xyz[2] < xyzprev[2])
@@ -1901,8 +1894,6 @@ namespace geo {
   {
     double origin[3] = {0.};
     double tpcworld[3] = {0.};
-    double xyz[3] = {0.};
-    double xyzprev[3] = {0.};
     for (size_t cs = 0; cs < geom->Ncryostats(); ++cs) {
       for (size_t t = 0; t < geom->Cryostat(cs).NTPC(); ++t) {
         const geo::TPCGeo* tpc = &geom->Cryostat(cs).TPC(t);
@@ -1915,8 +1906,8 @@ namespace geo {
             geo::WireGeo const& wire = plane->Wire(j);
             geo::WireGeo const& wireprev = plane->Wire(j - 1);
 
-            wire.GetCenter(xyz);
-            wireprev.GetCenter(xyzprev);
+            auto const xyz = wire.GetCenter();
+            auto const xyzprev = wireprev.GetCenter();
 
             // top TPC wires increase in -y
             if (tpcworld[1] > 0 && xyz[1] > xyzprev[1])
@@ -1964,7 +1955,7 @@ namespace geo {
       geo::PlaneID const& planeID = plane.ID();
       const unsigned int NWires = plane.Nwires();
 
-      decltype(auto) IncreasingWireDir = plane.GetIncreasingWireDirection();
+      decltype(auto) IncreasingWireDir = plane.GetIncreasingWireDirection<Vector_t>();
 
       MF_LOG_DEBUG("GeoTestWireCoordinate")
         << "The direction of increasing wires for plane " << planeID
@@ -1977,22 +1968,13 @@ namespace geo {
 
         geo::WireID wireID(planeID, w++);
 
-        decltype(auto) wire_center = wire.GetCenter();
+        decltype(auto) wire_center = wire.GetCenter<Point_t>();
 
         uint32_t nearest = 0;
         std::vector<geo::WireID> wireIDs;
 
         try {
-          // The double[] version tested here falls back on the
-          // TVector3 version, so this test both.
           nearest = geom->NearestChannel(wire_center, planeID);
-
-          // We also want to test the std::vector<double> version
-          std::vector<double> posWorldV(3);
-          for (int i = 0; i < 3; ++i) {
-            posWorldV[i] = wire_center[i] + 0.001;
-          }
-          nearest = geom->NearestChannel(posWorldV, planeID);
         }
         catch (cet::exception& e) {
           mf::LogWarning("GeoTestCaughtException") << e;
@@ -2016,9 +1998,9 @@ namespace geo {
         if (std::find(wireIDs.begin(), wireIDs.end(), wireID) == wireIDs.end()) {
           throw cet::exception("BadPositionToChannel")
             << "Current wire " << std::string(wireID) << " has a world position at " << wire_center
-            << "\nNearestWire for this position is " << geom->NearestWire(wire_center, planeID)
-            << "\nNearestChannel is " << nearest << "\nShould be channel "
-            << geom->PlaneWireToChannel(wireID);
+            << "\nNearestWire for this position is "
+            << geom->NearestWireID(wire_center, planeID).Wire << "\nNearestChannel is " << nearest
+            << "\nShould be channel " << geom->PlaneWireToChannel(wireID);
         } // if good lookup fails
 
         // nearest wire, integral and floating point
@@ -2031,8 +2013,7 @@ namespace geo {
 
           const double pitch = std::abs(geom->WirePitch(planeID));
 
-          TVector3 wire_shifted;
-          TVector3 const step = pitch * IncreasingWireDir;
+          auto const step = pitch * IncreasingWireDir;
 
           constexpr int NSteps = 5; // odd value avoids testing half-way
           for (int i = -NSteps; i <= +NSteps; ++i) {
@@ -2040,8 +2021,8 @@ namespace geo {
             const double f = NSteps ? (double(i) / NSteps) : 0.0;
 
             // these are the actual shifts on the positive directions y and z
-            TVector3 const delta = f * step;
-            TVector3 const wire_shifted = wire_center + delta;
+            auto const delta = f * step;
+            auto const wire_shifted = wire_center + delta;
 
             // we expect this wire number
             const double expected_wire = wireID.Wire + f;
@@ -2077,7 +2058,7 @@ namespace geo {
               const unsigned int expected_wire_number = std::round(expected_wire);
               unsigned int wire_number_from_wc;
               try {
-                wire_number_from_wc = geom->NearestWire(wire_shifted, planeID);
+                wire_number_from_wc = geom->NearestWireID(wire_shifted, planeID).Wire;
               }
               catch (cet::exception& e) {
                 throw cet::exception("GeoTestErrorWireCoordinate", "", e)
@@ -2144,9 +2125,9 @@ namespace geo {
     try {
       nearest_to_what = geom->NearestChannel(posWorld, 0, 0, 0);
     }
-    catch (const geo::InvalidWireIDError& e) {
-      mf::LogWarning("GeoTestCaughtException") << e << "\nReturned wire would be: " << e.wire_number
-                                               << ", suggested: " << e.better_wire_number;
+    catch (const geo::InvalidWireError& e) {
+      mf::LogWarning("GeoTestCaughtException")
+        << e << "\nReturned wire would be: " << e.badWire() << ", suggested: " << e.suggestedWire();
       hasThrown = true;
     }
     catch (cet::exception& e) {
@@ -2323,8 +2304,8 @@ namespace geo {
       geo::PlaneGeo const& refPlane = TPC.SmallestPlane();
       constexpr unsigned int SplitW = 19, SplitD = 17;
 
-      auto const driftOffset = -TPC.DriftDistance() / 2.0 * TPC.DriftDir();
-      auto const refPoint = refPlane.GetCenter() + driftOffset;
+      auto const driftOffset = -TPC.DriftDistance() / 2.0 * TPC.DriftDir<Vector_t>();
+      auto const refPoint = refPlane.GetCenter<Point_t>() + driftOffset;
 
       decltype(auto) coverage = refPlane.ActiveArea();
       const double stepW = coverage.width.length() / SplitW;
@@ -2335,11 +2316,11 @@ namespace geo {
       // let's pick a point:
       for (int iW = -stepsW; iW <= +stepsW; ++iW) {
 
-        auto const widthOffset = (iW * stepW) * refPlane.WidthDir();
+        auto const widthOffset = (iW * stepW) * refPlane.WidthDir<Vector_t>();
 
         for (int iD = -stepsD; iD < +stepsD; ++iD) {
 
-          auto const depthOffset = (iD * stepD) * refPlane.DepthDir();
+          auto const depthOffset = (iD * stepD) * refPlane.DepthDir<Vector_t>();
 
           auto const point = refPoint + widthOffset + depthOffset;
 
@@ -2357,7 +2338,7 @@ namespace geo {
   } // GeometryTestAlg::testWireIntersection()
 
   unsigned int GeometryTestAlg::testWireIntersectionAt(const geo::TPCGeo& TPC,
-                                                       TVector3 const& point) const
+                                                       geo::Point_t const& point) const
   {
     /* Tests WireIDsIntersect() and WiresIntersect() on the specified point on
      * the wire planes of a given TPC.
@@ -3244,7 +3225,7 @@ namespace geo {
   }
 
   //......................................................................
-  bool GeometryTestAlg::CheckAuxDetAtPosition(double const pos[3], unsigned int expected) const
+  bool GeometryTestAlg::CheckAuxDetAtPosition(geo::Point_t const pos, unsigned int expected) const
   {
     unsigned int foundDet = std::numeric_limits<unsigned int>::max();
     try {
@@ -3268,7 +3249,7 @@ namespace geo {
   } // GeometryTestAlg::CheckAuxDetAtPosition()
 
   //......................................................................
-  bool GeometryTestAlg::CheckAuxDetSensitiveAtPosition(double const pos[3],
+  bool GeometryTestAlg::CheckAuxDetSensitiveAtPosition(geo::Point_t const pos,
                                                        unsigned int expectedDet,
                                                        unsigned int expectedSens) const
   {
@@ -3317,21 +3298,19 @@ namespace geo {
       unsigned int const nSensitive = auxDet.NSensitiveVolume();
 
       if (nSensitive == 0) {
-        std::array<double, 3U> center;
-        auxDet.GetCenter(center.data());
+        auto const center = auxDet.GetCenter();
 
-        if (!CheckAuxDetAtPosition(center.data(), iDet)) ++nErrors;
+        if (!CheckAuxDetAtPosition(center, iDet)) ++nErrors;
       }
       else { // if one or more sensitive detectors
 
         for (unsigned int iDetSens = 0; iDetSens < nSensitive; ++iDetSens) {
 
           geo::AuxDetSensitiveGeo const& auxDetSens = auxDet.SensitiveVolume(iDetSens);
-          std::array<double, 3U> center;
-          auxDetSens.GetCenter(center.data());
+          auto const center = auxDetSens.GetCenter();
 
-          if (!CheckAuxDetAtPosition(center.data(), iDet)) ++nErrors;
-          if (!CheckAuxDetSensitiveAtPosition(center.data(), iDet, iDetSens)) ++nErrors;
+          if (!CheckAuxDetAtPosition(center, iDet)) ++nErrors;
+          if (!CheckAuxDetSensitiveAtPosition(center, iDet, iDetSens)) ++nErrors;
 
         } // for sensitive detectors
 

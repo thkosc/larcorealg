@@ -84,20 +84,17 @@ namespace geo {
           double ThisWirePitch = TPC.WirePitch(PlaneCount);
           fWireCounts[cs][TPCCount][PlaneCount] = plane.Nwires();
 
-          double WireCentre1[3] = {0., 0., 0.};
-          double WireCentre2[3] = {0., 0., 0.};
-
           const geo::WireGeo& firstWire = plane.Wire(0);
           const double sth = firstWire.SinThetaZ(), cth = firstWire.CosThetaZ();
 
-          firstWire.GetCenter(WireCentre1, 0);
-          plane.Wire(1).GetCenter(WireCentre2, 0);
+          auto WireCenter1 = firstWire.GetCenter();
+          auto WireCenter2 = plane.Wire(1).GetCenter();
 
           // figure out if we need to flip the orthogonal vector
           // (should point from wire n -> n+1)
           double OrthY = cth, OrthZ = -sth;
-          if (((WireCentre2[1] - WireCentre1[1]) * OrthY +
-               (WireCentre2[2] - WireCentre1[2]) * OrthZ) < 0) {
+          if (((WireCenter2[1] - WireCenter1[1]) * OrthY +
+               (WireCenter2[2] - WireCenter1[2]) * OrthZ) < 0) {
             OrthZ *= -1;
             OrthY *= -1;
           }
@@ -112,7 +109,7 @@ namespace geo {
           fOrthVectorsZ[cs][TPCCount][PlaneCount] = OrthZ / ThisWirePitch;
 
           fFirstWireProj[cs][TPCCount][PlaneCount] =
-            WireCentre1[1] * OrthY + WireCentre1[2] * OrthZ;
+            WireCenter1[1] * OrthY + WireCenter1[2] * OrthZ;
           fFirstWireProj[cs][TPCCount][PlaneCount] /= ThisWirePitch;
 
           // now to count up wires in each plane and get first channel in each plane
@@ -228,7 +225,7 @@ namespace geo {
       else
         NearestWireNumber = WireCount(planeID) - 1;
 
-      throw InvalidWireIDError("Geometry", wireNumber, NearestWireNumber)
+      throw InvalidWireError("Geometry", planeID, wireNumber, NearestWireNumber)
         << "Can't Find Nearest Wire for position (" << worldPos[0] << "," << worldPos[1] << ","
         << worldPos[2] << ")"
         << " in plane " << std::string(planeID) << " approx wire number # " << wireNumber

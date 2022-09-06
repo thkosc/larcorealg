@@ -487,14 +487,8 @@ namespace geo {
   //......................................................................
   lar::util::simple_geo::Volume<> PlaneGeo::Coverage() const
   {
-
-    // add both coordinates of first and last wire
-    std::array<double, 3> A, B;
-
-    FirstWire().GetStart(A.data());
-    LastWire().GetEnd(B.data());
-
-    return {A.data(), B.data()};
+    using point_type = lar::util::simple_geo::Volume<>::Point_t;
+    return {FirstWire().GetStart<point_type>(), LastWire().GetEnd<point_type>()};
   } // PlaneGeo::Coverage()
 
   //......................................................................

@@ -375,7 +375,7 @@ namespace lar::debug {
         }
         out << std::showbase << std::hex << offset << "]";
       } // if has offset
-        //  out << std::ios::setiosflags(flags);
+      //  out << std::ios::setiosflags(flags);
       if (!info.libraryName.empty() && options.has(opt::library)) {
         out << " in " << (options.has(opt::shortLibrary) ? info.shortLibrary() : info.libraryName);
       }

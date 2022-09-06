@@ -1504,14 +1504,6 @@ namespace geo {
     using DefaultPoint_t = TVector3;  ///< Default template argument.
 
   public:
-    /// Type used for expressing coordinates
-    /// @deprecated Use directly `geo::Length_t`
-    using Coord_t [[deprecated("Use geo::Point_t instead")]] = geo::Length_t;
-
-    /// Type used to represent a point in global coordinates
-    /// @deprecated Use directly `geo::Point_t`
-    using Point3D_t [[deprecated("Convert the code to use geo::Point_t")]] = DefaultPoint_t;
-
     /// Simple class with two points (a pair with aliases).
     template <typename Point>
     struct Segment : public std::pair<Point, Point> {
@@ -2077,18 +2069,6 @@ namespace geo {
     }
     //@}
 
-    //@{
-    /**
-     * @brief Returns the index of the cryostat at specified location
-     * @param worldLoc 3D coordinates of the point (world reference frame)
-     * @return the index of the cryostat, or UINT_MAX if no cryostat is there
-     *
-     * @deprecated Use `PositionToCryostatID()` instead
-     */
-    geo::CryostatID::CryostatID_t FindCryostatAtPosition(geo::Point_t const& worldLoc) const;
-    geo::CryostatID::CryostatID_t FindCryostatAtPosition(double const worldLoc[3]) const;
-    //@}
-
     /**
      * @brief Returns the cryostat at specified location.
      * @param point the location [cm]
@@ -2117,37 +2097,6 @@ namespace geo {
      * The tolerance used here is the one returned by DefaultWiggle().
      */
     CryostatGeo const& PositionToCryostat(geo::Point_t const& point) const;
-    CryostatGeo const& PositionToCryostat(double const point[3]) const
-    {
-      return PositionToCryostat(geo::vect::makePointFromCoords(point));
-    }
-    //@}
-
-    /**
-     * @brief Returns the cryostat at specified location
-     * @param worldLoc 3D coordinates of the point (world reference frame)
-     * @param cid (output) cryostat ID
-     * @return a constant reference to the CryostatGeo object of the cryostat
-     * @throws cet::exception ("Geometry" category) if no cryostat matches
-     *
-     * The tolerance used here is the one returned by DefaultWiggle().
-     *
-     * @deprecated Use `PositionToCryostat(geo::Point_t const&)` instead.
-     */
-    CryostatGeo const& PositionToCryostat(double const worldLoc[3], geo::CryostatID& cid) const;
-
-    /**
-     * @brief Returns the cryostat at specified location
-     * @param worldLoc 3D coordinates of the point (world reference frame)
-     * @param cstat (output) number of cryostat
-     * @return a constant reference to the CryostatGeo object of the cryostat
-     * @throws cet::exception ("Geometry" category) if no cryostat matches
-     *
-     * The tolerance used here is the one returned by DefaultWiggle().
-     *
-     * @deprecated Use `PositionToCryostat(geo::Point_t const&)` instead.
-     */
-    CryostatGeo const& PositionToCryostat(double const worldLoc[3], unsigned int& cstat) const;
 
     //
     // iterators
@@ -2261,43 +2210,6 @@ namespace geo {
       return CryostatLength(geo::CryostatID(cstat));
     }
     //@}
-
-    /**
-     * @brief Returns the boundaries of the specified cryostat
-     * @param boundaries (output) pointer to an area of 6 doubles for boundaries
-     * @param cid cryostat ID
-     * @throws cet::exception ("GeometryCore" category) if cryostat not present
-     * @see CryostatGeo::Boundaries()
-     *
-     * The boundaries array is filled with:
-     * [0] lower x coordinate  [1] upper x coordinate
-     * [2] lower y coordinate  [3] upper y coordinate
-     * [4] lower z coordinate  [5] upper z coordinate
-     *
-     * @deprecated Use `CryostatGeo::Boundaries()` (from `Cryostat(cid)`).
-     * @todo What happen on invalid cryostat?
-     */
-    void CryostatBoundaries(double* boundaries, geo::CryostatID const& cid) const;
-
-    /**
-     * @brief Returns the boundaries of the specified cryostat
-     * @param boundaries (output) pointer to an area of 6 doubles for boundaries
-     * @param cstat number of cryostat
-     * @throws cet::exception ("GeometryCore" category) if cryostat not present
-     * @see CryostatGeo::Boundaries()
-     *
-     * The boundaries array is filled with:
-     * [0] lower x coordinate  [1] upper x coordinate
-     * [2] lower y coordinate  [3] upper y coordinate
-     * [4] lower z coordinate  [5] upper z coordinate
-     *
-     * @deprecated Use `CryostatBoundaries(double*, geo::CryostatID const&)`
-     * or (recommended) `CryostatGeo::Boundaries()` from `Cryostat(cid)` instead
-     */
-    void CryostatBoundaries(double* boundaries, unsigned int cstat = 0) const
-    {
-      CryostatBoundaries(boundaries, geo::CryostatID(cstat));
-    }
 
     //
     // object description
@@ -2521,29 +2433,6 @@ namespace geo {
       return PositionToTPC(geo::vect::makePointFromCoords(point));
     }
     //@}
-
-    /**
-     * @brief Returns the TPC at specified location.
-     * @param point the location [cm]
-     * @param tpc _(output)_ where to store the number of TPC
-     * @param cstat _(output)_ where to store the number of cryostat
-     * @return a constant reference to the `geo::TPCGeo` including `point`
-     * @throws cet::exception ("Geometry" category) if no TPC matches
-     * @deprecated Use `PositionToTPCID()` or `PositionToTPC().ID()`
-     */
-    TPCGeo const& PositionToTPC(double const worldLoc[3],
-                                unsigned int& tpc,
-                                unsigned int& cstat) const;
-
-    /**
-     * @brief Returns the TPC at specified location.
-     * @param point the location [cm]
-     * @param tpcid _(output)_ where to store the TPC ID
-     * @return a constant reference to the `geo::TPCGeo` including `point`
-     * @throws cet::exception ("Geometry" category) if no TPC matches
-     * @deprecated Use `PositionToTPCID()` or `PositionToTPC().ID()`
-     */
-    TPCGeo const& PositionToTPC(double const worldLoc[3], TPCID& tpcid) const;
 
     /**
      * @brief Returns the ID of the TPC at specified location.
@@ -2998,17 +2887,6 @@ namespace geo {
      * @todo Change return type to size_t
      */
     unsigned int Nviews() const;
-
-    /**
-     * @brief Returns a list of possible PlaneIDs in the detector
-     * @return a constant reference to the set of plane IDs
-     *
-     * @deprecated use IteratePlaneIDs() instead
-     * plane IDs of DUNE FD? probably better to use iterators instead
-     */
-    [[deprecated(
-      "Iterate through geo::GeometryCore::IteratePlaneIDs() instead")]] std::set<PlaneID> const&
-    PlaneIDs() const;
 
     //
     // access
@@ -4026,161 +3904,6 @@ namespace geo {
 
     //@{
     /**
-     * @brief Returns the ID of wire closest to position in the specified TPC.
-     * @param point the point to be tested [cm]
-     * @param planeid ID of the plane
-     * @param PlaneNo plane number within the TPC
-     * @param TPCNo tpc number within the cryostat
-     * @param cstat cryostat number
-     * @return the ID of the wire, or an invalid wire ID
-     * @bug Instead of returning an invalid wire ID, an exception is thrown!
-     *
-     * The different versions allow different way to provide the position.
-     *
-     * @deprecated Use the version with a `geo::Point_t` and `PlaneID` arguments
-     * @todo remove the integers version
-     */
-    geo::WireID NearestWireID(const double point[3], geo::PlaneID const& planeid) const;
-    geo::WireID NearestWireID(std::vector<double> const& point, geo::PlaneID const& planeid) const;
-    geo::WireID NearestWireID(const TVector3& point, geo::PlaneID const& planeid) const
-    {
-      return NearestWireID(geo::vect::toPoint(point), planeid);
-    }
-    geo::WireID NearestWireID(const double point[3],
-                              unsigned int const PlaneNo,
-                              unsigned int const TPCNo = 0,
-                              unsigned int const cstat = 0) const
-    {
-      return NearestWireID(point, geo::PlaneID(cstat, TPCNo, PlaneNo));
-    }
-    geo::WireID NearestWireID(std::vector<double> const& point,
-                              unsigned int const PlaneNo,
-                              unsigned int const TPCNo = 0,
-                              unsigned int const cstat = 0) const
-    {
-      return NearestWireID(point, geo::PlaneID(cstat, TPCNo, PlaneNo));
-    }
-    geo::WireID NearestWireID(const TVector3& point,
-                              unsigned int const PlaneNo,
-                              unsigned int const TPCNo = 0,
-                              unsigned int const cstat = 0) const
-    {
-      return NearestWireID(point, geo::PlaneID(cstat, TPCNo, PlaneNo));
-    }
-    geo::WireID NearestWireID(geo::Point_t const& point,
-                              unsigned int const PlaneNo,
-                              unsigned int const TPCNo = 0,
-                              unsigned int const cstat = 0) const
-    {
-      return NearestWireID(point, geo::PlaneID(cstat, TPCNo, PlaneNo));
-    }
-    //@}
-
-    /**
-     * @brief Returns the index of wire closest to position in the specified TPC
-     * @param point the point to be tested [cm]
-     * @param planeid ID of the plane
-     * @return the index of the wire, or `geo::WireID::InvalidID` on failure
-     * @bug Actually, on failure an exception `geo::InvalidWireError` is thrown
-     *
-     * @deprecated Use NearestWireID() instead.
-     */
-    geo::WireID::WireID_t NearestWire(geo::Point_t const& point, geo::PlaneID const& planeid) const;
-
-    //@{
-    /**
-     * @brief Returns the index of wire closest to position in the specified TPC
-     * @param worldLoc 3D coordinates of the point (world reference frame)
-     * @param planeid ID of the plane
-     * @param PlaneNo plane number within the TPC
-     * @param TPCNo tpc number within the cryostat
-     * @param cstat cryostat number
-     * @return the index of the wire
-     *
-     * The different versions allow different way to provide the position.
-     *
-     * @deprecated Use NearestWireID() instead.
-     * @todo remove the integers version
-     * @todo what happens when no wire is found?
-     */
-    unsigned int NearestWire(const double worldLoc[3], geo::PlaneID const& planeid) const;
-    unsigned int NearestWire(std::vector<double> const& worldLoc,
-                             geo::PlaneID const& planeid) const;
-    unsigned int NearestWire(const TVector3& worldLoc, geo::PlaneID const& planeid) const
-    {
-      return NearestWire(geo::vect::toPoint(worldLoc), planeid);
-    }
-    unsigned int NearestWire(const double worldLoc[3],
-                             unsigned int const PlaneNo,
-                             unsigned int const TPCNo = 0,
-                             unsigned int const cstat = 0) const
-    {
-      return NearestWire(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo));
-    }
-    unsigned int NearestWire(std::vector<double> const& worldLoc,
-                             unsigned int const PlaneNo,
-                             unsigned int const TPCNo = 0,
-                             unsigned int const cstat = 0) const
-    {
-      return NearestWire(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo));
-    }
-    unsigned int NearestWire(const TVector3& worldLoc,
-                             unsigned int const PlaneNo,
-                             unsigned int const TPCNo = 0,
-                             unsigned int const cstat = 0) const
-    {
-      return NearestWire(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo));
-    }
-    unsigned int NearestWire(geo::Point_t const& worldLoc,
-                             unsigned int const PlaneNo,
-                             unsigned int const TPCNo = 0,
-                             unsigned int const cstat = 0) const
-    {
-      return NearestWire(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo));
-    }
-    //@}
-
-    /**
-     * @brief Returns the index of the nearest wire to the specified position
-     * @param YPos y coordinate on the wire plane
-     * @param ZPos z coordinate on the wire plane
-     * @param planeid ID of the plane
-     * @return an index interpolation between the two nearest wires
-     * @deprecated Use
-     *             `WireCoordinate(geo::Point_t const&, geo::PlaneID const&)`
-     *             instead
-     *
-     * Respect to `NearestWireID()`, this method returns a real number,
-     * representing a continuous coordinate in the wire axis, with the round
-     * values corresponding to the actual wires.
-     *
-     * @todo Unify (y, z) coordinate
-     */
-    geo::Length_t WireCoordinate(double YPos, double ZPos, geo::PlaneID const& planeid) const;
-
-    /**
-     * @brief Returns the index of the nearest wire to the specified position
-     * @param YPos y coordinate on the wire plane
-     * @param ZPos z coordinate on the wire plane
-     * @param PlaneNo number of plane
-     * @param TPCNo number of TPC
-     * @param cstat number of cryostat
-     * @return an index interpolation between the two nearest wires
-     * @see ChannelMapAlg::WireCoordinate()
-     *
-     * @deprecated Use the version with plane ID instead
-     */
-    geo::Length_t WireCoordinate(double YPos,
-                                 double ZPos,
-                                 unsigned int PlaneNo,
-                                 unsigned int TPCNo,
-                                 unsigned int cstat) const
-    {
-      return WireCoordinate(YPos, ZPos, geo::PlaneID(cstat, TPCNo, PlaneNo));
-    }
-
-    //@{
-    /**
      * @brief Returns the index of the nearest wire to the specified position
      * @param pos world coordinates of the position (it will be projected)
      * @param planeid ID of the plane
@@ -4192,10 +3915,6 @@ namespace geo {
      * values corresponding to the actual wires.
      */
     geo::Length_t WireCoordinate(geo::Point_t const& pos, geo::PlaneID const& planeid) const;
-    geo::Length_t WireCoordinate(TVector3 const& pos, geo::PlaneID const& planeid) const
-    {
-      return WireCoordinate(geo::vect::toPoint(pos), planeid);
-    }
     //@}
 
     //
@@ -4691,18 +4410,6 @@ namespace geo {
 
     /**
      * @brief Returns the index of the auxiliary detector at specified location.
-     * @param worldLoc 3D coordinates of the point (world reference frame)
-     * @param tolerance tolerance (cm) for matches. Default 0
-     * @return the index of the detector, or
-     *        `std::numeric_limits<unsigned int>::max()` if no detector is there
-     *
-     * @bug Actually, an exception is thrown.
-     * @deprecated Use the version with `geo::Point_t`.
-     */
-    unsigned int FindAuxDetAtPosition(double const worldLoc[3], double tolerance = 0) const;
-
-    /**
-     * @brief Returns the index of the auxiliary detector at specified location.
      * @param point location to be tested
      * @param tolerance tolerance (cm) for matches. Default 0
      * @return the index of the detector, or
@@ -4725,19 +4432,6 @@ namespace geo {
                                        double tolerance = 0) const;
 
     /**
-     * @brief Fills the indices of the sensitive auxiliary detector at location
-     * @param worldLoc 3D coordinates of the point (world reference frame)
-     * @param adg (output) auxiliary detector index
-     * @param sv (output) sensitive volume index
-     * @param tolerance tolerance (cm) for matches. Default 0.
-     * @deprecated Use the version with `geo::Point_t`.
-     */
-    void FindAuxDetSensitiveAtPosition(double const worldLoc[3],
-                                       size_t& adg,
-                                       size_t& sv,
-                                       double tolerance = 0) const;
-
-    /**
      * @brief Returns the auxiliary detector at specified location
      * @param point location to be tested
      * @param ad _(output)_ the auxiliary detector index
@@ -4752,20 +4446,6 @@ namespace geo {
 
     /**
      * @brief Returns the auxiliary detector at specified location
-     * @param worldLoc 3D coordinates of the point (world reference frame)
-     * @param ad (output) the auxiliary detector index
-     * @param tolerance tolerance (cm) for matches. Default 0.
-     * @return constant reference to AuxDetGeo object of the auxiliary detector
-     *
-     * @deprecated Use the version with `geo::Point_t`.
-     * @todo what happens if it does not exist?
-     */
-    AuxDetGeo const& PositionToAuxDet(double const worldLoc[3],
-                                      unsigned int& ad,
-                                      double tolerance = 0) const;
-
-    /**
-     * @brief Returns the auxiliary detector at specified location
      * @param point location to be tested
      * @param ad _(output)_ the auxiliary detector index
      * @param sv _(output)_ the auxiliary detector sensitive volume index
@@ -4775,22 +4455,6 @@ namespace geo {
      * @todo what happens if it does not exist?
      */
     const AuxDetSensitiveGeo& PositionToAuxDetSensitive(geo::Point_t const& point,
-                                                        size_t& ad,
-                                                        size_t& sv,
-                                                        double tolerance = 0) const;
-
-    /**
-     * @brief Returns the auxiliary detector at specified location
-     * @param worldLoc 3D coordinates of the point (world reference frame)
-     * @param ad (output) the auxiliary detector index
-     * @param sv (output) the auxiliary detector sensitive volume index
-     * @param tolerance tolerance (cm) for matches. Default 0.
-     * @return reference to AuxDetSensitiveGeo object of the auxiliary detector
-     *
-     * @todo what happens if it does not exist?
-     * @deprecated Use the version with `geo::Point_t`.
-     */
-    const AuxDetSensitiveGeo& PositionToAuxDetSensitive(double const worldLoc[3],
                                                         size_t& ad,
                                                         size_t& sv,
                                                         double tolerance = 0) const;
@@ -5632,26 +5296,15 @@ namespace geo {
     void ApplyChannelMap(std::unique_ptr<geo::ChannelMapAlg> pChannelMap);
     /// @}
 
-  protected:
-    /// Sets the detector name
-    void SetDetectorName(std::string const& new_name) { fDetectorName = new_name; }
-
-    /// Returns the object handling the channel map
-    geo::ChannelMapAlg const* ChannelMap() const { return fChannelMapAlg.get(); }
-
-    //@{
+  private:
     /// Return the internal cryostat list
     CryostatList_t& Cryostats() { return fGeoData.cryostats; }
     CryostatList_t const& Cryostats() const { return fGeoData.cryostats; }
-    //@}
 
-    //@{
-    /// Return the interfal auxiliary detectors list
+    /// Return the internal auxdet list
     AuxDetList_t& AuxDets() { return fGeoData.auxDets; }
     AuxDetList_t const& AuxDets() const { return fGeoData.auxDets; }
-    //@}
 
-  private:
     GeometryData_t fGeoData; ///< The detector description data
 
     double fSurfaceY;          ///< The point where air meets earth for this detector.

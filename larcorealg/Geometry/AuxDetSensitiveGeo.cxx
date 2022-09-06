@@ -42,32 +42,12 @@ namespace geo {
   }
 
   //......................................................................
-  void AuxDetSensitiveGeo::GetCenter(double* xyz, double localz) const
-  {
-    auto const& center = GetCenter(localz);
-    xyz[0] = center.X();
-    xyz[1] = center.Y();
-    xyz[2] = center.Z();
-  } // AuxDetSensitiveGeo::GetCenter(double*)
-
-  //......................................................................
 
   // Return the unit normal vector (0,0,1) in local coordinates to global coordinates
   geo::Vector_t AuxDetSensitiveGeo::GetNormalVector() const
   {
     return toWorldCoords(geo::Zaxis<LocalVector_t>());
   }
-
-  //......................................................................
-
-  // Return the unit normal vector (0,0,1) in local coordinates to global coordinates
-  void AuxDetSensitiveGeo::GetNormalVector(double* xyzDir) const
-  {
-    auto const& norm = GetNormalVector();
-    xyzDir[0] = norm.X();
-    xyzDir[1] = norm.Y();
-    xyzDir[2] = norm.Z();
-  } // AuxDetSensitiveGeo::GetNormalVector(double*)
 
   //......................................................................
   geo::Length_t AuxDetSensitiveGeo::DistanceToPoint(double const* point) const

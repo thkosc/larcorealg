@@ -66,24 +66,6 @@ namespace geo {
   } // geo::WireGeo::WireGeo()
 
   //......................................................................
-  void WireGeo::GetCenter(double* xyz, double localz) const
-  {
-    if (localz == 0.) { // if no dislocation is requested, we already have it
-      geo::vect::fillCoords(xyz, fCenter);
-      return;
-    }
-
-    double locz = relLength(localz);
-    if (std::abs(locz) > fHalfL) {
-      mf::LogWarning("WireGeo") << "asked for position along wire that"
-                                   " extends beyond the wire, returning position at end point";
-      locz = relLength((locz < 0) ? -fHalfL : fHalfL);
-    }
-    const double local[3] = {0., 0., locz};
-    LocalToWorld(local, xyz);
-  }
-
-  //......................................................................
   double geo::WireGeo::RMax() const
   {
     return ((TGeoTube*)fWireNode->GetVolume()->GetShape())->GetRmax();

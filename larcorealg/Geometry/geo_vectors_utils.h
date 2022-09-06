@@ -36,6 +36,13 @@
 #include <type_traits> // std::declval(), std::is_same<>, ...
 #include <vector>
 
+namespace lar::util::simple_geo {
+  template <typename T>
+  struct Point2D;
+  template <typename T>
+  struct Point3D;
+}
+
 namespace geo {
 
   /**
@@ -1824,6 +1831,14 @@ namespace geo::vect::details {
   template <typename T, std::size_t Dim>
   struct DimensionImpl<std::array<T, Dim>, void>
     : public std::integral_constant<unsigned int, Dim> {};
+
+  template <typename T>
+  struct DimensionImpl<lar::util::simple_geo::Point2D<T>, void>
+    : public std::integral_constant<unsigned int, 2> {};
+
+  template <typename T>
+  struct DimensionImpl<lar::util::simple_geo::Point3D<T>, void>
+    : public std::integral_constant<unsigned int, 3> {};
 
   //----------------------------------------------------------------------------
   /// Type of sequence of indices up to `Vector` size.

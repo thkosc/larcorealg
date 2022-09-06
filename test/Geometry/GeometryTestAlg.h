@@ -211,10 +211,10 @@ namespace geo {
     }
 
     /// Returns whether the auxiliary detector at `pos` is the `expected` one.
-    bool CheckAuxDetAtPosition(double const pos[3], unsigned int expected) const;
+    bool CheckAuxDetAtPosition(geo::Point_t const pos, unsigned int expected) const;
 
     /// Returns whether the auxiliary sensitive detector at `pos` is expected.
-    bool CheckAuxDetSensitiveAtPosition(double const pos[3],
+    bool CheckAuxDetSensitiveAtPosition(geo::Point_t const pos,
                                         unsigned int expectedDet,
                                         unsigned int expectedSens) const;
 
@@ -223,7 +223,7 @@ namespace geo {
                                         geo::Vector_t const& wireDir) const;
 
     /// Performs the wire intersection test at a single point
-    unsigned int testWireIntersectionAt(geo::TPCGeo const& TPC, TVector3 const& point) const;
+    unsigned int testWireIntersectionAt(geo::TPCGeo const& TPC, geo::Point_t const& point) const;
 
     /// Returns dT/dW expected from the specified segment A-to-B
     std::vector<std::pair<geo::PlaneID, double>> ExpectedPlane_dTdW(

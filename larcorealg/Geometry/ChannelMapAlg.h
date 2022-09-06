@@ -147,29 +147,8 @@ namespace geo {
      * @see PlaneWireToChannel(geo::WireID const&)
      *
      * Behaviour on an invalid or not present wires is undefined.
-     *
-     * @deprecated Use the version with `geo::WireID`
      */
-    virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const
-    {
-      return PlaneWireToChannel(wireID.Plane, wireID.Wire, wireID.TPC, wireID.Cryostat);
-    }
-
-    /**
-     * @brief Returns the channel ID a wire is connected to
-     * @param plane number of plane
-     * @param wire number of wire
-     * @param tpc number of TPC
-     * @param cstat number of cryostat
-     * @return the ID of the channel
-     * @see PlaneWireToChannel(geo::WireID const&)
-     *
-     * @deprecated Use the version with `geo::WireID`
-     */
-    virtual raw::ChannelID_t PlaneWireToChannel(unsigned int plane,
-                                                unsigned int wire,
-                                                unsigned int tpc,
-                                                unsigned int cstat) const = 0;
+    virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const = 0;
 
     /// @}
 
@@ -294,28 +273,7 @@ namespace geo {
      * The plane is required to be valid and exist in the detector. Otherwise,
      * the behaviour is undefined.
      */
-    virtual double WireCoordinate(double YPos, double ZPos, geo::PlaneID const& planeID) const
-    {
-      return WireCoordinate(YPos, ZPos, planeID.Plane, planeID.TPC, planeID.Cryostat);
-    }
-
-    /**
-     * @brief Returns the index of the wire nearest to the specified position
-     * @param YPos y coordinate on the wire plane
-     * @param ZPos z coordinate on the wire plane
-     * @param PlaneNo number of plane
-     * @param TPCNo number of TPC
-     * @param cstat number of cryostat
-     * @return an index interpolation between the two nearest wires
-     * @see WireCoordinate(double, double, geo::PlaneID const&)
-     *
-     * @deprecated Use the version with `geo::PlaneID` instead
-     */
-    virtual double WireCoordinate(double YPos,
-                                  double ZPos,
-                                  unsigned int PlaneNo,
-                                  unsigned int TPCNo,
-                                  unsigned int cstat) const = 0;
+    virtual double WireCoordinate(double YPos, double ZPos, geo::PlaneID const& planeID) const = 0;
 
     /**
      * @brief Returns the ID of the wire nearest to the specified position
@@ -333,58 +291,8 @@ namespace geo {
      * In other words, the result can be trusted only as long as the position
      * is within the specified wire plane.
      */
-    virtual geo::WireID NearestWireID(const TVector3& worldPos, geo::PlaneID const& planeID) const
-    {
-      return NearestWireID(worldPos, planeID.Plane, planeID.TPC, planeID.Cryostat);
-    }
-
-    /**
-     * @brief Returns the ID of the wire nearest to the specified position
-     * @param worldPos position to be tested
-     * @param PlaneNo number of plane containing the wire
-     * @param TPCNo number of TPC containing the wire
-     * @param cstat number of cryostat containing the wire
-     * @return the ID of the wire closest to worldPos in the specified plane
-     * @see NearestWireID(const TVector3&, geo::PlaneID const&)
-     *
-     * @deprecated Use the version with `geo::PlaneID` instead
-     */
     virtual geo::WireID NearestWireID(const TVector3& worldPos,
-                                      unsigned int PlaneNo,
-                                      unsigned int TPCNo,
-                                      unsigned int cstat) const = 0;
-
-    /**
-     * @brief Returns the index of the wire nearest to the specified position
-     * @param worldPos position to be tested
-     * @param planeID plane containing the wire
-     * @return the ID of the wire closest to worldPos in the specified plane
-     * @see NearestWireID(const TVector3&, geo::PlaneID const&)
-     *
-     * @deprecated Use `NearestWireID(const TVector3&, geo::PlaneID const&)`
-     * instead.
-     */
-    unsigned int NearestWire(const TVector3& worldPos, geo::PlaneID const& planeID) const;
-
-    /**
-     * @brief Returns the index of the wire nearest to the specified position
-     * @param worldPos position to be tested
-     * @param PlaneNo number of plane containing the wire
-     * @param TPCNo number of TPC containing the wire
-     * @param cstat number of cryostat containing the wire
-     * @return the ID of the wire closest to worldPos in the specified plane
-     * @see NearestWireID(const TVector3&, geo::PlaneID const&)
-     *
-     * @deprecated Use `NearestWireID(const TVector3&, geo::PlaneID const&)`
-     * instead.
-     */
-    unsigned int NearestWire(const TVector3& worldPos,
-                             unsigned int PlaneNo,
-                             unsigned int TPCNo,
-                             unsigned int cstat) const
-    {
-      return NearestWire(worldPos, geo::PlaneID(cstat, TPCNo, PlaneNo));
-    }
+                                      geo::PlaneID const& planeID) const = 0;
 
     /// @}
 

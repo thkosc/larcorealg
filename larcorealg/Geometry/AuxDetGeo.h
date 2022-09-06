@@ -171,14 +171,10 @@ namespace geo {
 
     //@{
     std::size_t FindSensitiveVolume(geo::Point_t const& point) const;
-    /// @deprecated Use the version with `geo::Point_t` argument instead
-    std::size_t FindSensitiveVolume(double const worldLoc[3]) const;
     //@}
     //@{
     AuxDetSensitiveGeo const& PositionToSensitiveVolume(geo::Point_t const& point,
                                                         size_t& sv) const;
-    /// @deprecated Use the version with `geo::Point_t` argument instead
-    AuxDetSensitiveGeo const& PositionToSensitiveVolume(double const worldLoc[3], size_t& sv) const;
     //@}
     AuxDetSensitiveGeo const& SensitiveVolume(size_t sv) const { return fSensitive[sv]; }
     size_t NSensitiveVolume() const { return fSensitive.size(); }

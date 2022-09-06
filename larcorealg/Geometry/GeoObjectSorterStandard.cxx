@@ -13,10 +13,12 @@
 #include "larcorealg/Geometry/TPCGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"
 
+#include <utility>
+
 namespace {
 
   // Tolerance when comparing distances in geometry:
-  static constexpr double DistanceTol = 0.001; // cm
+  constexpr double DistanceTol = 0.001; // cm
 
 } // local namespace
 
@@ -102,11 +104,7 @@ namespace geo {
   //----------------------------------------------------------------------------
   static bool sortWireStandard(WireGeo const& w1, WireGeo const& w2)
   {
-    double xyz1[3] = {0.};
-    double xyz2[3] = {0.};
-
-    w1.GetCenter(xyz1);
-    w2.GetCenter(xyz2);
+    auto const [xyz1, xyz2] = std::make_pair(w1.GetCenter(), w2.GetCenter());
 
     //sort by z first
     if (std::abs(xyz1[2] - xyz2[2]) > DistanceTol) return xyz1[2] < xyz2[2];

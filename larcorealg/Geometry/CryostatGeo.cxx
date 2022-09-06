@@ -107,15 +107,6 @@ namespace geo {
   //......................................................................
   // wiggle is 1+a small number to allow for rounding errors on the
   // passed in world loc relative to the boundaries.
-  geo::TPCID::TPCID_t CryostatGeo::FindTPCAtPosition(double const worldLoc[3], double wiggle) const
-  {
-    geo::TPCID tpcid = PositionToTPCID(geo::vect::makePointFromCoords(worldLoc), wiggle);
-    return tpcid ? tpcid.TPC : geo::TPCID::InvalidID;
-  } // CryostatGeo::FindTPCAtPosition()
-
-  //......................................................................
-  // wiggle is 1+a small number to allow for rounding errors on the
-  // passed in world loc relative to the boundaries.
   geo::TPCID CryostatGeo::PositionToTPCID(geo::Point_t const& point, double wiggle) const
   {
     geo::TPCGeo const* tpc = PositionToTPCptr(point, wiggle);
