@@ -13,10 +13,8 @@
 // LArSoft libraries
 #include "larcorealg/Geometry/GeometryBuilderStandard.h"
 
-
-
 namespace geo {
-  
+
   /**
    * @brief Geometry builder which ignores wires on wire planes.
    * 
@@ -25,35 +23,31 @@ namespace geo {
    * or may not exist.
    * 
    */
-  class GeometryBuilderWireless: public geo::GeometryBuilderStandard {
-    
-      public:
-    
+  class GeometryBuilderWireless : public geo::GeometryBuilderStandard {
+
+  public:
     // import all constructors from base class
     using geo::GeometryBuilderStandard::GeometryBuilderStandard;
-    
+
     //
     // we don't expand the public interface here
     //
-    
-      protected:
-    
+
+  protected:
     // --- BEGIN Wire information ----------------------------------------------
     /// @name Wire information
     /// @{
-    
+
     /// Core implementation of `extractWires()`: no wires returned whatsoever.
-    /// 
+    ///
     /// The actual algorithm is specialization of `doExtractGeometryObjects()`.
     virtual Wires_t doExtractWires(Path_t&) { return {}; }
-    
+
     /// @}
     // --- END Wire information ------------------------------------------------
-    
-    
-  }; // class GeometryBuilderWireless
-  
-} // namespace geo
 
+  }; // class GeometryBuilderWireless
+
+} // namespace geo
 
 #endif // LARCOREALG_GEOMETRY_GEOMETRYBUILDERWIRELESS_H

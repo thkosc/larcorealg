@@ -6,23 +6,22 @@
  *
  */
 
-
 // testing library
 #include "larcorealg/CoreUtils/enumerate.h"
 
 // Boost libraries
-#define BOOST_TEST_MODULE ( enumerate_test )
+#define BOOST_TEST_MODULE (enumerate_test)
 #include <boost/test/unit_test.hpp>
 
 // C/C++ libraries
-#include <vector>
 #include <array>
-#include <cstddef> // std::size_t
 #include <cassert>
-
+#include <cstddef> // std::size_t
+#include <vector>
 
 // -----------------------------------------------------------------------------
-void test_enumerate() {
+void test_enumerate()
+{
 
   //
   // standard use case with zipping included
@@ -44,7 +43,7 @@ void test_enumerate() {
   // iteration using the first element as lead
   //
   unsigned int iLoop = 0;
-  for (auto&& [i, a, b]: util::enumerate(twice, thrice)) {
+  for (auto&& [i, a, b] : util::enumerate(twice, thrice)) {
 
     BOOST_TEST(i == iLoop);
 
@@ -68,7 +67,7 @@ void test_enumerate() {
   assert(thrice.size() == N - 1);
 
   iLoop = 0;
-  for (auto&& [i, a, b]: util::enumerate<1>(twice, thrice)) {
+  for (auto&& [i, a, b] : util::enumerate<1>(twice, thrice)) {
 
     BOOST_TEST(i == iLoop);
 
@@ -82,19 +81,17 @@ void test_enumerate() {
   } // for
   BOOST_TEST(iLoop == thrice.size());
 
-
 } // test_enumerate()
-
 
 // -----------------------------------------------------------------------------
 // BEGIN Test cases  -----------------------------------------------------------
 // -----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(enumerate_testcase) {
+BOOST_AUTO_TEST_CASE(enumerate_testcase)
+{
 
   test_enumerate();
 
 } // BOOST_AUTO_TEST_CASE(enumerate_testcase)
-
 
 // -----------------------------------------------------------------------------
 // END Test cases  -------------------------------------------------------------

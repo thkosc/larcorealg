@@ -8,8 +8,7 @@
 #include "larcorealg/Geometry/ChannelMapAlg.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 
-namespace geo{
-
+namespace geo {
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAlg::NearestWire(const TVector3& worldPos,
@@ -39,8 +38,6 @@ namespace geo{
     return 1;
   }
 
-
-
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAlg::OpChannel(unsigned int detNum, unsigned int /* channel */) const
   {
@@ -48,10 +45,7 @@ namespace geo{
   }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMapAlg::OpDetFromOpChannel(unsigned int opChannel) const
-  {
-    return opChannel;
-  }
+  unsigned int ChannelMapAlg::OpDetFromOpChannel(unsigned int opChannel) const { return opChannel; }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapAlg::HardwareChannelFromOpChannel(unsigned int /* opChannel */) const
@@ -63,7 +57,7 @@ namespace geo{
   bool ChannelMapAlg::IsValidOpChannel(unsigned int opChannel, unsigned int NOpDets) const
   {
     // Check channel number
-    if ( opChannel >= this->NOpChannels(NOpDets) ) return false;
+    if (opChannel >= this->NOpChannels(NOpDets)) return false;
 
     // Check opdet number
     unsigned int opdet = this->OpDetFromOpChannel(opChannel);
@@ -78,42 +72,46 @@ namespace geo{
 
   //----------------------------------------------------------------------------
   size_t ChannelMapAlg::NearestAuxDet(const double* point,
-                                      std::vector<geo::AuxDetGeo> const& auxDets, double tolerance) const
+                                      std::vector<geo::AuxDetGeo> const& auxDets,
+                                      double tolerance) const
   {
     double HalfCenterWidth = 0.;
     double localPoint[3] = {0.};
 
-
-    for(size_t a = 0; a < auxDets.size(); ++a) {
+    for (size_t a = 0; a < auxDets.size(); ++a) {
 
       auxDets[a].WorldToLocal(point, localPoint);
 
       HalfCenterWidth = 0.5 * (auxDets[a].HalfWidth1() + auxDets[a].HalfWidth2());
-      
-      if( localPoint[2] >= - (auxDets[a].Length()/2 + tolerance)       &&
-          localPoint[2] <=   (auxDets[a].Length()/2 + tolerance)       &&
-          localPoint[1] >= - auxDets[a].HalfHeight() - tolerance       &&
-          localPoint[1] <=   auxDets[a].HalfHeight() + tolerance      &&
-          // if AuxDet a is a box, then HalfSmallWidth = HalfWidth
-          localPoint[0] >= - HalfCenterWidth + localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length()) - tolerance  &&
-          localPoint[0] <=   HalfCenterWidth - localPoint[2]*(HalfCenterWidth - auxDets[a].HalfWidth2())/(0.5 * auxDets[a].Length()) + tolerance
-          ) return a;
 
-    }// for loop over AudDet a
+      if (localPoint[2] >= -(auxDets[a].Length() / 2 + tolerance) &&
+          localPoint[2] <= (auxDets[a].Length() / 2 + tolerance) &&
+          localPoint[1] >= -auxDets[a].HalfHeight() - tolerance &&
+          localPoint[1] <= auxDets[a].HalfHeight() + tolerance &&
+          // if AuxDet a is a box, then HalfSmallWidth = HalfWidth
+          localPoint[0] >= -HalfCenterWidth +
+                             localPoint[2] * (HalfCenterWidth - auxDets[a].HalfWidth2()) /
+                               (0.5 * auxDets[a].Length()) -
+                             tolerance &&
+          localPoint[0] <= HalfCenterWidth -
+                             localPoint[2] * (HalfCenterWidth - auxDets[a].HalfWidth2()) /
+                               (0.5 * auxDets[a].Length()) +
+                             tolerance)
+        return a;
+
+    } // for loop over AudDet a
 
     // throw an exception because we couldn't find the sensitive volume
-    throw cet::exception("ChannelMap") << "Can't find AuxDet for position ("
-                                             << point[0] << ","
-                                             << point[1] << ","
-                                             << point[2] << ")\n";
+    throw cet::exception("ChannelMap") << "Can't find AuxDet for position (" << point[0] << ","
+                                       << point[1] << "," << point[2] << ")\n";
 
     return UINT_MAX;
-
   }
 
   //----------------------------------------------------------------------------
   size_t ChannelMapAlg::NearestSensitiveAuxDet(const double* point,
-                                               std::vector<geo::AuxDetGeo> const& auxDets, double tolerance) const
+                                               std::vector<geo::AuxDetGeo> const& auxDets,
+                                               double tolerance) const
   {
     double HalfCenterWidth = 0.;
     double localPoint[3] = {0.};
@@ -122,42 +120,45 @@ namespace geo{
 
     geo::AuxDetGeo const& adg = auxDets[auxDetIdx];
 
-    for(size_t a = 0; a < adg.NSensitiveVolume(); ++a) {
+    for (size_t a = 0; a < adg.NSensitiveVolume(); ++a) {
 
       geo::AuxDetSensitiveGeo const& adsg = adg.SensitiveVolume(a);
       adsg.WorldToLocal(point, localPoint);
 
       HalfCenterWidth = 0.5 * (adsg.HalfWidth1() + adsg.HalfWidth2());
 
-      if( localPoint[2] >= - (adsg.Length()/2 + tolerance)     &&
-          localPoint[2] <=   (adsg.Length()/2 + tolerance)     &&
-          localPoint[1] >= - adsg.HalfHeight() - tolerance     &&
-          localPoint[1] <=   adsg.HalfHeight() + tolerance     &&
+      if (localPoint[2] >= -(adsg.Length() / 2 + tolerance) &&
+          localPoint[2] <= (adsg.Length() / 2 + tolerance) &&
+          localPoint[1] >= -adsg.HalfHeight() - tolerance &&
+          localPoint[1] <= adsg.HalfHeight() + tolerance &&
           // if AuxDet a is a box, then HalfSmallWidth = HalfWidth
-          localPoint[0] >= - HalfCenterWidth + localPoint[2]*(HalfCenterWidth - adsg.HalfWidth2())/(0.5 * adsg.Length()) - tolerance  &&
-          localPoint[0] <=   HalfCenterWidth - localPoint[2]*(HalfCenterWidth - adsg.HalfWidth2())/(0.5 * adsg.Length()) + tolerance 
-          ) return a;
-    }// for loop over AuxDetSensitive a
+          localPoint[0] >=
+            -HalfCenterWidth +
+              localPoint[2] * (HalfCenterWidth - adsg.HalfWidth2()) / (0.5 * adsg.Length()) -
+              tolerance &&
+          localPoint[0] <=
+            HalfCenterWidth -
+              localPoint[2] * (HalfCenterWidth - adsg.HalfWidth2()) / (0.5 * adsg.Length()) +
+              tolerance)
+        return a;
+    } // for loop over AuxDetSensitive a
 
     // throw an exception because we couldn't find the sensitive volume
-    throw cet::exception("Geometry") << "Can't find AuxDetSensitive for position ("
-                                     << point[0] << ","
-                                     << point[1] << ","
-                                     << point[2] << ")\n";
+    throw cet::exception("Geometry") << "Can't find AuxDetSensitive for position (" << point[0]
+                                     << "," << point[1] << "," << point[2] << ")\n";
 
     return UINT_MAX;
   }
 
   //----------------------------------------------------------------------------
   size_t ChannelMapAlg::ChannelToAuxDet(std::vector<geo::AuxDetGeo> const& /* auxDets */,
-                                        std::string                 const& detName,
-                                        uint32_t                    const& /*channel*/) const
+                                        std::string const& detName,
+                                        uint32_t const& /*channel*/) const
   {
     // loop over the map of AuxDet names to Geo object numbers to determine which auxdet
     // we have.  If no name in the map matches the provided string, throw an exception
-    for(auto itr : fADNameToGeo)
-      if( itr.first.compare(detName) == 0 ) return itr.second;
-
+    for (auto itr : fADNameToGeo)
+      if (itr.first.compare(detName) == 0) return itr.second;
 
     throw cet::exception("Geometry") << "No AuxDetGeo matching name: " << detName;
 
@@ -167,24 +168,25 @@ namespace geo{
   //----------------------------------------------------------------------------
   // the first member of the pair is the index in the auxDets vector for the AuxDetGeo,
   // the second member is the index in the vector of AuxDetSensitiveGeos for that AuxDetGeo
-  std::pair<size_t, size_t> ChannelMapAlg::ChannelToSensitiveAuxDet(std::vector<geo::AuxDetGeo> const& auxDets,
-                                                                    std::string                 const& detName,
-                                                                    uint32_t                    const& channel) const
+  std::pair<size_t, size_t> ChannelMapAlg::ChannelToSensitiveAuxDet(
+    std::vector<geo::AuxDetGeo> const& auxDets,
+    std::string const& detName,
+    uint32_t const& channel) const
   {
-    size_t adGeoIdx     = this->ChannelToAuxDet(auxDets, detName, channel);
+    size_t adGeoIdx = this->ChannelToAuxDet(auxDets, detName, channel);
 
     // look for the index of the sensitive volume for the given channel
-    if( fADChannelToSensitiveGeo.count(adGeoIdx) > 0 ){
+    if (fADChannelToSensitiveGeo.count(adGeoIdx) > 0) {
 
       auto itr = fADChannelToSensitiveGeo.find(adGeoIdx);
 
       // get the vector of channels to AuxDetSensitiveGeo index
-      if( channel < itr->second.size() )
-        return std::make_pair(adGeoIdx, itr->second[channel]);
+      if (channel < itr->second.size()) return std::make_pair(adGeoIdx, itr->second[channel]);
 
-      throw cet::exception("Geometry") << "Given AuxDetSensitive channel, " << channel
-                                       << ", cannot be found in vector associated to AuxDetGeo index: "
-                                       << adGeoIdx << ". Vector has size " << itr->second.size();
+      throw cet::exception("Geometry")
+        << "Given AuxDetSensitive channel, " << channel
+        << ", cannot be found in vector associated to AuxDetGeo index: " << adGeoIdx
+        << ". Vector has size " << itr->second.size();
     }
 
     throw cet::exception("Geometry") << "Given AuxDetGeo with index " << adGeoIdx

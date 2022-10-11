@@ -10,13 +10,11 @@
 #ifndef LARCOREALG_COREUTILS_OPERATIONS_H
 #define LARCOREALG_COREUTILS_OPERATIONS_H
 
-
 // C++ standard library
 #include <memory> // std::addressof()
 
-
 namespace util {
-  
+
   //----------------------------------------------------------------------------
   /**
    * @brief Functor returning the address in memory of the operand.
@@ -34,15 +32,16 @@ namespace util {
    *       `operator&()` of the operand.
    */
   struct AddressTaker {
-    
+
     /// Returns the address of the argument.
     template <typename T>
-    auto operator() (T& ref) const { return std::addressof(ref); }
-    
+    auto operator()(T& ref) const
+    {
+      return std::addressof(ref);
+    }
+
   }; // struct AddressTaker
-  
-  
-  
+
   /**
    * @brief Returns a functor that returns the address of its argument.
    * @see `util::AddressTaker`
@@ -84,8 +83,7 @@ namespace util {
    * the last example.
    */
   decltype(auto) takeAddress() { return AddressTaker(); }
-  
-  
+
   //----------------------------------------------------------------------------
   /**
    * @brief Functor dereferencing the operand.
@@ -101,14 +99,16 @@ namespace util {
    * `ptrs`.
    */
   struct Dereferencer {
-    
+
     /// Returns `*ptr`.
     template <typename T>
-    decltype(auto) operator() (T&& ptr) const { return *ptr; }
-    
+    decltype(auto) operator()(T&& ptr) const
+    {
+      return *ptr;
+    }
+
   }; // struct Dereferencer
-  
-  
+
   /**
    * @brief Returns a functor that returns `*ptr` of its argument `ptr`.
    * @see `util::Dereferencer`
@@ -123,11 +123,9 @@ namespace util {
    * `ptrs`.
    */
   decltype(auto) dereference() { return Dereferencer(); }
-  
-  
-  //----------------------------------------------------------------------------
-  
-} // namespace util
 
+  //----------------------------------------------------------------------------
+
+} // namespace util
 
 #endif // LARCOREALG_COREUTILS_OPERATIONS_H

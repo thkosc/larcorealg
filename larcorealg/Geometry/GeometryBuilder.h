@@ -11,18 +11,18 @@
 #define LARCOREALG_GEOMETRY_GEOMETRYBUILDER_H
 
 // LArSoft libraries
-#include "larcorealg/Geometry/GeoNodePath.h"
-#include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
+#include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/GeoNodePath.h"
 
 // ROOT libraries
 #include "TGeoNode.h"
 
 // C++ standard library
-#include <vector>
-#include <string>
-#include <iterator> // std::back_inserter()
 #include <algorithm> // std::transform()
+#include <iterator>  // std::back_inserter()
+#include <string>
+#include <vector>
 
 namespace geo {
 
@@ -52,7 +52,6 @@ namespace geo {
   class GeometryBuilder {
 
   public:
-
     // --- BEGIN Data types ----------------------------------------------------
     /// Identification of a single node in ROOT geometry.
     using Path_t = geo::GeoNodePath;
@@ -63,13 +62,11 @@ namespace geo {
 
     // --- END Data types ------------------------------------------------------
 
-
     // --- BEGIN Constructors and destructor -----------------------------------
     /// Virtual destructor.
     virtual ~GeometryBuilder() = default;
 
     // --- END Constructors and destructor -------------------------------------
-
 
     // --- BEGIN Cryostat information ------------------------------------------
     /// @name Cryostat information
@@ -88,11 +85,13 @@ namespace geo {
      * candidate, then it is descended into.
      */
     Cryostats_t extractCryostats(Path_t const& path)
-      { auto myPath = path; return doExtractCryostats(myPath); }
+    {
+      auto myPath = path;
+      return doExtractCryostats(myPath);
+    }
 
     /// @}
     // --- END Cryostat information --------------------------------------------
-
 
     // --- BEGIN Auxiliary detector information --------------------------------
     /// @name Auxiliary detector information
@@ -111,26 +110,25 @@ namespace geo {
      * detector candidate, then it is descended into.
      */
     AuxDets_t extractAuxiliaryDetectors(Path_t const& path)
-      { auto myPath = path; return doExtractAuxiliaryDetectors(myPath); }
+    {
+      auto myPath = path;
+      return doExtractAuxiliaryDetectors(myPath);
+    }
 
     /// @}
     // --- END Auxiliary detector information ----------------------------------
 
-
     // --- END Static utility methods ------------------------------------------
 
   protected:
-
     /// Custom implementation of `extractCryostats()`.
     virtual Cryostats_t doExtractCryostats(Path_t& path) = 0;
 
     /// Custom implementation of `extractAuxiliaryDetectors()`.
     virtual AuxDets_t doExtractAuxiliaryDetectors(Path_t& path) = 0;
 
-
   }; // class GeometryBuilder
 
 } // namespace geo
-
 
 #endif // LARCOREALG_GEOMETRY_GEOMETRYBUILDER_H

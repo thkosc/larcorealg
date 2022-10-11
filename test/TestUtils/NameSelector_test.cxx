@@ -12,12 +12,12 @@
 #include "canvas/Utilities/Exception.h"
 
 // Boost libraries
-#define BOOST_TEST_MODULE ( NameSelector_test )
+#define BOOST_TEST_MODULE (NameSelector_test)
 #include <boost/test/unit_test.hpp>
 
 // C/C++ standard library
-#include <string>
 #include <iostream>
+#include <string>
 
 /**
  * In the following tests, the names are conventionally called "acceptXXX" if
@@ -48,11 +48,10 @@
  *   BOOST_TEST_MESSAGE informs about which name was being tested.
  *
  */
-void CheckNames
-  (testing::NameSelector const& selector, std::vector<std::string> const& names)
+void CheckNames(testing::NameSelector const& selector, std::vector<std::string> const& names)
 {
 
-  for (std::string const& name: names) {
+  for (std::string const& name : names) {
     BOOST_TEST_MESSAGE("Testing '" << name << "'");
     if (name.find("throw") == 0U) {
       BOOST_TEST(selector.Query(name) == testing::NameSelector::rsThrow);
@@ -61,15 +60,13 @@ void CheckNames
       BOOST_CHECK_THROW(selector.Rejected(name), art::Exception);
     }
     else if (name.find("reject") == 0U) {
-      BOOST_TEST
-        (selector.Query(name) == testing::NameSelector::rsRejected);
+      BOOST_TEST(selector.Query(name) == testing::NameSelector::rsRejected);
       BOOST_TEST(!selector(name));
       BOOST_TEST(!selector.Accepted(name));
       BOOST_TEST(selector.Rejected(name));
     }
     else { // accept
-      BOOST_TEST
-        (selector.Query(name) == testing::NameSelector::rsAccepted);
+      BOOST_TEST(selector.Query(name) == testing::NameSelector::rsAccepted);
       BOOST_TEST(selector(name));
       BOOST_TEST(selector.Accepted(name));
       BOOST_TEST(!selector.Rejected(name));
@@ -82,7 +79,8 @@ void CheckNames
 //
 // Simple use case
 //
-BOOST_AUTO_TEST_CASE(SimpleTest) {
+BOOST_AUTO_TEST_CASE(SimpleTest)
+{
 
   // default answer: yes
   testing::NameSelector selector;
@@ -103,9 +101,7 @@ BOOST_AUTO_TEST_CASE(SimpleTest) {
   //
   // check all the symbols, plus one
   //
-  CheckNames(selector, {
-    "accept_one", "accept_two", "reject_three", "accept_unknown"
-    });
+  CheckNames(selector, {"accept_one", "accept_two", "reject_three", "accept_unknown"});
 
   //
   // verify that we did not miss anything
@@ -114,11 +110,11 @@ BOOST_AUTO_TEST_CASE(SimpleTest) {
 
 } // BOOST_AUTO_TEST_CASE(SimpleTest)
 
-
 //
 // Test for check of missing queries
 //
-BOOST_AUTO_TEST_CASE(MissingQuery) {
+BOOST_AUTO_TEST_CASE(MissingQuery)
+{
 
   // default answer: yes
   testing::NameSelector selector;
@@ -136,11 +132,11 @@ BOOST_AUTO_TEST_CASE(MissingQuery) {
 
 } // BOOST_AUTO_TEST_CASE(MissingQuery)
 
-
 //
 // Test for default throw
 //
-BOOST_AUTO_TEST_CASE(DefaultConstructorTest) {
+BOOST_AUTO_TEST_CASE(DefaultConstructorTest)
+{
 
   // default answer: yes
   testing::NameSelector selector;
@@ -159,15 +155,15 @@ BOOST_AUTO_TEST_CASE(DefaultConstructorTest) {
   //
   // check all the symbols
   //
-  CheckNames(selector, { "accept_one", "accept_two" });
+  CheckNames(selector, {"accept_one", "accept_two"});
 
 } // BOOST_AUTO_TEST_CASE(DefaultConstructorTest)
-
 
 //
 // Test for default throw
 //
-BOOST_AUTO_TEST_CASE(DefaultThrowTest) {
+BOOST_AUTO_TEST_CASE(DefaultThrowTest)
+{
 
   // default answer: yes
   testing::NameSelector selector(testing::NameSelector::rsThrow);
@@ -181,15 +177,15 @@ BOOST_AUTO_TEST_CASE(DefaultThrowTest) {
   //
   // check all the symbols
   //
-  CheckNames(selector, { "accept_one", "reject_three", "throw_two" });
+  CheckNames(selector, {"accept_one", "reject_three", "throw_two"});
 
 } // BOOST_AUTO_TEST_CASE(DefaultThrowTest)
-
 
 //
 // Test for default rejection
 //
-BOOST_AUTO_TEST_CASE(DefaultRejectTest) {
+BOOST_AUTO_TEST_CASE(DefaultRejectTest)
+{
 
   // default answer: yes
   testing::NameSelector selector(testing::NameSelector::rsRejected);
@@ -203,15 +199,15 @@ BOOST_AUTO_TEST_CASE(DefaultRejectTest) {
   //
   // check all the symbols, plus one
   //
-  CheckNames(selector, { "accept_one", "reject_two", "reject_unknown" });
+  CheckNames(selector, {"accept_one", "reject_two", "reject_unknown"});
 
 } // BOOST_AUTO_TEST_CASE(DefaultRejectTest)
-
 
 //
 // Test for default acceptance
 //
-BOOST_AUTO_TEST_CASE(DefaultAcceptTest) {
+BOOST_AUTO_TEST_CASE(DefaultAcceptTest)
+{
 
   // default answer: yes
   testing::NameSelector selector(testing::NameSelector::rsAccepted);
@@ -225,27 +221,24 @@ BOOST_AUTO_TEST_CASE(DefaultAcceptTest) {
   //
   // check all the symbols, plus one
   //
-  CheckNames(selector, { "accept_one", "accept_two", "accept_unknown" });
+  CheckNames(selector, {"accept_one", "accept_two", "accept_unknown"});
 
 } // BOOST_AUTO_TEST_CASE(DefaultAcceptTest)
-
 
 //
 // Test for adding name set
 //
-BOOST_AUTO_TEST_CASE(SetDefinitionTest) {
+BOOST_AUTO_TEST_CASE(SetDefinitionTest)
+{
 
   // default answer: yes
   testing::NameSelector selector;
 
   // set 2 does not follow the naming convention because it will be subtracted
-  selector.AddToDefinition
-    ("set1", "accept_set1_one", "+accept_set1_two", "-reject_set1_three");
-  selector.AddToDefinition
-    ("set2", "-accept_set2_one", "-accept_set2_two", "+reject_set2_three");
-  selector.Define("set3", std::vector<std::string>
-    { "accept_set3_one", "+accept_set3_two", "-reject_set3_three" }
-    );
+  selector.AddToDefinition("set1", "accept_set1_one", "+accept_set1_two", "-reject_set1_three");
+  selector.AddToDefinition("set2", "-accept_set2_one", "-accept_set2_two", "+reject_set2_three");
+  selector.Define(
+    "set3", std::vector<std::string>{"accept_set3_one", "+accept_set3_two", "-reject_set3_three"});
 
   //
   // initialize with simple elements
@@ -262,27 +255,30 @@ BOOST_AUTO_TEST_CASE(SetDefinitionTest) {
   //
   // check all the symbols, plus one
   //
-  CheckNames(selector, {
-    "accept_set1_one", "accept_set1_two", "reject_set1_three",
-    "accept_set2_one", "accept_set2_two", "reject_set2_three",
-    "accept_one", "reject_two", "accept_unknown"
-    });
+  CheckNames(selector,
+             {"accept_set1_one",
+              "accept_set1_two",
+              "reject_set1_three",
+              "accept_set2_one",
+              "accept_set2_two",
+              "reject_set2_three",
+              "accept_one",
+              "reject_two",
+              "accept_unknown"});
 
 } // BOOST_AUTO_TEST_CASE(SetDefinitionTest)
-
 
 //
 // Test for double specification
 //
-BOOST_AUTO_TEST_CASE(OverrideTest) {
+BOOST_AUTO_TEST_CASE(OverrideTest)
+{
 
   // default answer: yes
   testing::NameSelector selector;
 
   // set does not follow the naming convention because it will be subtracted
-  selector.AddToDefinition("default",
-    "accept_one", "-accept_two", "+reject_three"
-    );
+  selector.AddToDefinition("default", "accept_one", "-accept_two", "+reject_three");
 
   //
   // initialize with simple elements
@@ -299,25 +295,21 @@ BOOST_AUTO_TEST_CASE(OverrideTest) {
   //
   // check all the symbols
   //
-  CheckNames(selector, {
-    "accept_one", "accept_two", "reject_three", "accept_four"
-    });
+  CheckNames(selector, {"accept_one", "accept_two", "reject_three", "accept_four"});
 
 } // BOOST_AUTO_TEST_CASE(OverrideTest)
-
 
 //
 // Global specifications
 //
-BOOST_AUTO_TEST_CASE(GlobalSpecTest) {
+BOOST_AUTO_TEST_CASE(GlobalSpecTest)
+{
 
   // default answer: yes
   testing::NameSelector selector;
 
   // set 2 does not follow the naming convention because it will be subtracted
-  selector.AddToDefinition("default",
-    "accept_one", "-accept_two", "+reject_three"
-    );
+  selector.AddToDefinition("default", "accept_one", "-accept_two", "+reject_three");
 
   //
   // initialize with simple elements
@@ -334,17 +326,15 @@ BOOST_AUTO_TEST_CASE(GlobalSpecTest) {
   //
   // check all the symbols, plus one
   //
-  CheckNames(selector, {
-    "accept_one", "reject_unknown", "reject_three", "accept_four"
-    });
+  CheckNames(selector, {"accept_one", "reject_unknown", "reject_three", "accept_four"});
 
 } // BOOST_AUTO_TEST_CASE(GlobalSpecTest)
-
 
 //
 // Clear-all directive
 //
-BOOST_AUTO_TEST_CASE(ClearAllTest) {
+BOOST_AUTO_TEST_CASE(ClearAllTest)
+{
 
   // default answer: yes
   testing::NameSelector selector(testing::NameSelector::rsThrow);
@@ -364,8 +354,6 @@ BOOST_AUTO_TEST_CASE(ClearAllTest) {
   //
   // check all the symbols, plus one
   //
-  CheckNames(selector, {
-    "throw_lost", "throw_unknown", "reject_three", "accept_four"
-    });
+  CheckNames(selector, {"throw_lost", "throw_unknown", "reject_three", "accept_four"});
 
 } // BOOST_AUTO_TEST_CASE(ClearAllTest)

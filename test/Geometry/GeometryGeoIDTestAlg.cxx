@@ -9,8 +9,8 @@
 
 // LArSoft libraries
 #include "GeometryGeoIDTestAlg.h"
-#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcorealg/Geometry/GeometryCore.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 
 // Boost libraries
 #include <boost/test/unit_test.hpp>
@@ -18,10 +18,9 @@
 // C/C++ standard libraries
 #include <type_traits>
 
-
-
 //-----------------------------------------------------------------------------
-unsigned int geo::GeometryGeoIDTestAlg::Run() const {
+unsigned int geo::GeometryGeoIDTestAlg::Run() const
+{
   // All the tests
 
   CryostatGeoIDTest();
@@ -32,13 +31,12 @@ unsigned int geo::GeometryGeoIDTestAlg::Run() const {
   return 0;
 } // GeometryGeoIDTestAlg::Run()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::GeometryGeoIDTestAlg::CryostatGeoIDTest() const {
+void geo::GeometryGeoIDTestAlg::CryostatGeoIDTest() const
+{
 
   auto iCryo = geom->begin_cryostat_id();
-  for (geo::CryostatGeo const& cryostat: geom->IterateCryostats()) {
+  for (geo::CryostatGeo const& cryostat : geom->IterateCryostats()) {
 
     geo::CryostatID const& ID = cryostat.ID();
 
@@ -49,19 +47,17 @@ void geo::GeometryGeoIDTestAlg::CryostatGeoIDTest() const {
     auto const& cryostatFromID = geom->Cryostat(ID);
     BOOST_TEST(&cryostat == &cryostatFromID);
 
-
     ++iCryo;
   } // for cryostat
 
 } // GeometryGeoIDTestAlg::CryostatGeoIDTest()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::GeometryGeoIDTestAlg::TPCGeoIDTest() const {
+void geo::GeometryGeoIDTestAlg::TPCGeoIDTest() const
+{
 
   auto iTPC = geom->begin_TPC_id();
-  for (geo::TPCGeo const& tpc: geom->IterateTPCs()) {
+  for (geo::TPCGeo const& tpc : geom->IterateTPCs()) {
 
     geo::TPCID const& ID = tpc.ID();
 
@@ -72,19 +68,17 @@ void geo::GeometryGeoIDTestAlg::TPCGeoIDTest() const {
     auto const& TPCFromID = geom->TPC(ID);
     BOOST_TEST(&tpc == &TPCFromID);
 
-
     ++iTPC;
   } // for TPC
 
 } // GeometryGeoIDTestAlg::TPCGeoIDTest()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::GeometryGeoIDTestAlg::PlaneGeoIDTest() const {
+void geo::GeometryGeoIDTestAlg::PlaneGeoIDTest() const
+{
 
   auto iPlane = geom->begin_plane_id();
-  for (geo::PlaneGeo const& plane: geom->IteratePlanes()) {
+  for (geo::PlaneGeo const& plane : geom->IteratePlanes()) {
 
     geo::PlaneID const& ID = plane.ID();
 
@@ -95,19 +89,17 @@ void geo::GeometryGeoIDTestAlg::PlaneGeoIDTest() const {
     auto const& planeFromID = geom->Plane(ID);
     BOOST_TEST(&plane == &planeFromID);
 
-
     ++iPlane;
   } // for plane
 
 } // GeometryGeoIDTestAlg::PlaneGeoIDTest()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::GeometryGeoIDTestAlg::WireGeoIDTest() const {
+void geo::GeometryGeoIDTestAlg::WireGeoIDTest() const
+{
 
   auto iWire = geom->begin_wire_id();
-  for (geo::WireGeo const& wire [[gnu::unused]]: geom->IterateWires()) {
+  for (geo::WireGeo const& wire [[gnu::unused]] : geom->IterateWires()) {
 
     // this test is disabled since geo::WireID does not support ID()
     // (as of LArSoft 6.13)
@@ -126,6 +118,5 @@ void geo::GeometryGeoIDTestAlg::WireGeoIDTest() const {
   } // for wire
 
 } // GeometryGeoIDTestAlg::WireGeoIDTest()
-
 
 //-----------------------------------------------------------------------------

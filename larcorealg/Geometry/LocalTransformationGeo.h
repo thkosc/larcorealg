@@ -10,15 +10,13 @@
 #define LARCOREALG_GEOMETRY_LOCALTRANSFORMATIONGEO_H
 
 // LArSoft libraries
-#include "larcorealg/Geometry/LocalTransformation.h"
 #include "larcorealg/Geometry/GeoVectorLocalTransformation.h"
+#include "larcorealg/Geometry/LocalTransformation.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h" // geo::Point_t...
 
-
 // C/C++ standard libraries
-#include <utility> // std::move()
 #include <type_traits> // std::is_same
-
+#include <utility>     // std::move()
 
 namespace geo {
 
@@ -46,18 +44,17 @@ namespace geo {
    * explicitly tagged to be in the global coordinate frame, but mechanically
    * it will work just the same.
    */
-  template <typename StoredMatrix
-    , typename LocalPoint = geo::Point_t
-    , typename LocalVector = geo::Vector_t
-    >
-  class LocalTransformationGeo: public geo::LocalTransformation<StoredMatrix> {
+  template <typename StoredMatrix,
+            typename LocalPoint = geo::Point_t,
+            typename LocalVector = geo::Vector_t>
+  class LocalTransformationGeo : public geo::LocalTransformation<StoredMatrix> {
     using Base_t = geo::LocalTransformation<StoredMatrix>;
 
-      public:
-    using GlobalPoint_t  = geo::Point_t;  ///< Type for global 3D point.
+  public:
+    using GlobalPoint_t = geo::Point_t;   ///< Type for global 3D point.
     using GlobalVector_t = geo::Vector_t; ///< Type for global 3D displacement.
-    using LocalPoint_t   = LocalPoint;    ///< Type for local 3D point.
-    using LocalVector_t  = LocalVector;   ///< Type for local 3D displacement.
+    using LocalPoint_t = LocalPoint;      ///< Type for local 3D point.
+    using LocalVector_t = LocalVector;    ///< Type for local 3D displacement.
 
     using typename Base_t::TransformationMatrix_t;
 
@@ -68,10 +65,8 @@ namespace geo {
      *
      * The specified matrix is copied into a local copy.
      */
-    LocalTransformationGeo(TransformationMatrix_t const& matrix)
-      : Base_t(matrix) {}
-    LocalTransformationGeo(TransformationMatrix_t&& matrix)
-      : Base_t(std::move(matrix)) {}
+    LocalTransformationGeo(TransformationMatrix_t const& matrix) : Base_t(matrix) {}
+    LocalTransformationGeo(TransformationMatrix_t&& matrix) : Base_t(std::move(matrix)) {}
     //@}
 
     /**
@@ -81,10 +76,9 @@ namespace geo {
      *
      * The specified matrix is copied into a local copy.
      */
-    LocalTransformationGeo
-      (std::vector<TGeoNode const*> const& path, size_t depth)
-      : Base_t(path, depth) {}
-
+    LocalTransformationGeo(std::vector<TGeoNode const*> const& path, size_t depth)
+      : Base_t(path, depth)
+    {}
 
     /**
      * @brief Transforms a point from local frame to world frame.
@@ -102,8 +96,9 @@ namespace geo {
      * the local coordinates.
      */
     GlobalPoint_t toWorldCoords(LocalPoint_t const& local) const
-      { return Base_t::template LocalToWorld<GlobalPoint_t>(local); }
-
+    {
+      return Base_t::template LocalToWorld<GlobalPoint_t>(local);
+    }
 
     /**
      * @brief Transforms a vector from local frame to world frame.
@@ -114,8 +109,9 @@ namespace geo {
      * vector, relative difference between two points.
      */
     GlobalVector_t toWorldCoords(LocalVector_t const& local) const
-      { return Base_t::template LocalToWorldVect<GlobalVector_t>(local); }
-
+    {
+      return Base_t::template LocalToWorldVect<GlobalVector_t>(local);
+    }
 
     /**
      * @brief Transforms a point from world frame to local frame.
@@ -132,7 +128,9 @@ namespace geo {
      * specified point.
      */
     LocalPoint_t toLocalCoords(GlobalPoint_t const& world) const
-      { return Base_t::template WorldToLocal<LocalPoint_t>(world); }
+    {
+      return Base_t::template WorldToLocal<LocalPoint_t>(world);
+    }
 
     /**
      * @brief Transforms a vector from world frame to local frame.
@@ -143,16 +141,15 @@ namespace geo {
      * vector, relative difference between two points.
      */
     LocalVector_t toLocalCoords(GlobalVector_t const& world) const
-      { return Base_t::template WorldToLocalVect<LocalVector_t>(world); }
-
+    {
+      return Base_t::template WorldToLocalVect<LocalVector_t>(world);
+    }
 
     static_assert(!std::is_same<LocalPoint_t, LocalVector_t>(),
-      "Vector and point types must be distinct");
+                  "Vector and point types must be distinct");
 
   }; // class LocalTransformationGeo<>
 
-
 } // namespace geo
-
 
 #endif // LARCOREALG_GEOMETRY_LOCALTRANSFORMATIONGEO_H

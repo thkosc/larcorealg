@@ -11,13 +11,13 @@
 #define LARCOREALG_GEOMETRY_GEOMETRYBUILDERSTANDARD_H
 
 // LArSoft libraries
-#include "larcorealg/Geometry/GeometryBuilder.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 #include "larcorealg/Geometry/CryostatGeo.h"
+#include "larcorealg/Geometry/GeometryBuilder.h"
 #include "larcorealg/Geometry/OpDetGeo.h"
-#include "larcorealg/Geometry/TPCGeo.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
+#include "larcorealg/Geometry/TPCGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"
 
 // support libraries
@@ -27,9 +27,8 @@
 #include "TGeoNode.h"
 
 // C++ standard library
-#include <string_view>
 #include <limits> // std::numeric_limits<>
-
+#include <string_view>
 
 namespace geo {
 
@@ -103,27 +102,26 @@ namespace geo {
    * `geo::GeometryBuilder`.
    *
    */
-  class GeometryBuilderStandard: public GeometryBuilder {
+  class GeometryBuilderStandard : public GeometryBuilder {
 
-      public:
-
+  public:
     /// Configuration parameters.
     struct Config {
 
       using Name = fhicl::Name;
       using Comment = fhicl::Comment;
 
-      fhicl::Atom<Path_t::Depth_t> maxDepth {
+      fhicl::Atom<Path_t::Depth_t> maxDepth{
         Name("maxDepth"),
         Comment("maximum number of level of the geometry structure to descend"),
         std::numeric_limits<Path_t::Depth_t>::max() // default
-        };
+      };
 
-      fhicl::Atom<std::string> opDetGeoName {
+      fhicl::Atom<std::string> opDetGeoName{
         Name("opDetGeoName"),
         Comment("the start of the name of optical detector GDML nodes"),
         "volOpDetSensitive" // default
-        };
+      };
 
     }; // struct Config
 
@@ -133,14 +131,12 @@ namespace geo {
     // we don't expand the public interface here
     //
 
-      protected:
-
+  protected:
     /// Maximum level to descend into in the path.
     Path_t::Depth_t fMaxDepth = std::numeric_limits<Path_t::Depth_t>::max();
 
     /// Name of the optical detector nodes.
     std::string fOpDetGeoName = "volOpDetSensitive";
-
 
     // --- BEGIN Auxiliary detector information --------------------------------
     /// @name Auxiliary detector information
@@ -149,9 +145,7 @@ namespace geo {
     // extractAuxiliaryDetectors() and AuxDets_t are inherited public interface
 
     /// Constructs a `geo::AuxDetGeo` from the current node of the `path`.
-    geo::AuxDetGeo makeAuxDet(Path_t& path)
-      { return doMakeAuxDet(path); }
-
+    geo::AuxDetGeo makeAuxDet(Path_t& path) { return doMakeAuxDet(path); }
 
     /// Core implementation of `extractCryostats()`.
     ///
@@ -163,7 +157,6 @@ namespace geo {
 
     /// @}
     // --- END Auxiliary detector information ----------------------------------
-
 
     // --- BEGIN Auxiliary detector sensitive volume information ---------------
     /// @name Auxiliary detector sensitive volume information
@@ -183,13 +176,17 @@ namespace geo {
      * @note Multithreading note: `path` is allowed to change during processing.
      */
     AuxDetSensitive_t extractAuxDetSensitive(Path_t& path)
-      { auto localPath = path; return doExtractAuxDetSensitive(localPath); }
+    {
+      auto localPath = path;
+      return doExtractAuxDetSensitive(localPath);
+    }
 
     /// Constructs a `geo::AuxDetSensitiveGeo` from the current node of the
     /// `path`.
     geo::AuxDetSensitiveGeo makeAuxDetSensitive(Path_t& path)
-      { return doMakeAuxDetSensitive(path); }
-
+    {
+      return doMakeAuxDetSensitive(path);
+    }
 
     /// Core implementation of `extractAuxDetSensitive()`.
     ///
@@ -202,7 +199,6 @@ namespace geo {
     /// @}
     // --- END Auxiliary detector sensitive volume information -----------------
 
-
     // --- BEGIN Cryostat information ------------------------------------------
     /// @name Cryostat information
     /// @{
@@ -210,9 +206,7 @@ namespace geo {
     // extractCryostats() and Cryostats_t are inherited public interface
 
     /// Constructs a `geo::CryostatGeo` from the current node of the `path`.
-    geo::CryostatGeo makeCryostat(Path_t& path)
-      { return doMakeCryostat(path); }
-
+    geo::CryostatGeo makeCryostat(Path_t& path) { return doMakeCryostat(path); }
 
     /// Core implementation of `extractCryostats()`.
     ///
@@ -224,7 +218,6 @@ namespace geo {
 
     /// @}
     // --- END Cryostat information --------------------------------------------
-
 
     // --- BEGIN Optical detector information ----------------------------------
     /// @name Optical detector information
@@ -238,12 +231,13 @@ namespace geo {
      * @return a list of fully constructed optical detector objects
      */
     OpDets_t extractOpDets(Path_t& path)
-      { auto localPath = path; return doExtractOpDets(localPath); }
+    {
+      auto localPath = path;
+      return doExtractOpDets(localPath);
+    }
 
     /// Constructs a `geo::OpDetGeo` from the current node of the `path`.
-    geo::OpDetGeo makeOpDet(Path_t& path)
-      { return doMakeOpDet(path); }
-
+    geo::OpDetGeo makeOpDet(Path_t& path) { return doMakeOpDet(path); }
 
     /// Core implementation of `extractOpDets()`.
     ///
@@ -255,7 +249,6 @@ namespace geo {
 
     /// @}
     // --- END Optical detector information ------------------------------------
-
 
     // --- BEGIN TPC information -----------------------------------------------
     /// @name TPC information
@@ -271,12 +264,13 @@ namespace geo {
      * Each TPC has its own wire planes already in.
      */
     TPCs_t extractTPCs(Path_t& path)
-      { auto localPath = path; return doExtractTPCs(localPath); }
+    {
+      auto localPath = path;
+      return doExtractTPCs(localPath);
+    }
 
     /// Constructs a `geo::TPCGeo` from the current node of the `path`.
-    geo::TPCGeo makeTPC(Path_t& path)
-      { return doMakeTPC(path); }
-
+    geo::TPCGeo makeTPC(Path_t& path) { return doMakeTPC(path); }
 
     /// Core implementation of `extractTPCs()`.
     ///
@@ -288,7 +282,6 @@ namespace geo {
 
     /// @}
     // --- END TPC information -------------------------------------------------
-
 
     // --- BEGIN Plane information ---------------------------------------------
     /// @name Wire plane information
@@ -304,12 +297,13 @@ namespace geo {
      * Each plane has its own wires already in.
      */
     Planes_t extractPlanes(Path_t& path)
-      { auto localPath = path; return doExtractPlanes(localPath); }
+    {
+      auto localPath = path;
+      return doExtractPlanes(localPath);
+    }
 
     /// Constructs a `geo::PlaneGeo` from the current node of the `path`.
-    geo::PlaneGeo makePlane(Path_t& path)
-      { return doMakePlane(path); }
-
+    geo::PlaneGeo makePlane(Path_t& path) { return doMakePlane(path); }
 
     /// Core implementation of `extractPlanes()`.
     ///
@@ -321,7 +315,6 @@ namespace geo {
 
     /// @}
     // --- END Plane information -----------------------------------------------
-
 
     // --- BEGIN Wire information ----------------------------------------------
     /// @name Wire information
@@ -336,12 +329,13 @@ namespace geo {
      *
      */
     Wires_t extractWires(Path_t& path)
-      { auto localPath = path; return doExtractWires(localPath); }
+    {
+      auto localPath = path;
+      return doExtractWires(localPath);
+    }
 
     /// Constructs a `geo::WireGeo` from the current node of the `path`.
-    geo::WireGeo makeWire(Path_t& path)
-      { return doMakeWire(path); }
-
+    geo::WireGeo makeWire(Path_t& path) { return doMakeWire(path); }
 
     /// Core implementation of `extractWires()`.
     ///
@@ -353,8 +347,6 @@ namespace geo {
 
     /// @}
     // --- END Wire information ------------------------------------------------
-
-
 
     // --- BEGIN Note type identification --------------------------------------
     /**
@@ -389,16 +381,14 @@ namespace geo {
     /// @}
     // --- END Note type identification ----------------------------------------
 
-
     /// Returns whether the start of `s` matches the full `key`.
     /// @note Remove this when C++20 is adopted (`s.starts_with(key)`).
-    static bool starts_with
-      (std::string_view const& s, std::string_view const& key)
-      { return s.compare(0, key.size(), key) == 0; }
+    static bool starts_with(std::string_view const& s, std::string_view const& key)
+    {
+      return s.compare(0, key.size(), key) == 0;
+    }
 
-
-      private:
-
+  private:
     /**
      * @brief Boilerplate implementation of `doExtractXxxx()` methods.
      * @tparam ObjGeo the geometry object being extracted (e.g. `geo::WireGeo`)
@@ -415,17 +405,13 @@ namespace geo {
      *
      * @note Multithreading note: `path` is allowed to change during processing.
      */
-    template <
-      typename ObjGeo,
-      bool (geo::GeometryBuilderStandard::*IsObj)(TGeoNode const&) const,
-      ObjGeo (geo::GeometryBuilderStandard::*MakeObj)(Path_t&)
-      >
+    template <typename ObjGeo,
+              bool (geo::GeometryBuilderStandard::*IsObj)(TGeoNode const&) const,
+              ObjGeo (geo::GeometryBuilderStandard::*MakeObj)(Path_t&)>
     GeoColl_t<ObjGeo> doExtractGeometryObjects(Path_t& path);
-
 
   }; // class GeometryBuilderStandard
 
 } // namespace geo
-
 
 #endif // LARCOREALG_GEOMETRY_GEOMETRYBUILDERSTANDARD_H

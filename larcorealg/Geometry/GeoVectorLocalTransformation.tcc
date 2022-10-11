@@ -20,114 +20,96 @@
 #include "cetlib_except/exception.h"
 
 // ROOT
-#include "TGeoNode.h"
 #include "TGeoMatrix.h"
+#include "TGeoNode.h"
 
 // CLHEP
 #include "CLHEP/Geometry/Transform3D.h"
-#include "CLHEP/Vector/Rotation.h" // CLHEP::HepRotation
+#include "CLHEP/Vector/Rotation.h"           // CLHEP::HepRotation
 #include "CLHEP/Vector/RotationInterfaces.h" // CLHEP::HepRep3x3
-#include "CLHEP/Vector/ThreeVector.h" // CLHEP::Hep3Vector
+#include "CLHEP/Vector/ThreeVector.h"        // CLHEP::Hep3Vector
 
 // C standard library
 #include <cassert>
 
-
-
 //------------------------------------------------------------------------------
 template <>
-struct geo::details::TransformationMatrixConverter
-  <ROOT::Math::Transform3D, TGeoMatrix>
-{
+struct geo::details::TransformationMatrixConverter<ROOT::Math::Transform3D, TGeoMatrix> {
   static ROOT::Math::Transform3D convert(TGeoMatrix const& trans);
 };
-
 
 //------------------------------------------------------------------------------
 template <>
 template <typename DestPoint, typename SrcPoint>
-DestPoint geo::LocalTransformation<ROOT::Math::Transform3D>::WorldToLocalImpl
-  (SrcPoint const& world) const
+DestPoint geo::LocalTransformation<ROOT::Math::Transform3D>::WorldToLocalImpl(
+  SrcPoint const& world) const
 {
   // need inverse transformation
   using geo::vect::convertTo;
   return geo::vect::convertTo<DestPoint>(
-    fGeoMatrix.ApplyInverse
-      (convertTo<typename TransformationMatrix_t::Point>(world))
-    );
+    fGeoMatrix.ApplyInverse(convertTo<typename TransformationMatrix_t::Point>(world)));
 } // geo::LocalTransformation::WorldToLocal()
-
 
 //......................................................................
 template <>
 template <typename DestVector, typename SrcVector>
-DestVector
-geo::LocalTransformation<ROOT::Math::Transform3D>::WorldToLocalVectImpl
-  (SrcVector const& world) const
+DestVector geo::LocalTransformation<ROOT::Math::Transform3D>::WorldToLocalVectImpl(
+  SrcVector const& world) const
 {
   // need inverse transformation
   using geo::vect::convertTo;
   return geo::vect::convertTo<DestVector>(
-    fGeoMatrix.ApplyInverse
-      (convertTo<typename TransformationMatrix_t::Vector>(world))
-    );
+    fGeoMatrix.ApplyInverse(convertTo<typename TransformationMatrix_t::Vector>(world)));
 } // geo::LocalTransformation::WorldToLocalVect()
-
 
 //......................................................................
 template <>
 template <typename DestPoint, typename SrcPoint>
-DestPoint geo::LocalTransformation<ROOT::Math::Transform3D>::LocalToWorldImpl
-  (SrcPoint const& local) const
+DestPoint geo::LocalTransformation<ROOT::Math::Transform3D>::LocalToWorldImpl(
+  SrcPoint const& local) const
 {
   // need direct transformation
   using geo::vect::convertTo;
-  return convertTo<DestPoint>
-    (fGeoMatrix(convertTo<typename TransformationMatrix_t::Point>(local)));
-  
+  return convertTo<DestPoint>(fGeoMatrix(convertTo<typename TransformationMatrix_t::Point>(local)));
+
 } // geo::LocalTransformation::LocalToWorld()
 
-  
 //......................................................................
 template <>
 template <typename DestVector, typename SrcVector>
-DestVector
-geo::LocalTransformation<ROOT::Math::Transform3D>::LocalToWorldVectImpl
-  (SrcVector const& local) const
+DestVector geo::LocalTransformation<ROOT::Math::Transform3D>::LocalToWorldVectImpl(
+  SrcVector const& local) const
 {
   // need direct transformation
   using geo::vect::convertTo;
-  return convertTo<DestVector>
-    (fGeoMatrix(convertTo<typename TransformationMatrix_t::Vector>(local)));
+  return convertTo<DestVector>(
+    fGeoMatrix(convertTo<typename TransformationMatrix_t::Vector>(local)));
 } // geo::LocalTransformation::LocalToWorldVect()
-
 
 //------------------------------------------------------------------------------
 template <>
-inline ROOT::Math::Transform3D
-geo::transformationFromPath<ROOT::Math::Transform3D>
-  (GeoNodeIterator_t begin, GeoNodeIterator_t end)
+inline ROOT::Math::Transform3D geo::transformationFromPath<ROOT::Math::Transform3D>(
+  GeoNodeIterator_t begin,
+  GeoNodeIterator_t end)
 {
   if (begin == end) return {}; // identity by default construction
   auto iNode = begin;
-  ROOT::Math::Transform3D matrix
-    = convertTransformationMatrix<ROOT::Math::Transform3D>
-      (*((*iNode)->GetMatrix()))
-    ;
+  ROOT::Math::Transform3D matrix =
+    convertTransformationMatrix<ROOT::Math::Transform3D>(*((*iNode)->GetMatrix()));
   while (++iNode != end) {
-    matrix *= convertTransformationMatrix<ROOT::Math::Transform3D>
-      (*(*iNode)->GetMatrix());
+    matrix *= convertTransformationMatrix<ROOT::Math::Transform3D>(*(*iNode)->GetMatrix());
   }
   return matrix;
 } // geo::LocalTransformation<ROOT::Transform3D>::transformationFromPath()
 
-
 //------------------------------------------------------------------------------
 template <>
-inline ROOT::Math::Transform3D
-geo::transformationFromPath<ROOT::Math::Transform3D>
-  (std::vector<TGeoNode const*> const& path, size_t depth)
-{ return transformationFromPath<ROOT::Math::Transform3D>(path.begin(), path.begin() + depth + 1); }
+inline ROOT::Math::Transform3D geo::transformationFromPath<ROOT::Math::Transform3D>(
+  std::vector<TGeoNode const*> const& path,
+  size_t depth)
+{
+  return transformationFromPath<ROOT::Math::Transform3D>(path.begin(), path.begin() + depth + 1);
+}
 
 //------------------------------------------------------------------------------
 

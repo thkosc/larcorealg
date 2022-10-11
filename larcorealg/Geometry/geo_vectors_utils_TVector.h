@@ -22,13 +22,12 @@
 #include "larcorealg/Geometry/geo_vectors_utils.h"
 
 // ROOT library
+#include "TLorentzVector.h"
 #include "TVector2.h"
 #include "TVector3.h"
-#include "TLorentzVector.h"
 
 // C/C++ standard library
 #include <ostream>
-
 
 namespace geo::vect {
 
@@ -40,7 +39,10 @@ namespace geo::vect {
   //----------------------------------------------------------------------------
   /// Converts a vector into a `TVector3`.
   template <typename Vector>
-  TVector3 toTVector3(Vector const& v) { return convertTo<TVector3>(v); }
+  TVector3 toTVector3(Vector const& v)
+  {
+    return convertTo<TVector3>(v);
+  }
 
   /// @}
   // --- END TVector3 conversions ----------------------------------------------
@@ -58,33 +60,44 @@ namespace geo::vect {
     /// Print a `TVector2` to an output stream.
     template <typename Stream>
     void Vector2(Stream&& out, TVector2 const& v)
-      { out << "( " << v.X() << ", " << v.Y() << " )"; }
+    {
+      out << "( " << v.X() << ", " << v.Y() << " )";
+    }
 
     /// Print a `TVector3` to an output stream.
     template <typename Stream>
     void Vector3(Stream&& out, TVector3 const& v)
-      { out << "( " << v.X() << ", " << v.Y() << ", " << v.Z() << " )"; }
+    {
+      out << "( " << v.X() << ", " << v.Y() << ", " << v.Z() << " )";
+    }
 
     /// Print a `TLorentzVector` to an output stream.
     template <typename Stream>
-    void LorentzVector(Stream&& out, TLorentzVector const& v) {
-      out
-        << "( " << v.X() << ", " << v.Y() << ", " << v.Z() << "; " << v.T()
-        << " )";
+    void LorentzVector(Stream&& out, TLorentzVector const& v)
+    {
+      out << "( " << v.X() << ", " << v.Y() << ", " << v.Z() << "; " << v.T() << " )";
     } // LorentzVector()
 
     /// Print a `TVector2` to an output stream.
-    inline std::ostream& operator<< (std::ostream& out, TVector2 const& v)
-      { Vector2(out, v); return out; }
+    inline std::ostream& operator<<(std::ostream& out, TVector2 const& v)
+    {
+      Vector2(out, v);
+      return out;
+    }
 
     /// Print a `TVector3` to an output stream.
-    inline std::ostream& operator<< (std::ostream& out, TVector3 const& v)
-      { Vector3(out, v); return out; }
+    inline std::ostream& operator<<(std::ostream& out, TVector3 const& v)
+    {
+      Vector3(out, v);
+      return out;
+    }
 
     /// Print a `TLorentzVector` to an output stream.
-    inline std::ostream& operator<<
-      (std::ostream& out, TLorentzVector const& v)
-      { LorentzVector(out, v); return out; }
+    inline std::ostream& operator<<(std::ostream& out, TLorentzVector const& v)
+    {
+      LorentzVector(out, v);
+      return out;
+    }
 
     /// @}
     // --- END Output of old-style ROOT vectors (TVector3 etc.) ----------------
@@ -92,15 +105,12 @@ namespace geo::vect {
   } // namespace dump
   //----------------------------------------------------------------------------
 
-
 } // namespace geo::vect
-
 
 // The only way some generic code has to see the operator<< is for them to be
 // exposed in the same namespace as the vectors they dump are; in TVector case,
 // that's the global namespace... (Boost unit test checks still fail though)
 using geo::vect::dump::operator<<;
-
 
 //------------------------------------------------------------------------------
 //--- Specialisations
@@ -110,12 +120,14 @@ namespace geo::vect {
   //----------------------------------------------------------------------------
   // Specialisations for: TVector2
   template <>
-  inline auto mag2<TVector2>(TVector2 const& v) { return v.Mod2(); }
+  inline auto mag2<TVector2>(TVector2 const& v)
+  {
+    return v.Mod2();
+  }
 
   //----------------------------------------------------------------------------
 
 } // namespace geo::vect
-
 
 //------------------------------------------------------------------------------
 //---  STL specialization for ROOT vectors
@@ -127,49 +139,76 @@ namespace geo::vect {
 // in the golden global namespace, as in old ROOT tradition
 
 // --- BEGIN 2D vectors --------------------------------------------------------
-decltype(auto) begin(TVector2 const& v) { return geo::vect::vector_cbegin(v); }
+decltype(auto) begin(TVector2 const& v)
+{
+  return geo::vect::vector_cbegin(v);
+}
 
-decltype(auto) cbegin(TVector2 const& v) { return geo::vect::vector_cbegin(v); }
+decltype(auto) cbegin(TVector2 const& v)
+{
+  return geo::vect::vector_cbegin(v);
+}
 
-decltype(auto) end(TVector2 const& v) { return geo::vect::vector_cend(v); }
+decltype(auto) end(TVector2 const& v)
+{
+  return geo::vect::vector_cend(v);
+}
 
-decltype(auto) cend(TVector2 const& v) { return geo::vect::vector_cend(v); }
+decltype(auto) cend(TVector2 const& v)
+{
+  return geo::vect::vector_cend(v);
+}
 
 // --- END 2D vectors ----------------------------------------------------------
 
 // --- BEGIN 3D vectors --------------------------------------------------------
-decltype(auto) begin(TVector3 const& v) { return geo::vect::vector_cbegin(v); }
+decltype(auto) begin(TVector3 const& v)
+{
+  return geo::vect::vector_cbegin(v);
+}
 
-decltype(auto) cbegin(TVector3 const& v) { return geo::vect::vector_cbegin(v); }
+decltype(auto) cbegin(TVector3 const& v)
+{
+  return geo::vect::vector_cbegin(v);
+}
 
-decltype(auto) end(TVector3 const& v) { return geo::vect::vector_cend(v); }
+decltype(auto) end(TVector3 const& v)
+{
+  return geo::vect::vector_cend(v);
+}
 
-decltype(auto) cend(TVector3 const& v) { return geo::vect::vector_cend(v); }
+decltype(auto) cend(TVector3 const& v)
+{
+  return geo::vect::vector_cend(v);
+}
 
 // --- END 3D vectors ----------------------------------------------------------
 
-
 // --- BEGIN 4D vectors --------------------------------------------------------
 decltype(auto) begin(TLorentzVector const& v)
-  { return geo::vect::vector_cbegin(v); }
+{
+  return geo::vect::vector_cbegin(v);
+}
 
 decltype(auto) cbegin(TLorentzVector const& v)
-  { return geo::vect::vector_cbegin(v); }
+{
+  return geo::vect::vector_cbegin(v);
+}
 
 decltype(auto) end(TLorentzVector const& v)
-  { return geo::vect::vector_cend(v); }
+{
+  return geo::vect::vector_cend(v);
+}
 
 decltype(auto) cend(TLorentzVector const& v)
-  { return geo::vect::vector_cend(v); }
+{
+  return geo::vect::vector_cend(v);
+}
 
 // --- END 4D vectors ----------------------------------------------------------
 
-
 /// @}
 
-
-
 //------------------------------------------------------------------------------
-
 
 #endif // LARCOREOBJ_SIMPLETYPESANDCONSTANTS_GEO_VECTORS_UTILS_TVECTOR_H

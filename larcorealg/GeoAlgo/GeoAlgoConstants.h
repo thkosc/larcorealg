@@ -1,8 +1,8 @@
 #ifndef BASICTOOL_GEOALGOCONSTANTS_H
 #define BASICTOOL_GEOALGOCONSTANTS_H
 
-#include <limits>
 #include <climits>
+#include <limits>
 namespace geoalgo {
 
   static const double kPI = 3.141592653589793238462643383279502884;

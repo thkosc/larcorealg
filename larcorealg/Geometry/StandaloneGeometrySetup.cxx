@@ -19,18 +19,14 @@
 #include "TGeoManager.h"
 
 // C/C++ standard libraries
+#include <memory> // std::make_unique(), std::make_shared()
 #include <string>
 #include <utility> // std::forward()
-#include <memory> // std::make_unique(), std::make_shared()
-
 
 //------------------------------------------------------------------------------
-std::unique_ptr<geo::GeometryCore>
-lar::standalone::SetupGeometryWithChannelMapping
-  (
-    fhicl::ParameterSet const& pset,
-    std::unique_ptr<geo::ChannelMapAlg> channelMap
-  )
+std::unique_ptr<geo::GeometryCore> lar::standalone::SetupGeometryWithChannelMapping(
+  fhicl::ParameterSet const& pset,
+  std::unique_ptr<geo::ChannelMapAlg> channelMap)
 {
   auto const bForceReload = true;
 
@@ -42,10 +38,10 @@ lar::standalone::SetupGeometryWithChannelMapping
   //
   // extract of relevant configuration parameters
   //
-  std::string relPath              = pset.get<std::string>("RelativePath",     ""   );
-  const bool disableWiresInG4      = pset.get<bool>       ("DisableWiresInG4", false);
-  const std::string GDMLFileName   = pset.get<std::string>("GDML"                   );
-//  const std::string ROOTFileName   = pset.get<std::string>("ROOT"                   );
+  std::string relPath = pset.get<std::string>("RelativePath", "");
+  const bool disableWiresInG4 = pset.get<bool>("DisableWiresInG4", false);
+  const std::string GDMLFileName = pset.get<std::string>("GDML");
+  //  const std::string ROOTFileName   = pset.get<std::string>("ROOT"                   );
 
   // add a final directory separator ("/") to relPath if not already there
   if (!relPath.empty() && (relPath.back() != '/')) relPath += '/';
@@ -62,18 +58,15 @@ lar::standalone::SetupGeometryWithChannelMapping
   std::string GDMLFilePathHint = relPath + GDMLFileName;
 
   // special if geometry with no wires is used for GEANT4 simulation
-  if(disableWiresInG4) {
-    GDMLFilePathHint.insert(
-      std::min(GDMLFilePathHint.rfind(".gdml"), GDMLFilePathHint.length()),
-      "_nowires"
-      );
+  if (disableWiresInG4) {
+    GDMLFilePathHint.insert(std::min(GDMLFilePathHint.rfind(".gdml"), GDMLFilePathHint.length()),
+                            "_nowires");
   } // if disable wires
 
   std::string GDMLFilePath;
-  if( !sp.find_file(GDMLFilePathHint, GDMLFilePath) ) {
+  if (!sp.find_file(GDMLFilePathHint, GDMLFilePath)) {
     throw cet::exception("StaticLoadGeometry")
-      << "Can't find geometry file '" << GDMLFilePathHint
-      << "' (for GEANT4)!\n";
+      << "Can't find geometry file '" << GDMLFilePathHint << "' (for GEANT4)!\n";
   }
 
   //
@@ -83,10 +76,9 @@ lar::standalone::SetupGeometryWithChannelMapping
   std::string ROOTFilePathHint = relPath + GDMLFileName;
 
   std::string ROOTFilePath;
-  if( !sp.find_file(ROOTFilePathHint, ROOTFilePath) ) {
+  if (!sp.find_file(ROOTFilePathHint, ROOTFilePath)) {
     throw cet::exception("StaticLoadGeometry")
-      << "Can't find geometry file '" << ROOTFilePathHint
-      << "' (for geometry)!\n";
+      << "Can't find geometry file '" << ROOTFilePathHint << "' (for geometry)!\n";
   }
 
   //
@@ -102,6 +94,5 @@ lar::standalone::SetupGeometryWithChannelMapping
 
   return geom;
 } // lar::standalone::SetupGeometryWithChannelMapping()
-
 
 //------------------------------------------------------------------------------

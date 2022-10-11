@@ -12,12 +12,11 @@
 #define LARCOREALG_GEOMETRY_GEOMETRYDATA_H
 
 // LArSoft libraries
-#include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
+#include "larcorealg/Geometry/CryostatGeo.h"
 
 // C/C++ standard libraries
 #include <vector>
-
 
 namespace geo {
 
@@ -36,7 +35,7 @@ namespace geo {
     using AuxDetList_t = std::vector<geo::AuxDetGeo>;
 
     CryostatList_t cryostats; ///< The detector cryostats.
-    AuxDetList_t   auxDets;   ///< The auxiliary detectors.
+    AuxDetList_t auxDets;     ///< The auxiliary detectors.
 
   }; // GeometryData_t
 

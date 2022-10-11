@@ -12,11 +12,11 @@
 #define BOOST_TEST_MODULE GeometryThirdPlaneSlopeTest
 
 // LArSoft libraries
-#include "larcorealg/TestUtils/geometry_unit_test_base.h"
-#include "larcorealg/TestUtils/boost_unit_test_base.h"
-#include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi()
-#include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/Geometry/ChannelMapStandardAlg.h"
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/TestUtils/boost_unit_test_base.h"
+#include "larcorealg/TestUtils/geometry_unit_test_base.h"
+#include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h" // util::pi()
 
 // utility libraries
 
@@ -34,24 +34,18 @@ using boost::test_tools::tolerance;
 // configuration file name from command line, and
 // BoostCommandLineConfiguration<> makes it initialize in time for Boost
 // to catch it when instanciating the fixture.
-struct StandardGeometryConfiguration:
-  public testing::BoostCommandLineConfiguration<
-    testing::BasicGeometryEnvironmentConfiguration<geo::ChannelMapStandardAlg>
-    >
-{
+struct StandardGeometryConfiguration
+  : public testing::BoostCommandLineConfiguration<
+      testing::BasicGeometryEnvironmentConfiguration<geo::ChannelMapStandardAlg>> {
   /// Constructor: overrides the application name
-  StandardGeometryConfiguration()
-    { SetApplicationName("GeometryThirdPlaneSlopeTest"); }
+  StandardGeometryConfiguration() { SetApplicationName("GeometryThirdPlaneSlopeTest"); }
 }; // class StandardGeometryConfiguration
 
 /*
  * Our fixture is based on GeometryTesterFixture, configured with the object
  * above.
  */
-using SimpleGeometryTestFixture
-  = testing::GeometryTesterEnvironment<StandardGeometryConfiguration>;
-
-
+using SimpleGeometryTestFixture = testing::GeometryTesterEnvironment<StandardGeometryConfiguration>;
 
 //------------------------------------------------------------------------------
 //---  The tests
@@ -69,8 +63,7 @@ using SimpleGeometryTestFixture
 BOOST_FIXTURE_TEST_SUITE(GeometryIterators, SimpleGeometryTestFixture)
 // BOOST_GLOBAL_FIXTURE(SimpleGeometryTestFixture)
 
-
-BOOST_AUTO_TEST_CASE( AllTests )
+BOOST_AUTO_TEST_CASE(AllTests)
 {
   geo::GeometryCore const& geom = *(Provider<geo::GeometryCore>());
 
@@ -78,25 +71,19 @@ BOOST_AUTO_TEST_CASE( AllTests )
   const double angle_v = 2. / 3. * util::pi<double>();
   const double angle_w = 1. / 2. * util::pi<double>();
 
-  BOOST_TEST_MESSAGE(
-    "Wire angles: u=" << angle_u << " v=" << angle_v << " => w=" << angle_w
-    );
+  BOOST_TEST_MESSAGE("Wire angles: u=" << angle_u << " v=" << angle_v << " => w=" << angle_w);
 
   const double slope_u = 1. / std::sqrt(3);
   const double slope_v = 1. / std::sqrt(3);
 
   const double expected_slope_w = 0.5;
 
-  double slope_w = geom.ComputeThirdPlaneSlope
-    (angle_u, slope_u, angle_v, slope_v, angle_w);
+  double slope_w = geom.ComputeThirdPlaneSlope(angle_u, slope_u, angle_v, slope_v, angle_w);
 
-  BOOST_TEST_MESSAGE(
-    "Slopes: s(u)=" << slope_u << " s(v)=" << slope_v << " => s(w)=" << slope_w
-    );
+  BOOST_TEST_MESSAGE("Slopes: s(u)=" << slope_u << " s(v)=" << slope_v << " => s(w)=" << slope_w);
 
-  BOOST_TEST(slope_w == expected_slope_w, 0.01% tolerance());
+  BOOST_TEST(slope_w == expected_slope_w, 0.01 % tolerance());
 
 } // BOOST_AUTO_TEST_CASE( AllTests )
-
 
 BOOST_AUTO_TEST_SUITE_END()

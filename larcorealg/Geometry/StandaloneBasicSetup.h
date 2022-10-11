@@ -31,13 +31,12 @@
 #define LARCOREALG_GEOMETRY_STANDALONEBASICSETUP_H
 
 // utility libraries
-#include "messagefacility/MessageLogger/MessageLogger.h"
-#include "fhiclcpp/ParameterSet.h"
 #include "cetlib/filepath_maker.h" // cet::filepath_lookup_after1
+#include "fhiclcpp/ParameterSet.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 
 // C/C++ standard libraries
 #include <string>
-
 
 namespace lar {
 
@@ -54,9 +53,8 @@ namespace lar {
      * Some lookup policies are provided in cetlib (see
      * `cetlib/filepath_maker.h` file).
      */
-    fhicl::ParameterSet ParseConfiguration
-      (std::string configPath, cet::filepath_maker& lookupPolicy);
-
+    fhicl::ParameterSet ParseConfiguration(std::string configPath,
+                                           cet::filepath_maker& lookupPolicy);
 
     //--------------------------------------------------------------------------
     /**
@@ -73,7 +71,6 @@ namespace lar {
      */
     fhicl::ParameterSet ParseConfiguration(std::string configPath);
 
-
     //--------------------------------------------------------------------------
     /**
      * @brief Sets up the message facility service.
@@ -88,48 +85,41 @@ namespace lar {
      * * "context singlet" is set to `main` (`mf::SetContextSinglet()`)
      * * "context iteration" is set to empty (`mf::SetContextIteration()`)
      */
-    void SetupMessageFacility
-      (fhicl::ParameterSet const& pset, std::string applName = "standalone");
-
+    void SetupMessageFacility(fhicl::ParameterSet const& pset, std::string applName = "standalone");
 
     //--------------------------------------------------------------------------
 
   } // namespace standalone
 } // namespace lar
 
-
 //------------------------------------------------------------------------------
 //---  inline implementation
 //---
 //------------------------------------------------------------------------------
-inline fhicl::ParameterSet lar::standalone::ParseConfiguration
-  (std::string configPath, cet::filepath_maker& lookupPolicy)
+inline fhicl::ParameterSet lar::standalone::ParseConfiguration(std::string configPath,
+                                                               cet::filepath_maker& lookupPolicy)
 {
   fhicl::ParameterSet pset;
   pset = fhicl::ParameterSet::make(configPath, lookupPolicy);
   return pset;
 } // ParseConfiguration(string, filepath_maker)
 
-
 //------------------------------------------------------------------------------
-inline fhicl::ParameterSet lar::standalone::ParseConfiguration
-  (std::string configPath)
+inline fhicl::ParameterSet lar::standalone::ParseConfiguration(std::string configPath)
 {
   cet::filepath_lookup_after1 policy("FHICL_FILE_PATH");
   return ParseConfiguration(configPath, policy);
 } // ParseConfiguration(string)
 
-
 //------------------------------------------------------------------------------
-inline void lar::standalone::SetupMessageFacility
-  (fhicl::ParameterSet const& pset, std::string applName /* = "standalone" */)
+inline void lar::standalone::SetupMessageFacility(fhicl::ParameterSet const& pset,
+                                                  std::string applName /* = "standalone" */)
 {
   mf::StartMessageFacility(pset.get<fhicl::ParameterSet>("services.message"));
   mf::SetApplicationName(applName);
   mf::SetContextSinglet("main");
   mf::SetContextIteration("");
 } // lar::standalone::SetupMessageFacility()
-
 
 //------------------------------------------------------------------------------
 

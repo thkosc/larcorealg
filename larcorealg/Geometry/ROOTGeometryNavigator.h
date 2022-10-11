@@ -10,10 +10,9 @@
 #ifndef LARCOREALG_GEOMETRY_ROOTGEOMETRYNAVIGATOR_H
 #define LARCOREALG_GEOMETRY_ROOTGEOMETRYNAVIGATOR_H
 
-
 // LArSoft libraries
-#include "larcorealg/Geometry/GeoNodePath.h"
 #include "larcorealg/CoreUtils/counter.h" // geo::...::makeFromCoords()
+#include "larcorealg/Geometry/GeoNodePath.h"
 
 // ROOT libraries
 #include "TGeoManager.h"
@@ -21,16 +20,14 @@
 #include "TGeoVolume.h"
 
 // C++ standard library
-#include <utility> // std::forward()
 #include <cassert>
-
+#include <utility> // std::forward()
 
 namespace geo {
-  
-  class ROOTGeometryNavigator;
-  
-} // namespace geo
 
+  class ROOTGeometryNavigator;
+
+} // namespace geo
 
 //------------------------------------------------------------------------------
 /**
@@ -62,16 +59,13 @@ namespace geo {
  * 
  */
 class geo::ROOTGeometryNavigator {
-  
+
   TGeoNode const* fTopNode = nullptr;
-  
-    public:
-  
+
+public:
   /// Constructor: picks the manager.
-  ROOTGeometryNavigator(TGeoManager const& manager)
-    : fTopNode(manager.GetTopNode())
-    {}
-  
+  ROOTGeometryNavigator(TGeoManager const& manager) : fTopNode(manager.GetTopNode()) {}
+
   /**
    * @brief Applies the specified operation to all nodes under the `path`.
    * @tparam Op type of operation (see description)
@@ -91,7 +85,7 @@ class geo::ROOTGeometryNavigator {
    */
   template <typename Op>
   bool apply(geo::GeoNodePath& path, Op&& op) const;
-  
+
   /**
    * @brief Applies the specified operation to all nodes under `node`.
    * @tparam Op type of operation (see description)
@@ -105,7 +99,7 @@ class geo::ROOTGeometryNavigator {
    */
   template <typename Op>
   bool apply(TGeoNode const& node, Op&& op) const;
-  
+
   /**
    * @brief Applies the specified operation to all nodes.
    * @tparam Op type of operation (see description)
@@ -117,52 +111,50 @@ class geo::ROOTGeometryNavigator {
    */
   template <typename Op>
   bool apply(Op&& op) const;
-  
-}; // geo::ROOTGeometryNavigator
 
+}; // geo::ROOTGeometryNavigator
 
 //------------------------------------------------------------------------------
 //--- template implementation
 //------------------------------------------------------------------------------
 template <typename Op>
-bool geo::ROOTGeometryNavigator::apply(geo::GeoNodePath& path, Op&& op) const {
+bool geo::ROOTGeometryNavigator::apply(geo::GeoNodePath& path, Op&& op) const
+{
   if (!op(path)) return false;
-  
+
   TGeoNode const& node = path.current();
   TGeoVolume const* pVolume = node.GetVolume();
   if (pVolume) { // is it even possible not to?
     int const nDaughters = pVolume->GetNdaughters();
-    for (int iDaughter: util::counter<int>(nDaughters)) {
+    for (int iDaughter : util::counter<int>(nDaughters)) {
       TGeoNode const* pDaughter = pVolume->GetNode(iDaughter);
       if (!pDaughter) continue; // fishy...
-      
+
       path.append(*pDaughter);
       if (!apply(path, std::forward<Op>(op))) return false;
       path.pop();
     } // for
-  } // if we have a volume
-  
+  }   // if we have a volume
+
   return true;
 } // geo::ROOTGeometryNavigator::apply()
 
-
 //------------------------------------------------------------------------------
 template <typename Op>
-bool geo::ROOTGeometryNavigator::apply(TGeoNode const& node, Op&& op) const {
-  geo::GeoNodePath path { &node };
+bool geo::ROOTGeometryNavigator::apply(TGeoNode const& node, Op&& op) const
+{
+  geo::GeoNodePath path{&node};
   return apply(path, std::forward<Op>(op));
 } // geo::ROOTGeometryNavigator::apply()
 
-
 //------------------------------------------------------------------------------
 template <typename Op>
-bool geo::ROOTGeometryNavigator::apply(Op&& op) const {
+bool geo::ROOTGeometryNavigator::apply(Op&& op) const
+{
   assert(fTopNode);
   return apply(*fTopNode, std::forward<Op>(op));
 } // geo::ROOTGeometryNavigator::apply()
 
-
 //------------------------------------------------------------------------------
-
 
 #endif // LARCOREALG_GEOMETRY_ROOTGEOMETRYNAVIGATOR_H

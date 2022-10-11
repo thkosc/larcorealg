@@ -9,16 +9,13 @@
  * It depends only on standard C++ and does not require additional linkage.
  */
 
-
 #ifndef LARCOREALG_COREUTILS_PROVIDERPACK_H
 #define LARCOREALG_COREUTILS_PROVIDERPACK_H
 
-
 // C/C++ standard library
+#include <limits>
 #include <tuple>
 #include <type_traits>
-#include <limits>
-
 
 namespace lar {
 
@@ -26,7 +23,6 @@ namespace lar {
 
     template <typename... Types>
     struct has_duplicate_types;
-
 
     /**
      * @brief Index of the class among Bases which is base of Derived.
@@ -71,20 +67,21 @@ namespace lar {
      */
     template <typename Derived, typename... Bases>
     constexpr std::size_t hasBaseOf()
-      { return indexOfBaseOf<Derived, Bases...>() < sizeof...(Bases); }
+    {
+      return indexOfBaseOf<Derived, Bases...>() < sizeof...(Bases);
+    }
 
     template <typename Derived, typename... Bases>
     constexpr std::size_t hasDerivedFrom()
-      { return indexOfDerivedFrom<Derived, Bases...>() < sizeof...(Bases); }
-
+    {
+      return indexOfDerivedFrom<Derived, Bases...>() < sizeof...(Bases);
+    }
 
     /// Implementation detail for the extraction constructor
-    template
-      <typename DestPack, typename SourcePack, typename... ExtractProviders>
+    template <typename DestPack, typename SourcePack, typename... ExtractProviders>
     struct SetFrom;
 
   } // namespace details
-
 
   /** **************************************************************************
    * @brief Container for a list of pointers to providers
@@ -113,21 +110,19 @@ namespace lar {
   template <typename... Providers>
   class ProviderPack {
     static_assert(!details::has_duplicate_types<Providers...>::value,
-      "Providers in ProviderPack are repeated");
+                  "Providers in ProviderPack are repeated");
 
     using this_type = ProviderPack<Providers...>; ///< alias of this class
 
     /// type used for storage of the pointers
     using tuple_type = std::tuple<Providers const*...>;
 
-      public:
-
+  public:
     /// Default constructor: a null provider pointer for each type
     ProviderPack() = default;
 
     /// Constructor: stores a provider pointer for each type
-    ProviderPack(Providers const* ...provider_ptrs): providers(provider_ptrs...)
-      {}
+    ProviderPack(Providers const*... provider_ptrs) : providers(provider_ptrs...) {}
 
     /**
      * @brief Constructor: extracts the providers from another parameter pack
@@ -137,13 +132,11 @@ namespace lar {
      * This constructor requires all the providers we need to be present
      * in the source provider pack.
      */
-    template<typename... OtherProviders>
+    template <typename... OtherProviders>
     ProviderPack(ProviderPack<OtherProviders...> const& from)
-      {
-        details::SetFrom
-          <this_type, ProviderPack<OtherProviders...>, Providers...>
-          (*this, from);
-      }
+    {
+      details::SetFrom<this_type, ProviderPack<OtherProviders...>, Providers...>(*this, from);
+    }
 
     /**
      * @brief Constructor: picks the providers from the specified ones
@@ -153,13 +146,12 @@ namespace lar {
      * This constructor will pick, among the offered providers, the ones that
      * are needed.
      */
-    template<typename... OtherProviders>
+    template <typename... OtherProviders>
     ProviderPack(OtherProviders const*... providers)
-      {
-        details::SetFrom
-          <this_type, ProviderPack<OtherProviders...>, Providers...>
-          (*this, ProviderPack<OtherProviders...>(providers...));
-      }
+    {
+      details::SetFrom<this_type, ProviderPack<OtherProviders...>, Providers...>(
+        *this, ProviderPack<OtherProviders...>(providers...));
+    }
 
     /**
      * @brief Constructor: picks the providers from a pack plus specified ones
@@ -181,46 +173,40 @@ namespace lar {
      *     ProviderPack<A, B, C, D> largerPack(pack, &c, &b);
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    template<typename... PackProviders, typename... OtherProviders>
-    ProviderPack(
-      ProviderPack<PackProviders...> const& fromPack,
-      OtherProviders const*... providers
-      );
-
+    template <typename... PackProviders, typename... OtherProviders>
+    ProviderPack(ProviderPack<PackProviders...> const& fromPack,
+                 OtherProviders const*... providers);
 
     /// Returns the provider with the specified type
     template <typename Provider>
     Provider const* get() const
-      {
-        constexpr auto providerIndex
-          = details::findDerivedFrom<Provider, Providers...>();
-        return std::get<providerIndex>(providers);
-      } // get<>()
-
+    {
+      constexpr auto providerIndex = details::findDerivedFrom<Provider, Providers...>();
+      return std::get<providerIndex>(providers);
+    } // get<>()
 
     /// Sets the provider with the specified type
     template <typename Provider>
     void set(Provider const* provider_ptr)
-      {
-        constexpr auto providerIndex
-          = details::findDerivedFrom<Provider, Providers...>();
-        std::get<providerIndex>(providers) = provider_ptr;
-      } // set<>()
+    {
+      constexpr auto providerIndex = details::findDerivedFrom<Provider, Providers...>();
+      std::get<providerIndex>(providers) = provider_ptr;
+    } // set<>()
 
     /// Returns whether there is a provider with the specified type
     template <typename Provider>
     static constexpr bool has()
-      { return details::hasDerivedFrom<Provider, Providers...>(); }
-
+    {
+      return details::hasDerivedFrom<Provider, Providers...>();
+    }
 
     /// Returns whether other provider pack has all the same providers as this
     template <typename... OtherProviders>
-    bool operator== (ProviderPack<OtherProviders...> const& other) const;
+    bool operator==(ProviderPack<OtherProviders...> const& other) const;
 
     /// Returns whether other provider pack and this have different providers
     template <typename... OtherProviders>
-    bool operator!= (ProviderPack<OtherProviders...> const& other) const;
-
+    bool operator!=(ProviderPack<OtherProviders...> const& other) const;
 
     /**
      * @brief Returns whether all our providers are in the OfferedProviders list
@@ -246,12 +232,10 @@ namespace lar {
     template <typename... OtherProviders>
     static constexpr bool containsProviders();
 
-      private:
-
+  private:
     tuple_type providers; ///< container of the pointers, type-safe
 
   }; // class ProviderPack
-
 
   /**
    * @brief Function to create a ProviderPack from the function arguments
@@ -269,9 +253,10 @@ namespace lar {
    * creates a `ProviderPack<A, B>`.
    */
   template <typename... Providers>
-  ProviderPack<Providers...> makeProviderPack(Providers const* ...providers)
-    { return ProviderPack<Providers...>(providers...); }
-
+  ProviderPack<Providers...> makeProviderPack(Providers const*... providers)
+  {
+    return ProviderPack<Providers...>(providers...);
+  }
 
   /**
    * @brief Function to create a ProviderPack by adding to another
@@ -296,13 +281,12 @@ namespace lar {
   template <typename... PackProviders, typename... MoreProviders>
   ProviderPack<PackProviders..., MoreProviders...> expandProviderPack(
     ProviderPack<PackProviders...> const& pack,
-    MoreProviders const* ...providers
-    )
-    { return { pack, providers... }; }
-
+    MoreProviders const*... providers)
+  {
+    return {pack, providers...};
+  }
 
 } // namespace lar
-
 
 //------------------------------------------------------------------------------
 //--- Implementation details
@@ -323,25 +307,21 @@ namespace lar {
     struct has_type;
 
     template <typename Target, typename First, typename... Others>
-    struct has_type<Target, First, Others...>: has_type<Target, Others...> {};
+    struct has_type<Target, First, Others...> : has_type<Target, Others...> {};
 
     template <typename Target, typename... Others>
-    struct has_type<Target, Target, Others...>: std::true_type {};
+    struct has_type<Target, Target, Others...> : std::true_type {};
 
     template <typename Target>
-    struct has_type<Target>: std::false_type {};
-
+    struct has_type<Target> : std::false_type {};
 
     //--------------------------------------------------------------------------
     template <typename Key, typename... Types>
-    struct has_duplicate_types<Key, Types...>:
-      public bool_constant
-        <has_type<Key, Types...>() || has_duplicate_types<Types...>()>
-      {};
+    struct has_duplicate_types<Key, Types...>
+      : public bool_constant<has_type<Key, Types...>() || has_duplicate_types<Types...>()> {};
 
     template <>
-    struct has_duplicate_types<>: public std::false_type {};
-
+    struct has_duplicate_types<> : public std::false_type {};
 
     //--------------------------------------------------------------------------
     template <typename... Types>
@@ -352,50 +332,46 @@ namespace lar {
 
       template <typename... AsTypes>
       static constexpr bool as()
-        {
-          return (sizeof...(Types) == sizeof...(AsTypes))
-            && are_types_contained<Types...>::template in<AsTypes...>();
-        }
+      {
+        return (sizeof...(Types) == sizeof...(AsTypes)) &&
+               are_types_contained<Types...>::template in<AsTypes...>();
+      }
 
     }; // are_same_types
-
 
     template <typename First, typename... OtherTypes>
     struct are_types_contained<First, OtherTypes...> {
       template <typename... AsTypes>
       static constexpr bool in()
-        {
-          return are_types_contained<OtherTypes...>::template in<AsTypes...>()
-            && has_type<First, AsTypes...>();
-        }
+      {
+        return are_types_contained<OtherTypes...>::template in<AsTypes...>() &&
+               has_type<First, AsTypes...>();
+      }
     };
 
     template <typename First>
     struct are_types_contained<First> {
       template <typename... AsTypes>
       static constexpr bool in()
-        { return has_type<First, AsTypes...>(); }
+      {
+        return has_type<First, AsTypes...>();
+      }
     };
 
-
     template <typename T>
-    struct is_provider_pack: public std::false_type {};
+    struct is_provider_pack : public std::false_type {};
 
     template <typename... Providers>
-    struct is_provider_pack<ProviderPack<Providers...>>: public std::true_type
-      {};
-
+    struct is_provider_pack<ProviderPack<Providers...>> : public std::true_type {};
 
     template <typename APack, typename BPack>
-    struct have_same_provider_types: public std::false_type {};
+    struct have_same_provider_types : public std::false_type {};
 
     template <typename... AProviders, typename... BProviders>
-    struct have_same_provider_types
-      <ProviderPack<AProviders...>, ProviderPack<BProviders...>>
-      : public std::integral_constant
-        <bool, are_same_types<AProviders...>::template as<BProviders...>()>
-      {};
-
+    struct have_same_provider_types<ProviderPack<AProviders...>, ProviderPack<BProviders...>>
+      : public std::integral_constant<bool,
+                                      are_same_types<AProviders...>::template as<BProviders...>()> {
+    };
 
     // --- BEGIN impementation of findDerivedFrom() ----------------------------
     //
@@ -432,140 +408,103 @@ namespace lar {
     //
     // class to find the first matching class
     //
-    template <
-      template <typename A, typename B> class Match,
-      typename Target, bool IsMatch, typename... Candidates
-      >
+    template <template <typename A, typename B> class Match,
+              typename Target,
+              bool IsMatch,
+              typename... Candidates>
     struct findFirstMatching_answer;
 
-    template <
-      template <typename A, typename B> class Match,
-      typename Target, typename... Candidates
-      >
+    template <template <typename A, typename B> class Match,
+              typename Target,
+              typename... Candidates>
     struct findFirstMatching_answer<Match, Target, true, Candidates...>
-      : public index_constant<0U>
-    {};
+      : public index_constant<0U> {};
 
-    template <
-      template <typename A, typename B> class Match,
-      typename Target, typename... Candidates
-      >
+    template <template <typename A, typename B> class Match,
+              typename Target,
+              typename... Candidates>
     struct findFirstMatching_dispatcher;
 
     // end-of-recursion
-    template <
-      template <typename A, typename B> class Match,
-      typename Target
-      >
+    template <template <typename A, typename B> class Match, typename Target>
     struct findFirstMatching_dispatcher<Match, Target>
-      : findFirstMatching_answer<Match, Target, true>
-    {};
+      : findFirstMatching_answer<Match, Target, true> {};
 
-    template <
-      template <typename A, typename B> class Match,
-      typename Target, typename FirstCandidate, typename... OtherCandidates
-      >
-    struct findFirstMatching_dispatcher
-      <Match, Target, FirstCandidate, OtherCandidates...>
-      : public findFirstMatching_answer<
-        Match,
-        Target,
-        Match<FirstCandidate, Target>::value,
-        FirstCandidate,
-        OtherCandidates...
-      >
-    {};
+    template <template <typename A, typename B> class Match,
+              typename Target,
+              typename FirstCandidate,
+              typename... OtherCandidates>
+    struct findFirstMatching_dispatcher<Match, Target, FirstCandidate, OtherCandidates...>
+      : public findFirstMatching_answer<Match,
+                                        Target,
+                                        Match<FirstCandidate, Target>::value,
+                                        FirstCandidate,
+                                        OtherCandidates...> {};
 
-    template <
-      template <typename A, typename B> class Match,
-      typename Target, typename FirstCandidate, typename... OtherCandidates
-      >
-    struct findFirstMatching_answer
-      <Match, Target, false, FirstCandidate, OtherCandidates...>
-      : public index_constant
-        <(1U + findFirstMatching_dispatcher<Match, Target, OtherCandidates...>::value)>
-    {};
+    template <template <typename A, typename B> class Match,
+              typename Target,
+              typename FirstCandidate,
+              typename... OtherCandidates>
+    struct findFirstMatching_answer<Match, Target, false, FirstCandidate, OtherCandidates...>
+      : public index_constant<(
+          1U + findFirstMatching_dispatcher<Match, Target, OtherCandidates...>::value)> {};
 
-    template <
-      template <typename A, typename B> class Match,
-      typename Target, typename... Candidates
-      >
-    struct findFirstMatching_impl
-      : findFirstMatching_dispatcher<Match, Target, Candidates...>
-    {
-        private:
-      static constexpr auto _index
-        = findFirstMatching_dispatcher<Match, Target, Candidates...>();
+    template <template <typename A, typename B> class Match,
+              typename Target,
+              typename... Candidates>
+    struct findFirstMatching_impl : findFirstMatching_dispatcher<Match, Target, Candidates...> {
+    private:
+      static constexpr auto _index = findFirstMatching_dispatcher<Match, Target, Candidates...>();
     }; // struct findFirstMatching_impl
-
 
     //
     // class to apply findFirstMatching_impl after skipping some candidates
     //
-    template <
-      unsigned int NSkip,
-      template <typename A, typename B> class Match,
-      typename Target, typename... Candidates
-      >
+    template <unsigned int NSkip,
+              template <typename A, typename B>
+              class Match,
+              typename Target,
+              typename... Candidates>
     struct findNextMatching_impl;
 
     // recursion: peel one
-    template <
-      unsigned int NSkip,
-      template <typename A, typename B> class Match,
-      typename Target, typename FirstCandidate, typename... OtherCandidates
-      >
-    struct findNextMatching_impl
-      <NSkip, Match, Target, FirstCandidate, OtherCandidates...>
+    template <unsigned int NSkip,
+              template <typename A, typename B>
+              class Match,
+              typename Target,
+              typename FirstCandidate,
+              typename... OtherCandidates>
+    struct findNextMatching_impl<NSkip, Match, Target, FirstCandidate, OtherCandidates...>
       : index_constant<(
-        1U
-        + findNextMatching_impl
-          <(NSkip - 1U), Match, Target, OtherCandidates...>::value
-      )>
-    {
+          1U + findNextMatching_impl<(NSkip - 1U), Match, Target, OtherCandidates...>::value)> {
       static_assert(NSkip > 0U, "Implementation error: no arguments to skip!");
     };
 
     // end-of-recursion: skipped enough
-    template <
-      template <typename A, typename B> class Match,
-      typename Target, typename FirstCandidate, typename... OtherCandidates
-      >
-    struct findNextMatching_impl
-      <0U, Match, Target, FirstCandidate, OtherCandidates...>
-      : findFirstMatching_impl
-        <Match, Target, FirstCandidate, OtherCandidates...>
-    {};
+    template <template <typename A, typename B> class Match,
+              typename Target,
+              typename FirstCandidate,
+              typename... OtherCandidates>
+    struct findNextMatching_impl<0U, Match, Target, FirstCandidate, OtherCandidates...>
+      : findFirstMatching_impl<Match, Target, FirstCandidate, OtherCandidates...> {};
 
     // end-of-recursion: all arguments skipped
-    template <
-      unsigned int NSkip,
-      template <typename A, typename B> class Match,
-      typename Target
-      >
-    struct findNextMatching_impl<NSkip, Match, Target>
-      : findFirstMatching_impl<Match, Target>
-      {};
+    template <unsigned int NSkip, template <typename A, typename B> class Match, typename Target>
+    struct findNextMatching_impl<NSkip, Match, Target> : findFirstMatching_impl<Match, Target> {};
 
     //
     // class finding a match and asserting its existence and unicity
     //
-    template <
-      template <typename A, typename B> class Match,
-      typename Target, typename... Candidates
-      >
-    struct findTheMatching_impl
-      : findFirstMatching_impl<Match, Target, Candidates...>
-    {
-        private:
-      static constexpr auto _index
-        = findFirstMatching_dispatcher<Match, Target, Candidates...>();
+    template <template <typename A, typename B> class Match,
+              typename Target,
+              typename... Candidates>
+    struct findTheMatching_impl : findFirstMatching_impl<Match, Target, Candidates...> {
+    private:
+      static constexpr auto _index = findFirstMatching_dispatcher<Match, Target, Candidates...>();
 
-      static_assert(
-        findNextMatching_impl<_index + 1U, Match, Target, Candidates...>()
-          >= sizeof...(Candidates),
-        "Multiple candidate classes match the Target one"
-        );
+      static_assert(findNextMatching_impl<_index + 1U, Match, Target, Candidates...>() >=
+                      sizeof...(Candidates),
+                    "Multiple candidate classes match the Target one");
     }; // struct findTheMatching_impl
 
     //
@@ -573,54 +512,53 @@ namespace lar {
     //
     template <typename Derived, typename... Bases>
     constexpr std::size_t indexOfBaseOf()
-      { return findTheMatching_impl<std::is_base_of, Derived, Bases...>(); }
+    {
+      return findTheMatching_impl<std::is_base_of, Derived, Bases...>();
+    }
 
     template <typename Derived, typename... Bases>
     constexpr std::size_t findBaseOf()
-      {
-        constexpr std::size_t index = indexOfBaseOf<Derived, Bases...>();
-        static_assert(
-          index < sizeof...(Bases),
-          "Target is not derived from any of the available classes"
-          );
-        return index;
-      } // findBaseOf()
+    {
+      constexpr std::size_t index = indexOfBaseOf<Derived, Bases...>();
+      static_assert(index < sizeof...(Bases),
+                    "Target is not derived from any of the available classes");
+      return index;
+    } // findBaseOf()
 
     // this matching condition is the mirror of std::is_base_of
     template <typename Derived, typename Base>
-    struct is_derived_of: std::is_base_of<Base, Derived> {};
+    struct is_derived_of : std::is_base_of<Base, Derived> {};
 
     template <typename Base, typename... Derived>
     constexpr std::size_t indexOfDerivedFrom()
-      { return findTheMatching_impl<is_derived_of, Base, Derived...>(); }
+    {
+      return findTheMatching_impl<is_derived_of, Base, Derived...>();
+    }
 
     template <typename Base, typename... Derived>
     constexpr std::size_t findDerivedFrom()
-      {
-        constexpr std::size_t index = indexOfDerivedFrom<Base, Derived...>();
-        static_assert(
-          index < sizeof...(Derived),
-          "Target is not base of any of the available classes"
-          );
-        return index;
-      } // findDerivedFrom()
+    {
+      constexpr std::size_t index = indexOfDerivedFrom<Base, Derived...>();
+      static_assert(index < sizeof...(Derived),
+                    "Target is not base of any of the available classes");
+      return index;
+    } // findDerivedFrom()
 
     // --- END impementation of findDerivedFrom() ------------------------------
-
 
     //--------------------------------------------------------------------------
     //--- SetFrom
     //---
-    template <
-      typename DestPack, typename SourcePack,
-      typename FirstProvider, typename... OtherProviders
-      >
+    template <typename DestPack,
+              typename SourcePack,
+              typename FirstProvider,
+              typename... OtherProviders>
     struct SetFrom<DestPack, SourcePack, FirstProvider, OtherProviders...> {
       SetFrom(DestPack& pack, SourcePack const& from)
-        {
-          pack.set(from.template get<FirstProvider>());
-          SetFrom<DestPack, SourcePack, OtherProviders...>(pack, from);
-        }
+      {
+        pack.set(from.template get<FirstProvider>());
+        SetFrom<DestPack, SourcePack, OtherProviders...>(pack, from);
+      }
     }; // SetFrom<First, Others...>
 
     template <typename DestPack, typename SourcePack>
@@ -632,112 +570,92 @@ namespace lar {
     //--- Compare
     //---
     template <typename Provider, typename APack, typename BPack>
-    bool haveSameProvider(APack const& a, BPack const& b) {
+    bool haveSameProvider(APack const& a, BPack const& b)
+    {
       static_assert(is_provider_pack<APack>() && is_provider_pack<BPack>(),
-        "This class needs two ProviderPack template types.");
+                    "This class needs two ProviderPack template types.");
       return a.template get<Provider>() == b.template get<Provider>();
     } // haveSameProvider()
-
 
     template <typename APack, typename BPack>
     struct ProviderPackComparerBase {
 
       static_assert(have_same_provider_types<APack, BPack>(),
-        "The specified provider packs have different types.");
+                    "The specified provider packs have different types.");
 
     }; // ProviderPackComparerBase
-
 
     template <typename APack, typename BPack, typename... Providers>
     struct ProviderPackComparer;
 
-    template
-      <typename APack, typename BPack, typename First, typename... Others>
+    template <typename APack, typename BPack, typename First, typename... Others>
     struct ProviderPackComparer<APack, BPack, First, Others...>
-      : ProviderPackComparerBase<APack, BPack>
-    {
-      static bool compare (APack const& a, BPack const& b)
-        {
-          return haveSameProvider<First>(a, b)
-            && ProviderPackComparer<APack, BPack, Others...>::compare(a, b);
-        }
+      : ProviderPackComparerBase<APack, BPack> {
+      static bool compare(APack const& a, BPack const& b)
+      {
+        return haveSameProvider<First>(a, b) &&
+               ProviderPackComparer<APack, BPack, Others...>::compare(a, b);
+      }
     }; // ProviderPackComparer<APack, BPack, First, Others...>
 
-    template
-      <typename APack, typename BPack, typename First>
-    struct ProviderPackComparer<APack, BPack, First>
-      : ProviderPackComparerBase<APack, BPack>
-    {
-      static bool compare (APack const& a, BPack const& b)
-        { return haveSameProvider<First>(a, b); }
+    template <typename APack, typename BPack, typename First>
+    struct ProviderPackComparer<APack, BPack, First> : ProviderPackComparerBase<APack, BPack> {
+      static bool compare(APack const& a, BPack const& b) { return haveSameProvider<First>(a, b); }
     }; // ProviderPackComparer<APack, BPack, First>
-
 
     //--------------------------------------------------------------------------
 
   } // namespace details
-
 
   //----------------------------------------------------------------------------
   //--- ProviderPack
   //---
 
   template <typename... Providers>
-  template<typename... PackProviders, typename... OtherProviders>
-  ProviderPack<Providers...>::ProviderPack(
-    ProviderPack<PackProviders...> const& fromPack,
-    OtherProviders const*... providers
-    )
+  template <typename... PackProviders, typename... OtherProviders>
+  ProviderPack<Providers...>::ProviderPack(ProviderPack<PackProviders...> const& fromPack,
+                                           OtherProviders const*... providers)
   {
 
     // verify that the list of providers in argument is the exact one we need
     static_assert(
-      details::are_same_types<Providers...>
-        ::template as<PackProviders..., OtherProviders...>(),
-      "The providers types in the arguments do not match the ones needed."
-      );
+      details::are_same_types<Providers...>::template as<PackProviders..., OtherProviders...>(),
+      "The providers types in the arguments do not match the ones needed.");
 
     // copy all the providers from the provider pack
-    details::SetFrom
-      <this_type, ProviderPack<PackProviders...>, PackProviders...>
-      (*this, fromPack);
+    details::SetFrom<this_type, ProviderPack<PackProviders...>, PackProviders...>(*this, fromPack);
 
     // put the other providers in a temporary parameter pack, and copy it
     // (this is convenience, a direct implementation would be probably better)
-    details::SetFrom
-      <this_type, ProviderPack<OtherProviders...>, OtherProviders...>
-      (*this, makeProviderPack(providers...));
+    details::SetFrom<this_type, ProviderPack<OtherProviders...>, OtherProviders...>(
+      *this, makeProviderPack(providers...));
 
   } // ProviderPack<Providers...>::ProviderPack(ProviderPack, OtherProviders...)
-
 
   //----------------------------------------------------------------------------
   template <typename... Providers>
   template <typename... OtherProviders>
-  bool ProviderPack<Providers...>::operator==
-    (ProviderPack<OtherProviders...> const& other) const
+  bool ProviderPack<Providers...>::operator==(ProviderPack<OtherProviders...> const& other) const
   {
-    return details::ProviderPackComparer<
-      ProviderPack<Providers...>, ProviderPack<OtherProviders...>, Providers...
-      >::compare(*this, other);
+    return details::ProviderPackComparer<ProviderPack<Providers...>,
+                                         ProviderPack<OtherProviders...>,
+                                         Providers...>::compare(*this, other);
   }
-
 
   template <typename... Providers>
   template <typename... OtherProviders>
-  bool ProviderPack<Providers...>::operator!=
-    (ProviderPack<OtherProviders...> const& other) const
-    { return !(*this == other); }
-
+  bool ProviderPack<Providers...>::operator!=(ProviderPack<OtherProviders...> const& other) const
+  {
+    return !(*this == other);
+  }
 
   //----------------------------------------------------------------------------
   template <typename... Providers>
   template <typename... OfferedProviders>
-  constexpr bool ProviderPack<Providers...>::containsProviders() {
-    return details::are_types_contained<Providers...>
-      ::template in<OfferedProviders...>();
+  constexpr bool ProviderPack<Providers...>::containsProviders()
+  {
+    return details::are_types_contained<Providers...>::template in<OfferedProviders...>();
   } // ProviderPack<>::containsProviders()
-
 
   //----------------------------------------------------------------------------
 

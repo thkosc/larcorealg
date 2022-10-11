@@ -17,26 +17,21 @@
  * be linked.
  */
 
-
 #ifndef LARCORE_TESTUTILS_PROVIDERTESTHELPERS_H
 #define LARCORE_TESTUTILS_PROVIDERTESTHELPERS_H 1
 
-
 // C/C++ standard libraries
 #include <functional> // std::function<>
-#include <memory> // std::unique_ptr<>, std::make_unique()
+#include <memory>     // std::unique_ptr<>, std::make_unique()
 #include <string>
 #include <utility> // std::forward()
-
 
 /// LArSoft test utilities
 namespace testing {
 
-
   /// Generic setup provider function type
   template <typename Prov, typename... Args>
   using setupProvider_t = std::function<std::unique_ptr<Prov>(Args...)>;
-
 
   /// A default implementation for provider setup class
   template <typename Prov>
@@ -45,10 +40,11 @@ namespace testing {
     /// Instantiates a new provider with specified arguments for constructor
     template <typename... Args>
     static std::unique_ptr<Prov> setup(Args&&... args)
-      { return std::make_unique<Prov>(std::forward<Args>(args)...); }
+    {
+      return std::make_unique<Prov>(std::forward<Args>(args)...);
+    }
 
   }; // DefaultSetupProviderClass()
-
 
   /** **************************************************************************
    * @brief Class to create and set up a new provider.
@@ -77,8 +73,7 @@ namespace testing {
    *
    */
   template <typename Prov>
-  struct ProviderSetupClass: public DefaultSetupProviderClass<Prov> {};
-
+  struct ProviderSetupClass : public DefaultSetupProviderClass<Prov> {};
 
   /**
    * @brief Function calling ProviderSetupClass<>::setup for the specified provider
@@ -98,8 +93,9 @@ namespace testing {
    */
   template <typename Prov, typename... Args>
   std::unique_ptr<Prov> setupProvider(Args&&... args)
-    { return ProviderSetupClass<Prov>::setup(std::forward<Args>(args)...); }
-
+  {
+    return ProviderSetupClass<Prov>::setup(std::forward<Args>(args)...);
+  }
 
   /** **************************************************************************
    * @brief Environment helper to set up a service provider
@@ -154,7 +150,6 @@ namespace testing {
   template <typename Prov, typename TestEnv>
   struct SimpleEnvironmentSetupClass;
 
-
   /**
    * @brief Basic implementation of a environment setup helper.
    * @tparam Prov type of provider being set up
@@ -203,19 +198,17 @@ namespace testing {
    * from it, as in the example above.
    */
   template <typename Prov, typename Interface, typename TestEnv>
-  inline Prov* SimpleEnvironmentStandardSetupByName
-    (TestEnv& env, std::string service_name)
-    {
-      return
-        env.template SetupProviderFromServiceFor<Interface, Prov>(service_name);
-    }
+  inline Prov* SimpleEnvironmentStandardSetupByName(TestEnv& env, std::string service_name)
+  {
+    return env.template SetupProviderFromServiceFor<Interface, Prov>(service_name);
+  }
 
   // overload for providers with no shared interface
   template <typename Prov, typename TestEnv>
-  inline Prov* SimpleEnvironmentStandardSetupByName
-    (TestEnv& env, std::string service_name)
-    { return env.template SetupProviderFromService<Prov>(service_name); }
-
+  inline Prov* SimpleEnvironmentStandardSetupByName(TestEnv& env, std::string service_name)
+  {
+    return env.template SetupProviderFromService<Prov>(service_name);
+  }
 
   /**
    * @brief Sets up a provider in a specified test environment
@@ -232,8 +225,9 @@ namespace testing {
    */
   template <typename Prov, typename TestEnv>
   Prov* simpleEnvironmentSetup(TestEnv& env)
-    { return SimpleEnvironmentSetupClass<Prov, TestEnv>::setup(env); }
-
+  {
+    return SimpleEnvironmentSetupClass<Prov, TestEnv>::setup(env);
+  }
 
 } // namespace testing
 

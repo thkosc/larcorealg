@@ -4,19 +4,19 @@
 #include <istream>
 #include <sstream>
 
-
 //-----------------------------------------------------------------------------
 //--- lar::debug::CallInfo_t
 //---
-bool lar::debug::CallInfo_t::ParseString(std::string const& s) {
+bool lar::debug::CallInfo_t::ParseString(std::string const& s)
+{
 
   //----------------------------------------------------------------------------
 #if (__linux__)
   constexpr auto boo = std::string::npos;
-  range_t libraryStr  { boo, boo };
-  range_t addressStr  { boo, boo };
-  range_t functionStr { boo, boo };
-  range_t offsetStr   { boo, boo };
+  range_t libraryStr{boo, boo};
+  range_t addressStr{boo, boo};
+  range_t functionStr{boo, boo};
+  range_t offsetStr{boo, boo};
   setAll(s, addressStr, libraryStr, functionStr, offsetStr);
 
   // expected format:
@@ -30,33 +30,30 @@ bool lar::debug::CallInfo_t::ParseString(std::string const& s) {
     // at all time, if we find a '(', we start over
     // since a '(' can only be after the library name
 
-    libraryStr  = {  0U,   i };
-    addressStr  = { boo, boo };
-    functionStr = { boo, boo };
-    offsetStr   = { boo, boo };
+    libraryStr = {0U, i};
+    addressStr = {boo, boo};
+    functionStr = {boo, boo};
+    offsetStr = {boo, boo};
 
     functionStr.first = ++i;
 
     i = s.find_first_of("(+-)", i);
     if (i == boo) return false;
     switch (s[i]) {
+    case '(': continue;
+    case '+':
+    case '-':
+      functionStr.second = i;
+      if (s[i] == '+') ++i;
+      offsetStr.first = i;
+      i = s.find_first_of("()", ++i);
+      if (i == boo) return false;
+      switch (s[i]) {
       case '(': continue;
-      case '+': case '-':
-        functionStr.second = i;
-        if (s[i] == '+') ++i;
-        offsetStr.first = i;
-        i = s.find_first_of("()", ++i);
-        if (i == boo) return false;
-        switch (s[i]) {
-          case '(': continue;
-          case ')':
-            offsetStr.second = i;
-            break;
-        } // switch (inner)
-        break;
-      case ')':
-         functionStr.second = i;
-         break;
+      case ')': offsetStr.second = i; break;
+      } // switch (inner)
+      break;
+    case ')': functionStr.second = i; break;
     } // switch (outer)
 
     // finish with the address
@@ -85,16 +82,13 @@ bool lar::debug::CallInfo_t::ParseString(std::string const& s) {
     std::istringstream sstr(s);
     int n;
     char plus;
-    sstr
-      >> n
-      >> libraryName
-      >> std::hex >> address >> std::dec
-      >> mangledFunctionName;
+    sstr >> n >> libraryName >> std::hex >> address >> std::dec >> mangledFunctionName;
 
     // optional offset
     if (sstr.fail()) break; // an error somewhere: bail out
     sstr >> plus;
-    if (sstr.fail()) offset = 0;
+    if (sstr.fail())
+      offset = 0;
     else {
       if (plus != '+') break;
       sstr >> offset;
@@ -112,17 +106,15 @@ bool lar::debug::CallInfo_t::ParseString(std::string const& s) {
   return false;
   //----------------------------------------------------------------------------
 #else
-# error("I am not on Linux nor on OSX. Hard to believe.")
+#error("I am not on Linux nor on OSX. Hard to believe.")
 #endif
 } // lar::debug::CallInfo_t::ParseString()
 
-
-
-void lar::debug::CallInfo_t::setAll(
-  std::string const& s,
-  range_t addressStr, range_t libraryStr,
-  range_t functionStr, range_t offsetStr
-  )
+void lar::debug::CallInfo_t::setAll(std::string const& s,
+                                    range_t addressStr,
+                                    range_t libraryStr,
+                                    range_t functionStr,
+                                    range_t offsetStr)
 {
   original = s;
 
@@ -136,7 +128,8 @@ void lar::debug::CallInfo_t::setAll(
     sstr >> address;
   }
 
-  if (emptyRange(offsetStr)) offset = 0;
+  if (emptyRange(offsetStr))
+    offset = 0;
   else {
     auto offsetRange = offsetStr;
     if (!emptyRange(offsetRange)) {
@@ -144,8 +137,8 @@ void lar::debug::CallInfo_t::setAll(
       std::istringstream sstr;
       if (neg || (s[offsetRange.first] == '+')) ++offsetRange.first;
       if (s.substr(offsetRange.first, 2) == "0x") {
-         offsetRange.first += 2;
-         sstr.setf(std::ios::hex);
+        offsetRange.first += 2;
+        sstr.setf(std::ios::hex);
       }
       sstr.str(extract(s, offsetRange));
       sstr >> offset;

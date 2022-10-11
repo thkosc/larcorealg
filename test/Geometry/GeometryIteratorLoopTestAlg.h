@@ -8,7 +8,6 @@
 #ifndef GEO_GEOMETRYITERATORLOOPTESTALG_H
 #define GEO_GEOMETRYITERATORLOOPTESTALG_H
 
-
 namespace fhicl {
   class ParameterSet;
 }
@@ -20,8 +19,7 @@ namespace geo {
   //----------------------------------------------------------------------------
 
   class GeometryIteratorLoopTestAlg {
-      public:
-
+  public:
     /// Constructor: reads configuration, does nothing
     GeometryIteratorLoopTestAlg(fhicl::ParameterSet const& /* pset */) {}
 
@@ -34,13 +32,11 @@ namespace geo {
     /// Executes the test
     virtual unsigned int Run();
 
-      protected:
+  protected:
     GeometryCore const* geom = nullptr; ///< pointer to the geometry description
 
   }; // class GeometryIteratorLoopTestAlg
 
-
 } // namespace geo
-
 
 #endif // GEO_GEOMETRYITERATORLOOPTESTALG_H

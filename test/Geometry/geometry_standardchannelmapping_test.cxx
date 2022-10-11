@@ -13,11 +13,11 @@
 #define BOOST_TEST_MODULE GeometryStandardChannelMappingTest
 
 // LArSoft libraries
-#include "larcorealg/TestUtils/geometry_unit_test_base.h"
 #include "ChannelMapStandardTestAlg.h"
-#include "larcorealg/TestUtils/boost_unit_test_base.h"
-#include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/Geometry/ChannelMapStandardAlg.h"
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/TestUtils/boost_unit_test_base.h"
+#include "larcorealg/TestUtils/geometry_unit_test_base.h"
 
 // utility libraries
 
@@ -33,14 +33,11 @@
 // configuration file name from command line, and
 // BoostCommandLineConfiguration<> makes it initialize in time for Boost
 // to catch it when instanciating the fixture.
-struct StandardGeometryConfiguration:
-  public testing::BoostCommandLineConfiguration<
-    testing::BasicGeometryEnvironmentConfiguration<geo::ChannelMapStandardAlg>
-    >
-{
+struct StandardGeometryConfiguration
+  : public testing::BoostCommandLineConfiguration<
+      testing::BasicGeometryEnvironmentConfiguration<geo::ChannelMapStandardAlg>> {
   /// Constructor: overrides the application name
-  StandardGeometryConfiguration()
-    { SetApplicationName("GeometryStandardChannelMappingTest"); }
+  StandardGeometryConfiguration() { SetApplicationName("GeometryStandardChannelMappingTest"); }
 }; // class StandardGeometryConfiguration
 
 /*
@@ -63,24 +60,22 @@ struct StandardGeometryConfiguration:
  * In this case, whether `GlobalTester()` and `Tester()` point to the same
  * tester depends on Boost unit test implementation.
  */
-class GeometryStandardChannelMappingTestFixture:
-  private testing::GeometryTesterEnvironment<StandardGeometryConfiguration>
-{
+class GeometryStandardChannelMappingTestFixture
+  : private testing::GeometryTesterEnvironment<StandardGeometryConfiguration> {
   using Tester_t = geo::ChannelMapStandardTestAlg;
 
   using TesterRegistry_t = testing::TestSharedGlobalResource<Tester_t>;
 
-    public:
-
+public:
   /// Constructor: initialize the tester with the Geometry from base class
   GeometryStandardChannelMappingTestFixture()
-    {
-      // create a new tester
-      tester_ptr = std::make_shared<Tester_t>(TesterParameters());
-      tester_ptr->Setup(*(Provider<geo::GeometryCore>()));
-      // if no tester is default yet, share ours:
-      TesterRegistry_t::ProvideDefaultSharedResource(tester_ptr);
-    }
+  {
+    // create a new tester
+    tester_ptr = std::make_shared<Tester_t>(TesterParameters());
+    tester_ptr->Setup(*(Provider<geo::GeometryCore>()));
+    // if no tester is default yet, share ours:
+    TesterRegistry_t::ProvideDefaultSharedResource(tester_ptr);
+  }
 
   /// Retrieves the local tester
   Tester_t& Tester() { return *(tester_ptr.get()); }
@@ -88,11 +83,9 @@ class GeometryStandardChannelMappingTestFixture:
   /// Retrieves the global tester
   static Tester_t& GlobalTester() { return TesterRegistry_t::Resource(); }
 
-    private:
+private:
   std::shared_ptr<Tester_t> tester_ptr; ///< our tester (may be shared)
-}; // class GeometryStandardChannelMappingTestFixture
-
-
+};                                      // class GeometryStandardChannelMappingTestFixture
 
 //------------------------------------------------------------------------------
 //---  The tests
@@ -110,21 +103,19 @@ class GeometryStandardChannelMappingTestFixture:
 
 BOOST_GLOBAL_FIXTURE(GeometryStandardChannelMappingTestFixture);
 
-BOOST_AUTO_TEST_CASE( TPCsetMappingTestCase )
+BOOST_AUTO_TEST_CASE(TPCsetMappingTestCase)
 {
   GeometryStandardChannelMappingTestFixture::GlobalTester().TPCsetMappingTest();
 } // BOOST_AUTO_TEST_CASE( TPCsetMappingTestCase )
 
-BOOST_AUTO_TEST_CASE( ROPMappingTestCase )
+BOOST_AUTO_TEST_CASE(ROPMappingTestCase)
 {
   GeometryStandardChannelMappingTestFixture::GlobalTester().ROPMappingTest();
 } // BOOST_AUTO_TEST_CASE( ROPMappingTestCase )
 
-BOOST_AUTO_TEST_CASE( ChannelMappingTestCase )
+BOOST_AUTO_TEST_CASE(ChannelMappingTestCase)
 {
-  GeometryStandardChannelMappingTestFixture::GlobalTester()
-    .ChannelMappingTest();
+  GeometryStandardChannelMappingTestFixture::GlobalTester().ChannelMappingTest();
 } // BOOST_AUTO_TEST_CASE( ChannelMappingTestCase )
-
 
 // BOOST_AUTO_TEST_SUITE_END()

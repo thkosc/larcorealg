@@ -12,7 +12,6 @@
 // C/C++ standard libraries
 #include <type_traits>
 
-
 namespace util {
 
   // @{
@@ -41,17 +40,13 @@ namespace util {
    */
   template <typename A, typename B>
   constexpr auto absDiff(A const& a, B const& b)
-    {
-      static_assert(
-        std::is_same<std::decay_t<A>, std::decay_t<B>>(),
-        "Arguments of util::absDiff() have to be of the same type."
-        );
-      return (b > a)? (b - a): (a - b);
-    }
+  {
+    static_assert(std::is_same<std::decay_t<A>, std::decay_t<B>>(),
+                  "Arguments of util::absDiff() have to be of the same type.");
+    return (b > a) ? (b - a) : (a - b);
+  }
   // @}
 
 } // namespace util
 
-
 #endif // LARCOREALG_COREUTILS_NUMERICUTILS_H
-

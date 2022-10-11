@@ -6,9 +6,9 @@
  */
 
 #ifndef LARCOREALG_GEOMETRY_LINECLOSESTPOINT_H
-# error "LineClosestPoint.tcc should not be included directly: #include \"larcorealg/Geometry/LineClosestPoint.h\" instead."
+#error                                                                                             \
+  "LineClosestPoint.tcc should not be included directly: #include \"larcorealg/Geometry/LineClosestPoint.h\" instead."
 #endif
-
 
 // LArSoft and framework libraries
 #include "cetlib/pow.h" // cet::square
@@ -17,22 +17,23 @@
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect::dot()
 
 // C++ standard library
-#include <tuple> // std::tie()
-#include <cmath> // std::abs()
 #include <cassert>
-
+#include <cmath> // std::abs()
+#include <tuple> // std::tie()
 
 // -----------------------------------------------------------------------------
 // ---  implementation details
 // -----------------------------------------------------------------------------
 namespace geo::details {
-  
+
   template <typename Point, typename Vector>
-  Point LineClosestPointImpl(
-    Point const& startA, Vector const& dirA,
-    Point const& startB, Vector const& dirB,
-    std::pair<double, double>* locOnLines /* = nullptr */
-  ) {
+  Point LineClosestPointImpl(Point const& startA,
+                             Vector const& dirA,
+                             Point const& startB,
+                             Vector const& dirB,
+                             std::pair<double, double>* locOnLines /* = nullptr */
+  )
+  {
     /*
      * The point on the first line ("A"):
      *
@@ -53,15 +54,15 @@ namespace geo::details {
      */
 
     // aliases for quick notation
-    auto const& [ c1, w1 ] = std::tie(startA, dirA);
-    auto const& [ c2, w2 ] = std::tie(startB, dirB);
+    auto const& [c1, w1] = std::tie(startA, dirA);
+    auto const& [c2, w2] = std::tie(startB, dirB);
 
     auto const dc = c2 - c1;
 
     using geo::vect::dot;
     double const dcw1 = dot(dc, w1);
     double const dcw2 = dot(dc, w2);
-    double const w1w2 = dot(w1, w2); // this is cos(angle), angle between lines
+    double const w1w2 = dot(w1, w2);                 // this is cos(angle), angle between lines
     assert(std::abs(std::abs(w1w2) - 1.0) >= 1e-10); // prerequisite: not parallel
 
     using geo::vect::mag2;
@@ -72,117 +73,113 @@ namespace geo::details {
 
     if (locOnLines) {
       double const u = ((dcw2 * w1w1) - (dcw1 * w1w2)) * inv_den;
-      *locOnLines = { t, u };
+      *locOnLines = {t, u};
     }
 
     return c1 + w1 * t;
 
   } // geo::details::LineClosestPointImpl()
 
-
   // ---------------------------------------------------------------------------
   template <typename Point, typename UnitVector>
-  Point LineClosestPointWithUnitVectorsImpl(
-    Point const& startA, UnitVector const& dirA,
-    Point const& startB, UnitVector const& dirB,
-    std::pair<double, double>* locOnLines /* = nullptr */
-  ) {
+  Point LineClosestPointWithUnitVectorsImpl(Point const& startA,
+                                            UnitVector const& dirA,
+                                            Point const& startB,
+                                            UnitVector const& dirB,
+                                            std::pair<double, double>* locOnLines /* = nullptr */
+  )
+  {
     /*
      * The implementation is the same as in `LineClosestPoint()`,
      * with some computation skipped while relying on the assumption of unit
      * vectors.
      */
-    
+
     using geo::vect::mag2;
     assert(std::abs(mag2(dirA) - 1.0) < 1e-10); // prerequisite: dirA unit vector
     assert(std::abs(mag2(dirB) - 1.0) < 1e-10); // prerequisite: dirB unit vector
-  
+
     // aliases for quick notation
     Point const& c1 = startA;
     UnitVector const& w1 = dirA;
-  
+
     Point const& c2 = startB;
     UnitVector const& w2 = dirB;
-  
+
     auto const dc = c2 - c1;
-  
+
     using geo::vect::dot;
     double const dcw1 = dot(dc, w1);
     double const dcw2 = dot(dc, w2);
-    double const w1w2 = dot(w1, w2); // this is cos(angle), angle between lines
+    double const w1w2 = dot(w1, w2);                 // this is cos(angle), angle between lines
     assert(std::abs(std::abs(w1w2) - 1.0) >= 1e-10); // prerequisite: not parallel
-  
+
     // we keep the generic math here, but freeze the modulus parameters
-    constexpr double const w1w1 { 1.0 };
-    constexpr double const w2w2 { 1.0 };
+    constexpr double const w1w1{1.0};
+    constexpr double const w2w2{1.0};
     double const inv_den = 1.0 / (cet::square(w1w2) - (w1w1 * w2w2));
     double const t = ((dcw2 * w1w2) - (dcw1 * w2w2)) * inv_den;
-  
+
     if (locOnLines) {
       double const u = ((dcw2 * w1w1) - (dcw1 * w1w2)) * inv_den;
-      *locOnLines = { t, u };
+      *locOnLines = {t, u};
     }
-  
-    return c1 + w1 * t;
-  
-  } // geo::details::LineClosestPointWithUnitVectorsImpl()
-  
-  
-  // ---------------------------------------------------------------------------
-  
-} // namespace geo::details
 
+    return c1 + w1 * t;
+
+  } // geo::details::LineClosestPointWithUnitVectorsImpl()
+
+  // ---------------------------------------------------------------------------
+
+} // namespace geo::details
 
 // -----------------------------------------------------------------------------
 // ---  interface
 // -----------------------------------------------------------------------------
 template <typename Point, typename Vector>
-geo::IntersectionPointAndOffsets<Point> geo::LineClosestPointAndOffsets(
-  Point const& startA, Vector const& dirA,
-  Point const& startB, Vector const& dirB
-) {
+geo::IntersectionPointAndOffsets<Point> geo::LineClosestPointAndOffsets(Point const& startA,
+                                                                        Vector const& dirA,
+                                                                        Point const& startB,
+                                                                        Vector const& dirB)
+{
   std::pair<double, double> locOnLines;
-  auto const point
-    = details::LineClosestPointImpl(startA, dirA, startB, dirB, &locOnLines);
-  return { point, locOnLines.first, locOnLines.second };
+  auto const point = details::LineClosestPointImpl(startA, dirA, startB, dirB, &locOnLines);
+  return {point, locOnLines.first, locOnLines.second};
 } // geo::LineClosestPointAndOffsets()
-
 
 // -----------------------------------------------------------------------------
 template <typename Point, typename Vector>
-Point geo::LineClosestPoint(
-  Point const& startA, Vector const& dirA,
-  Point const& startB, Vector const& dirB
-) {
+Point geo::LineClosestPoint(Point const& startA,
+                            Vector const& dirA,
+                            Point const& startB,
+                            Vector const& dirB)
+{
   return details::LineClosestPointImpl(startA, dirA, startB, dirB, nullptr);
 } // geo::LineClosestPoint()
 
-
 // -----------------------------------------------------------------------------
 template <typename Point, typename UnitVector>
-geo::IntersectionPointAndOffsets<Point>
-geo::LineClosestPointAndOffsetsWithUnitVectors(
-  Point const& startA, UnitVector const& dirA,
-  Point const& startB, UnitVector const& dirB
-) {
-  
+geo::IntersectionPointAndOffsets<Point> geo::LineClosestPointAndOffsetsWithUnitVectors(
+  Point const& startA,
+  UnitVector const& dirA,
+  Point const& startB,
+  UnitVector const& dirB)
+{
+
   std::pair<double, double> locOnLines;
-  auto const point = details::LineClosestPointWithUnitVectorsImpl
-    (startA, dirA, startB, dirB, &locOnLines);
-  return { point, locOnLines.first, locOnLines.second };
-  
+  auto const point =
+    details::LineClosestPointWithUnitVectorsImpl(startA, dirA, startB, dirB, &locOnLines);
+  return {point, locOnLines.first, locOnLines.second};
 }
-
 
 // -----------------------------------------------------------------------------
 template <typename Point, typename UnitVector>
-Point geo::LineClosestPointWithUnitVectors(
-  Point const& startA, UnitVector const& dirA,
-  Point const& startB, UnitVector const& dirB
-) {
-  return details::LineClosestPointWithUnitVectorsImpl
-    (startA, dirA, startB, dirB, nullptr);
+Point geo::LineClosestPointWithUnitVectors(Point const& startA,
+                                           UnitVector const& dirA,
+                                           Point const& startB,
+                                           UnitVector const& dirB)
+{
+  return details::LineClosestPointWithUnitVectorsImpl(startA, dirA, startB, dirB, nullptr);
 }
-
 
 // -----------------------------------------------------------------------------

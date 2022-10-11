@@ -8,7 +8,6 @@
 #ifndef LARCORE_TEST_GEOMETRY_GEOMETRYGEOIDTESTALG_H
 #define LARCORE_TEST_GEOMETRY_GEOMETRYGEOIDTESTALG_H
 
-
 namespace fhicl {
   class ParameterSet;
 }
@@ -20,8 +19,7 @@ namespace geo {
   //----------------------------------------------------------------------------
 
   class GeometryGeoIDTestAlg {
-      public:
-
+  public:
     /// Constructor: reads configuration, does nothing
     GeometryGeoIDTestAlg(fhicl::ParameterSet const& /* pset */) {}
 
@@ -39,14 +37,11 @@ namespace geo {
     void WireGeoIDTest() const;
     /// @}
 
-
-      protected:
+  protected:
     GeometryCore const* geom = nullptr; ///< pointer to the geometry description
 
   }; // class GeometryGeoIDTestAlg
 
-
 } // namespace geo
-
 
 #endif // LARCORE_TEST_GEOMETRY_GEOMETRYGEOIDTESTALG_H

@@ -10,29 +10,28 @@
 #define LARCOREALG_GEOMETRY_OPDETGEO_H
 
 // LArSoft libraries
-#include "larcorealg/Geometry/TransformationMatrix.h"
-#include "larcorealg/Geometry/LocalTransformationGeo.h"
 #include "larcorealg/CoreUtils/RealComparisons.h"
+#include "larcorealg/Geometry/LocalTransformationGeo.h"
+#include "larcorealg/Geometry/TransformationMatrix.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_optical_vectors.h"
-#include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h" // geo::OpDetID
+#include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
 
 // ROOT libraries
-#include "TGeoMatrix.h" // TGeoHMatrix
-#include "TGeoTube.h"
-#include "TGeoSphere.h"
-#include "TGeoBBox.h"
 #include "TClass.h"
+#include "TGeoBBox.h"
+#include "TGeoMatrix.h" // TGeoHMatrix
+#include "TGeoSphere.h"
+#include "TGeoTube.h"
 
 // C/C++ standard libraries
-#include <vector>
-#include <string>
-#include <array>
 #include <algorithm> // std::minmax()
-#include <typeinfo> // typeid()
-#include <type_traits> // std::decay_t(), std::is_base_of_v
+#include <array>
 #include <cassert>
-
+#include <string>
+#include <type_traits> // std::decay_t(), std::is_base_of_v
+#include <typeinfo>    // typeid()
+#include <vector>
 
 // forward declarations
 class TGeoNode;
@@ -42,7 +41,6 @@ namespace geo {
   /// @ingroup Geometry
   class OpDetGeo {
   public:
-
     /// @{
     /**
      * @name Types for geometry-local reference vectors.
@@ -71,7 +69,7 @@ namespace geo {
     /// Returns the geometry ID of this optical detector.
     geo::OpDetID const& ID() const { return fID; }
 
-    void   GetCenter(double* xyz, double localz=0.0) const;
+    void GetCenter(double* xyz, double localz = 0.0) const;
     geo::Point_t const& GetCenter() const { return fCenter; }
     double RMin() const;
     double RMax() const;
@@ -81,9 +79,9 @@ namespace geo {
     double Length() const { return 2.0 * HalfL(); }
     double Width() const { return 2.0 * HalfW(); }
     double Height() const { return 2.0 * HalfH(); }
-    double ThetaZ() const;  ///< returns angle of detector
-                            ///< with respect to z axis
-                            ///< in the Y-Z plane, in radians
+    double ThetaZ() const;             ///< returns angle of detector
+                                       ///< with respect to z axis
+                                       ///< in the Y-Z plane, in radians
     double ThetaZ(bool degrees) const; ///< returns angle of detector
                                        ///< with respect to z axis
                                        ///< in the Y-Z plane
@@ -98,7 +96,6 @@ namespace geo {
     double DistanceToPoint(double const* xyz) const;
     //@}
 
-
     /// @{
     /**
      * @name Coordinate transformation
@@ -110,46 +107,61 @@ namespace geo {
 
     /// Transform point from local optical detector frame to world frame.
     void LocalToWorld(const double* opdet, double* world) const
-      { fTrans.LocalToWorld(opdet, world); }
+    {
+      fTrans.LocalToWorld(opdet, world);
+    }
 
     /// Transform point from local optical detector frame to world frame.
     geo::Point_t toWorldCoords(LocalPoint_t const& local) const
-      { return fTrans.toWorldCoords(local); }
+    {
+      return fTrans.toWorldCoords(local);
+    }
 
     /// Transform direction vector from local to world.
     void LocalToWorldVect(const double* opdet, double* world) const
-      { fTrans.LocalToWorldVect(opdet, world); }
+    {
+      fTrans.LocalToWorldVect(opdet, world);
+    }
 
     /// Transform direction vector from local to world.
     geo::Vector_t toWorldCoords(LocalVector_t const& local) const
-      { return fTrans.toWorldCoords(local); }
+    {
+      return fTrans.toWorldCoords(local);
+    }
 
     /// Transform point from world frame to local optical detector frame.
     void WorldToLocal(const double* world, double* opdet) const
-      { fTrans.WorldToLocal(world, opdet); }
+    {
+      fTrans.WorldToLocal(world, opdet);
+    }
 
     /// Transform point from world frame to local optical detector frame.
     LocalPoint_t toLocalCoords(geo::Point_t const& world) const
-      { return fTrans.toLocalCoords(world); }
+    {
+      return fTrans.toLocalCoords(world);
+    }
 
     /// Transform direction vector from world to local.
     void WorldToLocalVect(const double* world, double* opdet) const
-      { fTrans.WorldToLocalVect(world, opdet); }
+    {
+      fTrans.WorldToLocalVect(world, opdet);
+    }
 
     /// Transform direction vector from world to local.
     LocalVector_t toLocalCoords(geo::Vector_t const& world) const
-      { return fTrans.toLocalCoords(world); }
+    {
+      return fTrans.toLocalCoords(world);
+    }
 
     /// @}
 
     /// Returns the ROOT object describing the detector geometry.
-    const TGeoNode*     Node() const { return fOpDetNode; }
+    const TGeoNode* Node() const { return fOpDetNode; }
 
-    
     // --- BEGIN -- detector shape ---------------------------------------------
     /// @name Detector shape
     /// @{
-    
+
     /// Returns the geometry object as `TGeoShape`.
     TGeoShape const* Shape() const { return Node()->GetVolume()->GetShape(); }
 
@@ -170,7 +182,7 @@ namespace geo {
      */
     template <typename ShapeObj>
     bool isShape() const;
-    
+
     /**
      * @brief Returns whether the detector inherits from the specified shape.
      * @tparam ShapeObj type of ROOT geometry object representing the shape
@@ -187,7 +199,7 @@ namespace geo {
      */
     template <typename ShapeObj>
     bool isShapeLike() const;
-    
+
     /// Returns whether the detector shape is a cylinder (`TGeoTube`).
     bool isTube() const { return isShapeLike<TGeoTube>(); }
 
@@ -202,7 +214,6 @@ namespace geo {
 
     /// Performs all updates after cryostat has sorted the optical detectors.
     void UpdateAfterSorting(geo::OpDetID opdetid);
-
 
     /**
      * @brief Prints information about this optical detector.
@@ -224,8 +235,7 @@ namespace geo {
      * level.
      */
     template <typename Stream>
-    void PrintOpDetInfo
-      (Stream&& out, std::string indent = "", unsigned int verbosity = 0) const;
+    void PrintOpDetInfo(Stream&& out, std::string indent = "", unsigned int verbosity = 0) const;
 
     /**
      * @brief Returns a string with optical detector information
@@ -233,74 +243,70 @@ namespace geo {
      *
      * Arguments and provided information are the same as in `PrintOpDetInfo()`.
      */
-    std::string OpDetInfo
-      (std::string indent = "", unsigned int verbosity = 0) const;
+    std::string OpDetInfo(std::string indent = "", unsigned int verbosity = 0) const;
 
     /// Maximum verbosity supported by `PrintOpDetInfo()`.
     static constexpr unsigned int MaxVerbosity = 2;
 
   private:
-    using LocalTransformation_t = geo::LocalTransformationGeo
-      <ROOT::Math::Transform3D, LocalPoint_t, LocalVector_t>;
+    using LocalTransformation_t =
+      geo::LocalTransformationGeo<ROOT::Math::Transform3D, LocalPoint_t, LocalVector_t>;
 
     LocalTransformation_t fTrans; ///< Optical-detector-to-world transformation.
-    const TGeoNode* fOpDetNode;  ///< Pointer to theopdet node
-    geo::Point_t fCenter; ///< Stored geometric center of the optical detector.
+    const TGeoNode* fOpDetNode;   ///< Pointer to theopdet node
+    geo::Point_t fCenter;         ///< Stored geometric center of the optical detector.
 
     geo::OpDetID fID; ///< Identifier of this optical detector.
 
     /// Returns the geometry object as `TGeoTube`, `nullptr` if not a tube.
-    TGeoTube const* asTube() const
-      { return dynamic_cast<TGeoTube const*>(Shape()); }
+    TGeoTube const* asTube() const { return dynamic_cast<TGeoTube const*>(Shape()); }
 
     /// Returns the geometry object as `TGeoSphere`, `nullptr` if not a sphere.
-    TGeoSphere const* asSphere() const
-      { return dynamic_cast<TGeoSphere const*>(Shape()); }
+    TGeoSphere const* asSphere() const { return dynamic_cast<TGeoSphere const*>(Shape()); }
 
     /// Returns the geometry object as `TGeoBBox`, `nullptr` if not box-derived.
-    TGeoBBox const* asBox() const
-      { return dynamic_cast<TGeoBBox const*>(Shape()); }
+    TGeoBBox const* asBox() const { return dynamic_cast<TGeoBBox const*>(Shape()); }
 
   }; // class OpDetGeo
 
 } // namespace geo
-
 
 //------------------------------------------------------------------------------
 //--- template implementation
 //---
 
 template <typename ShapeObj>
-bool geo::OpDetGeo::isShape() const {
+bool geo::OpDetGeo::isShape() const
+{
   static_assert(std::is_base_of_v<TGeoShape, std::decay_t<ShapeObj>>);
-  
+
   // C++ understanding of the business instead of ROOT's (no strong reason)
   TGeoShape const* shape = Shape(); // needed to convince Clang 7 I really mean it
   return typeid(*shape) == typeid(std::decay_t<ShapeObj>);
-  
+
 } // geo::OpDetGeo::isShape()
 
 //------------------------------------------------------------------------------
 template <typename ShapeObj>
-bool geo::OpDetGeo::isShapeLike() const {
+bool geo::OpDetGeo::isShapeLike() const
+{
   static_assert(std::is_base_of_v<TGeoShape, std::decay_t<ShapeObj>>);
-  
+
   // C++ understanding of the business instead of ROOT's (no strong reason)
   return dynamic_cast<std::decay_t<ShapeObj> const*>(Shape()) != nullptr;
-  
-} // geo::OpDetGeo::isShapeLike()
 
+} // geo::OpDetGeo::isShapeLike()
 
 //------------------------------------------------------------------------------
 template <typename Stream>
-void geo::OpDetGeo::PrintOpDetInfo(
-  Stream&& out,
-  std::string indent /* = "" */,
-  unsigned int verbosity /* = 0 */
-) const {
-  
-  lar::util::RealComparisons<double> cmp(1e-5);  
-  
+void geo::OpDetGeo::PrintOpDetInfo(Stream&& out,
+                                   std::string indent /* = "" */,
+                                   unsigned int verbosity /* = 0 */
+                                   ) const
+{
+
+  lar::util::RealComparisons<double> cmp(1e-5);
+
   //----------------------------------------------------------------------------
   out << "optical detector " << ID() << " centered at " << GetCenter() << " cm";
 
@@ -313,38 +319,37 @@ void geo::OpDetGeo::PrintOpDetInfo(
     out << ", length: " << Length() << " cm";
   }
   else if (isBar()) {
-    out << ", bar size " << Width() << " x " << Height() << " x " << Length()
-      << " cm";
+    out << ", bar size " << Width() << " x " << Height() << " x " << Length() << " cm";
   }
   else if (TGeoSphere const* sphere = asSphere(); sphere) {
     assert(isSphere());
-    auto const [ th1, th2 ]
-      = std::minmax({ sphere->GetTheta1(), sphere->GetTheta2() });
+    auto const [th1, th2] = std::minmax({sphere->GetTheta1(), sphere->GetTheta2()});
     out << ", ";
     // some information out of the interface
-    if (cmp.zero(th1) && cmp.equal(th2, 180.0)) out << "spherical";
-    else if ((cmp.zero(th1) && cmp.equal(th2, 90.0))
-      || (cmp.equal(th1, 90.0) && cmp.equal(th2, 180.0)))
-    {
+    if (cmp.zero(th1) && cmp.equal(th2, 180.0))
+      out << "spherical";
+    else if ((cmp.zero(th1) && cmp.equal(th2, 90.0)) ||
+             (cmp.equal(th1, 90.0) && cmp.equal(th2, 180.0))) {
       out << "hemispherical";
     }
-    else out << "spherical portion (" << th1 << " -> " << th2 << " degree)";
+    else
+      out << "spherical portion (" << th1 << " -> " << th2 << " degree)";
     out << " with external radius " << RMax() << " cm";
   }
-  else out << ", shape: '" << Shape()->IsA()->GetName() << "'";
+  else
+    out << ", shape: '" << Shape()->IsA()->GetName() << "'";
 
   if (verbosity-- <= 0) return; // 1
 
   //----------------------------------------------------------------------------
   out << ", theta(z): " << ThetaZ() << " rad";
 
-//  if (verbosity-- <= 0) return; // 2
+  //  if (verbosity-- <= 0) return; // 2
 
   //----------------------------------------------------------------------------
 
 } // geo::OpDetGeo::PrintOpDetInfo()
 
 //------------------------------------------------------------------------------
-
 
 #endif // LARCOREALG_GEOMETRY_OPDETGEO_H

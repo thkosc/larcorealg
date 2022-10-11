@@ -6,23 +6,22 @@
  *
  */
 
-
 // testing library
 #include "larcorealg/CoreUtils/zip.h"
 
 // Boost libraries
-#define BOOST_TEST_MODULE ( zip_test )
+#define BOOST_TEST_MODULE (zip_test)
 #include <boost/test/unit_test.hpp>
 
 // C/C++ libraries
-#include <vector>
 #include <array>
-#include <cstddef> // std::size_t
 #include <cassert>
-
+#include <cstddef> // std::size_t
+#include <vector>
 
 // -----------------------------------------------------------------------------
-void test_zip() {
+void test_zip()
+{
 
   //
   // standard use case with zipping included
@@ -44,7 +43,7 @@ void test_zip() {
   // iteration using the first element as lead
   //
   unsigned int iLoop = 0;
-  for (auto&& [ a, b ]: util::zip(twice, thrice)) {
+  for (auto&& [a, b] : util::zip(twice, thrice)) {
 
     BOOST_TEST(a == twice[iLoop]);
     BOOST_TEST(&a == &(twice[iLoop]));
@@ -66,7 +65,7 @@ void test_zip() {
   assert(thrice.size() == N - 1);
 
   iLoop = 0;
-  for (auto&& [ a, b ]: util::zip<1>(twice, thrice)) {
+  for (auto&& [a, b] : util::zip<1>(twice, thrice)) {
 
     BOOST_TEST(a == twice[iLoop]);
     BOOST_TEST(&a == &(twice[iLoop]));
@@ -78,31 +77,29 @@ void test_zip() {
   } // for
   BOOST_TEST(iLoop == thrice.size());
 
-
 } // test_zip()
 
-
 // -----------------------------------------------------------------------------
-void test_no_zip() {
+void test_no_zip()
+{
 
   unsigned int iLoop = 0U;
-  for (auto&& i [[gnu::unused]]: util::zip()) {}
+  for (auto&& i [[gnu::unused]] : util::zip()) {}
 
   BOOST_TEST(iLoop == 0);
 
 } // test_no_zip()
 
-
 // -----------------------------------------------------------------------------
 // BEGIN Test cases  -----------------------------------------------------------
 // -----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(zip_testcase) {
+BOOST_AUTO_TEST_CASE(zip_testcase)
+{
 
   test_zip();
   test_no_zip();
 
 } // BOOST_AUTO_TEST_CASE(zip_testcase)
-
 
 // -----------------------------------------------------------------------------
 // END Test cases  -------------------------------------------------------------

@@ -8,7 +8,6 @@
 #ifndef GEO_GEOMETRYITERATORTESTALG_H
 #define GEO_GEOMETRYITERATORTESTALG_H
 
-
 namespace fhicl {
   class ParameterSet;
 }
@@ -20,8 +19,7 @@ namespace geo {
   //----------------------------------------------------------------------------
 
   class GeometryIteratorTestAlg {
-      public:
-
+  public:
     /// Constructor: reads configuration, does nothing
     GeometryIteratorTestAlg(fhicl::ParameterSet const& /* pset */) {}
 
@@ -52,13 +50,11 @@ namespace geo {
     void WireIteratorsTest() const;
     /// @}
 
-      protected:
+  protected:
     GeometryCore const* geom = nullptr; ///< pointer to the geometry description
 
   }; // class GeometryIteratorTestAlg
 
-
 } // namespace geo
-
 
 #endif // GEO_GEOMETRYITERATORTESTALG_H

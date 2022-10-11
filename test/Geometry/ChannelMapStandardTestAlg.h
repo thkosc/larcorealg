@@ -8,7 +8,6 @@
 #ifndef GEO_CHANNELMAPSTANDARDTESTALG_H
 #define GEO_CHANNELMAPSTANDARDTESTALG_H
 
-
 namespace fhicl {
   class ParameterSet;
 }
@@ -20,8 +19,7 @@ namespace geo {
   //----------------------------------------------------------------------------
 
   class ChannelMapStandardTestAlg {
-      public:
-
+  public:
     /// Constructor: reads configuration, does nothing
     ChannelMapStandardTestAlg(fhicl::ParameterSet const& /* pset */) {}
 
@@ -43,13 +41,11 @@ namespace geo {
     /// Tests channel mappings (very, very partial)
     void ChannelMappingTest() const;
 
-      protected:
+  protected:
     GeometryCore const* geom = nullptr; ///< pointer to the geometry description
 
   }; // class ChannelMapStandardTestAlg
 
-
 } // namespace geo
-
 
 #endif // GEO_CHANNELMAPSTANDARDTESTALG_H

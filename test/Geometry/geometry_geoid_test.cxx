@@ -13,11 +13,11 @@
 #define BOOST_TEST_MODULE GeometryGeoIDTest
 
 // LArSoft libraries
-#include "larcorealg/TestUtils/geometry_unit_test_base.h"
 #include "GeometryGeoIDTestAlg.h"
-#include "larcorealg/TestUtils/boost_unit_test_base.h"
-#include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/Geometry/ChannelMapStandardAlg.h"
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/TestUtils/boost_unit_test_base.h"
+#include "larcorealg/TestUtils/geometry_unit_test_base.h"
 
 // utility libraries
 
@@ -33,14 +33,11 @@
 // configuration file name from command line, and
 // BoostCommandLineConfiguration<> makes it initialize in time for Boost
 // to catch it when instanciating the fixture.
-struct StandardGeometryConfiguration:
-  public testing::BoostCommandLineConfiguration<
-    testing::BasicGeometryEnvironmentConfiguration<geo::ChannelMapStandardAlg>
-    >
-{
+struct StandardGeometryConfiguration
+  : public testing::BoostCommandLineConfiguration<
+      testing::BasicGeometryEnvironmentConfiguration<geo::ChannelMapStandardAlg>> {
   /// Constructor: overrides the application name
-  StandardGeometryConfiguration()
-    { SetApplicationName("GeometryGeoIDUnitTest"); }
+  StandardGeometryConfiguration() { SetApplicationName("GeometryGeoIDUnitTest"); }
 }; // class StandardGeometryConfiguration
 
 /*
@@ -63,24 +60,22 @@ struct StandardGeometryConfiguration:
  * In this case, whether `GlobalTester()` and `Tester()` point to the same
  * tester depends on Boost unit test implementation.
  */
-class GeometryGeoIDTestFixture:
-  private testing::GeometryTesterEnvironment<StandardGeometryConfiguration>
-{
+class GeometryGeoIDTestFixture
+  : private testing::GeometryTesterEnvironment<StandardGeometryConfiguration> {
   using Tester_t = geo::GeometryGeoIDTestAlg;
 
   using TesterRegistry_t = testing::TestSharedGlobalResource<Tester_t>;
 
-    public:
-
+public:
   /// Constructor: initialize the tester with the Geometry from base class
   GeometryGeoIDTestFixture()
-    {
-      // create a new tester
-      tester_ptr = std::make_shared<Tester_t>(TesterParameters());
-      tester_ptr->Setup(*(Provider<geo::GeometryCore>()));
-      // if no tester is default yet, share ours:
-      TesterRegistry_t::ProvideDefaultSharedResource(tester_ptr);
-    }
+  {
+    // create a new tester
+    tester_ptr = std::make_shared<Tester_t>(TesterParameters());
+    tester_ptr->Setup(*(Provider<geo::GeometryCore>()));
+    // if no tester is default yet, share ours:
+    TesterRegistry_t::ProvideDefaultSharedResource(tester_ptr);
+  }
 
   /// Retrieves the local tester
   Tester_t& Tester() { return *(tester_ptr.get()); }
@@ -88,11 +83,9 @@ class GeometryGeoIDTestFixture:
   /// Retrieves the global tester
   static Tester_t& GlobalTester() { return TesterRegistry_t::Resource(); }
 
-    private:
+private:
   std::shared_ptr<Tester_t> tester_ptr; ///< our tester (may be shared)
-}; // class GeometryGeoIDTestFixture
-
-
+};                                      // class GeometryGeoIDTestFixture
 
 //------------------------------------------------------------------------------
 //---  The tests
@@ -105,32 +98,24 @@ class GeometryGeoIDTestFixture:
 
 BOOST_GLOBAL_FIXTURE(GeometryGeoIDTestFixture);
 
-BOOST_AUTO_TEST_CASE( CryostatGeoIDTest )
+BOOST_AUTO_TEST_CASE(CryostatGeoIDTest)
 {
   GeometryGeoIDTestFixture::GlobalTester().CryostatGeoIDTest();
 } // BOOST_AUTO_TEST_CASE( CryostatGeoIDTest )
 
-
-
-BOOST_AUTO_TEST_CASE( TPCGeoIDTest )
+BOOST_AUTO_TEST_CASE(TPCGeoIDTest)
 {
   GeometryGeoIDTestFixture::GlobalTester().TPCGeoIDTest();
 } // BOOST_AUTO_TEST_CASE( TPCGeoIDTest )
 
-
-
-BOOST_AUTO_TEST_CASE( PlaneGeoIDTest )
+BOOST_AUTO_TEST_CASE(PlaneGeoIDTest)
 {
   GeometryGeoIDTestFixture::GlobalTester().PlaneGeoIDTest();
 } // BOOST_AUTO_TEST_CASE( PlaneGeoIDTest )
 
-
-
-BOOST_AUTO_TEST_CASE( WireGeoIDTest )
+BOOST_AUTO_TEST_CASE(WireGeoIDTest)
 {
   GeometryGeoIDTestFixture::GlobalTester().WireGeoIDTest();
 } // BOOST_AUTO_TEST_CASE( WireGeoIDTest )
-
-
 
 // BOOST_AUTO_TEST_SUITE_END()

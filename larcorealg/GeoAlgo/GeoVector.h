@@ -16,12 +16,12 @@
 
 #include "larcorealg/GeoAlgo/GeoAlgoConstants.h"
 
-#include "TVector3.h"
 #include "TLorentzVector.h"
+#include "TVector3.h"
 
-#include <stddef.h>
 #include <functional>
 #include <ostream>
+#include <stddef.h>
 #include <vector>
 
 namespace geoalgo {
@@ -36,41 +36,39 @@ namespace geoalgo {
     friend class LineSegment;
     friend class Sphere;
     friend class GeoAlgo;
+
   public:
     /// Default ctor
-    Vector() : std::vector<double>()
-    {}
+    Vector() : std::vector<double>() {}
 
     /// Ctor to instantiate with invalid value
-    Vector(size_t n) : std::vector<double>(n,kINVALID_DOUBLE)
-    {}
+    Vector(size_t n) : std::vector<double>(n, kINVALID_DOUBLE) {}
 
     /// Default ctor w/ a bare std::vector<double>
-    Vector(const std::vector<double> &obj) : std::vector<double>(obj)
-    {}
-
+    Vector(const std::vector<double>& obj) : std::vector<double>(obj) {}
 
     Vector(const double x, const double y);                 ///< ctor w/ x & y
     Vector(const double x, const double y, const double z); ///< ctor w/ x, y & z
-    Vector(const TVector3 &pt);                             ///< ctor w/ TVector3
-    Vector(const TLorentzVector &pt);                       ///< ctor w/ TLorentzVector
+    Vector(const TVector3& pt);                             ///< ctor w/ TVector3
+    Vector(const TLorentzVector& pt);                       ///< ctor w/ TLorentzVector
 
-    void   Normalize(); ///< Normalize itself
+    void Normalize(); ///< Normalize itself
 
-    bool   IsValid () const; ///< Check if point is valid
+    bool IsValid() const;    ///< Check if point is valid
     double SqLength() const; ///< Compute the squared length of the vector
-    double Length  () const; ///< Compute the length of the vector
-    Vector Dir     () const; ///< Return a direction unit vector
-    double Phi	   () const; ///< Compute the angle Phi
-    double Theta   () const; ///< Compute the angle theta
+    double Length() const;   ///< Compute the length of the vector
+    Vector Dir() const;      ///< Return a direction unit vector
+    double Phi() const;      ///< Compute the angle Phi
+    double Theta() const;    ///< Compute the angle theta
 
-    double SqDist(const Vector &obj) const; ///< Compute the squared distance to another vector
-    double Dist  (const Vector& obj) const; ///< Compute the distance to another vector
-    double Dot   (const Vector &obj) const; /// Compute a dot product of two vectors
-    Vector Cross (const Vector &obj) const; /// Compute a cross product of two vectors
-    double Angle (const Vector &obj) const; /// Compute an opening angle w.r.t. the given vector
+    double SqDist(const Vector& obj) const; ///< Compute the squared distance to another vector
+    double Dist(const Vector& obj) const;   ///< Compute the distance to another vector
+    double Dot(const Vector& obj) const;    /// Compute a dot product of two vectors
+    Vector Cross(const Vector& obj) const;  /// Compute a cross product of two vectors
+    double Angle(const Vector& obj) const;  /// Compute an opening angle w.r.t. the given vector
 
-    TLorentzVector ToTLorentzVector() const; ///< Convert geovector to TLorentzVector (with 4th element set equal to 0)
+    TLorentzVector ToTLorentzVector()
+      const; ///< Convert geovector to TLorentzVector (with 4th element set equal to 0)
 
     /// Dimensional check for a compatibility
     void compat(const Vector& obj) const;
@@ -81,7 +79,6 @@ namespace geoalgo {
     void RotateZ(const double& theta);
 
   protected:
-
     /// Compute the squared-distance to another vector w/o dimension check
     double _SqDist_(const Vector& obj) const;
     /// Compute the distance to another vector w/o dimension check
@@ -97,50 +94,61 @@ namespace geoalgo {
     //
     // binary/uniry operators
     //
-    inline Vector& operator+=(const Vector& rhs) {
-      for(size_t i=0; i<size(); ++i) (*this)[i] += rhs[i];
+    inline Vector& operator+=(const Vector& rhs)
+    {
+      for (size_t i = 0; i < size(); ++i)
+        (*this)[i] += rhs[i];
       return *this;
     }
 
-    inline Vector& operator-=(const Vector& rhs) {
-      for(size_t i=0; i<size(); ++i) (*this)[i] -= rhs[i];
+    inline Vector& operator-=(const Vector& rhs)
+    {
+      for (size_t i = 0; i < size(); ++i)
+        (*this)[i] -= rhs[i];
       return *this;
     }
 
-    inline Vector& operator*=(const double rhs) {
-      for(auto &v : *this) v *= rhs;
+    inline Vector& operator*=(const double rhs)
+    {
+      for (auto& v : *this)
+        v *= rhs;
       return *this;
     }
 
-    inline Vector& operator/=(const double rhs) {
-      for(auto &v : *this) v /= rhs;
+    inline Vector& operator/=(const double rhs)
+    {
+      for (auto& v : *this)
+        v /= rhs;
       return *this;
     }
 
-    inline Vector& operator=(const Vector& rhs) {
+    inline Vector& operator=(const Vector& rhs)
+    {
       this->resize(rhs.size());
-      for(size_t i=0; i<rhs.size(); ++i) (*this)[i]=rhs[i];
+      for (size_t i = 0; i < rhs.size(); ++i)
+        (*this)[i] = rhs[i];
       return (*this);
     }
 
     inline Vector operator+(const Vector& rhs) const
     {
       Vector res((*this));
-      res+=rhs;
+      res += rhs;
       return res;
     }
 
     inline Vector operator-(const Vector& rhs) const
     {
       Vector res((*this));
-      res-=rhs;
+      res -= rhs;
       return res;
     }
 
     inline double operator*(const Vector& rhs) const
     {
-      double res=0;
-      for(size_t i=0; i<size(); ++i) res += (*this)[i] * rhs[i];
+      double res = 0;
+      for (size_t i = 0; i < size(); ++i)
+        res += (*this)[i] * rhs[i];
       return res;
     }
 
@@ -158,37 +166,37 @@ namespace geoalgo {
       return res;
     }
 
-    inline bool operator< ( const Vector& rhs ) const
+    inline bool operator<(const Vector& rhs) const
     {
       compat(rhs);
-      for(size_t i=0; i<size(); ++i)
-	if((*this)[i] < rhs[i]) return true;
+      for (size_t i = 0; i < size(); ++i)
+        if ((*this)[i] < rhs[i]) return true;
       return false;
     }
 
-    inline bool operator< ( const double& rhs) const
-    { return Length() < rhs; }
+    inline bool operator<(const double& rhs) const { return Length() < rhs; }
 
-    inline bool operator== ( const Vector& rhs) const
+    inline bool operator==(const Vector& rhs) const
     {
       compat(rhs);
-      for(size_t i=0; i<size(); ++i)
-	if((*this)[i] != rhs[i]) return false;
+      for (size_t i = 0; i < size(); ++i)
+        if ((*this)[i] != rhs[i]) return false;
       return true;
     }
 
-    inline bool operator!= ( const Vector& rhs) const
-    { return !(*this == rhs); }
+    inline bool operator!=(const Vector& rhs) const { return !(*this == rhs); }
 
-    /// Streamer
-    #ifndef __CINT__
-    friend std::ostream& operator << (std::ostream &o, ::geoalgo::Vector const& a)
-    { o << "Vector ("; for(auto const& v : a) o << v << " ";
+/// Streamer
+#ifndef __CINT__
+    friend std::ostream& operator<<(std::ostream& o, ::geoalgo::Vector const& a)
+    {
+      o << "Vector (";
+      for (auto const& v : a)
+        o << v << " ";
       o << ")";
       return o;
     }
-    #endif
-
+#endif
   };
 
   /// Point has same feature as Vector
@@ -199,11 +207,12 @@ namespace geoalgo {
 // Define a pointer comparison
 namespace std {
   template <>
-  class less<geoalgo::Vector*>
-  {
+  class less<geoalgo::Vector*> {
   public:
-    bool operator()( const geoalgo::Vector* lhs, const geoalgo::Vector* rhs )
-    { return (*lhs) < (*rhs); }
+    bool operator()(const geoalgo::Vector* lhs, const geoalgo::Vector* rhs)
+    {
+      return (*lhs) < (*rhs);
+    }
   };
 }
 

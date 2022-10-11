@@ -7,7 +7,7 @@
  */
 
 // Boost libraries
-#define BOOST_TEST_MODULE ( DereferenceIterator_test )
+#define BOOST_TEST_MODULE (DereferenceIterator_test)
 #include <boost/test/unit_test.hpp>
 
 // LArSoft libraries
@@ -15,13 +15,14 @@
 
 // C/C++ standard libraries
 #include <iterator> // std::back_inserter()
-#include <memory> // std::make_unique()
+#include <list>
+#include <memory>  // std::make_unique()
 #include <utility> // std::move()
 #include <vector>
-#include <list>
 
 template <template <typename T, typename...> class SeqCont>
-void test_DereferenceIterator() {
+void test_DereferenceIterator()
+{
 
   using Container_t = SeqCont<std::unique_ptr<size_t>>;
 
@@ -66,7 +67,7 @@ void test_DereferenceIterator() {
   // test that we can do a ranged-for loop
   //
   size_t index = 0;
-  for (size_t& i: lar::util::dereferenceIteratorLoop(v)) {
+  for (size_t& i : lar::util::dereferenceIteratorLoop(v)) {
 
     BOOST_TEST(i == index);
 
@@ -76,12 +77,12 @@ void test_DereferenceIterator() {
   //
   // test that we can do a constant ranged-for loop
   //
-  index = 0; // reset
+  index = 0;          // reset
   auto const& cv = v; // constant version
-  for (auto& i: lar::util::dereferenceConstIteratorLoop(cv)) {
+  for (auto& i : lar::util::dereferenceConstIteratorLoop(cv)) {
 
     static_assert(std::is_const<std::remove_reference_t<decltype(i)>>::value,
-      "Dereferenced value from constant vector is not constant");
+                  "Dereferenced value from constant vector is not constant");
 
     BOOST_TEST(i == index);
 
@@ -92,10 +93,10 @@ void test_DereferenceIterator() {
   // test that we can do a constant ranged-for loop also on a non-const coll.
   //
   index = 0; // reset
-  for (auto& i: lar::util::dereferenceConstIteratorLoop(v)) {
+  for (auto& i : lar::util::dereferenceConstIteratorLoop(v)) {
 
     static_assert(std::is_const<std::remove_reference_t<decltype(i)>>::value,
-      "Dereferenced value from constant vector is not constant");
+                  "Dereferenced value from constant vector is not constant");
 
     BOOST_TEST(i == index);
 
@@ -106,16 +107,16 @@ void test_DereferenceIterator() {
   //
   // check that we can write in a normal loop
   //
-  for (auto& i: lar::util::dereferenceIteratorLoop(v)) i = 10;
+  for (auto& i : lar::util::dereferenceIteratorLoop(v))
+    i = 10;
 
-  for (auto i: lar::util::dereferenceConstIteratorLoop(cv))
+  for (auto i : lar::util::dereferenceConstIteratorLoop(cv))
     BOOST_TEST(i == 10);
-
 
 } // test_DereferenceIterator<>()
 
-
-BOOST_AUTO_TEST_CASE(DereferenceIterator_testcase) {
+BOOST_AUTO_TEST_CASE(DereferenceIterator_testcase)
+{
 
   test_DereferenceIterator<std::vector>();
 

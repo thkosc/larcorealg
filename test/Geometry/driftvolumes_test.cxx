@@ -14,15 +14,14 @@
  */
 
 // LArSoft libraries
-#include "larcorealg/TestUtils/geometry_unit_test_base.h"
-#include "larcorealg/Geometry/ChannelMapStandardAlg.h"
-#include "larcorealg/Geometry/GeometryCore.h"
-#include "larcorealg/Geometry/DriftPartitions.h" // BuildDriftVolumes()
 #include "larcorealg/CoreUtils/DumpUtils.h" // lar::dump::vector3D()
+#include "larcorealg/Geometry/ChannelMapStandardAlg.h"
+#include "larcorealg/Geometry/DriftPartitions.h" // BuildDriftVolumes()
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/TestUtils/geometry_unit_test_base.h"
 
 // utility libraries
 #include "messagefacility/MessageLogger/MessageLogger.h"
-
 
 //------------------------------------------------------------------------------
 //---  The test environment
@@ -31,8 +30,8 @@
 // we define here all the configuration that is needed;
 // we use an existing class provided for this purpose, since our test
 // environment allows us to tailor it at run time.
-using StandardGeometryConfiguration
-  = testing::BasicGeometryEnvironmentConfiguration<geo::ChannelMapStandardAlg>;
+using StandardGeometryConfiguration =
+  testing::BasicGeometryEnvironmentConfiguration<geo::ChannelMapStandardAlg>;
 
 /*
  * GeometryTesterFixture, configured with the object above, is used in a
@@ -41,9 +40,8 @@ using StandardGeometryConfiguration
  * - `geo::GeometryCore const* Geometry()`
  * - `geo::GeometryCore const* GlobalGeometry()` (static member)
  */
-using StandardGeometryTestEnvironment
-  = testing::GeometryTesterEnvironment<StandardGeometryConfiguration>;
-
+using StandardGeometryTestEnvironment =
+  testing::GeometryTesterEnvironment<StandardGeometryConfiguration>;
 
 //------------------------------------------------------------------------------
 //---  The tests
@@ -64,7 +62,8 @@ using StandardGeometryTestEnvironment
  *
  */
 //------------------------------------------------------------------------------
-int main(int argc, char const** argv) {
+int main(int argc, char const** argv)
+{
 
   StandardGeometryConfiguration config("driftvolumes_test");
 
@@ -91,16 +90,15 @@ int main(int argc, char const** argv) {
   //
 
   unsigned int nErrors = 0;
-  for (auto const& cryo: geom.IterateCryostats()) {
+  for (auto const& cryo : geom.IterateCryostats()) {
     auto partition = geo::buildDriftVolumes(cryo);
-    mf::LogVerbatim("driftvolumes_test")
-      << "Partition for cryostat " << cryo.ID() << ":";
+    mf::LogVerbatim("driftvolumes_test") << "Partition for cryostat " << cryo.ID() << ":";
     partition.print(mf::LogVerbatim("driftvolumes_test"));
 
     //
     // test that the partition topology is correct
     //
-    for (geo::TPCGeo const& TPC: geom.IterateTPCs(cryo.ID())) {
+    for (geo::TPCGeo const& TPC : geom.IterateTPCs(cryo.ID())) {
 
       auto const& center = TPC.GetCenter<geo::Point_t>();
 
@@ -113,9 +111,8 @@ int main(int argc, char const** argv) {
       }
       else if (where->ID() != TPC.ID()) {
         mf::LogProblem log("driftvolumes_test");
-        log
-          << "Center of TPC " << TPC.ID() << " " << lar::dump::vector3D(center)
-          << " assigned to TPC " << where->ID() << ":\n";
+        log << "Center of TPC " << TPC.ID() << " " << lar::dump::vector3D(center)
+            << " assigned to TPC " << where->ID() << ":\n";
         where->PrintTPCInfo(log, "  ", /* verbosity */ 5);
         ++nErrors;
       }
@@ -134,37 +131,31 @@ int main(int argc, char const** argv) {
           for (int zs = -nZsteps; zs <= nZsteps; ++zs) {
             double const z = center.Z() + zs * zstep;
 
-            auto where = partition.TPCat({ x, y, z});
+            auto where = partition.TPCat({x, y, z});
             if (!where) {
               mf::LogProblem("driftvolumes_test")
-                << "Point " << lar::dump::vector3D(center) << " within TPC "
-                << TPC.ID() << " (" << xs << "," << ys << "," << zs
-                << ") not assigned to any TPC!";
+                << "Point " << lar::dump::vector3D(center) << " within TPC " << TPC.ID() << " ("
+                << xs << "," << ys << "," << zs << ") not assigned to any TPC!";
               ++nErrors;
             }
             else if (where->ID() != TPC.ID()) {
               mf::LogProblem log("driftvolumes_test");
-              log
-                << "Point " << lar::dump::vector3D(center) << " within TPC "
-                << TPC.ID() << " (" << xs << "," << ys << "," << zs
-                << ") assigned to TPC " << where->ID() << ":\n";
+              log << "Point " << lar::dump::vector3D(center) << " within TPC " << TPC.ID() << " ("
+                  << xs << "," << ys << "," << zs << ") assigned to TPC " << where->ID() << ":\n";
               where->PrintTPCInfo(log, "  ", /* verbosity */ 5);
               ++nErrors;
             }
 
           } // for zs
-        } // for ys
-      } // for xs
+        }   // for ys
+      }     // for xs
 
     } // for TPCs
 
   } // for
 
   // 4. And finally we cross fingers.
-  if (nErrors > 0) {
-    mf::LogError("geometry_test") << nErrors << " errors detected!";
-  }
+  if (nErrors > 0) { mf::LogError("geometry_test") << nErrors << " errors detected!"; }
 
   return nErrors;
 } // main()
-

@@ -12,13 +12,12 @@
 #include "larcorealg/CoreUtils/MetaUtils.h" // util::is_basic_string_type_v ...
 
 // C/C++ standard libraries
-#include <string> // std::to_string()
 #include <iterator> // std::begin(), std::end(), ...
-#include <utility> // std::get()
-
+#include <string>   // std::to_string()
+#include <utility>  // std::get()
 
 namespace util {
-  
+
   /**
    * @name C++ standard library customization for user-defined classes.
    * @defgroup LArSoft_CoreUtils_StdUtils C++ STL customizations
@@ -58,112 +57,132 @@ namespace util {
    *       by the standard, so no particular trick is required.
    */
   /// @{
-  
-  
+
   /// ADL-aware version of `std::to_string`.
   template <typename T>
   constexpr decltype(auto) to_string(T&& obj);
-//     { using std::to_string; return to_string(std::forward<T>(obj)); }
-  
-  
+  //     { using std::to_string; return to_string(std::forward<T>(obj)); }
+
   // --- BEGIN --- Containers and iterators ------------------------------------
   /// ADL-aware version of `std::begin`.
   template <typename T>
   constexpr decltype(auto) begin(T&& obj)
-    { using std::begin; return begin(std::forward<T>(obj)); }
-  
+  {
+    using std::begin;
+    return begin(std::forward<T>(obj));
+  }
+
   /// ADL-aware version of `std::end`.
   template <typename T>
   constexpr decltype(auto) end(T&& obj)
-    { using std::end; return end(std::forward<T>(obj)); }
-  
+  {
+    using std::end;
+    return end(std::forward<T>(obj));
+  }
+
   /// ADL-aware version of `std::cbegin`.
   template <typename T>
   constexpr decltype(auto) cbegin(T&& obj)
-    { using std::cbegin; return cbegin(std::forward<T>(obj)); }
-  
+  {
+    using std::cbegin;
+    return cbegin(std::forward<T>(obj));
+  }
+
   /// ADL-aware version of `std::cend`.
   template <typename T>
   constexpr decltype(auto) cend(T&& obj)
-    { using std::cend; return cend(std::forward<T>(obj)); }
-  
+  {
+    using std::cend;
+    return cend(std::forward<T>(obj));
+  }
+
   /// ADL-aware version of `std::size`.
   template <typename T>
   constexpr decltype(auto) size(T&& obj)
-    { using std::size; return size(std::forward<T>(obj)); }
-  
+  {
+    using std::size;
+    return size(std::forward<T>(obj));
+  }
+
   /// ADL-aware version of `std::empty`.
   template <typename T>
   constexpr decltype(auto) empty(T&& obj)
-    { using std::empty; return empty(std::forward<T>(obj)); }
-  
+  {
+    using std::empty;
+    return empty(std::forward<T>(obj));
+  }
+
   // --- END --- Containers and iterators --------------------------------------
-  
-  
-  
+
   // --- BEGIN --- tuples ------------------------------------------------------
-  
+
   template <std::size_t I, typename T>
   decltype(auto) get(T&& obj)
-    { using std::get; return get<I>(std::forward<T>(obj)); }
-  
+  {
+    using std::get;
+    return get<I>(std::forward<T>(obj));
+  }
+
   // --- END --- tuples --------------------------------------------------------
-  
+
   /// @}
-  
-  
+
 } // namespace util
 
 // -----------------------------------------------------------------------------
 // --- template implementation
 // -----------------------------------------------------------------------------
 namespace util::details {
-  
+
   // ---------------------------------------------------------------------------
   template <typename T, typename = void>
   struct ToStringImpl {
-    
+
     template <typename U>
     static std::string to_string(U&& obj)
-      { using std::to_string; return to_string(std::forward<U>(obj)); }
-    
+    {
+      using std::to_string;
+      return to_string(std::forward<U>(obj));
+    }
+
   }; // struct ToStringImpl
-  
-  
+
   // ---------------------------------------------------------------------------
   template <typename T>
   struct ToStringImpl<T, std::enable_if_t<util::is_basic_string_type_v<T>>> {
-    
+
     template <typename U>
-    static std::string to_string(U&& obj) { return obj; }
-    
+    static std::string to_string(U&& obj)
+    {
+      return obj;
+    }
+
   }; // struct ToStringImpl<string>
-  
-  
+
   // ---------------------------------------------------------------------------
   template <typename T>
-  struct ToStringImpl<T, std::enable_if_t<util::is_basic_string_view_type_v<T>>>
-  {
-    
-    template <typename U>
-    static std::string to_string(U&& obj) { return { obj.begin(), obj.end() }; }
-    
-  }; // struct ToStringImpl<string_view>
-  
-  
-  // ---------------------------------------------------------------------------
-  
-} // namespace util::details
+  struct ToStringImpl<T, std::enable_if_t<util::is_basic_string_view_type_v<T>>> {
 
+    template <typename U>
+    static std::string to_string(U&& obj)
+    {
+      return {obj.begin(), obj.end()};
+    }
+
+  }; // struct ToStringImpl<string_view>
+
+  // ---------------------------------------------------------------------------
+
+} // namespace util::details
 
 // -----------------------------------------------------------------------------
 template <typename T>
 constexpr decltype(auto) util::to_string(T&& obj)
-  { return util::details::ToStringImpl<T>::to_string(std::forward<T>(obj)); }
+{
+  return util::details::ToStringImpl<T>::to_string(std::forward<T>(obj));
+}
 //   { using std::to_string; return to_string(std::forward<T>(obj)); }
-
 
 // -----------------------------------------------------------------------------
 
 #endif // LARCOREALG_COREUTILS_STDUTILS_H
-

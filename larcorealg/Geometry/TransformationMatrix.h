@@ -18,7 +18,6 @@
 // ROOT libraries
 #include "Math/GenVector/Transform3D.h"
 
-
 namespace geo {
 
   /**
@@ -29,14 +28,13 @@ namespace geo {
    */
   using TransformationMatrix = ROOT::Math::Transform3D;
 
-
   /// Converts a transformation matrix into a `geo::TransformationMatrix`.
   template <typename Trans>
   decltype(auto) makeTransformationMatrix(Trans&& trans)
-    { return convertTransformationMatrix<geo::TransformationMatrix>(trans); }
-
+  {
+    return convertTransformationMatrix<geo::TransformationMatrix>(trans);
+  }
 
 } // namespace geo
-
 
 #endif // LARCOREALG_GEOMETRY_TRANSFORMATIONMATRIX_H

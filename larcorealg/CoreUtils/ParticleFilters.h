@@ -13,16 +13,15 @@
 // LArSoft libraries
 
 // ROOT libraries
-#include "TGeoVolume.h"
 #include "TGeoMatrix.h" // TGeoCombiTrans
+#include "TGeoVolume.h"
 #include "TLorentzVector.h"
 #include "TVector3.h"
 
 // C/C++ standard libraries
 #include <array>
-#include <vector>
 #include <utility> // std::move()
-
+#include <vector>
 
 namespace util {
 
@@ -34,7 +33,6 @@ namespace util {
    */
   struct KeepByPositionFilterTag {};
 
-
   /** **************************************************************************
    * @brief Use to keep particles with at least part of trajectory in a volume
    * @author Matt Bass, Gianluca Petrillo
@@ -45,32 +43,28 @@ namespace util {
    *
    * No condition for prompt rejection is provided.
    */
-  class PositionInVolumeFilter: public KeepByPositionFilterTag {
-      public:
-
+  class PositionInVolumeFilter : public KeepByPositionFilterTag {
+  public:
     using Point_t = std::array<double, 3>;
 
     /// Due to the structure of ROOT geometry, volumes and their transformations
     /// are not living in the same place; so we need to keep both.
     struct VolumeInfo_t {
       VolumeInfo_t(TGeoVolume const* new_vol, TGeoCombiTrans const* new_trans)
-        : vol(new_vol), trans(new_trans) {}
+        : vol(new_vol), trans(new_trans)
+      {}
 
-      TGeoVolume const*     vol;   ///< ROOT volume
+      TGeoVolume const* vol;       ///< ROOT volume
       TGeoCombiTrans const* trans; ///< volume transformation (has both ways)
-    }; // VolumeInfo_t
+    };                             // VolumeInfo_t
 
     using AllVolumeInfo_t = std::vector<VolumeInfo_t>;
 
     /// @{
     /// @brief Constructors: read the volumes from the specified list
     /// @param volumes list of interesting volumes
-    PositionInVolumeFilter(std::vector<VolumeInfo_t> const& volumes)
-      : volumeInfo(volumes)
-      {}
-    PositionInVolumeFilter(std::vector<VolumeInfo_t>&& volumes)
-      : volumeInfo(std::move(volumes))
-      {}
+    PositionInVolumeFilter(std::vector<VolumeInfo_t> const& volumes) : volumeInfo(volumes) {}
+    PositionInVolumeFilter(std::vector<VolumeInfo_t>&& volumes) : volumeInfo(std::move(volumes)) {}
     /// @}
 
     /**
@@ -84,27 +78,30 @@ namespace util {
      * dropped.
      */
     bool mustKeep(Point_t const& pos) const
-      {
-        // if no volume is specified, it means we don't filter
-        if (volumeInfo.empty()) return true;
-        double local[3];
-        for(auto const& info: volumeInfo) {
-          // transform the point to relative to the volume
-          info.trans->MasterToLocal(pos.data(), local);
-          // containment check
-          if (info.vol->Contains(local)) return true;
-        } // for volumes
-        return false;
-      } // mustKeep()
+    {
+      // if no volume is specified, it means we don't filter
+      if (volumeInfo.empty()) return true;
+      double local[3];
+      for (auto const& info : volumeInfo) {
+        // transform the point to relative to the volume
+        info.trans->MasterToLocal(pos.data(), local);
+        // containment check
+        if (info.vol->Contains(local)) return true;
+      } // for volumes
+      return false;
+    } // mustKeep()
 
     bool mustKeep(TVector3 const& pos) const
-      { return mustKeep(Point_t{{ pos.X(), pos.Y(), pos.Z() }}); }
+    {
+      return mustKeep(Point_t{{pos.X(), pos.Y(), pos.Z()}});
+    }
 
     bool mustKeep(TLorentzVector const& pos) const
-      { return mustKeep(Point_t{{ pos.X(), pos.Y(), pos.Z() }}); }
+    {
+      return mustKeep(Point_t{{pos.X(), pos.Y(), pos.Z()}});
+    }
 
-
-      protected:
+  protected:
     std::vector<VolumeInfo_t> volumeInfo; ///< all good volumes
 
   }; // PositionInVolumeFilter

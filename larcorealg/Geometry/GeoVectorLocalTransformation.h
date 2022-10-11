@@ -32,56 +32,51 @@ namespace geo {
   //---  LocalTransformation<ROOT::Math::Transform3D>
   //----------------------------------------------------------------------------
   template <>
-  void LocalTransformation<ROOT::Math::Transform3D>::LocalToWorld
-    (double const* local, double* world) const;
+  void LocalTransformation<ROOT::Math::Transform3D>::LocalToWorld(double const* local,
+                                                                  double* world) const;
 
   //------------------------------------------------------------------------------
   template <>
-  void LocalTransformation<ROOT::Math::Transform3D>::LocalToWorldVect
-    (double const* local, double* world) const;
+  void LocalTransformation<ROOT::Math::Transform3D>::LocalToWorldVect(double const* local,
+                                                                      double* world) const;
 
   //------------------------------------------------------------------------------
   template <>
-  void LocalTransformation<ROOT::Math::Transform3D>::WorldToLocal
-    (double const* world, double* local) const;
+  void LocalTransformation<ROOT::Math::Transform3D>::WorldToLocal(double const* world,
+                                                                  double* local) const;
 
   //------------------------------------------------------------------------------
   template <>
-  void LocalTransformation<ROOT::Math::Transform3D>::WorldToLocalVect
-    (const double* world, double* local) const;
+  void LocalTransformation<ROOT::Math::Transform3D>::WorldToLocalVect(const double* world,
+                                                                      double* local) const;
 
   //------------------------------------------------------------------------------
   template <>
   template <typename DestPoint, typename SrcPoint>
-  DestPoint
-  LocalTransformation<ROOT::Math::Transform3D>::WorldToLocalImpl
-    (SrcPoint const& world) const;
+  DestPoint LocalTransformation<ROOT::Math::Transform3D>::WorldToLocalImpl(
+    SrcPoint const& world) const;
 
   //......................................................................
   template <>
   template <typename DestVector, typename SrcVector>
-  DestVector
-  LocalTransformation<ROOT::Math::Transform3D>::WorldToLocalVectImpl
-    (SrcVector const& world) const;
+  DestVector LocalTransformation<ROOT::Math::Transform3D>::WorldToLocalVectImpl(
+    SrcVector const& world) const;
 
   //......................................................................
   template <>
   template <typename DestPoint, typename SrcPoint>
-  DestPoint
-  LocalTransformation<ROOT::Math::Transform3D>::LocalToWorldImpl
-    (SrcPoint const& local) const;
+  DestPoint LocalTransformation<ROOT::Math::Transform3D>::LocalToWorldImpl(
+    SrcPoint const& local) const;
 
   //......................................................................
   template <>
   template <typename DestVector, typename SrcVector>
-  DestVector
-  LocalTransformation<ROOT::Math::Transform3D>::LocalToWorldVectImpl
-    (SrcVector const& local) const;
+  DestVector LocalTransformation<ROOT::Math::Transform3D>::LocalToWorldVectImpl(
+    SrcVector const& local) const;
 
   //------------------------------------------------------------------------------
 
 } // namespace geo
-
 
 //------------------------------------------------------------------------------
 // template implementation
@@ -89,6 +84,5 @@ namespace geo {
 #include "GeoVectorLocalTransformation.tcc"
 
 //------------------------------------------------------------------------------
-
 
 #endif // LARCOREALG_GEOMETRY_GEOVECTORLOCALTRANSFORMATION_H

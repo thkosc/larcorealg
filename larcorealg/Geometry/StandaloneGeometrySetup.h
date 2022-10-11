@@ -9,7 +9,6 @@
  *
  */
 
-
 #ifndef LARCOREALG_GEOMETRY_STANDALONEGEOMETRYSETUP_H
 #define LARCOREALG_GEOMETRY_STANDALONEGEOMETRYSETUP_H
 
@@ -21,18 +20,18 @@
 #include "fhiclcpp/ParameterSet.h"
 
 // C/C++ standard libraries
-#include <string>
-#include <set>
 #include <memory> // std::make_unique()
+#include <set>
+#include <string>
 
 namespace lar::standalone {
 
-    // --- BEGIN Geometry group ------------------------------------------------
-    /// @ingroup Geometry
-    /// @{
+  // --- BEGIN Geometry group ------------------------------------------------
+  /// @ingroup Geometry
+  /// @{
 
-    //--------------------------------------------------------------------------
-    /**
+  //--------------------------------------------------------------------------
+  /**
      * @brief  Initializes a LArSoft geometry object.
      * @param pset parameters for geometry configuration
      * @param channelMap channel mapping object to be used, already constructed
@@ -87,12 +86,12 @@ namespace lar::standalone {
      *   `geo::ChannelMapAlg`); its content is dependent on the chosen
      *   implementation of `geo::ChannelMapAlg`
      */
-    std::unique_ptr<geo::GeometryCore>
-    SetupGeometryWithChannelMapping(fhicl::ParameterSet const& pset,
-                                    std::unique_ptr<geo::ChannelMapAlg> channelMap);
+  std::unique_ptr<geo::GeometryCore> SetupGeometryWithChannelMapping(
+    fhicl::ParameterSet const& pset,
+    std::unique_ptr<geo::ChannelMapAlg> channelMap);
 
-    //--------------------------------------------------------------------------
-    /**
+  //--------------------------------------------------------------------------
+  /**
      * @brief  Initializes a LArSoft geometry object.
      * @tparam ChannelMapClass type of `geo::ChannelMapAlg` to be used
      * @tparam Args (optional) arguments for the construction of channel mapping
@@ -125,28 +124,26 @@ namespace lar::standalone {
      * any other argument specified in `args`.
      *
      */
-    template <typename ChannelMapClass, typename... Args>
-    std::unique_ptr<geo::GeometryCore>
-    SetupGeometry(fhicl::ParameterSet const& pset, Args&&... args);
+  template <typename ChannelMapClass, typename... Args>
+  std::unique_ptr<geo::GeometryCore> SetupGeometry(fhicl::ParameterSet const& pset, Args&&... args);
 
-    //--------------------------------------------------------------------------
+  //--------------------------------------------------------------------------
 
-    // --- END Geometry group --------------------------------------------------
-    /// @}
+  // --- END Geometry group --------------------------------------------------
+  /// @}
 
 } // namespace lar::standalone
-
 
 //------------------------------------------------------------------------------
 //---  template implementation
 //---
 template <typename ChannelMapClass, typename... Args>
-std::unique_ptr<geo::GeometryCore>
-lar::standalone::SetupGeometry(fhicl::ParameterSet const& pset, Args&&... args)
+std::unique_ptr<geo::GeometryCore> lar::standalone::SetupGeometry(fhicl::ParameterSet const& pset,
+                                                                  Args&&... args)
 {
   auto const SortingParameters = pset.get<fhicl::ParameterSet>("SortingParameters", {});
-  auto channelMap = std::make_unique<ChannelMapClass>(SortingParameters,
-                                                      std::forward<Args>(args)...);
+  auto channelMap =
+    std::make_unique<ChannelMapClass>(SortingParameters, std::forward<Args>(args)...);
   return SetupGeometryWithChannelMapping(pset, move(channelMap));
 } // lar::standalone::SetupGeometry()
 

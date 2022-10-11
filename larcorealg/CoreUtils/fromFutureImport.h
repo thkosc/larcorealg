@@ -10,14 +10,12 @@
 #ifndef LARCOREALG_COREUTILS_FROMFUTUREIMPORT_H
 #define LARCOREALG_COREUTILS_FROMFUTUREIMPORT_H
 
-
 #include <utility> // std::forward()
 
 /**
  * @defgroup FutureStandards Future C++ features
  * @brief Features expected to be provided by future C++ standards.
  */
-
 
 /**
  * Namespace anticipating some simple features of C++ standards not yet adopted.
@@ -30,26 +28,26 @@
  * different namespace.
  *
  * @addtogroup FutureStandards
- */ 
+ */
 namespace util::pre_std {
-  
+
 #if (__cplusplus < 202000L) // still to be defined, should be C++20
-  
+
   /// Transparent functor that returns its argument just as passed.
   struct identity {
-    
+
     struct is_transparent {}; // STL algorithms will be happy to find this
-    
+
     template <typename T>
-    constexpr T&& operator() (T&& t) const noexcept
-      { return std::forward<T>(t); }
-    
+    constexpr T&& operator()(T&& t) const noexcept
+    {
+      return std::forward<T>(t);
+    }
+
   }; // identity<>
 
 #endif // (__cplusplus < 202000L)
-  
+
 } // namespace pre_std
 
-
-  
 #endif // LARCOREALG_COREUTILS_FROMFUTUREIMPORT_H

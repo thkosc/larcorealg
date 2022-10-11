@@ -10,24 +10,20 @@
 #ifndef LARCOREALG_COREUTILS_ENUMERATE_H
 #define LARCOREALG_COREUTILS_ENUMERATE_H
 
-
 // LArSoft libraries
-#include "larcorealg/CoreUtils/zip.h"
 #include "larcorealg/CoreUtils/counter.h"
+#include "larcorealg/CoreUtils/zip.h"
 
 // C/C++ libraries
-#include <utility> // std::forward()
 #include <cstddef> // std::size_t
-
-
+#include <utility> // std::forward()
 
 namespace util {
-  
-  
+
   // -- BEGIN -- Enumerated iterations -----------------------------------------
   /// @name Enumerated iterations
   /// @{
-  
+
   /**
    * @brief Range-for loop helper tracking the number of iteration.
    * @tparam Lead index of the parameter driving the start and end of the loop
@@ -67,21 +63,20 @@ namespace util {
    */
   template <std::size_t Lead, typename... Iterables>
   auto enumerate(Iterables&&... iterables)
-    {
-      return zip<Lead + 1>
-        (infinite_counter(), std::forward<Iterables>(iterables)...);
-    }
-  
+  {
+    return zip<Lead + 1>(infinite_counter(), std::forward<Iterables>(iterables)...);
+  }
+
   /// This version of `enumerate` implicitly uses the first iterable as lead.
   template <typename... Iterables>
   auto enumerate(Iterables&&... iterables)
-    { return enumerate<0U>(std::forward<Iterables>(iterables)...); }
-  
-  
+  {
+    return enumerate<0U>(std::forward<Iterables>(iterables)...);
+  }
+
   /// @}
   // --- END -- Enumerated iterations ------------------------------------------
-  
-} // namespace util
 
+} // namespace util
 
 #endif // LARCOREALG_COREUTILS_ENUMERATE_H

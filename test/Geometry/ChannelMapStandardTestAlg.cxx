@@ -9,9 +9,9 @@
 
 // LArSoft libraries
 #include "ChannelMapStandardTestAlg.h"
+#include "larcorealg/Geometry/GeometryCore.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
-#include "larcorealg/Geometry/GeometryCore.h"
 
 // framework
 #include "cetlib_except/exception.h"
@@ -23,12 +23,10 @@
 #include <string>
 #include <vector>
 
-
 namespace {
 
   /// Checks that there is a 1-to-1 match between ID data members
-  void CheckMatchingTPClevelIDs
-    (readout::TPCsetID const& tpcsetID, geo::TPCID const& tpcID)
+  void CheckMatchingTPClevelIDs(readout::TPCsetID const& tpcsetID, geo::TPCID const& tpcID)
   {
     BOOST_TEST(tpcID.isValid == tpcsetID.isValid);
     BOOST_TEST(tpcID.Cryostat == tpcsetID.Cryostat);
@@ -36,8 +34,7 @@ namespace {
   } // CheckMatchingTPClevelIDs()
 
   /// Checks that there is a 1-to-1 match between ID data members
-  void CheckMatchingPlaneLevelIDs
-    (readout::ROPID const& ropID, geo::PlaneID const& planeID)
+  void CheckMatchingPlaneLevelIDs(readout::ROPID const& ropID, geo::PlaneID const& planeID)
   {
     CheckMatchingTPClevelIDs(ropID, planeID);
     BOOST_TEST(planeID.Plane == ropID.ROP);
@@ -45,10 +42,9 @@ namespace {
 
 } // local namespace
 
-
-
 //-----------------------------------------------------------------------------
-unsigned int geo::ChannelMapStandardTestAlg::Run() {
+unsigned int geo::ChannelMapStandardTestAlg::Run()
+{
   // All the tests
 
   TPCsetMappingTest();
@@ -58,10 +54,9 @@ unsigned int geo::ChannelMapStandardTestAlg::Run() {
   return 0;
 } // ChannelMapStandardTestAlg::Run()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::ChannelMapStandardTestAlg::TPCsetMappingTest() const {
+void geo::ChannelMapStandardTestAlg::TPCsetMappingTest() const
+{
 
   /*
    * ChannelMapStandardAlg interface to be tested (via GeometryCore):
@@ -116,30 +111,29 @@ void geo::ChannelMapStandardTestAlg::TPCsetMappingTest() const {
   //
   // cryostat-wide checks
   //
-  for (geo::CryostatID const& cryostatID: geom->IterateCryostatIDs()) {
+  for (geo::CryostatID const& cryostatID : geom->IterateCryostatIDs()) {
     BOOST_TEST_CHECKPOINT("cryostat: " << std::string(cryostatID));
 
-    readout::CryostatID const ROcryostatID
-      = static_cast<readout::CryostatID const&>(cryostatID);
+    readout::CryostatID const ROcryostatID = static_cast<readout::CryostatID const&>(cryostatID);
 
     // check that the number of TPC and TPC sets in each cryostat match
     unsigned int const NTPCsets = geom->NTPCsets(ROcryostatID);
     BOOST_TEST(NTPCsets == geom->NTPC(cryostatID));
 
     // check that we have no TPC set after the last one
-    readout::TPCsetID const NonexistingTPCsetID
-      (ROcryostatID, (readout::TPCsetID::TPCsetID_t) NTPCsets);
+    readout::TPCsetID const NonexistingTPCsetID(ROcryostatID,
+                                                (readout::TPCsetID::TPCsetID_t)NTPCsets);
     BOOST_TEST(!geom->HasTPCset(NonexistingTPCsetID));
     BOOST_TEST(geom->NROPs(NonexistingTPCsetID) == 0U);
     // the behaviour of the other methods is undefined for non-existent ROPs
-  //  BOOST_TEST(geom->TPCsetToTPCs(NonexistingTPCsetID).empty());
+    //  BOOST_TEST(geom->TPCsetToTPCs(NonexistingTPCsetID).empty());
 
   } // for cryostats
 
   //
   // TPC-wide checks
   //
-  for (geo::TPCID const& tpcID: geom->IterateTPCIDs()) {
+  for (geo::TPCID const& tpcID : geom->IterateTPCIDs()) {
     BOOST_TEST_CHECKPOINT("TPC: " << std::string(tpcID));
 
     // check that the IDs of this TPC and of the TPC set including it match
@@ -157,8 +151,7 @@ void geo::ChannelMapStandardTestAlg::TPCsetMappingTest() const {
 
     // check all the ROPs:
     for (unsigned int iROPinTPCset = 0; iROPinTPCset < NROPs; ++iROPinTPCset) {
-      readout::ROPID const ropID
-        (tpcsetID, (readout::ROPID::ROPID_t) iROPinTPCset);
+      readout::ROPID const ropID(tpcsetID, (readout::ROPID::ROPID_t)iROPinTPCset);
 
       BOOST_TEST_CHECKPOINT("ROP: " << std::string(ropID));
 
@@ -174,12 +167,11 @@ void geo::ChannelMapStandardTestAlg::TPCsetMappingTest() const {
 
   } // for TPCs
 
-
 } // ChannelMapStandardTestAlg::TPCsetMappingTest()
 
-
 //-----------------------------------------------------------------------------
-void geo::ChannelMapStandardTestAlg::ROPMappingTest() const {
+void geo::ChannelMapStandardTestAlg::ROPMappingTest() const
+{
 
   /*
    * ChannelMapStandardAlg interface to be tested (via GeometryCore):
@@ -213,30 +205,29 @@ void geo::ChannelMapStandardTestAlg::ROPMappingTest() const {
   //
   // TPC-wide checks
   //
-  for (geo::TPCID const& tpcID: geom->IterateTPCIDs()) {
+  for (geo::TPCID const& tpcID : geom->IterateTPCIDs()) {
     BOOST_TEST_CHECKPOINT("TPC: " << std::string(tpcID));
 
     // build a non-existent ROP ID (but we pretend it valid)
     readout::TPCsetID const tpcsetID = geom->TPCtoTPCset(tpcID);
     unsigned int const NROPs = geom->NROPs(tpcsetID);
-    readout::ROPID NonexistingROPID(tpcsetID, (readout::ROPID::ROPID_t) NROPs);
+    readout::ROPID NonexistingROPID(tpcsetID, (readout::ROPID::ROPID_t)NROPs);
 
     // check that we don't have ROPs beyond the last one
     BOOST_TEST(!geom->HasROP(NonexistingROPID));
     // the behaviour of the other methods is undefined for non-existent ROPs
-  //  BOOST_TEST(geom->ROPtoTPCs(NonexistingROPID).empty());
-  //  BOOST_TEST(geom->ROPtoWirePlanes(NonexistingROPID).empty());
-  //  BOOST_TEST(geom->Nchannels(NonexistingROPID) == 0U);
-  //  BOOST_TEST
-  //    (!raw::isValidChannelID(geom->FirstChannelInROP(NonexistingROPID)));
+    //  BOOST_TEST(geom->ROPtoTPCs(NonexistingROPID).empty());
+    //  BOOST_TEST(geom->ROPtoWirePlanes(NonexistingROPID).empty());
+    //  BOOST_TEST(geom->Nchannels(NonexistingROPID) == 0U);
+    //  BOOST_TEST
+    //    (!raw::isValidChannelID(geom->FirstChannelInROP(NonexistingROPID)));
 
   } // for TPCs
-
 
   //
   // plane-wide checks
   //
-  for (geo::PlaneID const& planeID: geom->IteratePlaneIDs()) {
+  for (geo::PlaneID const& planeID : geom->IteratePlaneIDs()) {
     BOOST_TEST_MESSAGE("plane: " << std::string(planeID));
 
     // check that the ROP of this plane matches the plane itself
@@ -269,16 +260,13 @@ void geo::ChannelMapStandardTestAlg::ROPMappingTest() const {
     BOOST_TEST(raw::isValidChannelID(FirstChannelID) == ropID.isValid);
 
     // check all the channels:
-    for (
-      unsigned int iChannelInROP = 0; iChannelInROP < NChannels; ++iChannelInROP
-    ) {
+    for (unsigned int iChannelInROP = 0; iChannelInROP < NChannels; ++iChannelInROP) {
       raw::ChannelID_t const channelID = FirstChannelID + iChannelInROP;
 
       BOOST_TEST_CHECKPOINT("channel: " << channelID);
 
       // is it in the right plane? and only one?
-      std::vector<geo::WireID> const ChannelWires
-        = geom->ChannelToWire(channelID);
+      std::vector<geo::WireID> const ChannelWires = geom->ChannelToWire(channelID);
       BOOST_TEST(ChannelWires.size() == 1U);
       BOOST_TEST(ChannelWires.front() == planeID);
 
@@ -290,12 +278,11 @@ void geo::ChannelMapStandardTestAlg::ROPMappingTest() const {
 
   } // for planes
 
-
 } // ChannelMapStandardTestAlg::ROPMappingTest()
 
-
 //-----------------------------------------------------------------------------
-void geo::ChannelMapStandardTestAlg::ChannelMappingTest() const {
+void geo::ChannelMapStandardTestAlg::ChannelMappingTest() const
+{
 
   /*
    * ChannelMapStandardAlg interface being tested (via GeometryCore):
@@ -316,14 +303,14 @@ void geo::ChannelMapStandardTestAlg::ChannelMappingTest() const {
   //
   unsigned int const NChannels = geom->Nchannels();
   for (unsigned int iChannel = 0; iChannel < NChannels; ++iChannel) {
-    raw::ChannelID_t channel = (raw::ChannelID_t) iChannel;
+    raw::ChannelID_t channel = (raw::ChannelID_t)iChannel;
 
     BOOST_TEST_MESSAGE("channel: " << channel);
 
     BOOST_TEST(geom->HasChannel(iChannel));
 
   } // for channels
-  BOOST_TEST(!geom->HasChannel((raw::ChannelID_t) NChannels));
+  BOOST_TEST(!geom->HasChannel((raw::ChannelID_t)NChannels));
 
 } // ChannelMapStandardTestAlg::ChannelMappingTest()
 

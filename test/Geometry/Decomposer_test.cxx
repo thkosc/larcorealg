@@ -13,7 +13,7 @@
  */
 
 // Boost libraries
-#define BOOST_TEST_MODULE ( decomposer_test )
+#define BOOST_TEST_MODULE (decomposer_test)
 #include <boost/test/unit_test.hpp>
 
 // LArSoft libraries
@@ -21,23 +21,24 @@
 #include "larcorealg/Geometry/geo_vectors_utils_TVector.h"
 
 // ROOT libraries
-#include "TVector3.h"
-#include "TVector2.h"
 #include "Math/GenVector/Cartesian2D.h"
 #include "Math/GenVector/Cartesian3D.h"
-#include "Math/GenVector/PositionVector3D.h"
-#include "Math/GenVector/DisplacementVector3D.h"
 #include "Math/GenVector/DisplacementVector2D.h"
+#include "Math/GenVector/DisplacementVector3D.h"
+#include "Math/GenVector/PositionVector3D.h"
+#include "TVector2.h"
+#include "TVector3.h"
 
 // C/C++ standard libraries
-#include <utility> // std::move()
 #include <ostream>
+#include <utility> // std::move()
 
 using boost::test_tools::tolerance;
 
 //------------------------------------------------------------------------------
 template <typename Vector, typename Point, typename Proj>
-void StandardDecomposerTest() {
+void StandardDecomposerTest()
+{
 
   //
   // Test including all methods of geo::Decomposer<>
@@ -54,13 +55,12 @@ void StandardDecomposerTest() {
   //
   // preparation
   //
-  static const Point3D_t Origin{ 0.0, 0.0, 0.0 };
-  static const Point3D_t ReferencePoint{ -5.0, 10.0, 15.0 };
-  static const Vector3D_t NullVector{ 0.0, 0.0, 0.0 };
-  static const Vector3D_t Xaxis{ 1.0, 0.0, 0.0 };
-  static const Vector3D_t Yaxis{ 0.0, 1.0, 0.0 };
-  static const Vector3D_t Zaxis{ 0.0, 0.0, 1.0 };
-
+  static const Point3D_t Origin{0.0, 0.0, 0.0};
+  static const Point3D_t ReferencePoint{-5.0, 10.0, 15.0};
+  static const Vector3D_t NullVector{0.0, 0.0, 0.0};
+  static const Vector3D_t Xaxis{1.0, 0.0, 0.0};
+  static const Vector3D_t Yaxis{0.0, 1.0, 0.0};
+  static const Vector3D_t Zaxis{0.0, 0.0, 1.0};
 
   //
   // constructors
@@ -78,25 +78,24 @@ void StandardDecomposerTest() {
   //
 
   Decomposer_t defaultBase;
-  BOOST_TEST(defaultBase.MainDir() ==        Xaxis);
-  BOOST_TEST(defaultBase.SecondaryDir() ==   Yaxis);
-  BOOST_TEST(defaultBase.NormalDir() ==      Zaxis);
+  BOOST_TEST(defaultBase.MainDir() == Xaxis);
+  BOOST_TEST(defaultBase.SecondaryDir() == Yaxis);
+  BOOST_TEST(defaultBase.NormalDir() == Zaxis);
   BOOST_TEST(defaultBase.ReferencePoint() == Origin);
 
   AffinePlaneBase_t rotatedBase(ReferencePoint, Yaxis, Zaxis);
 
   Decomposer_t rotatedBase1_1(rotatedBase);
-  BOOST_TEST(rotatedBase1_1.MainDir() ==        Yaxis);
-  BOOST_TEST(rotatedBase1_1.SecondaryDir() ==   Zaxis);
-  BOOST_TEST(rotatedBase1_1.NormalDir() ==      Xaxis);
+  BOOST_TEST(rotatedBase1_1.MainDir() == Yaxis);
+  BOOST_TEST(rotatedBase1_1.SecondaryDir() == Zaxis);
+  BOOST_TEST(rotatedBase1_1.NormalDir() == Xaxis);
   BOOST_TEST(rotatedBase1_1.ReferencePoint() == ReferencePoint);
 
   Decomposer_t rotatedBase1_2(std::move(rotatedBase));
-  BOOST_TEST(rotatedBase1_2.MainDir() ==        Yaxis);
-  BOOST_TEST(rotatedBase1_2.SecondaryDir() ==   Zaxis);
-  BOOST_TEST(rotatedBase1_2.NormalDir() ==      Xaxis);
+  BOOST_TEST(rotatedBase1_2.MainDir() == Yaxis);
+  BOOST_TEST(rotatedBase1_2.SecondaryDir() == Zaxis);
+  BOOST_TEST(rotatedBase1_2.NormalDir() == Xaxis);
   BOOST_TEST(rotatedBase1_2.ReferencePoint() == ReferencePoint);
-
 
   //
   // setters
@@ -126,35 +125,34 @@ void StandardDecomposerTest() {
   //
   //
   defaultBase.SetBase(negativeBase);
-  BOOST_TEST(defaultBase.MainDir() ==        Yaxis);
-  BOOST_TEST(defaultBase.SecondaryDir() ==   Xaxis);
-  BOOST_TEST(defaultBase.NormalDir() ==      -Zaxis);
+  BOOST_TEST(defaultBase.MainDir() == Yaxis);
+  BOOST_TEST(defaultBase.SecondaryDir() == Xaxis);
+  BOOST_TEST(defaultBase.NormalDir() == -Zaxis);
   BOOST_TEST(defaultBase.ReferencePoint() == ReferencePoint);
 
   defaultBase.SetOrigin(Origin);
-  BOOST_TEST(defaultBase.MainDir() ==        Yaxis);
-  BOOST_TEST(defaultBase.SecondaryDir() ==   Xaxis);
-  BOOST_TEST(defaultBase.NormalDir() ==      -Zaxis);
+  BOOST_TEST(defaultBase.MainDir() == Yaxis);
+  BOOST_TEST(defaultBase.SecondaryDir() == Xaxis);
+  BOOST_TEST(defaultBase.NormalDir() == -Zaxis);
   BOOST_TEST(defaultBase.ReferencePoint() == Origin);
 
   defaultBase.SetMainDir(Zaxis);
-  BOOST_TEST(defaultBase.MainDir() ==        Zaxis);
-  BOOST_TEST(defaultBase.SecondaryDir() ==   Xaxis);
-  BOOST_TEST(defaultBase.NormalDir() ==      Yaxis);
+  BOOST_TEST(defaultBase.MainDir() == Zaxis);
+  BOOST_TEST(defaultBase.SecondaryDir() == Xaxis);
+  BOOST_TEST(defaultBase.NormalDir() == Yaxis);
   BOOST_TEST(defaultBase.ReferencePoint() == Origin);
 
   defaultBase.SetSecondaryDir(Yaxis);
-  BOOST_TEST(defaultBase.MainDir() ==        Zaxis);
-  BOOST_TEST(defaultBase.SecondaryDir() ==   Yaxis);
-  BOOST_TEST(defaultBase.NormalDir() ==      -Xaxis);
+  BOOST_TEST(defaultBase.MainDir() == Zaxis);
+  BOOST_TEST(defaultBase.SecondaryDir() == Yaxis);
+  BOOST_TEST(defaultBase.NormalDir() == -Xaxis);
   BOOST_TEST(defaultBase.ReferencePoint() == Origin);
 
   defaultBase.SetMainDir(Xaxis);
-  BOOST_TEST(defaultBase.MainDir() ==        Xaxis);
-  BOOST_TEST(defaultBase.SecondaryDir() ==   Yaxis);
-  BOOST_TEST(defaultBase.NormalDir() ==      Zaxis);
+  BOOST_TEST(defaultBase.MainDir() == Xaxis);
+  BOOST_TEST(defaultBase.SecondaryDir() == Yaxis);
+  BOOST_TEST(defaultBase.NormalDir() == Zaxis);
   BOOST_TEST(defaultBase.ReferencePoint() == Origin);
-
 
   //
   // getters
@@ -185,14 +183,13 @@ void StandardDecomposerTest() {
   //
 
   BOOST_TEST(decomp.ReferencePoint() == ReferencePoint);
-  BOOST_TEST(decomp.MainDir() ==        Yaxis);
-  BOOST_TEST(decomp.SecondaryDir() ==   Zaxis);
-  BOOST_TEST(decomp.NormalDir() ==      Xaxis);
-  BOOST_TEST(decomp.Base().Origin() ==       ReferencePoint);
-  BOOST_TEST(decomp.Base().MainDir() ==      Yaxis);
+  BOOST_TEST(decomp.MainDir() == Yaxis);
+  BOOST_TEST(decomp.SecondaryDir() == Zaxis);
+  BOOST_TEST(decomp.NormalDir() == Xaxis);
+  BOOST_TEST(decomp.Base().Origin() == ReferencePoint);
+  BOOST_TEST(decomp.Base().MainDir() == Yaxis);
   BOOST_TEST(decomp.Base().SecondaryDir() == Zaxis);
-  BOOST_TEST(decomp.Base().NormalDir() ==    Xaxis);
-
+  BOOST_TEST(decomp.Base().NormalDir() == Xaxis);
 
   //
   // projections: of 3D points
@@ -223,10 +220,10 @@ void StandardDecomposerTest() {
   //    DecomposedVector_t DecomposePoint(Point_t const& point) const
   //
 
-  auto const tol = 0.01% tolerance();
-  BOOST_TEST(decomp.PointMainComponent     (point) == 4.0, tol);
+  auto const tol = 0.01 % tolerance();
+  BOOST_TEST(decomp.PointMainComponent(point) == 4.0, tol);
   BOOST_TEST(decomp.PointSecondaryComponent(point) == 5.0, tol);
-  BOOST_TEST(decomp.PointNormalComponent   (point) == 3.0, tol);
+  BOOST_TEST(decomp.PointNormalComponent(point) == 3.0, tol);
 
   {
     auto proj = decomp.ProjectPointOnPlane(point);
@@ -236,11 +233,10 @@ void StandardDecomposerTest() {
 
   {
     auto decomposed = decomp.DecomposePoint(point);
-    BOOST_TEST(decomposed.distance       == 3.0, tol);
+    BOOST_TEST(decomposed.distance == 3.0, tol);
     BOOST_TEST(decomposed.projection.X() == 4.0, tol);
     BOOST_TEST(decomposed.projection.Y() == 5.0, tol);
   }
-
 
   //
   // projections: of 3D vectors
@@ -279,9 +275,9 @@ void StandardDecomposerTest() {
   //    auto SecondaryComponent(Projection_t const& v) const
   //
 
-  BOOST_TEST(decomp.VectorMainComponent     (vector) == 3.0, tol);
+  BOOST_TEST(decomp.VectorMainComponent(vector) == 3.0, tol);
   BOOST_TEST(decomp.VectorSecondaryComponent(vector) == 4.0, tol);
-  BOOST_TEST(decomp.VectorNormalComponent   (vector) == 2.0, tol);
+  BOOST_TEST(decomp.VectorNormalComponent(vector) == 2.0, tol);
 
   {
     auto proj = decomp.ProjectVectorOnPlane(vector);
@@ -291,7 +287,7 @@ void StandardDecomposerTest() {
 
   {
     auto decomposed = decomp.DecomposeVector(vector);
-    BOOST_TEST(decomposed.distance ==       2.0, tol);
+    BOOST_TEST(decomposed.distance == 2.0, tol);
     BOOST_TEST(decomposed.projection.X() == 3.0, tol);
     BOOST_TEST(decomposed.projection.Y() == 4.0, tol);
   }
@@ -301,18 +297,16 @@ void StandardDecomposerTest() {
   //
   Projection_t proj(3.0, 4.0);
 
-  BOOST_TEST(decomp.MainComponent     (proj) == 3.0, tol);
+  BOOST_TEST(decomp.MainComponent(proj) == 3.0, tol);
   BOOST_TEST(decomp.SecondaryComponent(proj) == 4.0, tol);
-
 
   //
   // composition: point
   //
   // decompBase: ( y, z, x ); ReferencePoint: { -5.0, 10.0, 15.0 }
-  DecomposedVector_t decomposed(
-    3.0,          // distance from plane
-    { 4.0, 5.0 }  // projection on plane in local plane coordinates
-    );
+  DecomposedVector_t decomposed(3.0,       // distance from plane
+                                {4.0, 5.0} // projection on plane in local plane coordinates
+  );
 
   //  Returns the 3D point from composition of projection and distance
   //
@@ -345,14 +339,12 @@ void StandardDecomposerTest() {
     BOOST_TEST(comp.Z() == 20.0, tol);
   }
 
-
   //
   // composition: vector
   //
 
   {
-    auto comp = decomp.ComposeVector
-      (decomposed.distance, decomposed.projection);
+    auto comp = decomp.ComposeVector(decomposed.distance, decomposed.projection);
     BOOST_TEST(comp.X() == 3.0, tol);
     BOOST_TEST(comp.Y() == 4.0, tol);
     BOOST_TEST(comp.Z() == 5.0, tol);
@@ -365,25 +357,22 @@ void StandardDecomposerTest() {
     BOOST_TEST(comp.Z() == 5.0, tol);
   }
 
-
 } // StandardDecomposerTest<>()
 
-
 //------------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(TVectorDecomposerTestCase) {
+BOOST_AUTO_TEST_CASE(TVectorDecomposerTestCase)
+{
 
   StandardDecomposerTest<TVector3, TVector3, TVector2>();
 
 } // BOOST_AUTO_TEST_CASE(TVectorDecomposerTestCase)
 
-
-BOOST_AUTO_TEST_CASE(GenVectorDecomposerTestCase) {
+BOOST_AUTO_TEST_CASE(GenVectorDecomposerTestCase)
+{
 
   using Point_t = ROOT::Math::PositionVector3D<ROOT::Math::Cartesian3D<double>>;
-  using Vector_t
-    = ROOT::Math::DisplacementVector3D<ROOT::Math::Cartesian3D<double>>;
-  using Projection_t
-    = ROOT::Math::DisplacementVector2D<ROOT::Math::Cartesian2D<double>>;
+  using Vector_t = ROOT::Math::DisplacementVector3D<ROOT::Math::Cartesian3D<double>>;
+  using Projection_t = ROOT::Math::DisplacementVector2D<ROOT::Math::Cartesian2D<double>>;
 
   StandardDecomposerTest<Vector_t, Point_t, Projection_t>();
 

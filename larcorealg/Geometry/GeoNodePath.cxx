@@ -13,7 +13,8 @@
 #include "TGeoNode.h"
 
 //------------------------------------------------------------------------------
-geo::GeoNodePath::operator std::string() const {
+geo::GeoNodePath::operator std::string() const
+{
 
   std::string s = "[";
   auto it = fNodes.cbegin(), end = fNodes.cend();
@@ -27,6 +28,5 @@ geo::GeoNodePath::operator std::string() const {
   return s + "]";
 
 } // operator std::string()
-
 
 //------------------------------------------------------------------------------

@@ -10,7 +10,6 @@
 #ifndef LARCORE_COREUTILS_UNCOPIABLEANDUNMOVEABLECLASS_H
 #define LARCORE_COREUTILS_UNCOPIABLEANDUNMOVEABLECLASS_H
 
-
 namespace lar {
 
   // --- BEGIN -- Non-polymorphic classes --------------------------------------
@@ -79,15 +78,14 @@ namespace lar {
     UncopiableClass(UncopiableClass const&) = delete;
     UncopiableClass(UncopiableClass&&) = default;
 
-    UncopiableClass& operator= (UncopiableClass const&) = delete;
-    UncopiableClass& operator= (UncopiableClass&&) = default;
+    UncopiableClass& operator=(UncopiableClass const&) = delete;
+    UncopiableClass& operator=(UncopiableClass&&) = default;
     // @}
 
     /// Default destructor
     ~UncopiableClass() = default;
 
   }; // UncopiableClass
-
 
   /** **************************************************************************
    * @brief An empty class that can't be moved (copy is allowed).
@@ -125,20 +123,19 @@ namespace lar {
     //@{
     /// Default copy constructor and assignment.
     UnmovableClass(UnmovableClass const&) = default;
-    UnmovableClass& operator= (UnmovableClass const&) = default;
+    UnmovableClass& operator=(UnmovableClass const&) = default;
     //@}
 
     //@{
     /// Deleted move constructor and assignment.
     UnmovableClass(UnmovableClass&&) = delete;
-    UnmovableClass& operator= (UnmovableClass&&) = delete;
+    UnmovableClass& operator=(UnmovableClass&&) = delete;
     //@}
 
     /// Default destructor.
     ~UnmovableClass() = default;
 
   }; // UnmovableClass
-
 
   /** **************************************************************************
    * @brief An empty class that can't be copied nor moved.
@@ -147,14 +144,10 @@ namespace lar {
    * A class derived from this one can still be copied and/or moved with an
    * explicit effort. See `UncopiableClass` and `UnmovableClass` for examples.
    */
-  struct UncopiableAndUnmovableClass
-    : public UncopiableClass, public UnmovableClass
-    {};
+  struct UncopiableAndUnmovableClass : public UncopiableClass, public UnmovableClass {};
 
   /// @}
   // --- END -- Non-polymorphic classes ----------------------------------------
-
-
 
   // --- BEGIN -- Run-time-polymorphic classes ---------------------------------
   /**
@@ -204,7 +197,6 @@ namespace lar {
 
   }; // PolymorphicClass
 
-
   /**
    * @brief A polymorphic empty class that can't be copied (moving is allowed).
    * @see   `PolymorphicClass`, `PolymorphicUnmovableClass`,
@@ -234,20 +226,17 @@ namespace lar {
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    *
    */
-  struct PolymorphicUncopiableClass: virtual PolymorphicClass {
+  struct PolymorphicUncopiableClass : virtual PolymorphicClass {
 
     PolymorphicUncopiableClass() = default;
 
     PolymorphicUncopiableClass(PolymorphicUncopiableClass const&) = delete;
     PolymorphicUncopiableClass(PolymorphicUncopiableClass&&) = default;
 
-    PolymorphicUncopiableClass& operator= (PolymorphicUncopiableClass const&)
-      = delete;
-    PolymorphicUncopiableClass& operator= (PolymorphicUncopiableClass&&)
-      = default;
+    PolymorphicUncopiableClass& operator=(PolymorphicUncopiableClass const&) = delete;
+    PolymorphicUncopiableClass& operator=(PolymorphicUncopiableClass&&) = default;
 
   }; // PolymorphicUncopiableClass
-
 
   /**
    * @brief An empty polymorphic class that can't be moved (copy is allowed).
@@ -278,22 +267,17 @@ namespace lar {
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    *
    */
-  struct PolymorphicUnmovableClass: virtual PolymorphicClass {
+  struct PolymorphicUnmovableClass : virtual PolymorphicClass {
 
     PolymorphicUnmovableClass() = default;
 
     PolymorphicUnmovableClass(PolymorphicUnmovableClass const&) = default;
     PolymorphicUnmovableClass(PolymorphicUnmovableClass&&) = delete;
 
-    PolymorphicUnmovableClass& operator= (PolymorphicUnmovableClass const&)
-      = default;
-    PolymorphicUnmovableClass& operator= (PolymorphicUnmovableClass&&)
-      = delete;
+    PolymorphicUnmovableClass& operator=(PolymorphicUnmovableClass const&) = default;
+    PolymorphicUnmovableClass& operator=(PolymorphicUnmovableClass&&) = delete;
 
   }; // PolymorphicUnmovableClass
-
-
-
 
   /** **************************************************************************
    * @brief An empty class that can't be copied nor moved.
@@ -304,10 +288,8 @@ namespace lar {
    * explicit effort. See `PolymorphicUncopiableClass` and
    * `PolymorphicUnmovableClass` documentation for examples.
    */
-  struct PolymorphicUncopiableAndUnmovableClass
-    : PolymorphicUncopiableClass, PolymorphicUnmovableClass
-  {};
-
+  struct PolymorphicUncopiableAndUnmovableClass : PolymorphicUncopiableClass,
+                                                  PolymorphicUnmovableClass {};
 
   /// @}
   // --- END -- Run-time-polymorphic classes -----------------------------------

@@ -16,16 +16,14 @@
  * geometry_iterator_test.cxx .
  */
 
-
 // LArSoft libraries
 #include "GeometryIteratorLoopTestAlg.h"
-#include "larcorealg/TestUtils/geometry_unit_test_base.h"
-#include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/Geometry/ChannelMapStandardAlg.h"
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/TestUtils/geometry_unit_test_base.h"
 
 // utility libraries
 #include "messagefacility/MessageLogger/MessageLogger.h"
-
 
 //------------------------------------------------------------------------------
 //---  The test environment
@@ -34,8 +32,8 @@
 // we define here all the configuration that is needed;
 // we use an existing class provided for this purpose, since our test
 // environment allows us to tailor it at run time.
-using StandardGeometryConfiguration
-  = testing::BasicGeometryEnvironmentConfiguration<geo::ChannelMapStandardAlg>;
+using StandardGeometryConfiguration =
+  testing::BasicGeometryEnvironmentConfiguration<geo::ChannelMapStandardAlg>;
 
 /*
  * GeometryTesterFixture, configured with the object above, is used in a
@@ -44,9 +42,8 @@ using StandardGeometryConfiguration
  * - `geo::GeometryCore const* Geometry()`
  * - `geo::GeometryCore const* GlobalGeometry()` (static member)
  */
-using StandardGeometryTestEnvironment
-  = testing::GeometryTesterEnvironment<StandardGeometryConfiguration>;
-
+using StandardGeometryTestEnvironment =
+  testing::GeometryTesterEnvironment<StandardGeometryConfiguration>;
 
 //------------------------------------------------------------------------------
 //---  The tests
@@ -69,7 +66,8 @@ using StandardGeometryTestEnvironment
  *
  */
 //------------------------------------------------------------------------------
-int main(int argc, char const** argv) {
+int main(int argc, char const** argv)
+{
 
   StandardGeometryConfiguration config("geometry_iterator_loop_test");
 
@@ -109,8 +107,7 @@ int main(int argc, char const** argv) {
 
   // 4. And finally we cross fingers.
   if (nErrors > 0) {
-    mf::LogError("geometry_iterator_loop_test")
-      << nErrors << " errors detected!";
+    mf::LogError("geometry_iterator_loop_test") << nErrors << " errors detected!";
   }
 
   return nErrors;

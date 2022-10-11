@@ -10,16 +10,16 @@
 #include "larcorealg/CoreUtils/counter.h"
 
 // Boost libraries
-#define BOOST_TEST_MODULE ( counter_test )
+#define BOOST_TEST_MODULE (counter_test)
 #include <boost/test/unit_test.hpp>
 
 // C/C++ libraries
-#include <vector>
 #include <cstddef> // std::size_t
-
+#include <vector>
 
 //------------------------------------------------------------------------------
-void test_count_iterator_documentation() {
+void test_count_iterator_documentation()
+{
 
   // the promise:
   /*
@@ -47,15 +47,15 @@ void test_count_iterator_documentation() {
   BOOST_TEST(data.size() == 10U);
   for (std::size_t i = 0; i < data.size(); ++i) {
 
-    BOOST_TEST(data[i] == (int) i);
+    BOOST_TEST(data[i] == (int)i);
 
   } // for
 
 } // test_count_iterator_documentation()
 
-
 //------------------------------------------------------------------------------
-void test_counter_documentation() {
+void test_counter_documentation()
+{
 
   // the promise:
   /*
@@ -74,7 +74,7 @@ void test_counter_documentation() {
    * would.
    */
   std::vector<std::size_t> data;
-  for (auto i: util::counter(4, 8)) {
+  for (auto i : util::counter(4, 8)) {
     data.push_back(i);
   }
 
@@ -91,9 +91,9 @@ void test_counter_documentation() {
 
 } // test_counter_documentation()
 
-
 // -----------------------------------------------------------------------------
-void test_infinite_counter_documentation() {
+void test_infinite_counter_documentation()
+{
 
   // the promise:
   /*
@@ -106,7 +106,7 @@ void test_infinite_counter_documentation() {
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */
   std::vector<unsigned char> data;
-  for (auto ch: util::infinite_counter<unsigned char>()) {
+  for (auto ch : util::infinite_counter<unsigned char>()) {
     if (data.size() >= 512U) break;
     data.push_back(ch);
   }
@@ -118,24 +118,23 @@ void test_infinite_counter_documentation() {
   BOOST_TEST(data.size() == N * 2);
   for (std::size_t i = 0; i < data.size(); ++i) {
 
-    BOOST_TEST(data[i]  == static_cast<unsigned char>(i % N));
+    BOOST_TEST(data[i] == static_cast<unsigned char>(i % N));
 
   } // for
 
 } // test_infinite_counter_documentation()
 
-
 // -----------------------------------------------------------------------------
 // BEGIN Test cases  -----------------------------------------------------------
 // -----------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(counter_testcase) {
+BOOST_AUTO_TEST_CASE(counter_testcase)
+{
 
   test_count_iterator_documentation();
   test_counter_documentation();
   test_infinite_counter_documentation();
 
 } // BOOST_AUTO_TEST_CASE(counter_testcase)
-
 
 // -----------------------------------------------------------------------------
 // END Test cases  -------------------------------------------------------------

@@ -9,8 +9,8 @@
 
 // LArSoft libraries
 #include "GeometryIteratorTestAlg.h"
-#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcorealg/Geometry/GeometryCore.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 
 // Boost libraries
 #include <boost/test/unit_test.hpp>
@@ -18,7 +18,6 @@
 // C/C++ standard libraries
 #include <string>
 #include <type_traits>
-
 
 namespace {
 
@@ -44,55 +43,56 @@ namespace {
    * Checks are implemented by Boost tests.
    */
   template <typename ITER, typename ITERID>
-  void CompareIteratorAndIteratorID(ITER iter, ITERID id_iter) {
+  void CompareIteratorAndIteratorID(ITER iter, ITERID id_iter)
+  {
 
-      static_assert(
-        std::is_same<typename ITER::id_iterator_t, ITERID>::value,
-        "CompareIteratorAndIteratorID() requires compatible iterator types"
-        );
+    static_assert(std::is_same<typename ITER::id_iterator_t, ITERID>::value,
+                  "CompareIteratorAndIteratorID() requires compatible iterator types");
 
-      // direct comparison
-      BOOST_TEST(iter == id_iter);
-      BOOST_TEST(! (iter != id_iter));
+    // direct comparison
+    BOOST_TEST(iter == id_iter);
+    BOOST_TEST(!(iter != id_iter));
 
-      // ID comparison
-      BOOST_TEST(iter.ID() == *id_iter);
+    // ID comparison
+    BOOST_TEST(iter.ID() == *id_iter);
 
-      auto pGeoElement = id_iter.get();
+    auto pGeoElement = id_iter.get();
 
-      // dereference
-      BOOST_TEST(iter.get() == pGeoElement);
-      BOOST_TEST(iter.operator->() == pGeoElement);
+    // dereference
+    BOOST_TEST(iter.get() == pGeoElement);
+    BOOST_TEST(iter.operator->() == pGeoElement);
 
-      if (pGeoElement) BOOST_TEST(&*iter == pGeoElement);
-      else             BOOST_CHECK_THROW(*iter, cet::exception);
+    if (pGeoElement)
+      BOOST_TEST(&*iter == pGeoElement);
+    else
+      BOOST_CHECK_THROW(*iter, cet::exception);
 
-      // boolean conversions
-      BOOST_TEST(bool(iter) == bool(id_iter));
+    // boolean conversions
+    BOOST_TEST(bool(iter) == bool(id_iter));
 
-      // check copy assignment
-      ITER iter_copy(iter);
-      ITERID id_iter_copy(id_iter);
+    // check copy assignment
+    ITER iter_copy(iter);
+    ITERID id_iter_copy(id_iter);
 
-      // check comparisons too
-      BOOST_TEST(iter == iter_copy);
-      BOOST_TEST(iter_copy == iter);
-      BOOST_TEST(!(iter != iter_copy));
-      BOOST_TEST(!(iter_copy != iter));
+    // check comparisons too
+    BOOST_TEST(iter == iter_copy);
+    BOOST_TEST(iter_copy == iter);
+    BOOST_TEST(!(iter != iter_copy));
+    BOOST_TEST(!(iter_copy != iter));
 
-      // check increment operator
-      BOOST_TEST(iter++ == id_iter++);
-      BOOST_TEST(++iter_copy == ++id_iter_copy);
+    // check increment operator
+    BOOST_TEST(iter++ == id_iter++);
+    BOOST_TEST(++iter_copy == ++id_iter_copy);
 
-      BOOST_TEST(iter == iter_copy);
+    BOOST_TEST(iter == iter_copy);
 
   } // CompareIteratorAndIteratorID()
 
 } // local namespace
 
-
 //-----------------------------------------------------------------------------
-unsigned int geo::GeometryIteratorTestAlg::Run() const {
+unsigned int geo::GeometryIteratorTestAlg::Run() const
+{
   // All the tests
 
   // - geometry ID iterators
@@ -112,10 +112,9 @@ unsigned int geo::GeometryIteratorTestAlg::Run() const {
   return 0;
 } // GeometryIteratorTestAlg::Run()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::GeometryIteratorTestAlg::CryostatIDIteratorsTest() const {
+void geo::GeometryIteratorTestAlg::CryostatIDIteratorsTest() const
+{
 
   /*
    * public interface (cryostat_id_iterator_base):
@@ -164,8 +163,7 @@ void geo::GeometryIteratorTestAlg::CryostatIDIteratorsTest() const {
   //
   {
     geo::GeometryCore::cryostat_id_iterator iCryo;
-    BOOST_TEST_CHECKPOINT
-      ("Default created cryostat ID iterator: " << std::string(*iCryo));
+    BOOST_TEST_CHECKPOINT("Default created cryostat ID iterator: " << std::string(*iCryo));
 
     BOOST_TEST(iCryo->Cryostat == geo::CryostatID::getInvalidID());
 
@@ -173,7 +171,7 @@ void geo::GeometryIteratorTestAlg::CryostatIDIteratorsTest() const {
     BOOST_TEST(!iCryo);
     BOOST_TEST(!(bool(iCryo)));
 
-  /*
+    /*
     // this is more of a curiosity, since this behaviour is undefined
     ++iCryo;
     BOOST_TEST_CHECKPOINT("  (incremented: " << std::string(*iCryo) << ")");
@@ -185,8 +183,7 @@ void geo::GeometryIteratorTestAlg::CryostatIDIteratorsTest() const {
   //
   {
     geo::GeometryCore::cryostat_id_iterator iCryo(geom);
-    BOOST_TEST_CHECKPOINT
-      ("Begin-created cryostat ID iterator: " << std::string(*iCryo));
+    BOOST_TEST_CHECKPOINT("Begin-created cryostat ID iterator: " << std::string(*iCryo));
 
     BOOST_TEST(iCryo->Cryostat == geo::CryostatID::CryostatID_t(0));
 
@@ -202,8 +199,8 @@ void geo::GeometryIteratorTestAlg::CryostatIDIteratorsTest() const {
     BOOST_TEST(iCryoD == iCryo);
 
     // construct from explicit begin position
-    geo::GeometryCore::cryostat_id_iterator iCryoBC
-      (geom, geo::GeometryCore::cryostat_id_iterator::begin_pos);
+    geo::GeometryCore::cryostat_id_iterator iCryoBC(
+      geom, geo::GeometryCore::cryostat_id_iterator::begin_pos);
     BOOST_TEST(iCryoBC == iCryo);
 
     // construct at begin position by geometry
@@ -235,7 +232,6 @@ void geo::GeometryIteratorTestAlg::CryostatIDIteratorsTest() const {
       BOOST_TEST(iCryoI->Cryostat == geo::CryostatID::CryostatID_t(2));
       BOOST_TEST(iCryoI != iCryo);
     }
-
   }
 
   //
@@ -246,8 +242,8 @@ void geo::GeometryIteratorTestAlg::CryostatIDIteratorsTest() const {
     geo::CryostatID LastID(geom->Ncryostats() - 1); // last cryostat
 
     geo::GeometryCore::cryostat_id_iterator iLastCryo(geom, LastID);
-    BOOST_TEST_CHECKPOINT("Position-created iterator to last cryostat ID: "
-      << std::string(*iLastCryo));
+    BOOST_TEST_CHECKPOINT(
+      "Position-created iterator to last cryostat ID: " << std::string(*iLastCryo));
 
     // check that the iterator tests true
     BOOST_TEST(bool(iLastCryo));
@@ -269,7 +265,6 @@ void geo::GeometryIteratorTestAlg::CryostatIDIteratorsTest() const {
     BOOST_TEST(iEndCryo->Cryostat == geom->Ncryostats());
     BOOST_TEST(iEndCryo == geom->end_cryostat_id());
     BOOST_TEST(!iEndCryo.get());
-
   }
 
   //
@@ -277,10 +272,9 @@ void geo::GeometryIteratorTestAlg::CryostatIDIteratorsTest() const {
   //
   {
     // construct from end position
-    geo::GeometryCore::cryostat_id_iterator iCryo
-      (geom, geo::GeometryCore::cryostat_id_iterator::end_pos);
-    BOOST_TEST_CHECKPOINT
-      ("End-created cryostat ID iterator: " << std::string(*iCryo));
+    geo::GeometryCore::cryostat_id_iterator iCryo(geom,
+                                                  geo::GeometryCore::cryostat_id_iterator::end_pos);
+    BOOST_TEST_CHECKPOINT("End-created cryostat ID iterator: " << std::string(*iCryo));
 
     BOOST_TEST(iCryo->Cryostat == geom->Ncryostats());
 
@@ -296,24 +290,21 @@ void geo::GeometryIteratorTestAlg::CryostatIDIteratorsTest() const {
     BOOST_TEST(iCryoGE == iCryo);
 
     // initialize to the end directly; this has probably ID's isValid true
-    geo::GeometryCore::cryostat_id_iterator iCryo2
-      (geom, geo::CryostatID(geom->Ncryostats()));
+    geo::GeometryCore::cryostat_id_iterator iCryo2(geom, geo::CryostatID(geom->Ncryostats()));
     BOOST_TEST(iCryo2->Cryostat == geom->Ncryostats());
     BOOST_TEST(iCryo2 == iCryo);
-  /*
+    /*
     // this is more of a curiosity, since this behaviour is undefined
     ++iCryo;
     BOOST_TEST_CHECKPOINT("  (incremented: " << std::string(*iCryo) << ")");
   */
-
   }
 
 } // GeometryIteratorTestAlg::CryostatIDIteratorsTest()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::GeometryIteratorTestAlg::CryostatIteratorsTest() const {
+void geo::GeometryIteratorTestAlg::CryostatIteratorsTest() const
+{
 
   /*
    * This test is extensively based on the assumption that the iterators should
@@ -385,8 +376,7 @@ void geo::GeometryIteratorTestAlg::CryostatIteratorsTest() const {
   //
   {
     geo::GeometryCore::cryostat_id_iterator iCryoID;
-    BOOST_TEST_CHECKPOINT
-      ("Default created cryostat iterator: " << std::string(*iCryoID));
+    BOOST_TEST_CHECKPOINT("Default created cryostat iterator: " << std::string(*iCryoID));
 
     geo::GeometryCore::cryostat_iterator iCryo;
 
@@ -408,7 +398,6 @@ void geo::GeometryIteratorTestAlg::CryostatIteratorsTest() const {
     BOOST_TEST(!(iCryo_copy != iCryo));
 
     BOOST_TEST(iCryo == iCryo_copy);
-
   }
 
   //
@@ -420,9 +409,7 @@ void geo::GeometryIteratorTestAlg::CryostatIteratorsTest() const {
 
     geo::GeometryCore::cryostat_id_iterator iCryoID(geom, BeginID);
 
-
-    BOOST_TEST_CHECKPOINT
-      ("Begin-created cryostat iterator (" << std::string(BeginID) << ")");
+    BOOST_TEST_CHECKPOINT("Begin-created cryostat iterator (" << std::string(BeginID) << ")");
 
     // initialize to the beginning directly
     geo::GeometryCore::cryostat_iterator iCryoD(geom, BeginID);
@@ -433,14 +420,13 @@ void geo::GeometryIteratorTestAlg::CryostatIteratorsTest() const {
     CompareIteratorAndIteratorID(iCryo, iCryoID);
 
     // construct from explicit begin position
-    geo::GeometryCore::cryostat_iterator iCryoBC
-      (geom, geo::GeometryCore::cryostat_iterator::begin_pos);
+    geo::GeometryCore::cryostat_iterator iCryoBC(geom,
+                                                 geo::GeometryCore::cryostat_iterator::begin_pos);
     CompareIteratorAndIteratorID(iCryoBC, iCryoID);
 
     // construct at begin position by geometry
     geo::GeometryCore::cryostat_iterator iCryoGB = geom->begin_cryostat();
     CompareIteratorAndIteratorID(iCryoGB, iCryoID);
-
   }
 
   //
@@ -451,8 +437,7 @@ void geo::GeometryIteratorTestAlg::CryostatIteratorsTest() const {
     geo::CryostatID LastID(geom->Ncryostats() - 1); // last cryostat
     geo::GeometryCore::cryostat_id_iterator iLastCryoID(geom, LastID);
 
-    BOOST_TEST_CHECKPOINT("Position-created iterator to last cryostat: "
-      << std::string(LastID));
+    BOOST_TEST_CHECKPOINT("Position-created iterator to last cryostat: " << std::string(LastID));
     geo::GeometryCore::cryostat_iterator iLastCryo(geom, LastID);
     CompareIteratorAndIteratorID(iLastCryo, iLastCryoID);
 
@@ -464,7 +449,6 @@ void geo::GeometryIteratorTestAlg::CryostatIteratorsTest() const {
     ++iEndCryo;
 
     CompareIteratorAndIteratorID(iEndCryo, iEndCryoID);
-
   }
 
   //
@@ -474,24 +458,20 @@ void geo::GeometryIteratorTestAlg::CryostatIteratorsTest() const {
     geo::GeometryCore::cryostat_id_iterator iCryoID = geom->end_cryostat_id();
 
     // construct from end position
-    BOOST_TEST_CHECKPOINT
-      ("End-created cryostat iterator: " << std::string(*iCryoID));
-    geo::GeometryCore::cryostat_iterator iCryo
-      (geom, geo::GeometryCore::cryostat_iterator::end_pos);
+    BOOST_TEST_CHECKPOINT("End-created cryostat iterator: " << std::string(*iCryoID));
+    geo::GeometryCore::cryostat_iterator iCryo(geom, geo::GeometryCore::cryostat_iterator::end_pos);
     CompareIteratorAndIteratorID(iCryo, iCryoID);
 
     // construct at end position by geometry
     geo::GeometryCore::cryostat_iterator iCryoGE = geom->end_cryostat();
     CompareIteratorAndIteratorID(iCryoGE, iCryoID);
-
   }
 
 } // GeometryIteratorTestAlg::CryostatIteratorsTest()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::GeometryIteratorTestAlg::TPCIDIteratorsTest() const {
+void geo::GeometryIteratorTestAlg::TPCIDIteratorsTest() const
+{
 
   /*
    * public interface (TPC_id_iterator_base):
@@ -545,8 +525,7 @@ void geo::GeometryIteratorTestAlg::TPCIDIteratorsTest() const {
   //
   {
     geo::GeometryCore::TPC_id_iterator iTPC;
-    BOOST_TEST_CHECKPOINT
-      ("Default created TPC ID iterator: " << std::string(*iTPC));
+    BOOST_TEST_CHECKPOINT("Default created TPC ID iterator: " << std::string(*iTPC));
 
     BOOST_TEST(iTPC->Cryostat == geo::CryostatID::getInvalidID());
     BOOST_TEST(iTPC->TPC == geo::TPCID::getInvalidID());
@@ -554,7 +533,6 @@ void geo::GeometryIteratorTestAlg::TPCIDIteratorsTest() const {
     // check that the iterator tests false
     BOOST_TEST(!iTPC);
     BOOST_TEST(!(bool(iTPC)));
-
   }
 
   //
@@ -562,11 +540,10 @@ void geo::GeometryIteratorTestAlg::TPCIDIteratorsTest() const {
   //
   {
     geo::GeometryCore::TPC_id_iterator iTPC(geom);
-    BOOST_TEST_CHECKPOINT
-      ("Begin-created TPC ID iterator: " << std::string(*iTPC));
+    BOOST_TEST_CHECKPOINT("Begin-created TPC ID iterator: " << std::string(*iTPC));
 
     BOOST_TEST(iTPC->Cryostat == geo::CryostatID::CryostatID_t(0));
-    BOOST_TEST(iTPC->TPC ==                geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iTPC->TPC == geo::TPCID::TPCID_t(0));
 
     // check that the iterator tests true
     BOOST_TEST(bool(iTPC));
@@ -577,12 +554,11 @@ void geo::GeometryIteratorTestAlg::TPCIDIteratorsTest() const {
     geom->GetBeginID(BeginID);
     geo::GeometryCore::TPC_id_iterator iTPCD(geom, BeginID);
     BOOST_TEST(iTPCD->Cryostat == geo::CryostatID::CryostatID_t(0));
-    BOOST_TEST(iTPCD->TPC ==                geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iTPCD->TPC == geo::TPCID::TPCID_t(0));
     BOOST_TEST(iTPCD == iTPC);
 
     // construct from explicit begin position
-    geo::GeometryCore::TPC_id_iterator iTPCBC
-      (geom, geo::GeometryCore::TPC_id_iterator::begin_pos);
+    geo::GeometryCore::TPC_id_iterator iTPCBC(geom, geo::GeometryCore::TPC_id_iterator::begin_pos);
     BOOST_TEST(iTPCBC == iTPC);
 
     // construct at begin position by geometry
@@ -604,16 +580,15 @@ void geo::GeometryIteratorTestAlg::TPCIDIteratorsTest() const {
     const unsigned int nTPCsInC0 = geom->NTPC(geo::CryostatID(0));
     if (nTPCsInC0 > 1) {
       BOOST_TEST(iTPCI->Cryostat == geo::CryostatID::CryostatID_t(0));
-      BOOST_TEST(iTPCI->TPC ==                geo::TPCID::TPCID_t(0));
-      BOOST_TEST(iTPC->Cryostat ==  geo::CryostatID::CryostatID_t(0));
-      BOOST_TEST(iTPC->TPC ==                 geo::TPCID::TPCID_t(1));
+      BOOST_TEST(iTPCI->TPC == geo::TPCID::TPCID_t(0));
+      BOOST_TEST(iTPC->Cryostat == geo::CryostatID::CryostatID_t(0));
+      BOOST_TEST(iTPC->TPC == geo::TPCID::TPCID_t(1));
     }
     BOOST_TEST(iTPCI != iTPC);
 
     // test copy and prefix increment
     ++iTPCI;
     BOOST_TEST(iTPCI == iTPC); // arguable if both are end-iterators by now
-
   }
 
   //
@@ -639,15 +614,13 @@ void geo::GeometryIteratorTestAlg::TPCIDIteratorsTest() const {
     ++iTPC;
     // check that the pointed ID is as expected
     BOOST_TEST(iTPC->Cryostat == geo::CryostatID::CryostatID_t(ID.Cryostat + 1));
-    BOOST_TEST(iTPC->TPC ==                geo::TPCID::TPCID_t(0));
-
+    BOOST_TEST(iTPC->TPC == geo::TPCID::TPCID_t(0));
 
     // test iterator to last TPC
     geo::TPCID LastID(geom->Ncryostats() - 1, 0);
     LastID.TPC = geom->NTPC(LastID) - 1; // last TPC of last cryostat
     geo::GeometryCore::TPC_id_iterator iLastTPC(geom, LastID);
-    BOOST_TEST_CHECKPOINT("Position-created iterator to last TPC ID: "
-      << std::string(*iLastTPC));
+    BOOST_TEST_CHECKPOINT("Position-created iterator to last TPC ID: " << std::string(*iLastTPC));
 
     // check that the iterator tests true
     BOOST_TEST(bool(iLastTPC));
@@ -668,10 +641,9 @@ void geo::GeometryIteratorTestAlg::TPCIDIteratorsTest() const {
     BOOST_TEST(!iEndTPC);
 
     BOOST_TEST(iEndTPC->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
-    BOOST_TEST(iEndTPC->TPC ==                geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iEndTPC->TPC == geo::TPCID::TPCID_t(0));
     BOOST_TEST(iEndTPC == geom->end_TPC_id());
     BOOST_TEST(!iEndTPC.get());
-
   }
 
   //
@@ -679,13 +651,11 @@ void geo::GeometryIteratorTestAlg::TPCIDIteratorsTest() const {
   //
   {
     // construct from end position
-    geo::GeometryCore::TPC_id_iterator iTPC
-      (geom, geo::GeometryCore::TPC_id_iterator::end_pos);
-    BOOST_TEST_CHECKPOINT
-      ("End-created TPC ID iterator: " << std::string(*iTPC));
+    geo::GeometryCore::TPC_id_iterator iTPC(geom, geo::GeometryCore::TPC_id_iterator::end_pos);
+    BOOST_TEST_CHECKPOINT("End-created TPC ID iterator: " << std::string(*iTPC));
 
     BOOST_TEST(iTPC->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
-    BOOST_TEST(iTPC->TPC ==                geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iTPC->TPC == geo::TPCID::TPCID_t(0));
 
     // check that the iterator tests false
     BOOST_TEST(!bool(iTPC));
@@ -699,20 +669,17 @@ void geo::GeometryIteratorTestAlg::TPCIDIteratorsTest() const {
     BOOST_TEST(iTPCGE == iTPC);
 
     // initialize to the end directly; this has probably ID's isValid true
-    geo::GeometryCore::TPC_id_iterator iTPC2
-      (geom, geo::TPCID(geom->Ncryostats(), 0));
+    geo::GeometryCore::TPC_id_iterator iTPC2(geom, geo::TPCID(geom->Ncryostats(), 0));
     BOOST_TEST(iTPC2->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
-    BOOST_TEST(iTPC2->TPC ==                geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iTPC2->TPC == geo::TPCID::TPCID_t(0));
     BOOST_TEST(iTPC2 == iTPC);
-
   }
 
 } // GeometryIteratorTestAlg::TPCIDIteratorsTest()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::GeometryIteratorTestAlg::TPCIteratorsTest() const {
+void geo::GeometryIteratorTestAlg::TPCIteratorsTest() const
+{
 
   /*
    * This test is extensively based on the assumption that the iterators should
@@ -784,8 +751,7 @@ void geo::GeometryIteratorTestAlg::TPCIteratorsTest() const {
   //
   {
     geo::GeometryCore::TPC_id_iterator iTPCID;
-    BOOST_TEST_CHECKPOINT
-      ("Default created TPC iterator: " << std::string(*iTPCID));
+    BOOST_TEST_CHECKPOINT("Default created TPC iterator: " << std::string(*iTPCID));
 
     geo::GeometryCore::TPC_iterator iTPC;
 
@@ -807,7 +773,6 @@ void geo::GeometryIteratorTestAlg::TPCIteratorsTest() const {
     BOOST_TEST(!(iTPC_copy != iTPC));
 
     BOOST_TEST(iTPC == iTPC_copy);
-
   }
 
   //
@@ -819,9 +784,7 @@ void geo::GeometryIteratorTestAlg::TPCIteratorsTest() const {
 
     geo::GeometryCore::TPC_id_iterator iTPCID(geom, BeginID);
 
-
-    BOOST_TEST_CHECKPOINT
-      ("Begin-created TPC iterator (" << std::string(BeginID) << ")");
+    BOOST_TEST_CHECKPOINT("Begin-created TPC iterator (" << std::string(BeginID) << ")");
 
     // initialize to the beginning directly
     geo::GeometryCore::TPC_iterator iTPCD(geom, BeginID);
@@ -832,14 +795,12 @@ void geo::GeometryIteratorTestAlg::TPCIteratorsTest() const {
     CompareIteratorAndIteratorID(iTPC, iTPCID);
 
     // construct from explicit begin position
-    geo::GeometryCore::TPC_iterator iTPCBC
-      (geom, geo::GeometryCore::TPC_iterator::begin_pos);
+    geo::GeometryCore::TPC_iterator iTPCBC(geom, geo::GeometryCore::TPC_iterator::begin_pos);
     CompareIteratorAndIteratorID(iTPCBC, iTPCID);
 
     // construct at begin position by geometry
     geo::GeometryCore::TPC_iterator iTPCGB = geom->begin_TPC();
     CompareIteratorAndIteratorID(iTPCGB, iTPCID);
-
   }
 
   //
@@ -851,8 +812,7 @@ void geo::GeometryIteratorTestAlg::TPCIteratorsTest() const {
     LastID.TPC = geom->NTPC(LastID) - 1; // last TPC of last cryostat
     geo::GeometryCore::TPC_id_iterator iLastTPCID(geom, LastID);
 
-    BOOST_TEST_CHECKPOINT("Position-created iterator to last TPC: "
-      << std::string(LastID));
+    BOOST_TEST_CHECKPOINT("Position-created iterator to last TPC: " << std::string(LastID));
     geo::GeometryCore::TPC_iterator iLastTPC(geom, LastID);
     CompareIteratorAndIteratorID(iLastTPC, iLastTPCID);
 
@@ -864,7 +824,6 @@ void geo::GeometryIteratorTestAlg::TPCIteratorsTest() const {
     ++iEndTPC;
 
     CompareIteratorAndIteratorID(iEndTPC, iEndTPCID);
-
   }
 
   //
@@ -875,22 +834,19 @@ void geo::GeometryIteratorTestAlg::TPCIteratorsTest() const {
 
     // construct from end position
     BOOST_TEST_CHECKPOINT("End-created TPC iterator: " << std::string(*iTPCID));
-    geo::GeometryCore::TPC_iterator iTPC
-      (geom, geo::GeometryCore::TPC_iterator::end_pos);
+    geo::GeometryCore::TPC_iterator iTPC(geom, geo::GeometryCore::TPC_iterator::end_pos);
     CompareIteratorAndIteratorID(iTPC, iTPCID);
 
     // construct at end position by geometry
     geo::GeometryCore::TPC_iterator iTPCGE = geom->end_TPC();
     CompareIteratorAndIteratorID(iTPCGE, iTPCID);
-
   }
 
 } // GeometryIteratorTestAlg::TPCIteratorsTest()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::GeometryIteratorTestAlg::PlaneIDIteratorsTest() const {
+void geo::GeometryIteratorTestAlg::PlaneIDIteratorsTest() const
+{
 
   /*
    * public interface (plane_id_iterator_base):
@@ -945,17 +901,15 @@ void geo::GeometryIteratorTestAlg::PlaneIDIteratorsTest() const {
   //
   {
     geo::GeometryCore::plane_id_iterator iPlane;
-    BOOST_TEST_CHECKPOINT
-      ("Default created plane ID iterator: " << std::string(*iPlane));
+    BOOST_TEST_CHECKPOINT("Default created plane ID iterator: " << std::string(*iPlane));
 
     BOOST_TEST(iPlane->Cryostat == geo::CryostatID::getInvalidID());
-    BOOST_TEST(iPlane->TPC ==           geo::TPCID::getInvalidID());
-    BOOST_TEST(iPlane->Plane ==       geo::PlaneID::getInvalidID());
+    BOOST_TEST(iPlane->TPC == geo::TPCID::getInvalidID());
+    BOOST_TEST(iPlane->Plane == geo::PlaneID::getInvalidID());
 
     // check that the iterator tests false
     BOOST_TEST(!iPlane);
     BOOST_TEST(!(bool(iPlane)));
-
   }
 
   //
@@ -963,12 +917,11 @@ void geo::GeometryIteratorTestAlg::PlaneIDIteratorsTest() const {
   //
   {
     geo::GeometryCore::plane_id_iterator iPlane(geom);
-    BOOST_TEST_CHECKPOINT
-      ("Begin-created plane ID iterator: " << std::string(*iPlane));
+    BOOST_TEST_CHECKPOINT("Begin-created plane ID iterator: " << std::string(*iPlane));
 
     BOOST_TEST(iPlane->Cryostat == geo::CryostatID::CryostatID_t(0));
-    BOOST_TEST(iPlane->TPC ==                geo::TPCID::TPCID_t(0));
-    BOOST_TEST(iPlane->Plane ==          geo::PlaneID::PlaneID_t(0));
+    BOOST_TEST(iPlane->TPC == geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iPlane->Plane == geo::PlaneID::PlaneID_t(0));
 
     // check that the iterator tests true
     BOOST_TEST(bool(iPlane));
@@ -979,13 +932,13 @@ void geo::GeometryIteratorTestAlg::PlaneIDIteratorsTest() const {
     geom->GetBeginID(BeginID);
     geo::GeometryCore::plane_id_iterator iPlaneD(geom, BeginID);
     BOOST_TEST(iPlaneD->Cryostat == geo::CryostatID::CryostatID_t(0));
-    BOOST_TEST(iPlaneD->TPC ==                geo::TPCID::TPCID_t(0));
-    BOOST_TEST(iPlaneD->Plane ==          geo::PlaneID::PlaneID_t(0));
+    BOOST_TEST(iPlaneD->TPC == geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iPlaneD->Plane == geo::PlaneID::PlaneID_t(0));
     BOOST_TEST(iPlaneD == iPlane);
 
     // construct from explicit begin position
-    geo::GeometryCore::plane_id_iterator iPlaneBC
-      (geom, geo::GeometryCore::plane_id_iterator::begin_pos);
+    geo::GeometryCore::plane_id_iterator iPlaneBC(geom,
+                                                  geo::GeometryCore::plane_id_iterator::begin_pos);
     BOOST_TEST(iPlaneBC == iPlane);
 
     // construct at begin position by geometry
@@ -1008,18 +961,17 @@ void geo::GeometryIteratorTestAlg::PlaneIDIteratorsTest() const {
     const unsigned int nPlanesInC0T0 = geom->Nplanes(geo::TPCID(0, 0));
     if (nPlanesInC0T0 > 1) {
       BOOST_TEST(iPlaneI->Cryostat == geo::CryostatID::CryostatID_t(0));
-      BOOST_TEST(iPlaneI->TPC ==                geo::TPCID::TPCID_t(0));
-      BOOST_TEST(iPlaneI->Plane ==          geo::PlaneID::PlaneID_t(0));
+      BOOST_TEST(iPlaneI->TPC == geo::TPCID::TPCID_t(0));
+      BOOST_TEST(iPlaneI->Plane == geo::PlaneID::PlaneID_t(0));
       BOOST_TEST(iPlane->Cryostat == geo::CryostatID::CryostatID_t(0));
-      BOOST_TEST(iPlane->TPC ==                geo::TPCID::TPCID_t(0));
-      BOOST_TEST(iPlane->Plane ==          geo::PlaneID::PlaneID_t(1));
+      BOOST_TEST(iPlane->TPC == geo::TPCID::TPCID_t(0));
+      BOOST_TEST(iPlane->Plane == geo::PlaneID::PlaneID_t(1));
     }
     BOOST_TEST(iPlaneI != iPlane);
 
     // test copy and prefix increment
     ++iPlaneI;
     BOOST_TEST(iPlaneI == iPlane); // arguable if both are end-iterators by now
-
   }
 
   //
@@ -1052,17 +1004,17 @@ void geo::GeometryIteratorTestAlg::PlaneIDIteratorsTest() const {
     }
     else {
       BOOST_TEST(iPlane->Cryostat == ID.Cryostat + 1);
-      BOOST_TEST(iPlane->TPC ==       geo::TPCID::TPCID_t(0));
+      BOOST_TEST(iPlane->TPC == geo::TPCID::TPCID_t(0));
       BOOST_TEST(iPlane->Plane == geo::PlaneID::PlaneID_t(0));
     }
 
     // test iterator to last plane
     geo::PlaneID LastID(geom->Ncryostats() - 1, 0, 0);
-    LastID.TPC = geom->NTPC(LastID) - 1; // last TPC of last cryostat
+    LastID.TPC = geom->NTPC(LastID) - 1;      // last TPC of last cryostat
     LastID.Plane = geom->Nplanes(LastID) - 1; // last plane of last TPC
     geo::GeometryCore::plane_id_iterator iLastPlane(geom, LastID);
-    BOOST_TEST_CHECKPOINT("Position-created iterator to last plane ID: "
-      << std::string(*iLastPlane));
+    BOOST_TEST_CHECKPOINT(
+      "Position-created iterator to last plane ID: " << std::string(*iLastPlane));
 
     // check that the iterator tests true
     BOOST_TEST(bool(iLastPlane));
@@ -1084,11 +1036,10 @@ void geo::GeometryIteratorTestAlg::PlaneIDIteratorsTest() const {
     BOOST_TEST(!iEndPlane);
 
     BOOST_TEST(iEndPlane->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
-    BOOST_TEST(iEndPlane->TPC ==                geo::TPCID::TPCID_t(0));
-    BOOST_TEST(iEndPlane->Plane ==          geo::PlaneID::PlaneID_t(0));
+    BOOST_TEST(iEndPlane->TPC == geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iEndPlane->Plane == geo::PlaneID::PlaneID_t(0));
     BOOST_TEST(iEndPlane == geom->end_plane_id());
     BOOST_TEST(!iEndPlane.get());
-
   }
 
   //
@@ -1096,14 +1047,13 @@ void geo::GeometryIteratorTestAlg::PlaneIDIteratorsTest() const {
   //
   {
     // construct from end position
-    geo::GeometryCore::plane_id_iterator iPlane
-      (geom, geo::GeometryCore::plane_id_iterator::end_pos);
-    BOOST_TEST_CHECKPOINT
-      ("End-created plane ID iterator: " << std::string(*iPlane));
+    geo::GeometryCore::plane_id_iterator iPlane(geom,
+                                                geo::GeometryCore::plane_id_iterator::end_pos);
+    BOOST_TEST_CHECKPOINT("End-created plane ID iterator: " << std::string(*iPlane));
 
     BOOST_TEST(iPlane->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
-    BOOST_TEST(iPlane->TPC ==                geo::TPCID::TPCID_t(0));
-    BOOST_TEST(iPlane->Plane ==          geo::PlaneID::PlaneID_t(0));
+    BOOST_TEST(iPlane->TPC == geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iPlane->Plane == geo::PlaneID::PlaneID_t(0));
 
     // check that the iterator tests false
     BOOST_TEST(!bool(iPlane));
@@ -1117,20 +1067,17 @@ void geo::GeometryIteratorTestAlg::PlaneIDIteratorsTest() const {
     BOOST_TEST(iPlaneGE == iPlane);
 
     // initialize to the end directly; this has probably ID's isValid true
-    geo::GeometryCore::plane_id_iterator iPlane2
-      (geom, geo::PlaneID(geom->Ncryostats(), 0, 0));
+    geo::GeometryCore::plane_id_iterator iPlane2(geom, geo::PlaneID(geom->Ncryostats(), 0, 0));
     BOOST_TEST(iPlane2->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
-    BOOST_TEST(iPlane2->TPC ==                geo::TPCID::TPCID_t(0));
-    BOOST_TEST(iPlane2->Plane ==          geo::PlaneID::PlaneID_t(0));
+    BOOST_TEST(iPlane2->TPC == geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iPlane2->Plane == geo::PlaneID::PlaneID_t(0));
     BOOST_TEST(iPlane2 == iPlane);
-
   }
 } // GeometryIteratorTestAlg::PlaneIDIteratorsTest()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::GeometryIteratorTestAlg::PlaneIteratorsTest() const {
+void geo::GeometryIteratorTestAlg::PlaneIteratorsTest() const
+{
 
   /*
    * This test is extensively based on the assumption that the iterators should
@@ -1202,8 +1149,7 @@ void geo::GeometryIteratorTestAlg::PlaneIteratorsTest() const {
   //
   {
     geo::GeometryCore::plane_id_iterator iPlaneID;
-    BOOST_TEST_CHECKPOINT
-      ("Default created plane iterator: " << std::string(*iPlaneID));
+    BOOST_TEST_CHECKPOINT("Default created plane iterator: " << std::string(*iPlaneID));
 
     geo::GeometryCore::plane_iterator iPlane;
 
@@ -1225,7 +1171,6 @@ void geo::GeometryIteratorTestAlg::PlaneIteratorsTest() const {
     BOOST_TEST(!(iPlane_copy != iPlane));
 
     BOOST_TEST(iPlane == iPlane_copy);
-
   }
 
   //
@@ -1237,9 +1182,7 @@ void geo::GeometryIteratorTestAlg::PlaneIteratorsTest() const {
 
     geo::GeometryCore::plane_id_iterator iPlaneID(geom, BeginID);
 
-
-    BOOST_TEST_CHECKPOINT
-      ("Begin-created plane iterator (" << std::string(BeginID) << ")");
+    BOOST_TEST_CHECKPOINT("Begin-created plane iterator (" << std::string(BeginID) << ")");
 
     // initialize to the beginning directly
     geo::GeometryCore::plane_iterator iPlaneD(geom, BeginID);
@@ -1250,14 +1193,12 @@ void geo::GeometryIteratorTestAlg::PlaneIteratorsTest() const {
     CompareIteratorAndIteratorID(iPlane, iPlaneID);
 
     // construct from explicit begin position
-    geo::GeometryCore::plane_iterator iPlaneBC
-      (geom, geo::GeometryCore::plane_iterator::begin_pos);
+    geo::GeometryCore::plane_iterator iPlaneBC(geom, geo::GeometryCore::plane_iterator::begin_pos);
     CompareIteratorAndIteratorID(iPlaneBC, iPlaneID);
 
     // construct at begin position by geometry
     geo::GeometryCore::plane_iterator iPlaneGB = geom->begin_plane();
     CompareIteratorAndIteratorID(iPlaneGB, iPlaneID);
-
   }
 
   //
@@ -1266,12 +1207,11 @@ void geo::GeometryIteratorTestAlg::PlaneIteratorsTest() const {
   {
     // test iterator to last plane
     geo::PlaneID LastID(geom->Ncryostats() - 1, 0, 0);
-    LastID.TPC = geom->NTPC(LastID) - 1; // last TPC of last cryostat
+    LastID.TPC = geom->NTPC(LastID) - 1;      // last TPC of last cryostat
     LastID.Plane = geom->Nplanes(LastID) - 1; // last plane of last TPC
     geo::GeometryCore::plane_id_iterator iLastPlaneID(geom, LastID);
 
-    BOOST_TEST_CHECKPOINT("Position-created iterator to last plane: "
-      << std::string(LastID));
+    BOOST_TEST_CHECKPOINT("Position-created iterator to last plane: " << std::string(LastID));
     geo::GeometryCore::plane_iterator iLastPlane(geom, LastID);
     CompareIteratorAndIteratorID(iLastPlane, iLastPlaneID);
 
@@ -1283,7 +1223,6 @@ void geo::GeometryIteratorTestAlg::PlaneIteratorsTest() const {
     ++iEndPlane;
 
     CompareIteratorAndIteratorID(iEndPlane, iEndPlaneID);
-
   }
 
   //
@@ -1293,24 +1232,20 @@ void geo::GeometryIteratorTestAlg::PlaneIteratorsTest() const {
     geo::GeometryCore::plane_id_iterator iPlaneID = geom->end_plane_id();
 
     // construct from end position
-    BOOST_TEST_CHECKPOINT
-      ("End-created plane iterator: " << std::string(*iPlaneID));
-    geo::GeometryCore::plane_iterator iPlane
-      (geom, geo::GeometryCore::plane_iterator::end_pos);
+    BOOST_TEST_CHECKPOINT("End-created plane iterator: " << std::string(*iPlaneID));
+    geo::GeometryCore::plane_iterator iPlane(geom, geo::GeometryCore::plane_iterator::end_pos);
     CompareIteratorAndIteratorID(iPlane, iPlaneID);
 
     // construct at end position by geometry
     geo::GeometryCore::plane_iterator iPlaneGE = geom->end_plane();
     CompareIteratorAndIteratorID(iPlaneGE, iPlaneID);
-
   }
 
 } // GeometryIteratorTestAlg::PlaneIteratorsTest()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::GeometryIteratorTestAlg::WireIDIteratorsTest() const {
+void geo::GeometryIteratorTestAlg::WireIDIteratorsTest() const
+{
 
   /*
    * public interface (wire_id_iterator_base):
@@ -1365,18 +1300,16 @@ void geo::GeometryIteratorTestAlg::WireIDIteratorsTest() const {
   //
   {
     geo::GeometryCore::wire_id_iterator iWire;
-    BOOST_TEST_CHECKPOINT
-      ("Default created wire ID iterator: " << std::string(*iWire));
+    BOOST_TEST_CHECKPOINT("Default created wire ID iterator: " << std::string(*iWire));
 
     BOOST_TEST(iWire->Cryostat == geo::CryostatID::getInvalidID());
-    BOOST_TEST(iWire->TPC ==           geo::TPCID::getInvalidID());
-    BOOST_TEST(iWire->Plane ==       geo::PlaneID::getInvalidID());
-    BOOST_TEST(iWire->Wire ==         geo::WireID::getInvalidID());
+    BOOST_TEST(iWire->TPC == geo::TPCID::getInvalidID());
+    BOOST_TEST(iWire->Plane == geo::PlaneID::getInvalidID());
+    BOOST_TEST(iWire->Wire == geo::WireID::getInvalidID());
 
     // check that the iterator tests false
     BOOST_TEST(!iWire);
     BOOST_TEST(!(bool(iWire)));
-
   }
 
   //
@@ -1384,13 +1317,12 @@ void geo::GeometryIteratorTestAlg::WireIDIteratorsTest() const {
   //
   {
     geo::GeometryCore::wire_id_iterator iWire(geom);
-    BOOST_TEST_CHECKPOINT
-      ("Begin-created wire ID iterator: " << std::string(*iWire));
+    BOOST_TEST_CHECKPOINT("Begin-created wire ID iterator: " << std::string(*iWire));
 
     BOOST_TEST(iWire->Cryostat == geo::CryostatID::CryostatID_t(0));
-    BOOST_TEST(iWire->TPC ==                geo::TPCID::TPCID_t(0));
-    BOOST_TEST(iWire->Plane ==          geo::PlaneID::PlaneID_t(0));
-    BOOST_TEST(iWire->Wire ==             geo::WireID::WireID_t(0));
+    BOOST_TEST(iWire->TPC == geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iWire->Plane == geo::PlaneID::PlaneID_t(0));
+    BOOST_TEST(iWire->Wire == geo::WireID::WireID_t(0));
 
     // check that the iterator tests true
     BOOST_TEST(bool(iWire));
@@ -1401,14 +1333,14 @@ void geo::GeometryIteratorTestAlg::WireIDIteratorsTest() const {
     geom->GetBeginID(BeginID);
     geo::GeometryCore::wire_id_iterator iWireD(geom, BeginID);
     BOOST_TEST(iWireD->Cryostat == geo::CryostatID::CryostatID_t(0));
-    BOOST_TEST(iWireD->TPC ==                geo::TPCID::TPCID_t(0));
-    BOOST_TEST(iWireD->Plane ==          geo::PlaneID::PlaneID_t(0));
-    BOOST_TEST(iWireD->Wire ==             geo::WireID::WireID_t(0));
+    BOOST_TEST(iWireD->TPC == geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iWireD->Plane == geo::PlaneID::PlaneID_t(0));
+    BOOST_TEST(iWireD->Wire == geo::WireID::WireID_t(0));
     BOOST_TEST(iWireD == iWire);
 
     // construct from explicit begin position
-    geo::GeometryCore::wire_id_iterator iWireBC
-      (geom, geo::GeometryCore::wire_id_iterator::begin_pos);
+    geo::GeometryCore::wire_id_iterator iWireBC(geom,
+                                                geo::GeometryCore::wire_id_iterator::begin_pos);
     BOOST_TEST(iWireBC == iWire);
 
     // construct at begin position by geometry
@@ -1432,20 +1364,19 @@ void geo::GeometryIteratorTestAlg::WireIDIteratorsTest() const {
     const unsigned int nWiresInC0T0P0 = geom->Nwires(geo::PlaneID(0, 0, 0));
     if (nWiresInC0T0P0 > 1) {
       BOOST_TEST(iWireI->Cryostat == geo::CryostatID::CryostatID_t(0));
-      BOOST_TEST(iWireI->TPC ==                geo::TPCID::TPCID_t(0));
-      BOOST_TEST(iWireI->Plane ==          geo::PlaneID::PlaneID_t(0));
-      BOOST_TEST(iWireI->Wire ==             geo::WireID::WireID_t(0));
+      BOOST_TEST(iWireI->TPC == geo::TPCID::TPCID_t(0));
+      BOOST_TEST(iWireI->Plane == geo::PlaneID::PlaneID_t(0));
+      BOOST_TEST(iWireI->Wire == geo::WireID::WireID_t(0));
       BOOST_TEST(iWire->Cryostat == geo::CryostatID::CryostatID_t(0));
-      BOOST_TEST(iWire->TPC ==                geo::TPCID::TPCID_t(0));
-      BOOST_TEST(iWire->Plane ==          geo::PlaneID::PlaneID_t(0));
-      BOOST_TEST(iWire->Wire ==             geo::WireID::WireID_t(1));
+      BOOST_TEST(iWire->TPC == geo::TPCID::TPCID_t(0));
+      BOOST_TEST(iWire->Plane == geo::PlaneID::PlaneID_t(0));
+      BOOST_TEST(iWire->Wire == geo::WireID::WireID_t(1));
     }
     BOOST_TEST(iWireI != iWire);
 
     // test copy and prefix increment
     ++iWireI;
     BOOST_TEST(iWireI == iWire); // arguable if both are end-iterators by now
-
   }
 
   //
@@ -1474,29 +1405,30 @@ void geo::GeometryIteratorTestAlg::WireIDIteratorsTest() const {
     // check that the pointed ID is as expected
     if (ID.Plane + 1 < geom->Nplanes(ID)) {
       BOOST_TEST(iWire->Cryostat == geo::CryostatID::CryostatID_t(0));
-      BOOST_TEST(iWire->TPC ==                geo::TPCID::TPCID_t(0));
-      BOOST_TEST(iWire->Plane ==                                  ID.Plane + 1);
-      BOOST_TEST(iWire->Wire ==             geo::WireID::WireID_t(0));
-    } else if (ID.TPC + 1 < geom->NTPC(ID)) {
+      BOOST_TEST(iWire->TPC == geo::TPCID::TPCID_t(0));
+      BOOST_TEST(iWire->Plane == ID.Plane + 1);
+      BOOST_TEST(iWire->Wire == geo::WireID::WireID_t(0));
+    }
+    else if (ID.TPC + 1 < geom->NTPC(ID)) {
       BOOST_TEST(iWire->Cryostat == geo::CryostatID::CryostatID_t(0));
-      BOOST_TEST(iWire->TPC ==                                    ID.TPC + 1);
-      BOOST_TEST(iWire->Plane ==          geo::PlaneID::PlaneID_t(0));
-      BOOST_TEST(iWire->Wire ==             geo::WireID::WireID_t(0));
-    } else {
-      BOOST_TEST(iWire->Cryostat ==                               ID.Cryostat + 1);
-      BOOST_TEST(iWire->TPC ==                geo::TPCID::TPCID_t(0));
-      BOOST_TEST(iWire->Plane ==          geo::PlaneID::PlaneID_t(0));
-      BOOST_TEST(iWire->Wire ==             geo::WireID::WireID_t(0));
-         }
+      BOOST_TEST(iWire->TPC == ID.TPC + 1);
+      BOOST_TEST(iWire->Plane == geo::PlaneID::PlaneID_t(0));
+      BOOST_TEST(iWire->Wire == geo::WireID::WireID_t(0));
+    }
+    else {
+      BOOST_TEST(iWire->Cryostat == ID.Cryostat + 1);
+      BOOST_TEST(iWire->TPC == geo::TPCID::TPCID_t(0));
+      BOOST_TEST(iWire->Plane == geo::PlaneID::PlaneID_t(0));
+      BOOST_TEST(iWire->Wire == geo::WireID::WireID_t(0));
+    }
 
     // test iterator to last wire
     geo::WireID LastID(geom->Ncryostats() - 1, 0, 0, 0);
-    LastID.TPC = geom->NTPC(LastID) - 1; // last TPC of last cryostat
+    LastID.TPC = geom->NTPC(LastID) - 1;      // last TPC of last cryostat
     LastID.Plane = geom->Nplanes(LastID) - 1; // last plane of last TPC
-    LastID.Wire = geom->Nwires(LastID) - 1; // last wire of last plane
+    LastID.Wire = geom->Nwires(LastID) - 1;   // last wire of last plane
     geo::GeometryCore::wire_id_iterator iLastWire(geom, LastID);
-    BOOST_TEST_CHECKPOINT("Position-created iterator to last wire ID: "
-      << std::string(*iLastWire));
+    BOOST_TEST_CHECKPOINT("Position-created iterator to last wire ID: " << std::string(*iLastWire));
 
     // check that the iterator tests true
     BOOST_TEST(bool(iLastWire));
@@ -1519,12 +1451,11 @@ void geo::GeometryIteratorTestAlg::WireIDIteratorsTest() const {
     BOOST_TEST(!iEndWire);
 
     BOOST_TEST(iEndWire->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
-    BOOST_TEST(iEndWire->TPC ==                geo::TPCID::TPCID_t(0));
-    BOOST_TEST(iEndWire->Plane ==          geo::PlaneID::PlaneID_t(0));
-    BOOST_TEST(iEndWire->Wire ==             geo::WireID::WireID_t(0));
+    BOOST_TEST(iEndWire->TPC == geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iEndWire->Plane == geo::PlaneID::PlaneID_t(0));
+    BOOST_TEST(iEndWire->Wire == geo::WireID::WireID_t(0));
     BOOST_TEST(iEndWire == geom->end_wire_id());
     BOOST_TEST(!iEndWire.get());
-
   }
 
   //
@@ -1532,15 +1463,13 @@ void geo::GeometryIteratorTestAlg::WireIDIteratorsTest() const {
   //
   {
     // construct from end position
-    geo::GeometryCore::wire_id_iterator iWire
-      (geom, geo::GeometryCore::wire_id_iterator::end_pos);
-    BOOST_TEST_CHECKPOINT
-      ("End-created end ID iterator: " << std::string(*iWire));
+    geo::GeometryCore::wire_id_iterator iWire(geom, geo::GeometryCore::wire_id_iterator::end_pos);
+    BOOST_TEST_CHECKPOINT("End-created end ID iterator: " << std::string(*iWire));
 
     BOOST_TEST(iWire->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
-    BOOST_TEST(iWire->TPC ==                geo::TPCID::TPCID_t(0));
-    BOOST_TEST(iWire->Plane ==          geo::PlaneID::PlaneID_t(0));
-    BOOST_TEST(iWire->Wire ==             geo::WireID::WireID_t(0));
+    BOOST_TEST(iWire->TPC == geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iWire->Plane == geo::PlaneID::PlaneID_t(0));
+    BOOST_TEST(iWire->Wire == geo::WireID::WireID_t(0));
 
     // check that the iterator tests false
     BOOST_TEST(!bool(iWire));
@@ -1554,22 +1483,19 @@ void geo::GeometryIteratorTestAlg::WireIDIteratorsTest() const {
     BOOST_TEST(iWireGE == iWire);
 
     // initialize to the end directly; this has probably ID's isValid true
-    geo::GeometryCore::wire_id_iterator iWire2
-      (geom, geo::WireID(geom->Ncryostats(), 0, 0, 0));
+    geo::GeometryCore::wire_id_iterator iWire2(geom, geo::WireID(geom->Ncryostats(), 0, 0, 0));
     BOOST_TEST(iWire2->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
-    BOOST_TEST(iWire2->TPC ==                geo::TPCID::TPCID_t(0));
-    BOOST_TEST(iWire2->Plane ==          geo::PlaneID::PlaneID_t(0));
-    BOOST_TEST(iWire2->Wire ==             geo::WireID::WireID_t(0));
+    BOOST_TEST(iWire2->TPC == geo::TPCID::TPCID_t(0));
+    BOOST_TEST(iWire2->Plane == geo::PlaneID::PlaneID_t(0));
+    BOOST_TEST(iWire2->Wire == geo::WireID::WireID_t(0));
     BOOST_TEST(iWire2 == iWire);
-
   }
 
 } // GeometryIteratorTestAlg::WireIDIteratorsTest()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::GeometryIteratorTestAlg::WireIteratorsTest() const {
+void geo::GeometryIteratorTestAlg::WireIteratorsTest() const
+{
 
   /*
    * This test is extensively based on the assumption that the iterators should
@@ -1641,8 +1567,7 @@ void geo::GeometryIteratorTestAlg::WireIteratorsTest() const {
   //
   {
     geo::GeometryCore::wire_id_iterator iWireID;
-    BOOST_TEST_CHECKPOINT
-      ("Default created wire iterator: " << std::string(*iWireID));
+    BOOST_TEST_CHECKPOINT("Default created wire iterator: " << std::string(*iWireID));
 
     geo::GeometryCore::wire_iterator iWire;
 
@@ -1664,7 +1589,6 @@ void geo::GeometryIteratorTestAlg::WireIteratorsTest() const {
     BOOST_TEST(!(iWire_copy != iWire));
 
     BOOST_TEST(iWire == iWire_copy);
-
   }
 
   //
@@ -1676,9 +1600,7 @@ void geo::GeometryIteratorTestAlg::WireIteratorsTest() const {
 
     geo::GeometryCore::wire_id_iterator iWireID(geom, BeginID);
 
-
-    BOOST_TEST_CHECKPOINT
-      ("Begin-created wire iterator (" << std::string(BeginID) << ")");
+    BOOST_TEST_CHECKPOINT("Begin-created wire iterator (" << std::string(BeginID) << ")");
 
     // initialize to the beginning directly
     geo::GeometryCore::wire_iterator iWireD(geom, BeginID);
@@ -1689,14 +1611,12 @@ void geo::GeometryIteratorTestAlg::WireIteratorsTest() const {
     CompareIteratorAndIteratorID(iWire, iWireID);
 
     // construct from explicit begin position
-    geo::GeometryCore::wire_iterator iWireBC
-      (geom, geo::GeometryCore::wire_iterator::begin_pos);
+    geo::GeometryCore::wire_iterator iWireBC(geom, geo::GeometryCore::wire_iterator::begin_pos);
     CompareIteratorAndIteratorID(iWireBC, iWireID);
 
     // construct at begin position by geometry
     geo::GeometryCore::wire_iterator iWireGB = geom->begin_wire();
     CompareIteratorAndIteratorID(iWireGB, iWireID);
-
   }
 
   //
@@ -1705,13 +1625,12 @@ void geo::GeometryIteratorTestAlg::WireIteratorsTest() const {
   {
     // test iterator to last wire
     geo::WireID LastID(geom->Ncryostats() - 1, 0, 0, 0);
-    LastID.TPC = geom->NTPC(LastID) - 1; // last TPC of last cryostat
+    LastID.TPC = geom->NTPC(LastID) - 1;      // last TPC of last cryostat
     LastID.Plane = geom->Nplanes(LastID) - 1; // last plane of last TPC
-    LastID.Wire = geom->Nwires(LastID) - 1; // last wire of last plane
+    LastID.Wire = geom->Nwires(LastID) - 1;   // last wire of last plane
     geo::GeometryCore::wire_id_iterator iLastWireID(geom, LastID);
 
-    BOOST_TEST_CHECKPOINT
-      ("Position-created iterator to last wire: " << std::string(LastID));
+    BOOST_TEST_CHECKPOINT("Position-created iterator to last wire: " << std::string(LastID));
     geo::GeometryCore::wire_iterator iLastWire(geom, LastID);
     CompareIteratorAndIteratorID(iLastWire, iLastWireID);
 
@@ -1723,7 +1642,6 @@ void geo::GeometryIteratorTestAlg::WireIteratorsTest() const {
     ++iEndWire;
 
     CompareIteratorAndIteratorID(iEndWire, iEndWireID);
-
   }
 
   //
@@ -1733,24 +1651,20 @@ void geo::GeometryIteratorTestAlg::WireIteratorsTest() const {
     geo::GeometryCore::wire_id_iterator iWireID = geom->end_wire_id();
 
     // construct from end position
-    BOOST_TEST_CHECKPOINT
-      ("End-created wire iterator: " << std::string(*iWireID));
-    geo::GeometryCore::wire_iterator iWire
-      (geom, geo::GeometryCore::wire_iterator::end_pos);
+    BOOST_TEST_CHECKPOINT("End-created wire iterator: " << std::string(*iWireID));
+    geo::GeometryCore::wire_iterator iWire(geom, geo::GeometryCore::wire_iterator::end_pos);
     CompareIteratorAndIteratorID(iWire, iWireID);
 
     // construct at end position by geometry
     geo::GeometryCore::wire_iterator iWireGE = geom->end_wire();
     CompareIteratorAndIteratorID(iWireGE, iWireID);
-
   }
 
 } // GeometryIteratorTestAlg::WireIteratorsTest()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::GeometryIteratorTestAlg::TPCsetIDIteratorsTest() const {
+void geo::GeometryIteratorTestAlg::TPCsetIDIteratorsTest() const
+{
 
   /*
    * public interface (TPCset_id_iterator_base):
@@ -1803,8 +1717,7 @@ void geo::GeometryIteratorTestAlg::TPCsetIDIteratorsTest() const {
   //
   {
     geo::TPCset_id_iterator iTPCset;
-    BOOST_TEST_CHECKPOINT
-      ("Default created TPC set ID iterator: " << std::string(*iTPCset));
+    BOOST_TEST_CHECKPOINT("Default created TPC set ID iterator: " << std::string(*iTPCset));
 
     BOOST_TEST(iTPCset->Cryostat == geo::CryostatID::getInvalidID());
     BOOST_TEST(iTPCset->TPCset == readout::TPCsetID::getInvalidID());
@@ -1812,7 +1725,6 @@ void geo::GeometryIteratorTestAlg::TPCsetIDIteratorsTest() const {
     // check that the iterator tests false
     BOOST_TEST(!iTPCset);
     BOOST_TEST(!(bool(iTPCset)));
-
   }
 
   //
@@ -1820,11 +1732,10 @@ void geo::GeometryIteratorTestAlg::TPCsetIDIteratorsTest() const {
   //
   {
     geo::TPCset_id_iterator iTPCset(geom);
-    BOOST_TEST_CHECKPOINT
-      ("Begin-created TPC set ID iterator: " << std::string(*iTPCset));
+    BOOST_TEST_CHECKPOINT("Begin-created TPC set ID iterator: " << std::string(*iTPCset));
 
     BOOST_TEST(iTPCset->Cryostat == geo::CryostatID::CryostatID_t(0));
-    BOOST_TEST(iTPCset->TPCset ==   readout::TPCsetID::TPCsetID_t(0));
+    BOOST_TEST(iTPCset->TPCset == readout::TPCsetID::TPCsetID_t(0));
 
     // check that the iterator tests true
     BOOST_TEST(bool(iTPCset));
@@ -1835,7 +1746,7 @@ void geo::GeometryIteratorTestAlg::TPCsetIDIteratorsTest() const {
     geom->GetBeginID(BeginID);
     geo::TPCset_id_iterator iTPCsetD(geom, BeginID);
     BOOST_TEST(iTPCsetD->Cryostat == geo::CryostatID::CryostatID_t(0));
-    BOOST_TEST(iTPCsetD->TPCset ==   readout::TPCsetID::TPCsetID_t(0));
+    BOOST_TEST(iTPCsetD->TPCset == readout::TPCsetID::TPCsetID_t(0));
     BOOST_TEST(iTPCsetD == iTPCset);
 
     // construct from explicit begin position
@@ -1857,16 +1768,15 @@ void geo::GeometryIteratorTestAlg::TPCsetIDIteratorsTest() const {
     const unsigned int nTPCsetsInC0 = geom->NTPCsets(geo::CryostatID(0));
     if (nTPCsetsInC0 > 1) {
       BOOST_TEST(iTPCsetI->Cryostat == geo::CryostatID::CryostatID_t(0));
-      BOOST_TEST(iTPCsetI->TPCset ==   readout::TPCsetID::TPCsetID_t(0));
-      BOOST_TEST(iTPCset->Cryostat ==  geo::CryostatID::CryostatID_t(0));
-      BOOST_TEST(iTPCset->TPCset ==    readout::TPCsetID::TPCsetID_t(1));
+      BOOST_TEST(iTPCsetI->TPCset == readout::TPCsetID::TPCsetID_t(0));
+      BOOST_TEST(iTPCset->Cryostat == geo::CryostatID::CryostatID_t(0));
+      BOOST_TEST(iTPCset->TPCset == readout::TPCsetID::TPCsetID_t(1));
     }
     BOOST_TEST(iTPCsetI != iTPCset);
 
     // test copy and prefix increment
     ++iTPCsetI;
     BOOST_TEST(iTPCsetI == iTPCset); // arguable if both are end-iterators by now
-
   }
 
   //
@@ -1890,17 +1800,15 @@ void geo::GeometryIteratorTestAlg::TPCsetIDIteratorsTest() const {
 
     ++iTPCset;
     // check that the pointed ID is as expected
-    BOOST_TEST
-      (iTPCset->Cryostat == geo::CryostatID::CryostatID_t(ID.Cryostat + 1));
+    BOOST_TEST(iTPCset->Cryostat == geo::CryostatID::CryostatID_t(ID.Cryostat + 1));
     BOOST_TEST(iTPCset->TPCset == readout::TPCsetID::TPCsetID_t(0));
-
 
     // test iterator to last TPC
     readout::TPCsetID LastID(geom->Ncryostats() - 1, 0);
     LastID.TPCset = geom->NTPCsets(LastID) - 1; // last TPC set of last cryostat
     geo::TPCset_id_iterator iLastTPCset(geom, LastID);
-    BOOST_TEST_CHECKPOINT("Position-created iterator to last TPC set ID: "
-      << std::string(*iLastTPCset));
+    BOOST_TEST_CHECKPOINT(
+      "Position-created iterator to last TPC set ID: " << std::string(*iLastTPCset));
 
     // check that the iterator tests true
     BOOST_TEST(bool(iLastTPCset));
@@ -1919,11 +1827,9 @@ void geo::GeometryIteratorTestAlg::TPCsetIDIteratorsTest() const {
     BOOST_TEST(!bool(iEndTPCset));
     BOOST_TEST(!iEndTPCset);
 
-    BOOST_TEST
-      (iEndTPCset->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
+    BOOST_TEST(iEndTPCset->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
     BOOST_TEST(iEndTPCset->TPCset == readout::TPCsetID::TPCsetID_t(0));
     BOOST_TEST(iEndTPCset == geom->end_TPCset_id());
-
   }
 
   //
@@ -1932,11 +1838,9 @@ void geo::GeometryIteratorTestAlg::TPCsetIDIteratorsTest() const {
   {
     // construct from end position
     geo::TPCset_id_iterator iTPCset(geom, geo::iterators::end_pos);
-    BOOST_TEST_CHECKPOINT
-      ("End-created TPC set ID iterator: " << std::string(*iTPCset));
+    BOOST_TEST_CHECKPOINT("End-created TPC set ID iterator: " << std::string(*iTPCset));
 
-    BOOST_TEST
-      (iTPCset->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
+    BOOST_TEST(iTPCset->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
     BOOST_TEST(iTPCset->TPCset == readout::TPCsetID::TPCsetID_t(0));
 
     // check that the iterator tests false
@@ -1948,21 +1852,17 @@ void geo::GeometryIteratorTestAlg::TPCsetIDIteratorsTest() const {
     BOOST_TEST(iTPCsetGE == iTPCset);
 
     // initialize to the end directly; this has probably ID's isValid true
-    geo::TPCset_id_iterator iTPCset2
-      (geom, readout::TPCsetID(geom->Ncryostats(), 0));
-    BOOST_TEST
-      (iTPCset2->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
+    geo::TPCset_id_iterator iTPCset2(geom, readout::TPCsetID(geom->Ncryostats(), 0));
+    BOOST_TEST(iTPCset2->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
     BOOST_TEST(iTPCset2->TPCset == readout::TPCsetID::TPCsetID_t(0));
     BOOST_TEST(iTPCset2 == iTPCset);
-
   }
 
 } // GeometryIteratorTestAlg::TPCsetIDIteratorsTest()
 
-
-
 //-----------------------------------------------------------------------------
-void geo::GeometryIteratorTestAlg::ROPIDIteratorsTest() const {
+void geo::GeometryIteratorTestAlg::ROPIDIteratorsTest() const
+{
 
   /*
    * public interface (ROP_id_iterator_base):
@@ -2013,17 +1913,15 @@ void geo::GeometryIteratorTestAlg::ROPIDIteratorsTest() const {
   //
   {
     geo::ROP_id_iterator iROP;
-    BOOST_TEST_CHECKPOINT
-      ("Default created readout plane ID iterator: " << std::string(*iROP));
+    BOOST_TEST_CHECKPOINT("Default created readout plane ID iterator: " << std::string(*iROP));
 
     BOOST_TEST(iROP->Cryostat == geo::CryostatID::getInvalidID());
-    BOOST_TEST(iROP->TPCset ==   readout::TPCsetID::getInvalidID());
-    BOOST_TEST(iROP->ROP ==      readout::ROPID::getInvalidID());
+    BOOST_TEST(iROP->TPCset == readout::TPCsetID::getInvalidID());
+    BOOST_TEST(iROP->ROP == readout::ROPID::getInvalidID());
 
     // check that the iterator tests false
     BOOST_TEST(!iROP);
     BOOST_TEST(!(bool(iROP)));
-
   }
 
   //
@@ -2031,12 +1929,11 @@ void geo::GeometryIteratorTestAlg::ROPIDIteratorsTest() const {
   //
   {
     geo::ROP_id_iterator iROP(geom);
-    BOOST_TEST_CHECKPOINT
-      ("Begin-created readout plane ID iterator: " << std::string(*iROP));
+    BOOST_TEST_CHECKPOINT("Begin-created readout plane ID iterator: " << std::string(*iROP));
 
     BOOST_TEST(iROP->Cryostat == geo::CryostatID::CryostatID_t(0));
-    BOOST_TEST(iROP->TPCset ==   readout::TPCsetID::TPCsetID_t(0));
-    BOOST_TEST(iROP->ROP ==      readout::ROPID::ROPID_t(0));
+    BOOST_TEST(iROP->TPCset == readout::TPCsetID::TPCsetID_t(0));
+    BOOST_TEST(iROP->ROP == readout::ROPID::ROPID_t(0));
 
     // check that the iterator tests true
     BOOST_TEST(bool(iROP));
@@ -2047,8 +1944,8 @@ void geo::GeometryIteratorTestAlg::ROPIDIteratorsTest() const {
     geom->GetBeginID(BeginID);
     geo::ROP_id_iterator iROPD(geom, BeginID);
     BOOST_TEST(iROPD->Cryostat == geo::CryostatID::CryostatID_t(0));
-    BOOST_TEST(iROPD->TPCset ==   readout::TPCsetID::TPCsetID_t(0));
-    BOOST_TEST(iROPD->ROP ==      readout::ROPID::ROPID_t(0));
+    BOOST_TEST(iROPD->TPCset == readout::TPCsetID::TPCsetID_t(0));
+    BOOST_TEST(iROPD->ROP == readout::ROPID::ROPID_t(0));
     BOOST_TEST(iROPD == iROP);
 
     // construct from explicit begin position
@@ -2068,22 +1965,20 @@ void geo::GeometryIteratorTestAlg::ROPIDIteratorsTest() const {
     // test copy and postfix increment
     geo::ROP_id_iterator iROPI(iROP++);
 
-    const unsigned int nReadoutPlanesInC0S0
-      = geom->NROPs(readout::TPCsetID(0, 0));
+    const unsigned int nReadoutPlanesInC0S0 = geom->NROPs(readout::TPCsetID(0, 0));
     if (nReadoutPlanesInC0S0 > 1) {
       BOOST_TEST(iROPI->Cryostat == geo::CryostatID::CryostatID_t(0));
-      BOOST_TEST(iROPI->TPCset ==   readout::TPCsetID::TPCsetID_t(0));
-      BOOST_TEST(iROPI->ROP ==            readout::ROPID::ROPID_t(0));
+      BOOST_TEST(iROPI->TPCset == readout::TPCsetID::TPCsetID_t(0));
+      BOOST_TEST(iROPI->ROP == readout::ROPID::ROPID_t(0));
       BOOST_TEST(iROP->Cryostat == geo::CryostatID::CryostatID_t(0));
-      BOOST_TEST(iROP->TPCset ==   readout::TPCsetID::TPCsetID_t(0));
-      BOOST_TEST(iROP->ROP ==            readout::ROPID::ROPID_t(1));
+      BOOST_TEST(iROP->TPCset == readout::TPCsetID::TPCsetID_t(0));
+      BOOST_TEST(iROP->ROP == readout::ROPID::ROPID_t(1));
     }
     BOOST_TEST(iROPI != iROP);
 
     // test copy and prefix increment
     ++iROPI;
     BOOST_TEST(iROPI == iROP); // arguable if both are end-iterators by now
-
   }
 
   //
@@ -2108,24 +2003,24 @@ void geo::GeometryIteratorTestAlg::ROPIDIteratorsTest() const {
 
     // check that the pointed ID is as expected
     ++iROP;
-    if (ID.TPCset + 1 < (int) geom->NTPCsets(ID)) {
+    if (ID.TPCset + 1 < (int)geom->NTPCsets(ID)) {
       BOOST_TEST(iROP->Cryostat == ID.Cryostat);
-      BOOST_TEST(iROP->TPCset ==   ID.TPCset + 1);
-      BOOST_TEST(iROP->ROP ==      readout::ROPID::ROPID_t(0));
+      BOOST_TEST(iROP->TPCset == ID.TPCset + 1);
+      BOOST_TEST(iROP->ROP == readout::ROPID::ROPID_t(0));
     }
     else {
       BOOST_TEST(iROP->Cryostat == ID.Cryostat + 1);
-      BOOST_TEST(iROP->TPCset ==   readout::TPCsetID::TPCsetID_t(0));
-      BOOST_TEST(iROP->ROP ==      readout::ROPID::ROPID_t(0));
+      BOOST_TEST(iROP->TPCset == readout::TPCsetID::TPCsetID_t(0));
+      BOOST_TEST(iROP->ROP == readout::ROPID::ROPID_t(0));
     }
 
     // test iterator to last plane
     readout::ROPID LastID(geom->Ncryostats() - 1, 0, 0);
     LastID.TPCset = geom->NTPCsets(LastID) - 1; // last TPC set of last cryostat
-    LastID.ROP = geom->NROPs(LastID) - 1; // last readout plane of last TPC set
+    LastID.ROP = geom->NROPs(LastID) - 1;       // last readout plane of last TPC set
     geo::ROP_id_iterator iLastROP(geom, LastID);
-    BOOST_TEST_CHECKPOINT("Position-created iterator to last readout plane ID: "
-      << std::string(*iLastROP));
+    BOOST_TEST_CHECKPOINT(
+      "Position-created iterator to last readout plane ID: " << std::string(*iLastROP));
 
     // check that the iterator tests true
     BOOST_TEST(bool(iLastROP));
@@ -2134,8 +2029,8 @@ void geo::GeometryIteratorTestAlg::ROPIDIteratorsTest() const {
     // check that the pointed ID is as expected
     BOOST_TEST(*iLastROP == LastID);
     BOOST_TEST(iLastROP->Cryostat == LastID.Cryostat);
-    BOOST_TEST(iLastROP->TPCset ==   LastID.TPCset);
-    BOOST_TEST(iLastROP->ROP ==      LastID.ROP);
+    BOOST_TEST(iLastROP->TPCset == LastID.TPCset);
+    BOOST_TEST(iLastROP->ROP == LastID.ROP);
 
     // test increment to past-the-end
     geo::ROP_id_iterator iEndROP = iLastROP;
@@ -2145,12 +2040,10 @@ void geo::GeometryIteratorTestAlg::ROPIDIteratorsTest() const {
     BOOST_TEST(!bool(iEndROP));
     BOOST_TEST(!iEndROP);
 
-    BOOST_TEST
-      (iEndROP->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
-    BOOST_TEST(iEndROP->TPCset ==   readout::TPCsetID::TPCsetID_t(0));
-    BOOST_TEST(iEndROP->ROP ==      readout::ROPID::ROPID_t(0));
+    BOOST_TEST(iEndROP->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
+    BOOST_TEST(iEndROP->TPCset == readout::TPCsetID::TPCsetID_t(0));
+    BOOST_TEST(iEndROP->ROP == readout::ROPID::ROPID_t(0));
     BOOST_TEST(iEndROP == geom->end_ROP_id());
-
   }
 
   //
@@ -2159,13 +2052,11 @@ void geo::GeometryIteratorTestAlg::ROPIDIteratorsTest() const {
   {
     // construct from end position
     geo::ROP_id_iterator iROP(geom, geo::iterators::end_pos);
-    BOOST_TEST_CHECKPOINT
-      ("End-created readout plane ID iterator: " << std::string(*iROP));
+    BOOST_TEST_CHECKPOINT("End-created readout plane ID iterator: " << std::string(*iROP));
 
-    BOOST_TEST
-      (iROP->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
-    BOOST_TEST(iROP->TPCset ==   readout::TPCsetID::TPCsetID_t(0));
-    BOOST_TEST(iROP->ROP ==            readout::ROPID::ROPID_t(0));
+    BOOST_TEST(iROP->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
+    BOOST_TEST(iROP->TPCset == readout::TPCsetID::TPCsetID_t(0));
+    BOOST_TEST(iROP->ROP == readout::ROPID::ROPID_t(0));
 
     // check that the iterator tests false
     BOOST_TEST(!bool(iROP));
@@ -2176,13 +2067,10 @@ void geo::GeometryIteratorTestAlg::ROPIDIteratorsTest() const {
     BOOST_TEST(iROPGE == iROP);
 
     // initialize to the end directly; this has probably ID's isValid true
-    geo::ROP_id_iterator iROP2
-      (geom, readout::ROPID(geom->Ncryostats(), 0, 0));
-    BOOST_TEST
-      (iROP->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
-    BOOST_TEST(iROP->TPCset ==   readout::TPCsetID::TPCsetID_t(0));
-    BOOST_TEST(iROP->ROP ==            readout::ROPID::ROPID_t(0));
+    geo::ROP_id_iterator iROP2(geom, readout::ROPID(geom->Ncryostats(), 0, 0));
+    BOOST_TEST(iROP->Cryostat == geo::CryostatID::CryostatID_t(geom->Ncryostats()));
+    BOOST_TEST(iROP->TPCset == readout::TPCsetID::TPCsetID_t(0));
+    BOOST_TEST(iROP->ROP == readout::ROPID::ROPID_t(0));
     BOOST_TEST(iROP2 == iROP);
-
   }
 } // GeometryIteratorTestAlg::ROPIDIteratorsTest()

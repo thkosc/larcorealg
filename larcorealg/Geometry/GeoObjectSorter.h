@@ -13,7 +13,7 @@
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 
-namespace geo{
+namespace geo {
 
   class AuxDetSensitiveGeo;
   class CryostatGeo;

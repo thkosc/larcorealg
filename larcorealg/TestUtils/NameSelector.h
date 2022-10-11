@@ -12,10 +12,10 @@
 // C/C++ standard library
 #include <initializer_list>
 #include <iosfwd>
-#include <string>
-#include <set>
 #include <map>
+#include <set>
 #include <stddef.h>
+#include <string>
 
 // ... and more in the template implementation section below
 
@@ -36,35 +36,36 @@ namespace testing {
    */
   class NameSelector {
 
-      public:
-    using Name_t = std::string; ///< type representing a name
+  public:
+    using Name_t = std::string;       ///< type representing a name
     using Names_t = std::set<Name_t>; ///< list of names
 
     /// Possible responses
     typedef enum {
-      rsRejected,   ///< rejected
-      rsAccepted,   ///< accepted
-      rsThrow,      ///< throw art::Exception (art::errors::Configuration)
+      rsRejected, ///< rejected
+      rsAccepted, ///< accepted
+      rsThrow,    ///< throw art::Exception (art::errors::Configuration)
       rsDefault = rsAccepted
     } Response_t;
 
-
     using NameList = std::initializer_list<Name_t>;
 
-
     /// Constructor: an empty selector with a default answer for unknown names
-    NameSelector(Response_t default_answer = rsDefault)
-      { SetDefaultResponse(default_answer); }
+    NameSelector(Response_t default_answer = rsDefault) { SetDefaultResponse(default_answer); }
 
     /// Constructor: Parse()s the specified items
     template <typename LIST>
     NameSelector(LIST const& items, Response_t default_answer = rsDefault)
       : NameSelector(default_answer)
-      { Parse(items); }
+    {
+      Parse(items);
+    }
 
     /// Sets the default answer for names that are not registered
     void SetDefaultResponse(Response_t default_answer)
-      { known_names[DefaultName] = { default_answer }; }
+    {
+      known_names[DefaultName] = {default_answer};
+    }
 
     /**
      * @brief Parses the names in the list and adds them to the selector
@@ -75,8 +76,10 @@ namespace testing {
      * modified.
      */
     template <typename LIST>
-    void Parse(LIST const& items) { BuildNameSet(known_names, items); }
-
+    void Parse(LIST const& items)
+    {
+      BuildNameSet(known_names, items);
+    }
 
     /**
      * @brief Parses a name and adds it to the selector
@@ -95,7 +98,10 @@ namespace testing {
      * set.
      */
     template <typename... NAMES>
-    void ParseNames(NAMES... names) { AddFirstName(known_names, names...); }
+    void ParseNames(NAMES... names)
+    {
+      AddFirstName(known_names, names...);
+    }
 
     /// Erases all the names in the selector (default answer is unchanged)
     void Clear() { ClearNameSet(known_names); }
@@ -126,7 +132,9 @@ namespace testing {
      */
     template <typename... NAMES>
     void AddToDefinition(std::string set_name, NAMES... names)
-      { AddFirstName(definitions[set_name], names...);  }
+    {
+      AddFirstName(definitions[set_name], names...);
+    }
 
     /// Returns the response for the specified name (does not throw)
     Response_t Query(Name_t name) const;
@@ -138,11 +146,10 @@ namespace testing {
     bool Rejected(Name_t name) const { return !Accepted(name); }
 
     /// Returns the default answer for names that are not registered
-    Response_t DefaultResponse() const
-      { return known_names.find(DefaultName)->second.response; }
+    Response_t DefaultResponse() const { return known_names.find(DefaultName)->second.response; }
 
     /// Returns whether the name is accepted as good (alias for accept())
-    bool operator() (Name_t name) const { return Accepted(name); }
+    bool operator()(Name_t name) const { return Accepted(name); }
 
     /// Prints the configuration into a stream
     void PrintConfiguration(std::ostream&) const;
@@ -159,16 +166,13 @@ namespace testing {
     //@{
     /// Checks that no known element with valid response was left unqueried
     bool CheckQueryRegistry() const { return DoCheckQueryRegistry(); }
-    bool CheckQueryRegistry(std::ostream& out) const
-      { return DoCheckQueryRegistry(&out); }
+    bool CheckQueryRegistry(std::ostream& out) const { return DoCheckQueryRegistry(&out); }
     //@}
 
-
-    static Name_t const DefaultName; ///< name representing the default
+    static Name_t const DefaultName;  ///< name representing the default
     static Name_t const ClearAllName; ///< name instructing to delete all names
 
-      protected:
-
+  protected:
     /// A data structure containing how to react to a name
     typedef struct {
       Response_t response; ///< the response
@@ -208,18 +212,15 @@ namespace testing {
 
     /// Parses the first of the provided names, and recurs
     template <typename... NAMES>
-    void AddFirstName
-      (KnownNames_t& name_set, Name_t name, NAMES... other_names);
+    void AddFirstName(KnownNames_t& name_set, Name_t name, NAMES... other_names);
 
     /// Adds an item to the name set, working in specified mode
-    void InsertItem
-      (KnownNames_t& name_set, Name_t item, Response_t response) const;
+    void InsertItem(KnownNames_t& name_set, Name_t item, Response_t response) const;
 
     /// Adds an item with response to the name set, working in specified mode
-    void InsertItem(
-      KnownNames_t& name_set, KnownNames_t::value_type item,
-      Response_t response
-      ) const;
+    void InsertItem(KnownNames_t& name_set,
+                    KnownNames_t::value_type item,
+                    Response_t response) const;
 
     /**
      * @brief Fills name_set with an item
@@ -262,13 +263,11 @@ namespace testing {
     bool DoCheckQueryRegistry(std::ostream* out = nullptr) const;
 
     /// Strips the mode specifier from item and returns the insertion mode
-    static Response_t ParseMode
-      (Name_t& item, Response_t default_answer = rsAccepted);
+    static Response_t ParseMode(Name_t& item, Response_t default_answer = rsAccepted);
 
   }; // class NameSelector
 
 } // namespace testing
-
 
 //------------------------------------------------------------------------------
 //--- Template implementation
@@ -279,21 +278,20 @@ namespace testing {
 
 //------------------------------------------------------------------------------
 template <typename LIST>
-void testing::NameSelector::Define(std::string set_name, LIST const& items) {
+void testing::NameSelector::Define(std::string set_name, LIST const& items)
+{
   KnownNames_t name_set;
   BuildNameSet(name_set, items);
   definitions[set_name] = std::move(name_set);
 } // testing::NameSelector::Define()
 
-
 //------------------------------------------------------------------------------
 template <typename LIST>
-void testing::NameSelector::BuildNameSet
-  (KnownNames_t& name_set, LIST const& items) const
+void testing::NameSelector::BuildNameSet(KnownNames_t& name_set, LIST const& items) const
 {
-  for (Name_t item: items) ProcessItem(name_set, item);
+  for (Name_t item : items)
+    ProcessItem(name_set, item);
 } // testing::NameSelector::BuildNameSet()
-
 
 //------------------------------------------------------------------------------
 namespace testing {
@@ -303,13 +301,11 @@ namespace testing {
 } // namespace testing
 
 template <typename... NAMES>
-void testing::NameSelector::AddFirstName
-  (KnownNames_t& name_set, Name_t name, NAMES... other_names)
+void testing::NameSelector::AddFirstName(KnownNames_t& name_set, Name_t name, NAMES... other_names)
 {
   AddFirstName(name_set, name);
   AddFirstName(name_set, other_names...);
 } // testing::NameSelector::AddFirstName()
-
 
 //------------------------------------------------------------------------------
 

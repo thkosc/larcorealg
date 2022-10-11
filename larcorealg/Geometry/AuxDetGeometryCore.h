@@ -21,9 +21,9 @@
 // C/C++ standard libraries
 #include <cstddef> // size_t
 #include <cstdint> // uint32_t
+#include <memory>  // std::shared_ptr<>
 #include <string>
 #include <vector>
-#include <memory> // std::shared_ptr<>
 
 /// Namespace collecting geometry-related classes utilities
 namespace geo {
@@ -38,10 +38,9 @@ namespace geo {
     /// Type of list of auxiliary detectors
     using AuxDetList_t = std::vector<AuxDetGeo>;
 
-    AuxDetList_t   auxDets;   ///< The auxiliary detectors
+    AuxDetList_t auxDets; ///< The auxiliary detectors
 
   }; // AuxDetGeometryData_t
-
 
   /** **************************************************************************
    * @brief Description of geometry of one set of auxiliary detectors
@@ -90,7 +89,6 @@ namespace geo {
    */
   class AuxDetGeometryCore {
   public:
-
     /// Type of list of auxiliary detectors
     using AuxDetList_t = AuxDetGeometryData_t::AuxDetList_t;
 
@@ -106,9 +104,8 @@ namespace geo {
     // You shall not copy or move or assign me!
     AuxDetGeometryCore(AuxDetGeometryCore const&) = delete;
     AuxDetGeometryCore(AuxDetGeometryCore&&) = delete;
-    AuxDetGeometryCore& operator= (AuxDetGeometryCore const&) = delete;
-    AuxDetGeometryCore& operator= (AuxDetGeometryCore&&) = delete;
-
+    AuxDetGeometryCore& operator=(AuxDetGeometryCore const&) = delete;
+    AuxDetGeometryCore& operator=(AuxDetGeometryCore&&) = delete;
 
     /**
      * @brief Returns the full directory path to the geometry file source
@@ -127,7 +124,6 @@ namespace geo {
      * the detector simulation (GEANT).
      */
     std::string GDMLFile() const { return fGDMLfile; }
-
 
     /// Returns a string with the name of the detector, as configured
     std::string DetectorName() const { return fDetectorName; }
@@ -193,10 +189,10 @@ namespace geo {
      * @param sv (output) sensitive volume index
      * @param tolerance tolerance (cm) for matches. Default 0.
      */
-    void  FindAuxDetSensitiveAtPosition(double const worldLoc[3],
-                                        size_t     & adg,
-                                        size_t     & sv,
-					double tolerance = 0) const;
+    void FindAuxDetSensitiveAtPosition(double const worldLoc[3],
+                                       size_t& adg,
+                                       size_t& sv,
+                                       double tolerance = 0) const;
 
     /**
      * @brief Returns the auxiliary detector at specified location
@@ -208,8 +204,8 @@ namespace geo {
      * @todo what happens if it does not exist?
      */
     AuxDetGeo const& PositionToAuxDet(double const worldLoc[3],
-                                      unsigned int &ad,
-				      double tolerance = 0) const;
+                                      unsigned int& ad,
+                                      double tolerance = 0) const;
 
     /**
      * @brief Returns the auxiliary detector at specified location
@@ -222,24 +218,22 @@ namespace geo {
      * @todo what happens if it does not exist?
      */
     const AuxDetSensitiveGeo& PositionToAuxDetSensitive(double const worldLoc[3],
-                                                        size_t     & ad,
-                                                        size_t     & sv,
-							double tolerance = 0) const;
+                                                        size_t& ad,
+                                                        size_t& sv,
+                                                        double tolerance = 0) const;
 
-    uint32_t                 PositionToAuxDetChannel(double const worldLoc[3],
-                                                     size_t     & ad,
-                                                     size_t     & sv) const;
+    uint32_t PositionToAuxDetChannel(double const worldLoc[3], size_t& ad, size_t& sv) const;
 
-    TVector3                 AuxDetChannelToPosition(uint32_t    const& channel,
-                                                     std::string const& auxDetName) const;
+    TVector3 AuxDetChannelToPosition(uint32_t const& channel, std::string const& auxDetName) const;
 
+    const AuxDetGeo& ChannelToAuxDet(
+      std::string const& auxDetName,
+      uint32_t const& channel) const; // return the AuxDetGeo for the given detector
+                                      // name and channel
 
-    const AuxDetGeo&         ChannelToAuxDet(std::string const& auxDetName,
-                                             uint32_t    const& channel) const; // return the AuxDetGeo for the given detector
-                                                                                // name and channel
-
-    const AuxDetSensitiveGeo& ChannelToAuxDetSensitive(std::string const& auxDetName,
-                                                       uint32_t    const& channel) const; // return the AuxDetSensitiveGeo for the given
+    const AuxDetSensitiveGeo& ChannelToAuxDetSensitive(
+      std::string const& auxDetName,
+      uint32_t const& channel) const; // return the AuxDetSensitiveGeo for the given
 
     /// @name Geometry initialization
     /// @{
@@ -268,10 +262,8 @@ namespace geo {
      */
     void LoadGeometryFile(std::string gdmlfile, std::string rootfile);
 
-
     /// Returns whether we have a channel map
     bool hasAuxDetChannelMap() const { return bool(fChannelMapAlg); }
-
 
     /**
      * @brief Initializes the geometry to work with this channel map
@@ -294,35 +286,30 @@ namespace geo {
     void ApplyChannelMap(std::unique_ptr<geo::AuxDetChannelMapAlg> pChannelMap);
     /// @}
 
-
   protected:
-
     /// Returns the object handling the channel map
     geo::AuxDetChannelMapAlg const* AuxDetChannelMap() const { return fChannelMapAlg.get(); }
 
     //@{
     /// Return the internal auxiliary detectors list
-    AuxDetList_t&       AuxDets()       { return fGeoData.auxDets; }
+    AuxDetList_t& AuxDets() { return fGeoData.auxDets; }
     AuxDetList_t const& AuxDets() const { return fGeoData.auxDets; }
     //@}
 
   private:
-
     /// Deletes the detector geometry structures
     void ClearGeometry();
 
-    AuxDetGeometryData_t fGeoData;  ///< The detector description data
+    AuxDetGeometryData_t fGeoData; ///< The detector description data
 
-    std::string    fDetectorName;   ///< Name of the detector.
-    std::string    fGDMLfile;       ///< path to geometry file used for Geant4 simulation
-    std::string    fROOTfile;       ///< path to geometry file for geometry in GeometryCore
+    std::string fDetectorName;              ///< Name of the detector.
+    std::string fGDMLfile;                  ///< path to geometry file used for Geant4 simulation
+    std::string fROOTfile;                  ///< path to geometry file for geometry in GeometryCore
     fhicl::ParameterSet fBuilderParameters; ///< Configuration of geometry builder.
-    std::unique_ptr<const geo::AuxDetChannelMapAlg> fChannelMapAlg;  ///< Object containing the channel to wire mapping
-  }; // class GeometryCore
+    std::unique_ptr<const geo::AuxDetChannelMapAlg>
+      fChannelMapAlg; ///< Object containing the channel to wire mapping
+  };                  // class GeometryCore
 
 } // namespace geo
-
-
-
 
 #endif // GEO_AUXDETGEOMETRYCORE_H

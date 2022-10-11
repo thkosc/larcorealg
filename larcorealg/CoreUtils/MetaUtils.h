@@ -23,15 +23,13 @@
 #ifndef LARCOREALG_COREUTILS_METAUTILS_H
 #define LARCOREALG_COREUTILS_METAUTILS_H
 
-
 // C/C++ standard libraries
 #include <array>
+#include <functional> // std::reference_wrapper<>
+#include <memory>     // std::addressof()
 #include <string>
 #include <string_view>
-#include <memory> // std::addressof()
-#include <functional> // std::reference_wrapper<>
 #include <type_traits>
-
 
 /**
  * @namespace util
@@ -39,7 +37,6 @@
  * @ingroup Utilities
  */
 namespace util {
-
 
   //--- BEGIN MetaprogrammingBase ----------------------------------------------
   /**
@@ -57,16 +54,16 @@ namespace util {
 
   } // namespace details
 
-
   //----------------------------------------------------------------------------
   /// Trait returning the very same type as in the template argument.
   template <typename T>
-  struct self_type { using type = T; };
+  struct self_type {
+    using type = T;
+  };
 
   /// The very same type as in the template argument.
   template <typename T>
   using self_t = typename self_type<T>::type;
-
 
   //----------------------------------------------------------------------------
   /**
@@ -91,8 +88,7 @@ namespace util {
    * assertion failure even if the class is not instantiated.
    */
   template <typename>
-  struct always_false_type: public std::false_type {};
-
+  struct always_false_type : public std::false_type {};
 
   //----------------------------------------------------------------------------
   /**
@@ -118,7 +114,6 @@ namespace util {
   template <typename>
   constexpr bool always_false_v = false;
 
-
   /**
    * @brief A `std::true_type` with a template argument.
    * @see util::always_false_type, util::always_true_v
@@ -142,8 +137,7 @@ namespace util {
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */
   template <typename>
-  struct always_true_type: public std::true_type {};
-
+  struct always_true_type : public std::true_type {};
 
   /**
    * @brief A template constant always true.
@@ -167,21 +161,17 @@ namespace util {
   template <typename>
   constexpr bool always_true_v = true;
 
-
   template <bool Value>
-  using bool_constant 
-    [[deprecated("use `std::bool_constant` instead (`#include <type_traits>`")]]
-    = std::bool_constant<Value>;
+  using bool_constant [[deprecated("use `std::bool_constant` instead (`#include <type_traits>`")]] =
+    std::bool_constant<Value>;
 
   template <typename BoolTrait>
-  using negation
-    [[deprecated("use `std::bool_constant` instead (`#include <type_traits>`")]]
-    = std::negation<BoolTrait>;
+  using negation [[deprecated("use `std::bool_constant` instead (`#include <type_traits>`")]] =
+    std::negation<BoolTrait>;
 
   /// The negation of `std::is_same`.
   template <typename A, typename B>
   using is_not_same = std::negation<std::is_same<A, B>>;
-
 
   //----------------------------------------------------------------------------
   /**
@@ -205,12 +195,10 @@ namespace util {
    */
   template <typename T, std::size_t StartFrom, typename... Types>
   struct find_next_type;
-  
+
   template <typename T, std::size_t StartFrom, typename... Types>
-  constexpr std::size_t find_next_type_v
-    = find_next_type<T, StartFrom, Types...>::value;
-  
-  
+  constexpr std::size_t find_next_type_v = find_next_type<T, StartFrom, Types...>::value;
+
   //----------------------------------------------------------------------------
   /**
    * @brief Trait: index of the first occurrence of `T` among the specified
@@ -230,14 +218,12 @@ namespace util {
    */
   template <typename T, typename... Types>
   using find_type = find_next_type<T, 0U, Types...>;
-  
-  
+
   /// Index of the first occurrence of `T` among the specified `Types`.
   /// @see `util::find_type`
   template <typename T, typename... Types>
   constexpr std::size_t find_type_v = find_type<T, Types...>::value;
-  
-  
+
   //----------------------------------------------------------------------------
   /**
    * @brief Trait: whether `T` is among the specified `Types`.
@@ -250,18 +236,15 @@ namespace util {
    */
   template <typename T, typename... Types>
   struct is_any_of;
-  
+
   /// Whether `T` is among the specified `Types` (see `util::is_any_of`).
   template <typename T, typename... Types>
   constexpr bool is_any_of_v = is_any_of<T, Types...>::value;
-  
-  
+
   //----------------------------------------------------------------------------
   /// Whether `T` and `U` are the same type, after being applied `std::decay`.
   template <typename T, typename U>
-  constexpr auto is_same_decay_v
-    = std::is_same_v<std::decay_t<T>, std::decay_t<U>>;
-
+  constexpr auto is_same_decay_v = std::is_same_v<std::decay_t<T>, std::decay_t<U>>;
 
   //----------------------------------------------------------------------------
   // @{
@@ -324,13 +307,14 @@ namespace util {
   void staticDumpClassName();
 
   template <typename T>
-  void staticDumpClassName(T) { staticDumpClassName<T>(); }
+  void staticDumpClassName(T)
+  {
+    staticDumpClassName<T>();
+  }
   // @}
-
 
   /// @}
   //--- END MetaprogrammingBase ------------------------------------------------
-
 
   //--- BEGIN Type identification ----------------------------------------------
   /**
@@ -373,7 +357,6 @@ namespace util {
   template <template <typename...> typename Template, typename T>
   constexpr bool is_instance_of_v = is_instance_of<Template, T>::value;
 
-
   //----------------------------------------------------------------------------
   /**
    * @brief Identifies whether the specified type is a STL array.
@@ -390,7 +373,6 @@ namespace util {
    */
   template <typename T>
   constexpr bool is_STLarray_v = is_STLarray<T>::value;
-
 
   //----------------------------------------------------------------------------
   /**
@@ -410,7 +392,6 @@ namespace util {
   template <typename T>
   constexpr bool is_reference_wrapper_v = is_reference_wrapper<T>::value;
 
-
   //----------------------------------------------------------------------------
   /**
    * @brief Identifies whether the specified type is a `std::unique_ptr`.
@@ -429,7 +410,6 @@ namespace util {
   template <typename T>
   constexpr bool is_unique_ptr_v = is_unique_ptr<T>::value;
 
-
   //----------------------------------------------------------------------------
   /**
    * @brief Trait: whether type `T` is a character type.
@@ -441,12 +421,11 @@ namespace util {
    */
   template <typename T>
   struct is_character_type;
-  
+
   /// Whether type `T` is a character type (see `util::is_character_type`).
   template <typename T>
   constexpr bool is_character_type_v = is_character_type<T>::value;
-  
-  
+
   //----------------------------------------------------------------------------
   /**
    * @brief Trait: whether type `T` is a character string type.
@@ -460,12 +439,11 @@ namespace util {
    */
   template <typename T>
   struct is_string_type;
-  
+
   /// Whether type `T` is a character string type (see `util::is_string_type`).
   template <typename T>
   constexpr bool is_string_type_v = is_string_type<T>::value;
-  
-  
+
   //----------------------------------------------------------------------------
   /**
    * @brief Trait: whether type `T` is a STL string type.
@@ -476,13 +454,12 @@ namespace util {
    */
   template <typename T>
   struct is_basic_string_type;
-  
+
   /// Whether type `T` is a character string type
   /// (see `util::is_basic_string_type`).
   template <typename T>
   constexpr bool is_basic_string_type_v = is_basic_string_type<T>::value;
-  
-  
+
   //----------------------------------------------------------------------------
   /**
    * @brief Trait: whether type `T` is a `std::string_view` type.
@@ -493,17 +470,14 @@ namespace util {
    */
   template <typename T>
   struct is_basic_string_view_type;
-  
+
   /// Whether type `T` is a character string type
   /// (see `util::is_basic_string_view_type`).
   template <typename T>
-  constexpr bool is_basic_string_view_type_v
-    = is_basic_string_view_type<T>::value;
-  
-  
+  constexpr bool is_basic_string_view_type_v = is_basic_string_view_type<T>::value;
+
   /// @}
   //--- END Type identification ------------------------------------------------
-
 
   //--- BEGIN Type manipulation ------------------------------------------------
   /**
@@ -548,7 +522,6 @@ namespace util {
   template <typename Base, typename Key>
   using with_const_as_t = typename with_const_as<Base, Key>::type;
 
-
   //----------------------------------------------------------------------------
   /**
    * @brief Trait with type `T` stripped of all known reference types.
@@ -573,7 +546,6 @@ namespace util {
   template <typename T>
   using strip_referenceness_t = typename strip_referenceness_type<T>::type;
 
-
   //----------------------------------------------------------------------------
   /**
    * @brief Returns the address of the referenced object.
@@ -587,7 +559,6 @@ namespace util {
    */
   template <typename Ref>
   auto referenced_address(Ref&& ref);
-  
 
   //----------------------------------------------------------------------------
   /**
@@ -608,16 +579,19 @@ namespace util {
    */
   struct reference_addresser {
     template <typename Ref>
-    decltype(auto) operator() (Ref&& ref) const
-      { return addressof(std::forward<Ref>(ref)); }
-    
+    decltype(auto) operator()(Ref&& ref) const
+    {
+      return addressof(std::forward<Ref>(ref));
+    }
+
     template <typename Ref>
     static decltype(auto) addressof(Ref&& ref)
-      { return referenced_address(std::forward<Ref>(ref)); }
-    
+    {
+      return referenced_address(std::forward<Ref>(ref));
+    }
+
   }; // struct reference_addresser
-  
-  
+
   //----------------------------------------------------------------------------
   /**
    * @brief Trait with type `T` into `std::reference_wrapper` if reference.
@@ -641,9 +615,7 @@ namespace util {
    * @see `util::lvalue_reference_into_wrapper_type`
    */
   template <typename T>
-  using lvalue_reference_into_wrapper_t
-    = typename lvalue_reference_into_wrapper_type<T>::type;
-
+  using lvalue_reference_into_wrapper_t = typename lvalue_reference_into_wrapper_type<T>::type;
 
   /**
    * @brief Converts a l-value reference object into a `std::reference_wrapper`.
@@ -658,18 +630,16 @@ namespace util {
    */
   template <typename T>
   auto lvalue_reference_into_wrapper(T&& obj)
-    { return util::lvalue_reference_into_wrapper_t<T>(obj); }
-
+  {
+    return util::lvalue_reference_into_wrapper_t<T>(obj);
+  }
 
   //----------------------------------------------------------------------------
 
-
   /// @}
   //--- END Type manipulation --------------------------------------------------
-  
-  
-} // namespace util
 
+} // namespace util
 
 //------------------------------------------------------------------------------
 //---  Template implementation
@@ -680,113 +650,79 @@ namespace util {
   namespace details {
 
     //--------------------------------------------------------------------------
-    template
-      <std::size_t Index, std::size_t Skip, typename T, typename... Types>
+    template <std::size_t Index, std::size_t Skip, typename T, typename... Types>
     struct find_type_impl;
-    
-    template <
-      std::size_t Index, std::size_t Skip,
-      typename T,
-      typename Type, typename... Others
-      >
+
+    template <std::size_t Index, std::size_t Skip, typename T, typename Type, typename... Others>
     struct find_type_impl<Index, Skip, T, Type, Others...>
-      : std::integral_constant<std::size_t,
-      (Skip == 0) && std::is_same_v<T, Type>
-        ? Index
-        : find_type_impl<Index + 1U, ((Skip > 0U)? Skip - 1U: 0U), T, Others...>
-          ::value
-      >
-    {};
-    
+      : std::integral_constant<
+          std::size_t,
+          (Skip == 0) && std::is_same_v<T, Type> ?
+            Index :
+            find_type_impl<Index + 1U, ((Skip > 0U) ? Skip - 1U : 0U), T, Others...>::value> {};
+
     template <std::size_t Index, std::size_t Skip, typename T>
-    struct find_type_impl<Index, Skip, T>
-      : std::integral_constant<std::size_t, Index>
-    {};
-    
-    
+    struct find_type_impl<Index, Skip, T> : std::integral_constant<std::size_t, Index> {};
+
     //--------------------------------------------------------------------------
     template <typename T, typename = void>
-    struct is_character_type_impl: std::bool_constant<
-      util::is_any_of_v<
-        std::decay_t<T>,
-        signed char,
-        unsigned char,
-        char,
-        wchar_t,
+    struct is_character_type_impl
+      : std::bool_constant<util::is_any_of_v<std::decay_t<T>,
+                                             signed char,
+                                             unsigned char,
+                                             char,
+                                             wchar_t,
 #ifdef __cpp_char8_t // C++20
-        char8_t,
-#endif // __cpp_char8_t
-        char16_t, // this is defined unsigned
-        char32_t  // this is defined unsigned
-      >>
-    {};
-    
-    
+                                             char8_t,
+#endif                                                 // __cpp_char8_t
+                                             char16_t, // this is defined unsigned
+                                             char32_t  // this is defined unsigned
+                                             >> {
+    };
+
     //--------------------------------------------------------------------------
     template <typename T, typename = void>
-    struct is_string_type_impl: std::false_type {};
-    
+    struct is_string_type_impl : std::false_type {};
+
     template <typename T>
     struct is_string_type_impl<
       T,
-      std::enable_if_t<is_character_type_impl<typename T::value_type>::value>
-      >
-      : std::true_type
-    {};
-    
+      std::enable_if_t<is_character_type_impl<typename T::value_type>::value>> : std::true_type {};
+
     template <typename T>
     struct is_string_type_impl<
       T,
-      std::enable_if_t<
-        std::is_pointer_v<std::decay_t<T>>
-        && is_character_type_impl<std::remove_pointer_t<std::decay_t<T>>>::value
-        >
-      >
-      : std::true_type
-    {};
-    
+      std::enable_if_t<std::is_pointer_v<std::decay_t<T>> &&
+                       is_character_type_impl<std::remove_pointer_t<std::decay_t<T>>>::value>>
+      : std::true_type {};
+
     template <typename T>
     struct is_string_type_impl<
       T,
-      std::enable_if_t<
-        std::is_array_v<std::decay_t<T>>
-        && is_character_type_impl<std::remove_extent_t<std::decay_t<T>>>::value
-        >
-      >
-      : std::true_type
-    {};
-    
-    
+      std::enable_if_t<std::is_array_v<std::decay_t<T>> &&
+                       is_character_type_impl<std::remove_extent_t<std::decay_t<T>>>::value>>
+      : std::true_type {};
+
     //--------------------------------------------------------------------------
     template <typename T>
-    struct is_basic_string_type_impl: std::false_type {};
-    
-    
+    struct is_basic_string_type_impl : std::false_type {};
+
     template <typename... Args>
-    struct is_basic_string_type_impl<std::basic_string<Args...>>
-      : std::true_type
-      {};
-    
-    
+    struct is_basic_string_type_impl<std::basic_string<Args...>> : std::true_type {};
+
     //--------------------------------------------------------------------------
     template <typename T>
-    struct is_basic_string_view_type_impl: std::false_type {};
-    
-    
+    struct is_basic_string_view_type_impl : std::false_type {};
+
     template <typename... Args>
-    struct is_basic_string_view_type_impl<std::basic_string_view<Args...>>
-      : std::true_type
-      {};
-    
-    
+    struct is_basic_string_view_type_impl<std::basic_string_view<Args...>> : std::true_type {};
+
     //--------------------------------------------------------------------------
     /// Implementation detail of `staticDumpClassName()`.
     template <typename T>
     struct ClassNameStaticDumper {
-      static_assert(
-        util::always_false_type<T>(),
-        "ClassNameStaticDumper<T>: look for T in the error message context"
-        );
+      static_assert(util::always_false_type<T>(),
+                    "ClassNameStaticDumper<T>: look for T in the error message context");
     }; // struct ClassNameStaticDumper
 
     //--------------------------------------------------------------------------
@@ -794,33 +730,34 @@ namespace util {
 
     // - final implementation:
     template <typename Base, typename /* Key */, typename = void>
-    struct with_const_as_impl
-      { using type = std::remove_const_t<Base>; };
+    struct with_const_as_impl {
+      using type = std::remove_const_t<Base>;
+    };
 
     template <typename Base, typename Key>
-    struct with_const_as_impl
-      <Base, Key, std::enable_if_t<std::is_const_v<Key>>>
-      { using type = std::add_const_t<Base>; };
+    struct with_const_as_impl<Base, Key, std::enable_if_t<std::is_const_v<Key>>> {
+      using type = std::add_const_t<Base>;
+    };
 
     // - implementation dispatcher for reference types
     //   - pass through for not-reference types
     template <typename Base, typename Key, typename = void>
-    struct with_const_as_dispatch_ref: with_const_as_impl<Base, Key> {};
+    struct with_const_as_dispatch_ref : with_const_as_impl<Base, Key> {};
     //   - lvalue reference
     template <typename Base, typename Key>
-    struct with_const_as_dispatch_ref
-      <Base, Key, std::enable_if_t<std::is_lvalue_reference_v<Base>>>
-    {
-      using type = std::add_lvalue_reference_t
-        <typename with_const_as_impl<std::remove_reference_t<Base>, Key>::type>;
+    struct with_const_as_dispatch_ref<Base,
+                                      Key,
+                                      std::enable_if_t<std::is_lvalue_reference_v<Base>>> {
+      using type = std::add_lvalue_reference_t<
+        typename with_const_as_impl<std::remove_reference_t<Base>, Key>::type>;
     };
     //   - rvalue reference
     template <typename Base, typename Key>
-    struct with_const_as_dispatch_ref
-      <Base, Key, std::enable_if_t<std::is_rvalue_reference_v<Base>>>
-    {
-      using type = std::add_rvalue_reference_t
-        <typename with_const_as_impl<std::remove_reference_t<Base>, Key>::type>;
+    struct with_const_as_dispatch_ref<Base,
+                                      Key,
+                                      std::enable_if_t<std::is_rvalue_reference_v<Base>>> {
+      using type = std::add_rvalue_reference_t<
+        typename with_const_as_impl<std::remove_reference_t<Base>, Key>::type>;
     };
 
     // - key management
@@ -830,18 +767,15 @@ namespace util {
 
     // - top level implementation dispatcher
     template <typename Base, typename Key>
-    struct with_const_as_dispatcher: with_const_as_dispatch_keyref<Base, Key> {};
-
+    struct with_const_as_dispatcher : with_const_as_dispatch_keyref<Base, Key> {};
 
     //--------------------------------------------------------------------------
     //--- implementation of `is_instance_of`
     template <template <typename...> typename Template, typename T>
-    struct is_instance_of_impl: std::false_type {};
-
+    struct is_instance_of_impl : std::false_type {};
 
     template <template <typename...> typename Template, typename... Args>
-    struct is_instance_of_impl<Template, Template<Args...>>: std::true_type {};
-
+    struct is_instance_of_impl<Template, Template<Args...>> : std::true_type {};
 
     //--------------------------------------------------------------------------
     //--- implementation of `strip_referenceness_type`
@@ -851,36 +785,31 @@ namespace util {
 
     // implementation layer dealing with `std::reference_wrapper`
     template <typename T, typename = void>
-    struct strip_referenceness_type_impl_wrapref
-      { using type = T; }; // exit here
+    struct strip_referenceness_type_impl_wrapref {
+      using type = T;
+    }; // exit here
 
     // - handle any constantness and volatility
     template <typename T>
     struct strip_referenceness_type_impl_wrapref<
       T,
-      std::enable_if_t<util::is_reference_wrapper_v<std::remove_cv_t<T>>>
-      >
+      std::enable_if_t<util::is_reference_wrapper_v<std::remove_cv_t<T>>>>
       : strip_referenceness_type_impl<typename T::type> // back to square one
     {};
 
     // implementation layer dealing with C++ references
     template <typename T>
-    struct strip_referenceness_type_impl_ref
-      : strip_referenceness_type_impl_wrapref<T> {};
+    struct strip_referenceness_type_impl_ref : strip_referenceness_type_impl_wrapref<T> {};
 
     template <typename T>
-    struct strip_referenceness_type_impl_ref<T&>
-      : strip_referenceness_type_impl_wrapref<T> {};
+    struct strip_referenceness_type_impl_ref<T&> : strip_referenceness_type_impl_wrapref<T> {};
 
     template <typename T>
-    struct strip_referenceness_type_impl_ref<T&&>
-      : strip_referenceness_type_impl_wrapref<T> {};
+    struct strip_referenceness_type_impl_ref<T&&> : strip_referenceness_type_impl_wrapref<T> {};
 
     // entry point: start by dealing with C++ references
     template <typename T>
-    struct strip_referenceness_type_impl: strip_referenceness_type_impl_ref<T>
-    {};
-
+    struct strip_referenceness_type_impl : strip_referenceness_type_impl_ref<T> {};
 
     //--------------------------------------------------------------------------
     //--- implementation of `referenced_address()`
@@ -891,12 +820,9 @@ namespace util {
     };
 
     template <typename T>
-    struct referenced_address_impl
-      <T, std::enable_if_t<util::is_reference_wrapper_v<T>>>
-    {
+    struct referenced_address_impl<T, std::enable_if_t<util::is_reference_wrapper_v<T>>> {
       static auto addressof(T& obj) { return std::addressof(obj.get()); }
     };
-
 
     //--------------------------------------------------------------------------
     //--- implementation of `lvalue_reference_into_wrapper_type`
@@ -917,106 +843,89 @@ namespace util {
 
     template <typename T, typename = void>
     struct lvalue_reference_into_wrapper_type_impl_wrapper {
-      using type
-        = typename lvalue_reference_into_wrapper_type_impl_final<T>::type;
+      using type = typename lvalue_reference_into_wrapper_type_impl_final<T>::type;
     };
 
     template <typename T>
-    struct lvalue_reference_into_wrapper_type_impl_wrapper
-      <T, std::enable_if_t<util::is_reference_wrapper_v<T>>>
-    {
+    struct lvalue_reference_into_wrapper_type_impl_wrapper<
+      T,
+      std::enable_if_t<util::is_reference_wrapper_v<T>>> {
       using type = std::remove_reference_t<T>;
     };
 
     template <typename T>
     struct lvalue_reference_into_wrapper_type_impl
-      : lvalue_reference_into_wrapper_type_impl_wrapper<T>
-    {};
-
+      : lvalue_reference_into_wrapper_type_impl_wrapper<T> {};
 
     //--------------------------------------------------------------------------
 
-
   } // namespace details
-
 
   //----------------------------------------------------------------------------
   template <template <typename...> typename Template, typename T>
-  struct is_instance_of
-    : details::is_instance_of_impl<Template, std::decay_t<T>>
-  {};
+  struct is_instance_of : details::is_instance_of_impl<Template, std::decay_t<T>> {};
 
   //----------------------------------------------------------------------------
   template <typename T, std::size_t StartFrom, typename... Types>
-  struct find_next_type: details::find_type_impl<0U, StartFrom, T, Types...> {};
-  
-  
+  struct find_next_type : details::find_type_impl<0U, StartFrom, T, Types...> {};
+
   //----------------------------------------------------------------------------
   template <typename T, typename... Types>
-  struct is_any_of:
-    std::bool_constant<((find_type_v<T, Types...>) < sizeof...(Types))>
-  {};
-  
-  
+  struct is_any_of : std::bool_constant<((find_type_v<T, Types...>) < sizeof...(Types))> {};
+
   //----------------------------------------------------------------------------
   template <typename T>
-  struct is_character_type: details::is_character_type_impl<T> {};
-  
-  
+  struct is_character_type : details::is_character_type_impl<T> {};
+
   //----------------------------------------------------------------------------
   template <typename T>
-  struct is_string_type: details::is_string_type_impl<T> {};
-  
-  
+  struct is_string_type : details::is_string_type_impl<T> {};
+
   //----------------------------------------------------------------------------
   template <typename T>
-  struct is_basic_string_type
-    : details::is_basic_string_type_impl<std::decay_t<T>> {};
-  
-  
+  struct is_basic_string_type : details::is_basic_string_type_impl<std::decay_t<T>> {};
+
   //----------------------------------------------------------------------------
   template <typename T>
-  struct is_basic_string_view_type
-    : details::is_basic_string_view_type_impl<std::decay_t<T>>
-  {};
-  
-  
+  struct is_basic_string_view_type : details::is_basic_string_view_type_impl<std::decay_t<T>> {};
+
   //----------------------------------------------------------------------------
   template <typename T>
-  void staticDumpClassName() { (void) details::ClassNameStaticDumper<T>(); }
+  void staticDumpClassName()
+  {
+    (void)details::ClassNameStaticDumper<T>();
+  }
 
   //----------------------------------------------------------------------------
   template <typename>
-  struct is_STLarray: public std::false_type {};
+  struct is_STLarray : public std::false_type {};
 
   template <typename T, std::size_t N>
-  struct is_STLarray<std::array<T, N>>: public std::true_type {};
+  struct is_STLarray<std::array<T, N>> : public std::true_type {};
 
   //----------------------------------------------------------------------------
   template <typename Base, typename Key>
-  struct with_const_as: public details::with_const_as_dispatcher<Base, Key> {};
+  struct with_const_as : public details::with_const_as_dispatcher<Base, Key> {};
 
   //----------------------------------------------------------------------------
   template <typename T>
-  struct strip_referenceness_type
-    : public details::strip_referenceness_type_impl<T>
-  {};
+  struct strip_referenceness_type : public details::strip_referenceness_type_impl<T> {};
 
   //----------------------------------------------------------------------------
   template <typename T>
   struct lvalue_reference_into_wrapper_type
-    : public details::lvalue_reference_into_wrapper_type_impl<T>
-  {};
+    : public details::lvalue_reference_into_wrapper_type_impl<T> {};
 
   //----------------------------------------------------------------------------
   template <typename Ref>
   auto referenced_address(Ref&& ref)
-    { return details::referenced_address_impl<Ref>::addressof(ref); }
+  {
+    return details::referenced_address_impl<Ref>::addressof(ref);
+  }
 
   //----------------------------------------------------------------------------
 
 } // namespace util
-
 
 //------------------------------------------------------------------------------
 

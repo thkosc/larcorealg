@@ -9,9 +9,7 @@
 // LArSoft libraries
 #include "larcorealg/Geometry/GeometryBuilderWireless.h"
 
-
 //------------------------------------------------------------------------------
 // nothing to override so far
 
 //------------------------------------------------------------------------------
-

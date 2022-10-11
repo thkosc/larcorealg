@@ -17,22 +17,20 @@
  *
  */
 
-
 // LArSoft libraries
 #include "GeometryTestAlg.h"
-#include "larcorealg/Geometry/GeometryCore.h"
-#include "larcorealg/Geometry/StandaloneGeometrySetup.h" // SetupGeometry()
-#include "larcorealg/Geometry/StandaloneBasicSetup.h" // SetupMessageFacility()...
 #include "larcorealg/Geometry/ChannelMapStandardAlg.h"
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/Geometry/StandaloneBasicSetup.h"    // SetupMessageFacility()...
+#include "larcorealg/Geometry/StandaloneGeometrySetup.h" // SetupGeometry()
 
 // utility libraries
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // C/C++ standard libraries
-#include <string>
 #include <stdexcept> // std::runtime_error
-
+#include <string>
 
 //------------------------------------------------------------------------------
 //---  The tests
@@ -55,7 +53,8 @@
  *
  */
 //------------------------------------------------------------------------------
-int main(int argc, char const** argv) {
+int main(int argc, char const** argv)
+{
 
   //
   // parameter parsing
@@ -66,13 +65,13 @@ int main(int argc, char const** argv) {
   int iParam = 0;
 
   // first argument: configuration file (mandatory)
-  if (++iParam < argc) configPath = argv[iParam];
+  if (++iParam < argc)
+    configPath = argv[iParam];
   else
     throw std::runtime_error("No configuration file specified.");
 
   // second argument: test configuration path
   if (++iParam < argc) geoTestConfigPath = argv[iParam];
-
 
   //
   // 1. testing environment setup
@@ -88,8 +87,8 @@ int main(int argc, char const** argv) {
   mf::SetContextIteration("setup");
 
   // set up geometry
-  auto geom = SetupGeometry<geo::ChannelMapStandardAlg>
-    (pset.get<fhicl::ParameterSet>("services.Geometry"));
+  auto geom =
+    SetupGeometry<geo::ChannelMapStandardAlg>(pset.get<fhicl::ParameterSet>("services.Geometry"));
 
   // update the context string for the messages
   mf::SetContextIteration("run");
@@ -110,9 +109,7 @@ int main(int argc, char const** argv) {
   // 4. And finally we cross fingers.
   //
   mf::SetContextIteration("end");
-  if (nErrors > 0) {
-    mf::LogError("geometry_test") << nErrors << " errors detected!";
-  }
+  if (nErrors > 0) { mf::LogError("geometry_test") << nErrors << " errors detected!"; }
 
   return nErrors;
 } // main()

@@ -16,17 +16,15 @@
 #include "larcorealg/Geometry/ReadoutIDmapper.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
 
-
 namespace readout {
-  
+
   template <typename T>
   class TPCsetDataContainer;
-  
+
   template <typename T>
   class ROPDataContainer;
-  
-} // namespace geo
 
+} // namespace geo
 
 // --- BEGIN Readout data containers -------------------------------------------
 /// @name Readout data containers
@@ -56,16 +54,13 @@ namespace readout {
  *
  */
 template <typename T>
-class readout::TPCsetDataContainer
-  : public geo::GeoIDdataContainer<T, readout::TPCsetIDmapper<>>
-{
-  
+class readout::TPCsetDataContainer : public geo::GeoIDdataContainer<T, readout::TPCsetIDmapper<>> {
+
   using BaseContainer_t = geo::GeoIDdataContainer<T, readout::TPCsetIDmapper<>>;
-  
-    public:
-  
+
+public:
   using value_type = typename BaseContainer_t::value_type;
-  
+
   /**
    * @brief Default constructor: empty container.
    * @see `resize()`
@@ -85,8 +80,8 @@ class readout::TPCsetDataContainer
    * `nTPCsets` TPC sets. Each element in the container is default-constructed.
    */
   TPCsetDataContainer(unsigned int nCryo, unsigned int nTPCsets)
-    : BaseContainer_t({ nCryo, nTPCsets })
-    {}
+    : BaseContainer_t({nCryo, nTPCsets})
+  {}
 
   /**
    * @brief Prepares the container with copies of the specified default value.
@@ -102,16 +97,14 @@ class readout::TPCsetDataContainer
    *   (geom->NCryostats(), geom->MaxTPCsets(), 3U);
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */
-  TPCsetDataContainer
-    (unsigned int nCryo, unsigned int nTPCsets, value_type const& defValue)
-    : BaseContainer_t({ nCryo, nTPCsets }, defValue)
-    {}
-
+  TPCsetDataContainer(unsigned int nCryo, unsigned int nTPCsets, value_type const& defValue)
+    : BaseContainer_t({nCryo, nTPCsets}, defValue)
+  {}
 
   // --- BEGIN Container modification ------------------------------------------
   /// @name Container modification
   /// @{
-  
+
   /**
    * @brief Prepares the container with default-constructed data.
    * @param nCryo number of cryostats
@@ -125,7 +118,9 @@ class readout::TPCsetDataContainer
    * non-straightforward way.
    */
   void resize(unsigned int nCryo, unsigned int nTPCsets)
-    { BaseContainer_t::resize({ nCryo, nTPCsets }); }
+  {
+    BaseContainer_t::resize({nCryo, nTPCsets});
+  }
 
   /**
    * @brief Prepares the container initializing all its data.
@@ -145,11 +140,12 @@ class readout::TPCsetDataContainer
    * non-straightforward way.
    */
   void resize(unsigned int nCryo, unsigned int nTPCsets, T const& defValue)
-    { BaseContainer_t::resize({ nCryo, nTPCsets }, defValue); }
-  
+  {
+    BaseContainer_t::resize({nCryo, nTPCsets}, defValue);
+  }
+
   /// @}
   // --- END Container modification --------------------------------------------
-  
 
   // --- BEGIN Container status query ------------------------------------------
   /// @name Container status query
@@ -157,18 +153,20 @@ class readout::TPCsetDataContainer
 
   /// Returns whether this container hosts data for the specified cryostat.
   bool hasCryostat(readout::CryostatID const& cryoid) const
-    { return BaseContainer_t::hasElement(cryoid); }
+  {
+    return BaseContainer_t::hasElement(cryoid);
+  }
 
   /// Returns whether this container hosts data for the specified TPC set.
   bool hasTPCset(readout::TPCsetID const& tpcsetid) const
-    { return BaseContainer_t::hasElement(tpcsetid); }
+  {
+    return BaseContainer_t::hasElement(tpcsetid);
+  }
 
   /// @}
   // --- END Container status query --------------------------------------------
 
-
 }; // class readout::TPCsetDataContainer<>
-
 
 //------------------------------------------------------------------------------
 /** 
@@ -193,15 +191,12 @@ class readout::TPCsetDataContainer
  *
  */
 template <typename T>
-class readout::ROPDataContainer
-  : public geo::GeoIDdataContainer<T, readout::ROPIDmapper<>>
-{
+class readout::ROPDataContainer : public geo::GeoIDdataContainer<T, readout::ROPIDmapper<>> {
 
   /// Base class.
   using BaseContainer_t = geo::GeoIDdataContainer<T, readout::ROPIDmapper<>>;
-  
-    public:
 
+public:
   /**
    * @brief Default constructor: empty container.
    * @see `resize()`
@@ -222,10 +217,9 @@ class readout::ROPDataContainer
    * `nTPCsets` TPC sets, each one with `nROPs` readout planes. Each element
    * in the container is default-constructed.
    */
-  ROPDataContainer
-    (unsigned int nCryo, unsigned int nTPCsets, unsigned int nROPs)
-    : BaseContainer_t({ nCryo, nTPCsets, nROPs })
-    {}
+  ROPDataContainer(unsigned int nCryo, unsigned int nTPCsets, unsigned int nROPs)
+    : BaseContainer_t({nCryo, nTPCsets, nROPs})
+  {}
 
   /**
    * @brief Prepares the container with copies of the specified default value.
@@ -243,18 +237,14 @@ class readout::ROPDataContainer
    *   (geom->NCryostats(), geom->MaxTPCsets(), geom->MaxROPs(), 0U);
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */
-  ROPDataContainer(
-    unsigned int nCryo, unsigned int nTPCsets, unsigned int nROPs,
-    T const& defValue
-    )
-    : BaseContainer_t{ { nCryo, nTPCsets, nROPs }, defValue }
-    {}
-
+  ROPDataContainer(unsigned int nCryo, unsigned int nTPCsets, unsigned int nROPs, T const& defValue)
+    : BaseContainer_t{{nCryo, nTPCsets, nROPs}, defValue}
+  {}
 
   // --- BEGIN Container modification ------------------------------------------
   /// @name Container modification
   /// @{
-  
+
   /**
    * @brief Prepares the container with default-constructed data.
    * @param nCryo number of cryostats
@@ -270,7 +260,9 @@ class readout::ROPDataContainer
    * non-straightforward way.
    */
   void resize(unsigned int nCryo, unsigned int nTPCsets, unsigned int nROPs)
-    { BaseContainer_t::resize({ nCryo, nTPCsets, nROPs }); }
+  {
+    BaseContainer_t::resize({nCryo, nTPCsets, nROPs});
+  }
 
   /**
    * @brief Prepares the container initializing all its data.
@@ -287,15 +279,13 @@ class readout::ROPDataContainer
    * Existing data is not touched, but it may be rearranged in a
    * non-straightforward way.
    */
-  void resize(
-    unsigned int nCryo, unsigned int nTPCsets, unsigned int nROPs,
-    T const& defValue
-    )
-    { BaseContainer_t::resize({ nCryo, nTPCsets, nROPs }, defValue); }
-  
+  void resize(unsigned int nCryo, unsigned int nTPCsets, unsigned int nROPs, T const& defValue)
+  {
+    BaseContainer_t::resize({nCryo, nTPCsets, nROPs}, defValue);
+  }
+
   /// @}
   // --- END Container modification --------------------------------------------
-  
 
   // --- BEGIN Container status query ------------------------------------------
   /// @name Container status query
@@ -303,26 +293,26 @@ class readout::ROPDataContainer
 
   /// Returns whether this container hosts data for the specified cryostat.
   bool hasCryostat(readout::CryostatID const& cryoid) const
-    { return BaseContainer_t::hasElement(cryoid); }
+  {
+    return BaseContainer_t::hasElement(cryoid);
+  }
 
   /// Returns whether this container hosts data for the specified TPC set.
   bool hasTPCset(readout::TPCsetID const& tpcsetid) const
-    { return BaseContainer_t::hasElement(tpcsetid); }
+  {
+    return BaseContainer_t::hasElement(tpcsetid);
+  }
 
   /// Returns whether this container hosts data for the specified readout plane.
-  bool hasROP(readout::ROPID const& ropid) const
-    { return BaseContainer_t::hasElement(ropid); }
+  bool hasROP(readout::ROPID const& ropid) const { return BaseContainer_t::hasElement(ropid); }
 
   /// @}
   // --- END Container status query --------------------------------------------
 
-
 }; // class readout::ROPDataContainer<>
-
 
 /// @}
 // --- END Readout data containers ---------------------------------------------
 //------------------------------------------------------------------------------
-
 
 #endif // LARCOREALG_GEOMETRY_READOUTDATACONTAINERS_H

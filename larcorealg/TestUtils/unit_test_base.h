@@ -22,40 +22,38 @@
  *
  */
 
-
 #ifndef TEST_UNIT_TEST_BASE_H
 #define TEST_UNIT_TEST_BASE_H
 
 // LArSoft libraries
-#include "larcorealg/TestUtils/ProviderTestHelpers.h"
-#include "larcorealg/TestUtils/ProviderList.h"
 #include "larcorealg/CoreUtils/ProviderPack.h"
+#include "larcorealg/TestUtils/ProviderList.h"
+#include "larcorealg/TestUtils/ProviderTestHelpers.h"
 
 // utility libraries
 #include "fhiclcpp/ParameterSet.h"
 #include "fhiclcpp/intermediate_table.h"
 #include "fhiclcpp/parse.h"
+#include "fhiclcpp/types/Atom.h"
 #include "fhiclcpp/types/Comment.h"
 #include "fhiclcpp/types/Name.h"
-#include "fhiclcpp/types/Atom.h"
 #include "fhiclcpp/types/Table.h"
 // #include "fhiclcpp/exception.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // CET libraries
-#include "cetlib/filesystem.h" // cet::is_absolute_filepath()
 #include "cetlib/filepath_maker.h"
+#include "cetlib/filesystem.h" // cet::is_absolute_filepath()
 #include "cetlib/search_path.h"
 
 // C/C++ standard libraries
 #include <iostream> // for output before message facility is set up
-#include <string>
-#include <memory> // std::unique_ptr<>
-#include <utility> // std::move(), std::forward()
 #include <map>
-#include <type_traits> // std::add_rvalue_reference()
+#include <memory>    // std::unique_ptr<>
 #include <stdexcept> // std::logic_error
-
+#include <string>
+#include <type_traits> // std::add_rvalue_reference()
+#include <utility>     // std::move(), std::forward()
 
 namespace testing {
 
@@ -63,13 +61,12 @@ namespace testing {
 
     /// Reads and makes available the command line parameters
     class CommandLineArguments {
-        public:
+    public:
       /// Constructor: automatically parses from Boost arguments
       CommandLineArguments() { Clear(); }
 
       /// Constructor: parses from specified arguments
-      CommandLineArguments(int argc, char** argv)
-        { ParseArguments(argc, argv); }
+      CommandLineArguments(int argc, char** argv) { ParseArguments(argc, argv); }
 
       /// Parses arguments
       void ParseArguments(int argc, char** argv);
@@ -86,17 +83,21 @@ namespace testing {
       /// Returns the value of the iArg-th (0-based; no range check!)
       std::string const& Argument(size_t iArg) const { return args[iArg]; }
 
-        private:
-      std::string exec_name; ///< name of the test executable (from argv[0])
+    private:
+      std::string exec_name;         ///< name of the test executable (from argv[0])
       std::vector<std::string> args; ///< command line arguments (from argv[0])
 
       /// Erases the stored arguments
-      void Clear() { exec_name.clear(); args.clear(); }
+      void Clear()
+      {
+        exec_name.clear();
+        args.clear();
+      }
 
     }; // class CommandLineArguments
 
-
-    inline void CommandLineArguments::ParseArguments(int argc, char** argv) {
+    inline void CommandLineArguments::ParseArguments(int argc, char** argv)
+    {
       Clear();
       if (argc == 0) return;
 
@@ -107,14 +108,11 @@ namespace testing {
 
     } // CommandLineArguments:ParseArguments()
 
-
     // forward declaration
-    template
-       <typename TestEnv, typename Pack, typename... Provs>
+    template <typename TestEnv, typename Pack, typename... Provs>
     struct ProviderPackFiller;
 
   } // namespace details
-
 
   /** **************************************************************************
    * @brief Class holding a configuration for a test environment
@@ -131,18 +129,22 @@ namespace testing {
     BasicEnvironmentConfiguration() { DefaultInit(); }
 
     /// Constructor: acquires parameters from the command line
-    BasicEnvironmentConfiguration(int argc, char** argv):
-      BasicEnvironmentConfiguration()
-      { ParseCommandLine(argc, argv); }
+    BasicEnvironmentConfiguration(int argc, char** argv) : BasicEnvironmentConfiguration()
+    {
+      ParseCommandLine(argc, argv);
+    }
 
     /// Constructor; accepts the name as parameter
-    BasicEnvironmentConfiguration(std::string name):
-      BasicEnvironmentConfiguration()
-      { SetApplicationName(name); }
+    BasicEnvironmentConfiguration(std::string name) : BasicEnvironmentConfiguration()
+    {
+      SetApplicationName(name);
+    }
 
-    BasicEnvironmentConfiguration(int argc, char** argv, std::string name):
-      BasicEnvironmentConfiguration(argc, argv)
-      { SetApplicationName(name); }
+    BasicEnvironmentConfiguration(int argc, char** argv, std::string name)
+      : BasicEnvironmentConfiguration(argc, argv)
+    {
+      SetApplicationName(name);
+    }
 
     /// @{
     /// @name Access to configuration
@@ -154,51 +156,51 @@ namespace testing {
 
     /// FHiCL path for the configuration of the test algorithm
     std::string TesterParameterSetPath(std::string name) const
-      {
-        auto iPath = test_paths.find(name);
-        return (iPath == test_paths.end())
-          ? ("physics.analyzers." + name): iPath->second;
-      }
+    {
+      auto iPath = test_paths.find(name);
+      return (iPath == test_paths.end()) ? ("physics.analyzers." + name) : iPath->second;
+    }
 
     /// Name of the test algorithm instance
     std::string MainTesterParameterSetName() const { return main_test_name; }
 
     /// FHiCL path for the configuration of the test algorithm
     std::string MainTesterParameterSetPath() const
-      {
-        return MainTesterParameterSetName().empty()
-          ? "": TesterParameterSetPath(MainTesterParameterSetName());
-      }
+    {
+      return MainTesterParameterSetName().empty() ?
+               "" :
+               TesterParameterSetPath(MainTesterParameterSetName());
+    }
 
     /// FHiCL path for the configuration of the service
     std::string ServiceParameterSetPath(std::string name) const
-      {
-        auto iPath = service_paths.find(name);
-        return (iPath == service_paths.end())
-          ? ("services." + name): iPath->second;
-      } // ServiceParameterSetPath()
+    {
+      auto iPath = service_paths.find(name);
+      return (iPath == service_paths.end()) ? ("services." + name) : iPath->second;
+    } // ServiceParameterSetPath()
 
     /// A string describing default parameter set to configure specified test
     std::string DefaultTesterConfiguration(std::string tester_name) const
-      { return analyzers_default_cfg.at(tester_name); }
+    {
+      return analyzers_default_cfg.at(tester_name);
+    }
 
     /// A string describing the default parameter set to configure the test
     std::string DefaultServiceConfiguration(std::string service_name) const
-      { return services_default_cfg.at(service_name); }
+    {
+      return services_default_cfg.at(service_name);
+    }
 
     /// A string describing the full default parameter set
-    std::string DefaultConfiguration() const
-      { return BuildDefaultConfiguration(); }
+    std::string DefaultConfiguration() const { return BuildDefaultConfiguration(); }
 
     /// Returns the name of the executable as started
     std::string ExecutablePath() const { return arguments.Executable(); }
 
     /// Returns the list of non-Boost-test arguments on the command line
-    std::vector<std::string> const& EexcutableArguments() const
-      { return arguments.Arguments(); }
+    std::vector<std::string> const& EexcutableArguments() const { return arguments.Arguments(); }
 
     ///@}
-
 
     /// @{
     /// @name Set configuration
@@ -210,57 +212,58 @@ namespace testing {
     void SetConfigurationPath(std::string path) { config_path = path; }
 
     /// Sets the FHiCL name for the configuration of the test algorithm
-    void SetMainTesterParameterSetName(std::string name)
-      { main_test_name = name; }
+    void SetMainTesterParameterSetName(std::string name) { main_test_name = name; }
 
     /// Sets the FHiCL path for the configuration of a test algorithm
     void SetTesterParameterSetPath(std::string test_name, std::string path)
-      { test_paths[test_name] = path; }
+    {
+      test_paths[test_name] = path;
+    }
 
     /// Sets the FHiCL path for the configuration of the main test algorithm
     void SetMainTesterParameterSetPath(std::string path)
-      {
-        if (MainTesterParameterSetName().empty()) {
-          throw std::logic_error
-             ("Request setting configuration of non-existent main tester");
-        }
-        SetTesterParameterSetPath(MainTesterParameterSetName(), path);
+    {
+      if (MainTesterParameterSetName().empty()) {
+        throw std::logic_error("Request setting configuration of non-existent main tester");
       }
+      SetTesterParameterSetPath(MainTesterParameterSetName(), path);
+    }
 
     /// Sets the FHiCL path for the configuration of a test algorithm
     void SetServiceParameterSetPath(std::string service_name, std::string path)
-      { service_paths[service_name] = path; }
+    {
+      service_paths[service_name] = path;
+    }
 
     /// Adds a default configuration for the specified service
-    void AddDefaultServiceConfiguration
-      (std::string service_name, std::string service_cfg)
-      { services_default_cfg[service_name] = service_cfg; }
+    void AddDefaultServiceConfiguration(std::string service_name, std::string service_cfg)
+    {
+      services_default_cfg[service_name] = service_cfg;
+    }
 
     /// Adds a default configuration for the specified tester
-    void AddDefaultTesterConfiguration
-      (std::string tester_name, std::string tester_cfg)
-      { analyzers_default_cfg[tester_name] = tester_cfg; }
+    void AddDefaultTesterConfiguration(std::string tester_name, std::string tester_cfg)
+    {
+      analyzers_default_cfg[tester_name] = tester_cfg;
+    }
 
     /// Adds a default configuration for the main tester
     void AddDefaultTesterConfiguration(std::string tester_cfg)
-      {
-        if (MainTesterParameterSetName().empty()) {
-          throw std::logic_error
-             ("Request adding configuration of non-existent main tester");
-        }
-        AddDefaultTesterConfiguration(MainTesterParameterSetName(), tester_cfg);
+    {
+      if (MainTesterParameterSetName().empty()) {
+        throw std::logic_error("Request adding configuration of non-existent main tester");
       }
+      AddDefaultTesterConfiguration(MainTesterParameterSetName(), tester_cfg);
+    }
 
     ///@}
 
-
-
-      protected:
+  protected:
     using ConfigurationMap_t = std::map<std::string, std::string>;
     using PathMap_t = std::map<std::string, std::string>;
 
-    std::string appl_name; ///< name of the application
-    std::string config_path; ///< configuration file path
+    std::string appl_name;      ///< name of the application
+    std::string config_path;    ///< configuration file path
     std::string main_test_name; ///< name of main test algorithm
     std::string main_test_path; ///< path of main test algorithm configuration
 
@@ -279,20 +282,19 @@ namespace testing {
 
     /// Extracts arguments from the command line, uses first one as config path
     void ParseCommandLine(int argc, char** argv)
-      {
-        arguments.ParseArguments(argc, argv);
-        if (arguments.hasArgument(0))
-          SetConfigurationPath(arguments.Argument(0)); // first argument
-      }
+    {
+      arguments.ParseArguments(argc, argv);
+      if (arguments.hasArgument(0)) SetConfigurationPath(arguments.Argument(0)); // first argument
+    }
 
     /// Initialize with some default values
     void DefaultInit()
-      {
-        SetApplicationName(DefaultApplicationName());
-        SetMainTesterParameterSetName("");
-        // a destination which will react to all messages from DEBUG up:
-        AddDefaultServiceConfiguration("message",
-          R"(
+    {
+      SetApplicationName(DefaultApplicationName());
+      SetMainTesterParameterSetName("");
+      // a destination which will react to all messages from DEBUG up:
+      AddDefaultServiceConfiguration("message",
+                                     R"(
            debugModules: [ '*' ]
            destinations : {
              stdout: {
@@ -307,76 +309,71 @@ namespace testing {
              statistics: {type:cout}
            } // destinations
          )");
-      } // DefaultInit()
+    } // DefaultInit()
 
     /// A string describing the full default parameter set
     std::string BuildDefaultServiceConfiguration() const
-      { return BuildServiceConfiguration(services_default_cfg); }
+    {
+      return BuildServiceConfiguration(services_default_cfg);
+    }
 
     /// A string describing the full default parameter set
     std::string BuildDefaultTestConfiguration() const
-      { return BuildTestConfiguration(analyzers_default_cfg); }
+    {
+      return BuildTestConfiguration(analyzers_default_cfg);
+    }
 
     /// A string describing the full default parameter set
     std::string BuildDefaultConfiguration() const
-      {
-        return BuildConfiguration(services_default_cfg, analyzers_default_cfg);
-      }
-
+    {
+      return BuildConfiguration(services_default_cfg, analyzers_default_cfg);
+    }
 
     /// A string with the service section from service parameter sets
-    static std::string BuildServiceConfiguration
-      (ConfigurationMap_t const& services)
-      {
-        std::string cfg;
-        cfg += "\nservices: {";
-        for (auto const& service_info: services) {
-          cfg += "\n  " + service_info.first + ": {";
-          cfg += "\n" + service_info.second;
-          cfg += "\n  } # " + service_info.first;
-        } // for services
-        cfg +=
-          "\n} # services"
-          "\n";
-        return cfg;
-      } // BuildServiceConfiguration()
+    static std::string BuildServiceConfiguration(ConfigurationMap_t const& services)
+    {
+      std::string cfg;
+      cfg += "\nservices: {";
+      for (auto const& service_info : services) {
+        cfg += "\n  " + service_info.first + ": {";
+        cfg += "\n" + service_info.second;
+        cfg += "\n  } # " + service_info.first;
+      } // for services
+      cfg += "\n} # services"
+             "\n";
+      return cfg;
+    } // BuildServiceConfiguration()
 
     /// A string with the physics section from analyzer parameter sets
-    static std::string BuildTestConfiguration
-      (ConfigurationMap_t const& analyzers)
-      {
-        std::string cfg;
-        cfg +=
-          "\nphysics: {"
-          "\n  analyzers: {"
-          ;
-        for (auto const& module_info: analyzers) {
-          cfg += "\n  " + module_info.first + ": {";
-          cfg += "\n" + module_info.second;
-          cfg += "\n  } # " + module_info.first;
-        } // for analyzers
-        cfg +=
-          "\n  } # analyzers"
-          "\n} # physics";
-        return cfg;
-      } // BuildServiceConfiguration()
+    static std::string BuildTestConfiguration(ConfigurationMap_t const& analyzers)
+    {
+      std::string cfg;
+      cfg += "\nphysics: {"
+             "\n  analyzers: {";
+      for (auto const& module_info : analyzers) {
+        cfg += "\n  " + module_info.first + ": {";
+        cfg += "\n" + module_info.second;
+        cfg += "\n  } # " + module_info.first;
+      } // for analyzers
+      cfg += "\n  } # analyzers"
+             "\n} # physics";
+      return cfg;
+    } // BuildServiceConfiguration()
 
     /// A string describing the full default parameter set
-    static std::string BuildConfiguration
-      (ConfigurationMap_t const& services, ConfigurationMap_t const& modules)
-      {
-        std::string cfg;
-        cfg += BuildServiceConfiguration(services);
-        cfg += BuildTestConfiguration(modules);
-        return cfg;
-      } // BuildConfiguration()
+    static std::string BuildConfiguration(ConfigurationMap_t const& services,
+                                          ConfigurationMap_t const& modules)
+    {
+      std::string cfg;
+      cfg += BuildServiceConfiguration(services);
+      cfg += BuildTestConfiguration(modules);
+      return cfg;
+    } // BuildConfiguration()
 
-      private:
+  private:
     details::CommandLineArguments arguments; ///< command line arguments
 
   }; // class BasicEnvironmentConfiguration<>
-
-
 
   /** **************************************************************************
    * @brief Utility class providing singleton objects to the derived classes
@@ -386,137 +383,140 @@ namespace testing {
    */
   template <typename RES>
   class TestSharedGlobalResource {
-     using Resource_t = RES;
+    using Resource_t = RES;
 
-       public:
-     using ResourcePtr_t = std::shared_ptr<Resource_t>;
+  public:
+    using ResourcePtr_t = std::shared_ptr<Resource_t>;
 
-     /// @name Add and share resources
-     /// @{
+    /// @name Add and share resources
+    /// @{
 
-     /// Adds a shared resource to the resource registry
-     static void AddSharedResource(std::string res_name, ResourcePtr_t res_ptr)
-       { Resources[res_name] = res_ptr; }
+    /// Adds a shared resource to the resource registry
+    static void AddSharedResource(std::string res_name, ResourcePtr_t res_ptr)
+    {
+      Resources[res_name] = res_ptr;
+    }
 
-     /// Adds a shared resource to the resource registry (empty name)
-     static void AddDefaultSharedResource(ResourcePtr_t res_ptr)
-       { AddSharedResource(std::string(), res_ptr); }
+    /// Adds a shared resource to the resource registry (empty name)
+    static void AddDefaultSharedResource(ResourcePtr_t res_ptr)
+    {
+      AddSharedResource(std::string(), res_ptr);
+    }
 
-     /// Registers a shared resource only if none exists yet
-     template <typename... Args>
-     static ResourcePtr_t ProvideSharedResource
-       (std::string res_name, ResourcePtr_t res_ptr)
-       {
-         if (hasResource(res_name)) return ResourcePtr_t();
-         AddSharedResource(res_name, res_ptr);
-         return res_ptr;
-       }
+    /// Registers a shared resource only if none exists yet
+    template <typename... Args>
+    static ResourcePtr_t ProvideSharedResource(std::string res_name, ResourcePtr_t res_ptr)
+    {
+      if (hasResource(res_name)) return ResourcePtr_t();
+      AddSharedResource(res_name, res_ptr);
+      return res_ptr;
+    }
 
-     /// Creates a shared resource as default only if none exists yet
-     template <typename... Args>
-     static ResourcePtr_t ProvideDefaultSharedResource(ResourcePtr_t res_ptr)
-       { return ProvideSharedResource(std::string(), res_ptr); }
+    /// Creates a shared resource as default only if none exists yet
+    template <typename... Args>
+    static ResourcePtr_t ProvideDefaultSharedResource(ResourcePtr_t res_ptr)
+    {
+      return ProvideSharedResource(std::string(), res_ptr);
+    }
 
-     //@{
-     /// Adds a shared resource only if it is old_res_ptr
-     static bool ReplaceSharedResource(
-       std::string res_name,
-       Resource_t const* old_res_ptr, ResourcePtr_t res_ptr
-       )
-       {
-         ResourcePtr_t current_res_ptr = ShareResource();
-         if (current_res_ptr.get() != old_res_ptr) return false;
-         AddSharedResource(res_name, res_ptr);
-         return true;
-       }
-     static bool ReplaceSharedResource
-       (std::string res_name, ResourcePtr_t old_res_ptr, ResourcePtr_t res_ptr)
-       { return ReplaceSharedResource(res_name, old_res_ptr.get(), res_ptr); }
-     //@}
+    //@{
+    /// Adds a shared resource only if it is old_res_ptr
+    static bool ReplaceSharedResource(std::string res_name,
+                                      Resource_t const* old_res_ptr,
+                                      ResourcePtr_t res_ptr)
+    {
+      ResourcePtr_t current_res_ptr = ShareResource();
+      if (current_res_ptr.get() != old_res_ptr) return false;
+      AddSharedResource(res_name, res_ptr);
+      return true;
+    }
+    static bool ReplaceSharedResource(std::string res_name,
+                                      ResourcePtr_t old_res_ptr,
+                                      ResourcePtr_t res_ptr)
+    {
+      return ReplaceSharedResource(res_name, old_res_ptr.get(), res_ptr);
+    }
+    //@}
 
-     //@{
-     /// Adds a shared resource as default resource only if it is old_res_ptr
-     static bool ReplaceDefaultSharedResource
-       (Resource_t const* old_res_ptr, ResourcePtr_t res_ptr)
-       { return ReplaceSharedResource(std::string(), old_res_ptr, res_ptr); }
-     static bool ReplaceDefaultSharedResource
-       (ResourcePtr_t old_res_ptr, ResourcePtr_t res_ptr)
-       { return ReplaceSharedResource(std::string(), old_res_ptr, res_ptr); }
-     //@}
+    //@{
+    /// Adds a shared resource as default resource only if it is old_res_ptr
+    static bool ReplaceDefaultSharedResource(Resource_t const* old_res_ptr, ResourcePtr_t res_ptr)
+    {
+      return ReplaceSharedResource(std::string(), old_res_ptr, res_ptr);
+    }
+    static bool ReplaceDefaultSharedResource(ResourcePtr_t old_res_ptr, ResourcePtr_t res_ptr)
+    {
+      return ReplaceSharedResource(std::string(), old_res_ptr, res_ptr);
+    }
+    //@}
 
-     /// Constructs and registers a new resource with a specified name
-     template <typename... Args>
-     static ResourcePtr_t CreateResource(std::string res_name, Args&&... args)
-       {
-         ResourcePtr_t res_ptr(new Resource_t(std::forward<Args>(args)...));
-         AddSharedResource(res_name, res_ptr);
-         return res_ptr;
-       }
+    /// Constructs and registers a new resource with a specified name
+    template <typename... Args>
+    static ResourcePtr_t CreateResource(std::string res_name, Args&&... args)
+    {
+      ResourcePtr_t res_ptr(new Resource_t(std::forward<Args>(args)...));
+      AddSharedResource(res_name, res_ptr);
+      return res_ptr;
+    }
 
-     /// Constructs and registers a new resource with no name
-     template <typename... Args>
-     static void CreateDefaultResource(Args&&... args)
-       { CreateResource(std::string(), std::forward<Args>(args)...); }
+    /// Constructs and registers a new resource with no name
+    template <typename... Args>
+    static void CreateDefaultResource(Args&&... args)
+    {
+      CreateResource(std::string(), std::forward<Args>(args)...);
+    }
 
+    /// Creates a shared resource only if none exists yet
+    template <typename... Args>
+    static ResourcePtr_t ProposeSharedResource(std::string res_name, Args&&... args)
+    {
+      return hasResource(res_name) ? ResourcePtr_t() :
+                                     CreateResource(res_name, std::forward<Args>(args)...);
+    }
 
-     /// Creates a shared resource only if none exists yet
-     template <typename... Args>
-     static ResourcePtr_t ProposeSharedResource
-       (std::string res_name, Args&&... args)
-       {
-         return hasResource(res_name)?
-           ResourcePtr_t():
-           CreateResource(res_name, std::forward<Args>(args)...);
-       }
+    /// Creates a shared resource as default only if none exists yet
+    template <typename... Args>
+    static ResourcePtr_t ProposeDefaultSharedResource(Args&&... args)
+    {
+      return ProposeSharedResource(std::string(), std::forward<Args>(args)...);
+    }
 
-     /// Creates a shared resource as default only if none exists yet
-     template <typename... Args>
-     static ResourcePtr_t ProposeDefaultSharedResource(Args&&... args)
-       {
-         return ProposeSharedResource
-           (std::string(), std::forward<Args>(args)...);
-       }
+    /// @}
 
-     /// @}
+    /// @name Resource access
+    /// @{
 
-     /// @name Resource access
-     /// @{
+    /// Returns whether a resource exists
+    /// @throws std::out_of_range if not available
+    static bool hasResource(std::string name = "")
+    {
+      auto iRes = Resources.find(name);
+      return (iRes != Resources.end()) && bool(iRes->second);
+    }
 
-     /// Returns whether a resource exists
-     /// @throws std::out_of_range if not available
-     static bool hasResource(std::string name = "")
-       {
-         auto iRes = Resources.find(name);
-         return (iRes != Resources.end()) && bool(iRes->second);
-       }
+    /// Retrieves the specified resource for sharing (nullptr if none)
+    static ResourcePtr_t ShareResource(std::string name = "")
+    {
+      auto iRes = Resources.find(name);
+      return (iRes == Resources.end()) ? ResourcePtr_t() : iRes->second;
+    }
 
-     /// Retrieves the specified resource for sharing (nullptr if none)
-     static ResourcePtr_t ShareResource(std::string name = "")
-       {
-         auto iRes = Resources.find(name);
-         return (iRes == Resources.end())? ResourcePtr_t(): iRes->second;
-       }
+    /// Retrieves the specified resource, or throws if not available
+    static Resource_t& Resource(std::string name = "") { return *(Resources.at(name).get()); }
 
-     /// Retrieves the specified resource, or throws if not available
-     static Resource_t& Resource(std::string name = "")
-       { return *(Resources.at(name).get()); }
+    /// @}
 
-     /// @}
+    /// Destroys the specified resource (does nothing if no such resource)
+    static Resource_t& DestroyResource(std::string name = "") { Resources.erase(name); }
 
-     /// Destroys the specified resource (does nothing if no such resource)
-     static Resource_t& DestroyResource(std::string name = "")
-       { Resources.erase(name); }
-
-       private:
-     static std::map<std::string, ResourcePtr_t> Resources;
+  private:
+    static std::map<std::string, ResourcePtr_t> Resources;
 
   }; // class TestSharedGlobalResource<>
 
-
   template <typename RES>
   std::map<std::string, typename TestSharedGlobalResource<RES>::ResourcePtr_t>
-  TestSharedGlobalResource<RES>::Resources;
-
+    TestSharedGlobalResource<RES>::Resources;
 
   /** **************************************************************************
    * @brief Environment for a test
@@ -559,7 +559,7 @@ namespace testing {
   template <typename ConfigurationClass>
   class BasicTesterEnvironment {
 
-      public:
+  public:
     using Configuration_t = ConfigurationClass;
 
     /**
@@ -569,7 +569,10 @@ namespace testing {
      * The configuration is from a default-constructed ConfigurationClass.
      * This is suitable for use as Boost unit test fixture.
      */
-    BasicTesterEnvironment(bool bSetup = true) { if (bSetup) Setup(); }
+    BasicTesterEnvironment(bool bSetup = true)
+    {
+      if (bSetup) Setup();
+    }
 
     //@{
     /**
@@ -585,18 +588,19 @@ namespace testing {
      *
      * In the r-value-reference constructor, the configurer is moved.
      */
-    BasicTesterEnvironment
-      (Configuration_t const& configurer, bool bSetup = true):
-      config(configurer)
-      { if (bSetup) Setup(); }
-    BasicTesterEnvironment(Configuration_t&& configurer, bool bSetup = true):
-      config(configurer)
-      { if (bSetup) Setup(); }
+    BasicTesterEnvironment(Configuration_t const& configurer, bool bSetup = true)
+      : config(configurer)
+    {
+      if (bSetup) Setup();
+    }
+    BasicTesterEnvironment(Configuration_t&& configurer, bool bSetup = true) : config(configurer)
+    {
+      if (bSetup) Setup();
+    }
     //@}
 
     /// Destructor: closing remarks
     virtual ~BasicTesterEnvironment();
-
 
     /// @{
     /// @name Configuration retrieval
@@ -606,31 +610,30 @@ namespace testing {
 
     /// Returns the configuration of the specified service
     fhicl::ParameterSet ServiceParameters(std::string service_name) const
-      {
-        return params.get<fhicl::ParameterSet>
-          (config.ServiceParameterSetPath(service_name));
-      }
+    {
+      return params.get<fhicl::ParameterSet>(config.ServiceParameterSetPath(service_name));
+    }
 
     /// Returns the configuration of the specified test
     fhicl::ParameterSet TesterParameters(std::string test_name) const
-      {
-        return params.get<fhicl::ParameterSet>
-          (config.TesterParameterSetPath(test_name));
-      }
+    {
+      return params.get<fhicl::ParameterSet>(config.TesterParameterSetPath(test_name));
+    }
 
     /// Returns the configuration of the main test (undefined if no main test)
     fhicl::ParameterSet TesterParameters() const
-      {
-        if (config.MainTesterParameterSetName().empty()) return {};
-        else return TesterParameters(config.MainTesterParameterSetName());
-      }
+    {
+      if (config.MainTesterParameterSetName().empty())
+        return {};
+      else
+        return TesterParameters(config.MainTesterParameterSetName());
+    }
 
     /// @}
 
     static fhicl::ParameterSet CompileParameterSet(std::string cfg);
 
-      protected:
-
+  protected:
     /// Returns a read-only version of the configuration
     Configuration_t const& Config() const { return config; }
 
@@ -645,14 +648,18 @@ namespace testing {
      * @return a parameters set with the complete configuration
      */
     virtual fhicl::ParameterSet DefaultParameters() const
-      { return CompileParameterSet(config.DefaultConfiguration()); }
+    {
+      return CompileParameterSet(config.DefaultConfiguration());
+    }
 
     //@{
     /// Sets up the message facility
-    virtual void SetupMessageFacility
-      (fhicl::ParameterSet const& pset, std::string appl_name = "") const;
+    virtual void SetupMessageFacility(fhicl::ParameterSet const& pset,
+                                      std::string appl_name = "") const;
     virtual void SetupMessageFacility() const
-      { SetupMessageFacility(Parameters(), config.ApplicationName()); }
+    {
+      SetupMessageFacility(Parameters(), config.ApplicationName());
+    }
     //@}
 
     /**
@@ -665,14 +672,14 @@ namespace testing {
     /// Parses from file and returns a FHiCL data structure
     static fhicl::ParameterSet ParseParameters(std::string config_path);
 
-      private:
+  private:
     /// Test environment options
     struct Options_t {
       bool MessageLevels = false; ///< print message levels on screen
-    }; // Options_t
+    };                            // Options_t
 
     Configuration_t config; ///< instance of the configurer
-    Options_t options; ///< options for the test environment
+    Options_t options;      ///< options for the test environment
 
     /// Parses the configuration, looking for the test environment options
     void ParseEnvironmentOptions();
@@ -680,8 +687,6 @@ namespace testing {
     fhicl::ParameterSet params; ///< full configuration of the test
 
   }; // class BasicTesterEnvironment<>
-
-
 
   //****************************************************************************
   /**
@@ -743,13 +748,11 @@ namespace testing {
    * construction.
    */
   template <typename ConfigurationClass>
-  class TesterEnvironment
-    : public BasicTesterEnvironment<ConfigurationClass>
-  {
+  class TesterEnvironment : public BasicTesterEnvironment<ConfigurationClass> {
     using TesterEnvBase_t = BasicTesterEnvironment<ConfigurationClass>;
     using TesterEnv_t = TesterEnvironment<ConfigurationClass>;
 
-      public:
+  public:
     // inherit constructors
     using TesterEnvBase_t::TesterEnvBase_t;
 
@@ -770,11 +773,11 @@ namespace testing {
      */
     template <typename Prov, typename... Args>
     Prov* SetupProvider(Args&&... args)
-      {
-        if (!providers.setup<Prov>(std::forward<Args>(args)...))
-          throw std::runtime_error("Provider already exists!");
-        return providers.getPointer<Prov>();
-      }
+    {
+      if (!providers.setup<Prov>(std::forward<Args>(args)...))
+        throw std::runtime_error("Provider already exists!");
+      return providers.getPointer<Prov>();
+    }
 
     /**
      * @brief Sets a service provider up by calling its testing::setupProvider()
@@ -792,10 +795,9 @@ namespace testing {
      */
     template <typename Prov, typename... Args>
     Prov* SetupProviderFromService(std::string name, Args&&... args)
-      {
-        return SetupProvider<Prov>
-          (this->ServiceParameters(name, std::forward<Args>(args)...));
-      }
+    {
+      return SetupProvider<Prov>(this->ServiceParameters(name, std::forward<Args>(args)...));
+    }
 
     /**
      * @brief Acquires a service provider
@@ -811,11 +813,10 @@ namespace testing {
      */
     template <typename Prov>
     Prov* AcquireProvider(std::unique_ptr<Prov>&& prov)
-      {
-        if (!providers.acquire(std::move(prov)))
-          throw std::runtime_error("Provider already exists!");
-        return providers.getPointer<Prov>();
-      }
+    {
+      if (!providers.acquire(std::move(prov))) throw std::runtime_error("Provider already exists!");
+      return providers.getPointer<Prov>();
+    }
 
     /**
      * @brief Sets a provider up, recording it as implementation of Interface
@@ -835,11 +836,11 @@ namespace testing {
      */
     template <typename Interface, typename Prov, typename... Args>
     Prov* SetupProviderFor(Args&&... args)
-      {
-        auto prov = SetupProvider<Prov>(std::forward<Args>(args)...);
-        providers.set_alias<Prov, Interface>();
-        return prov;
-      }
+    {
+      auto prov = SetupProvider<Prov>(std::forward<Args>(args)...);
+      providers.set_alias<Prov, Interface>();
+      return prov;
+    }
 
     /**
      * @brief Sets a provider up, recording it as implementation of Interface
@@ -862,12 +863,11 @@ namespace testing {
      */
     template <typename Interface, typename Prov, typename... Args>
     Prov* SetupProviderFromServiceFor(std::string name, Args&&... args)
-      {
-        auto* prov
-          = SetupProviderFromService<Prov>(name, std::forward<Args>(args)...);
-        providers.set_alias<Prov, Interface>();
-        return prov;
-      }
+    {
+      auto* prov = SetupProviderFromService<Prov>(name, std::forward<Args>(args)...);
+      providers.set_alias<Prov, Interface>();
+      return prov;
+    }
 
     /**
      * @brief Acquires a service provider implementing an interface
@@ -885,11 +885,11 @@ namespace testing {
      */
     template <typename Interface, typename Prov>
     Prov* AcquireProviderFor(std::unique_ptr<Prov>&& prov)
-      {
-        auto prov_ptr = providers.acquire(prov);
-        providers.set_alias<Prov, Interface>();
-        return prov_ptr;
-      }
+    {
+      auto prov_ptr = providers.acquire(prov);
+      providers.set_alias<Prov, Interface>();
+      return prov_ptr;
+    }
 
     /**
      * @brief Oversimplified provider setup
@@ -904,7 +904,10 @@ namespace testing {
      *
      */
     template <typename Prov>
-    Prov* SimpleProviderSetup() { return simpleEnvironmentSetup<Prov>(*this); }
+    Prov* SimpleProviderSetup()
+    {
+      return simpleEnvironmentSetup<Prov>(*this);
+    }
 
     /**
      * @brief Removes and destroys the specified provider
@@ -913,15 +916,16 @@ namespace testing {
      */
     template <typename Prov>
     void DropProvider()
-      {
-        if (!providers.erase<Prov>())
-          throw std::runtime_error("Provider not present!");
-      }
+    {
+      if (!providers.erase<Prov>()) throw std::runtime_error("Provider not present!");
+    }
 
     /// Return the specified provider (throws if not available)
     template <typename Prov>
     Prov const* Provider() const
-      { return providers.getPointer<Prov>(); }
+    {
+      return providers.getPointer<Prov>();
+    }
 
     /**
      * @brief Fills the specified provider pack with providers
@@ -930,13 +934,10 @@ namespace testing {
      */
     template <typename... Provs>
     void FillProviderPack(lar::ProviderPack<Provs...>& pack) const
-      {
-         details::ProviderPackFiller
-           <TesterEnv_t, lar::ProviderPack<Provs...>, Provs...>
-           ::fill
-           (*this, pack);
-      } // FillProviderPack()
-
+    {
+      details::ProviderPackFiller<TesterEnv_t, lar::ProviderPack<Provs...>, Provs...>::fill(*this,
+                                                                                            pack);
+    } // FillProviderPack()
 
     /**
      * @brief Returns a provider pack for the specified provider
@@ -949,18 +950,15 @@ namespace testing {
      */
     template <typename Prov>
     typename Prov::providers_type ProviderPackFor() const
-      {
-         typename Prov::providers_type pack;
-         FillProviderPack(pack);
-         return pack;
-      } // ProviderPackFor()
+    {
+      typename Prov::providers_type pack;
+      FillProviderPack(pack);
+      return pack;
+    } // ProviderPackFor()
 
-
-      protected:
+  protected:
     ProviderList providers; ///< list of available providers
-  }; // class TesterEnvironment<>
-
-
+  };                        // class TesterEnvironment<>
 
   /**
    * @brief Constructs and returns a TesterEnvironment object
@@ -994,18 +992,13 @@ namespace testing {
   // a TesterEnvironment<Config&>, so we explicitly remove the reference from
   // CONFIG (decay does that and aso removes the constantness, that we also
   // don't want to be embedded in CONFIG).
-  template <
-    typename CONFIG,
-    typename TESTENV = TesterEnvironment<std::decay_t<CONFIG>>,
-    typename... ARGS
-    >
+  template <typename CONFIG,
+            typename TESTENV = TesterEnvironment<std::decay_t<CONFIG>>,
+            typename... ARGS>
   TESTENV CreateTesterEnvironment(CONFIG&& config, ARGS... other_args)
-    {
-      return TESTENV
-        (std::forward<CONFIG>(config), std::forward<ARGS>(other_args)...);
-    }
-
-
+  {
+    return TESTENV(std::forward<CONFIG>(config), std::forward<ARGS>(other_args)...);
+  }
 
   //****************************************************************************
   namespace details {
@@ -1013,46 +1006,41 @@ namespace testing {
     // This is badly ripped off from ART, but we need to stay out of it
     // so I have to replicate that functionality.
     // I used the same class name.
-    class FirstAbsoluteOrLookupWithDotPolicy: public cet::filepath_maker {
-        public:
-      FirstAbsoluteOrLookupWithDotPolicy(std::string const& paths):
-        first(true), after_paths(paths)
-        {}
+    class FirstAbsoluteOrLookupWithDotPolicy : public cet::filepath_maker {
+    public:
+      FirstAbsoluteOrLookupWithDotPolicy(std::string const& paths) : first(true), after_paths(paths)
+      {}
 
-      virtual std::string operator() (std::string const& filename);
+      virtual std::string operator()(std::string const& filename);
 
       void reset() { first = true; }
 
-        private:
-      bool first; ///< whether we are waiting for the first query
+    private:
+      bool first;                   ///< whether we are waiting for the first query
       cet::search_path after_paths; ///< path for the other queries
 
     }; // class FirstAbsoluteOrLookupWithDotPolicy
 
-
-    inline std::string FirstAbsoluteOrLookupWithDotPolicy::operator()
-      (std::string const &filename)
+    inline std::string FirstAbsoluteOrLookupWithDotPolicy::operator()(std::string const& filename)
     {
       if (first) {
         first = false;
         if (cet::is_absolute_filepath(filename)) return filename;
-        return cet::search_path("./:" + after_paths.to_string())
-          .find_file(filename);
-      } else {
+        return cet::search_path("./:" + after_paths.to_string()).find_file(filename);
+      }
+      else {
         return after_paths.find_file(filename);
       }
     } // FirstAbsoluteOrLookupWithDotPolicy::operator()
 
-
     /// Helper to fill a provider pack: main specialisation
-    template
-      <typename TestEnv, typename Pack, typename Prov, typename... Others>
+    template <typename TestEnv, typename Pack, typename Prov, typename... Others>
     struct ProviderPackFiller<TestEnv, Pack, Prov, Others...> {
       static void fill(TestEnv const& env, Pack& pack)
-        {
-          pack.set(env.template Provider<Prov>());
-          ProviderPackFiller<TestEnv, Pack, Others...>::fill(env, pack);
-        } // fill()
+      {
+        pack.set(env.template Provider<Prov>());
+        ProviderPackFiller<TestEnv, Pack, Others...>::fill(env, pack);
+      } // fill()
 
     }; // ProviderPackFiller<TestEnv, Pack, Prov, Others...>
 
@@ -1062,33 +1050,29 @@ namespace testing {
       static void fill(TestEnv const&, Pack&) {}
     }; // ProviderPackFiller<>
 
-
   } // namespace details
-
 
   //****************************************************************************
   template <typename ConfigurationClass>
-  BasicTesterEnvironment<ConfigurationClass>::~BasicTesterEnvironment() {
+  BasicTesterEnvironment<ConfigurationClass>::~BasicTesterEnvironment()
+  {
 
     mf::LogInfo("Test") << config.ApplicationName() << " completed.";
 
   } // BasicTesterEnvironment<>::~BasicTesterEnvironment()
-
 
   /** **************************************************************************
    * @brief Compiles a parameter set from a string
    * @return a parameters set with the complete configuration
    */
   template <typename ConfigurationClass>
-  fhicl::ParameterSet
-  BasicTesterEnvironment<ConfigurationClass>::CompileParameterSet
-    (std::string cfg)
+  fhicl::ParameterSet BasicTesterEnvironment<ConfigurationClass>::CompileParameterSet(
+    std::string cfg)
   {
     fhicl::ParameterSet global_pset;
     global_pset = fhicl::ParameterSet::make(cfg);
     return global_pset;
   } // BasicTesterEnvironment<>::CompileParameterSet()
-
 
   /** **************************************************************************
    * @brief Returns the configuration from a FHiCL file
@@ -1096,13 +1080,12 @@ namespace testing {
    * @return a parameters set with the complete configuration from the file
    */
   template <typename ConfigurationClass>
-  fhicl::ParameterSet
-  BasicTesterEnvironment<ConfigurationClass>::ParseParameters
-    (std::string config_path)
+  fhicl::ParameterSet BasicTesterEnvironment<ConfigurationClass>::ParseParameters(
+    std::string config_path)
   {
     // configuration file lookup policy
     char const* fhicl_env = getenv("FHICL_FILE_PATH");
-    std::string search_path = fhicl_env? std::string(fhicl_env) + ":": ".:";
+    std::string search_path = fhicl_env ? std::string(fhicl_env) + ":" : ".:";
     details::FirstAbsoluteOrLookupWithDotPolicy policy(search_path);
 
     // parse a configuration file; obtain intermediate form
@@ -1115,7 +1098,6 @@ namespace testing {
 
     return global_pset;
   } // BasicTesterEnvironment<>::ParseParameters()
-
 
   /** **************************************************************************
    * @brief Fills the configuration
@@ -1132,12 +1114,11 @@ namespace testing {
    * used as full configuration.
    */
   template <typename ConfigurationClass>
-  void BasicTesterEnvironment<ConfigurationClass>::Configure() {
+  void BasicTesterEnvironment<ConfigurationClass>::Configure()
+  {
     std::string config_path = config.ConfigurationPath();
-    params = config_path.empty()?
-      DefaultParameters(): ParseParameters(config_path);
+    params = config_path.empty() ? DefaultParameters() : ParseParameters(config_path);
   } // BasicTesterEnvironment::Configure()
-
 
   /** **************************************************************************
    * @brief Sets the message facility up
@@ -1146,26 +1127,23 @@ namespace testing {
    * set. If not there, the default configuration is used.
    */
   template <typename ConfigurationClass>
-  void BasicTesterEnvironment<ConfigurationClass>::SetupMessageFacility
-    (fhicl::ParameterSet const& pset, std::string appl_name /* = "" */) const
+  void BasicTesterEnvironment<ConfigurationClass>::SetupMessageFacility(
+    fhicl::ParameterSet const& pset,
+    std::string appl_name /* = "" */) const
   {
     fhicl::ParameterSet mf_pset;
 
-    if
-      (!pset.get_if_present(config.ServiceParameterSetPath("message"), mf_pset))
-    {
-      mf_pset
-        = CompileParameterSet(config.DefaultServiceConfiguration("message"));
+    if (!pset.get_if_present(config.ServiceParameterSetPath("message"), mf_pset)) {
+      mf_pset = CompileParameterSet(config.DefaultServiceConfiguration("message"));
       std::cout << "Using default message facility configuration:\n"
-        << mf_pset.to_indented_string(1) << std::endl;
+                << mf_pset.to_indented_string(1) << std::endl;
     } // if no configuration is available
 
     mf::StartMessageFacility(mf_pset);
     if (!appl_name.empty()) mf::SetApplicationName(appl_name);
     mf::SetContextIteration("Initialization");
     if (options.MessageLevels) {
-      std::cout << "Printing message levels in 'MessageFacility' category."
-        << std::endl;
+      std::cout << "Printing message levels in 'MessageFacility' category." << std::endl;
 
       mf::LogProblem("MessageFacility") << "Error messages are shown.";
       mf::LogPrint("MessageFacility") << "Warning messages are shown.";
@@ -1178,11 +1156,9 @@ namespace testing {
     mf::SetContextSinglet("main");
   } // BasicTesterEnvironment::SetupMessageFacility()
 
-
-
   template <typename ConfigurationClass>
-  void BasicTesterEnvironment<ConfigurationClass>::Setup(
-  ) {
+  void BasicTesterEnvironment<ConfigurationClass>::Setup()
+  {
 
     //
     // get the configuration
@@ -1205,77 +1181,70 @@ namespace testing {
     {
       mf::LogInfo msg("Configuration");
       msg << "Complete configuration (";
-      if (config.ConfigurationPath().empty()) msg << "default";
-      else msg << "'" << config.ConfigurationPath() << "'";
+      if (config.ConfigurationPath().empty())
+        msg << "default";
+      else
+        msg << "'" << config.ConfigurationPath() << "'";
       msg << "):\n" << Parameters().to_indented_string(1);
     }
-
 
     mf::LogInfo("Test") << config.ApplicationName() << " base setup complete.";
 
   } // BasicTesterEnvironment<>::Setup()
 
-
-
   template <typename ConfigurationClass>
-  void BasicTesterEnvironment<ConfigurationClass>::ParseEnvironmentOptions() {
+  void BasicTesterEnvironment<ConfigurationClass>::ParseEnvironmentOptions()
+  {
 
     struct OptionsFromConfig_t {
       fhicl::Atom<bool> messageLevels{
         fhicl::Name("messageLevels"),
         fhicl::Comment("prints a message per level (to verify the visible ones"),
         false // default: no
-        };
+      };
       fhicl::Atom<bool> printOptions{
         fhicl::Name("printOptions"),
         fhicl::Comment("prints a the list of options (this is one of them!)"),
         false // default: no
-        };
+      };
     }; // OptionsFromConfig_t
-
 
     struct ValidationHelper {
       static void printDummy(std::ostream& out)
-        {
-          fhicl::Table<OptionsFromConfig_t>
-            (fhicl::Name("test"), fhicl::Comment("Test environment options"))
-            .print_allowed_configuration(out);
-        } // printDummy()
+      {
+        fhicl::Table<OptionsFromConfig_t>(fhicl::Name("test"),
+                                          fhicl::Comment("Test environment options"))
+          .print_allowed_configuration(out);
+      } // printDummy()
 
-      static fhicl::Table<OptionsFromConfig_t> validate
-        (fhicl::ParameterSet const& pset)
-        {
-          try {
-            return fhicl::Table<OptionsFromConfig_t>(pset, {});
-          }
-          catch (...) {
-            std::cerr << "Error parsing environment test options! Valid options:"
-              << std::endl;
-            ValidationHelper::printDummy(std::cerr);
-            throw;
-          }
-        } // validate()
+      static fhicl::Table<OptionsFromConfig_t> validate(fhicl::ParameterSet const& pset)
+      {
+        try {
+          return fhicl::Table<OptionsFromConfig_t>(pset, {});
+        }
+        catch (...) {
+          std::cerr << "Error parsing environment test options! Valid options:" << std::endl;
+          ValidationHelper::printDummy(std::cerr);
+          throw;
+        }
+      } // validate()
     };
-
 
     fhicl::ParameterSet pset = params.get<fhicl::ParameterSet>("test", {});
 
     // automatically performs validation
-    fhicl::Table<OptionsFromConfig_t> configTable
-      (ValidationHelper::validate(pset));
+    fhicl::Table<OptionsFromConfig_t> configTable(ValidationHelper::validate(pset));
 
     if (configTable().printOptions()) {
-      std::cout
-        << "The following options can be passed to the test environment"
-        << " by putting them in the \"test: {}\" table of the configuration file:"
-        << std::endl;
+      std::cout << "The following options can be passed to the test environment"
+                << " by putting them in the \"test: {}\" table of the configuration file:"
+                << std::endl;
       ValidationHelper::printDummy(std::cout);
     }
 
     options.MessageLevels = configTable().messageLevels();
 
   } // BasicTesterEnvironment<>::ParseEnvironmentOptions()
-
 
 } // namespace testing
 

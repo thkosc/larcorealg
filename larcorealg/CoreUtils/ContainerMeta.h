@@ -13,15 +13,13 @@
 #include "larcorealg/CoreUtils/MetaUtils.h" // for Doxygen documentation
 
 // C/C++ standard libraries
-#include <iterator> // std::begin(), std::cbegin()
-#include <functional> // std::reference_wrapper<>
-#include <memory> // std::unique_ptr<>
-#include <utility> // std::declval()
+#include <functional>  // std::reference_wrapper<>
+#include <iterator>    // std::begin(), std::cbegin()
+#include <memory>      // std::unique_ptr<>
 #include <type_traits> // std::enable_if_t<>
-
+#include <utility>     // std::declval()
 
 namespace util {
-
 
   //--- BEGIN ContainerMetaprogramming -----------------------------------------
   /**
@@ -54,7 +52,6 @@ namespace util {
    */
   /// @{
 
-
   //----------------------------------------------------------------------------
   /// Trait of value contained in the template collection `Coll`.
   template <typename Coll>
@@ -64,7 +61,6 @@ namespace util {
   template <typename Coll>
   using collection_value_t = typename collection_value_type<Coll>::type;
 
-
   //----------------------------------------------------------------------------
   /// Trait of type obtained by access to element of collection `Coll`.
   template <typename Coll>
@@ -72,9 +68,7 @@ namespace util {
 
   /// Type obtained by constant access to element of collection `Coll`.
   template <typename Coll>
-  using collection_value_access_t
-    = typename collection_value_access_type<Coll>::type;
-
+  using collection_value_access_t = typename collection_value_access_type<Coll>::type;
 
   //----------------------------------------------------------------------------
   /// Trait of type obtained by constant access to element of collection `Coll`.
@@ -83,9 +77,8 @@ namespace util {
 
   /// Type obtained by constant access to element of collection `Coll`.
   template <typename Coll>
-  using collection_value_constant_access_t
-    = typename collection_value_constant_access_type<Coll>::type;
-
+  using collection_value_constant_access_t =
+    typename collection_value_constant_access_type<Coll>::type;
 
   //----------------------------------------------------------------------------
   /**
@@ -109,7 +102,6 @@ namespace util {
   template <typename Coll>
   using collection_reference_t = typename collection_reference_type<Coll>::type;
 
-
   /**
    * @brief Returns an object referencing to the data contained in `coll`.
    * @tparam Coll type of collection of the data
@@ -126,7 +118,6 @@ namespace util {
    */
   template <typename Coll>
   auto make_collection_reference(Coll&& coll);
-
 
   /**
    * @brief Trait with the type of collection referenced by `collRef`.
@@ -145,8 +136,7 @@ namespace util {
 
   /// Type contained in `util::collection_from_reference_type` trait.
   template <typename Cont>
-  using collection_from_reference_t
-    = typename collection_from_reference_type<Cont>::type;
+  using collection_from_reference_t = typename collection_from_reference_type<Cont>::type;
 
   /**
    * @brief Returns the object referenced by `collRef` as a C++ reference.
@@ -168,9 +158,7 @@ namespace util {
   /// @}
   //--- END ContainerMetaprogramming -------------------------------------------
 
-
 } // namespace util
-
 
 //------------------------------------------------------------------------------
 //--- template implementation
@@ -203,12 +191,9 @@ namespace util {
       using value_type = type;
     }; // struct collection_value_type_impl_pointer<T[N]>
 
-
     template <typename Ptr, typename = void>
     struct collection_value_type_impl_unique_ptr
-      : collection_value_type_impl_pointer<typename Ptr::pointer>
-      {};
-
+      : collection_value_type_impl_pointer<typename Ptr::pointer> {};
 
     template <typename Coll, typename = void>
     struct collection_value_type_impl {
@@ -217,26 +202,25 @@ namespace util {
     }; // struct collection_value_type_impl
 
     template <typename Coll>
-    struct collection_value_type_impl
-      <Coll, std::enable_if_t<std::is_pointer_v<std::decay_t<Coll>>>>
-      : collection_value_type_impl_pointer<std::decay_t<Coll>>
-    {};
+    struct collection_value_type_impl<Coll, std::enable_if_t<std::is_pointer_v<std::decay_t<Coll>>>>
+      : collection_value_type_impl_pointer<std::decay_t<Coll>> {};
 
     template <typename Coll>
-    struct collection_value_type_impl
-      <Coll, std::enable_if_t<util::is_unique_ptr_v<std::decay_t<Coll>>>>
-      : collection_value_type_impl_unique_ptr<std::decay_t<Coll>>
-    {};
-
+    struct collection_value_type_impl<Coll,
+                                      std::enable_if_t<util::is_unique_ptr_v<std::decay_t<Coll>>>>
+      : collection_value_type_impl_unique_ptr<std::decay_t<Coll>> {};
 
     //--------------------------------------------------------------------------
     template <typename Coll, typename = void>
     struct collection_value_access_type_impl {
-        private:
+    private:
       static auto getBegin(Coll&& coll)
-        { using std::begin; return begin(coll); }
+      {
+        using std::begin;
+        return begin(coll);
+      }
 
-        public:
+    public:
       using type = decltype(*getBegin(std::declval<Coll>()));
       using value_type = collection_value_t<Coll>;
 
@@ -248,23 +232,23 @@ namespace util {
       using value_type = T;
     }; // struct collection_value_access_type_impl<T*>
 
-
     template <typename Ptr>
-    struct collection_value_access_type_impl
-      <Ptr, std::enable_if_t<util::is_unique_ptr_v<std::decay_t<Ptr>>>>
-     : collection_value_access_type_impl
-       <std::remove_reference_t<typename Ptr::pointer>>
-    {};
-
+    struct collection_value_access_type_impl<
+      Ptr,
+      std::enable_if_t<util::is_unique_ptr_v<std::decay_t<Ptr>>>>
+      : collection_value_access_type_impl<std::remove_reference_t<typename Ptr::pointer>> {};
 
     //--------------------------------------------------------------------------
     template <typename Coll, typename = void>
     struct collection_value_constant_access_type_impl {
-        private:
+    private:
       static auto getCBegin(Coll&& coll)
-        { using std::cbegin; return cbegin(coll); }
+      {
+        using std::cbegin;
+        return cbegin(coll);
+      }
 
-        public:
+    public:
       using type = decltype(*getCBegin(std::declval<Coll>()));
       using value_type = collection_value_t<Coll>;
 
@@ -277,12 +261,11 @@ namespace util {
     }; // struct collection_value_constant_access_type_impl
 
     template <typename Ptr>
-    struct collection_value_constant_access_type_impl
-      <Ptr, std::enable_if_t<util::is_unique_ptr_v<std::decay_t<Ptr>>>>
-     : collection_value_constant_access_type_impl
-       <std::remove_reference_t<typename Ptr::pointer>>
-    {};
-
+    struct collection_value_constant_access_type_impl<
+      Ptr,
+      std::enable_if_t<util::is_unique_ptr_v<std::decay_t<Ptr>>>>
+      : collection_value_constant_access_type_impl<std::remove_reference_t<typename Ptr::pointer>> {
+    };
 
     //--------------------------------------------------------------------------
     //--- util::make_collection_reference
@@ -294,57 +277,46 @@ namespace util {
     }; // make_collection_reference_impl
 
     template <typename Coll>
-    struct make_collection_reference_impl
-      <Coll, std::enable_if_t<util::is_reference_wrapper_v<Coll>>>
-    {
+    struct make_collection_reference_impl<Coll,
+                                          std::enable_if_t<util::is_reference_wrapper_v<Coll>>> {
       using type = std::remove_cv_t<Coll>;
       static type make(Coll& refw) { return refw; }
     }; // make_collection_reference_impl<std::reference_wrapper>
 
     template <typename Coll>
-    struct make_collection_reference_impl
-      <Coll, std::enable_if_t<util::is_unique_ptr_v<Coll>>>
-    {
+    struct make_collection_reference_impl<Coll, std::enable_if_t<util::is_unique_ptr_v<Coll>>> {
       using type = typename Coll::pointer;
       static type make(Coll& uptr) { return uptr.get(); }
     }; // make_collection_reference_impl<std::unique_ptr>
 
     template <typename Ptr>
-    struct make_collection_reference_impl
-      <Ptr, std::enable_if_t<std::is_pointer_v<std::decay_t<Ptr>>>>
-    {
-      using type =
-        std::add_pointer_t< // finally add the pointer
-          std::remove_all_extents_t< // if it's a C array
-            std::remove_pointer_t<std::decay_t<Ptr>>
-          >
-        >;
+    struct make_collection_reference_impl<Ptr,
+                                          std::enable_if_t<std::is_pointer_v<std::decay_t<Ptr>>>> {
+      using type = std::add_pointer_t< // finally add the pointer
+        std::remove_all_extents_t<     // if it's a C array
+          std::remove_pointer_t<std::decay_t<Ptr>>>>;
       static type make(Ptr& ptr) { return ptr; }
     }; // make_collection_reference_impl<std::unique_ptr>
-
 
     //--------------------------------------------------------------------------
     //--- util::collection_from_reference
 
     template <typename CollRef, typename = void>
     struct collection_from_reference_impl {
-      using type
-        = std::add_lvalue_reference_t<std::remove_reference_t<CollRef>>;
+      using type = std::add_lvalue_reference_t<std::remove_reference_t<CollRef>>;
       static CollRef& get(CollRef& coll) { return coll; }
     }; // collection_from_reference_impl
 
     template <typename CollRef>
-    struct collection_from_reference_impl
-      <CollRef, std::enable_if_t<util::is_reference_wrapper_v<CollRef>>>
-    {
+    struct collection_from_reference_impl<CollRef,
+                                          std::enable_if_t<util::is_reference_wrapper_v<CollRef>>> {
       using type = std::add_lvalue_reference_t<typename CollRef::type>;
       static type get(CollRef& refw) { return refw.get(); }
     }; // collection_from_reference_impl<std::reference_wrapper>
 
     template <typename CollRef>
-    struct collection_from_reference_impl
-      <CollRef, std::enable_if_t<util::is_unique_ptr_v<CollRef>>>
-    {
+    struct collection_from_reference_impl<CollRef,
+                                          std::enable_if_t<util::is_unique_ptr_v<CollRef>>> {
       using type = typename CollRef::pointer;
       static type get(CollRef& uptr) { return uptr.get(); }
     }; // collection_from_reference_impl<std::unique_ptr>
@@ -367,11 +339,9 @@ namespace util {
       static type get(T ptr[N]) { return ptr; }
     }; // collection_from_reference_impl<T[N]>
 
-
     //--------------------------------------------------------------------------
 
   } // namespace details
-
 
   //----------------------------------------------------------------------------
   template <typename Coll>
@@ -379,60 +349,48 @@ namespace util {
     // remove all referenceness, constantness etc. from `Coll`;
     // also remove all referenceness from the result
     using type = util::strip_referenceness_t<
-      typename details::collection_value_type_impl
-        <util::strip_referenceness_t<Coll>>::type
-      >
-      ;
+      typename details::collection_value_type_impl<util::strip_referenceness_t<Coll>>::type>;
   };
-
 
   //----------------------------------------------------------------------------
   template <typename Coll>
   struct collection_value_access_type
-    : public details::collection_value_access_type_impl
-      <util::strip_referenceness_t<Coll>>
-  {};
-
+    : public details::collection_value_access_type_impl<util::strip_referenceness_t<Coll>> {};
 
   //----------------------------------------------------------------------------
   template <typename Coll>
   struct collection_value_constant_access_type
-    : public details::collection_value_constant_access_type_impl
-      <util::strip_referenceness_t<Coll>>
-  {};
-
+    : public details::collection_value_constant_access_type_impl<
+        util::strip_referenceness_t<Coll>> {};
 
   //----------------------------------------------------------------------------
   template <typename Coll>
   struct collection_reference_type
-    : details::make_collection_reference_impl<std::remove_reference_t<Coll>>
-  {};
+    : details::make_collection_reference_impl<std::remove_reference_t<Coll>> {};
 
   //----------------------------------------------------------------------------
   template <typename Coll>
-  auto make_collection_reference(Coll&& coll) {
-   return details::make_collection_reference_impl<std::remove_reference_t<Coll>>
-     ::make(coll)
-     ;
+  auto make_collection_reference(Coll&& coll)
+  {
+    return details::make_collection_reference_impl<std::remove_reference_t<Coll>>::make(coll);
   }
 
   //----------------------------------------------------------------------------
   template <typename CollRef>
   struct collection_from_reference_type
-    : details::collection_from_reference_impl<std::remove_reference_t<CollRef>>
-    {};
+    : details::collection_from_reference_impl<std::remove_reference_t<CollRef>> {};
 
   //----------------------------------------------------------------------------
   template <typename CollRef>
   decltype(auto) collection_from_reference(CollRef& collRef)
-   { return details::collection_from_reference_impl<CollRef>::get(collRef); }
+  {
+    return details::collection_from_reference_impl<CollRef>::get(collRef);
+  }
 
   //----------------------------------------------------------------------------
 
 } // namespace util
 
-
 //------------------------------------------------------------------------------
 
 #endif // LARCOREALG_COREUTILS_CONTAINERMETA_H
-

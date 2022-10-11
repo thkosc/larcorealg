@@ -6,15 +6,15 @@
 #define BASICTOOL_GEOALGO_TYPEDEF_H
 
 // Header files included here
+#include "larcorealg/GeoAlgo/GeoAABox.h"
+#include "larcorealg/GeoAlgo/GeoAlgo.h"
 #include "larcorealg/GeoAlgo/GeoAlgoConstants.h"
 #include "larcorealg/GeoAlgo/GeoAlgoException.h"
-#include "larcorealg/GeoAlgo/GeoVector.h"
-#include "larcorealg/GeoAlgo/GeoTrajectory.h"
 #include "larcorealg/GeoAlgo/GeoHalfLine.h"
 #include "larcorealg/GeoAlgo/GeoLine.h"
 #include "larcorealg/GeoAlgo/GeoLineSegment.h"
-#include "larcorealg/GeoAlgo/GeoAABox.h"
-#include "larcorealg/GeoAlgo/GeoAlgo.h"
+#include "larcorealg/GeoAlgo/GeoTrajectory.h"
+#include "larcorealg/GeoAlgo/GeoVector.h"
 
 //ADD_NEW_HEADER ... do not change this comment line
 
@@ -34,19 +34,3 @@ namespace geoalgo {
 
 //ADD_EMPTY_CLASS ... do not change this comment line
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

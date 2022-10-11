@@ -12,13 +12,11 @@
 #define LARCORE_COREUTILS_DUMPUTILS_H
 
 // C++ libraries
-#include <string>
 #include <sstream>
+#include <string>
 #include <type_traits>
 
-
 namespace lar {
-
 
   /// Namespace for LArSoft dumping utilities.
   namespace dump {
@@ -26,21 +24,32 @@ namespace lar {
     namespace details {
 
       template <typename Coll>
-      auto ptr_cbegin(Coll const& v) { using std::cbegin; return cbegin(v); }
+      auto ptr_cbegin(Coll const& v)
+      {
+        using std::cbegin;
+        return cbegin(v);
+      }
 
       template <typename T>
-      std::add_const_t<T>* ptr_cbegin(T* ptr) { return ptr; }
-
+      std::add_const_t<T>* ptr_cbegin(T* ptr)
+      {
+        return ptr;
+      }
 
       /// Inserts `n` of elements of `a` in the specified stream.
       template <typename Stream, typename Array>
-      void dumpArray(Stream&& out, Array&& a, size_t n) {
+      void dumpArray(Stream&& out, Array&& a, size_t n)
+      {
         out << "{";
-        if (n == 0) { out << "}"; return; }
+        if (n == 0) {
+          out << "}";
+          return;
+        }
         auto it = ptr_cbegin(a);
         out << " " << *it;
         std::size_t i = 0;
-        while (++i < n) out << "; " << (*++it);
+        while (++i < n)
+          out << "; " << (*++it);
         out << " }";
       } // dumpArray()
 
@@ -62,9 +71,9 @@ namespace lar {
       using This_t = ArrayDumper<Array_t>;
 
       Array_t const& a; ///< A reference to the array to be printed.
-      size_t n; ///< Number of elements to be printed.
+      size_t n;         ///< Number of elements to be printed.
 
-      ArrayDumper(Array_t const& a, size_t n): a(a), n(n) {}
+      ArrayDumper(Array_t const& a, size_t n) : a(a), n(n) {}
 
       // constructors ahead
       ArrayDumper(This_t const& from) = default;
@@ -74,15 +83,20 @@ namespace lar {
 
       /// Inserts the content of the referenced array into the specified stream.
       template <typename Stream>
-      void operator() (Stream&& out) const
-        { details::dumpArray(std::forward<Stream>(out), a, n); }
+      void operator()(Stream&& out) const
+      {
+        details::dumpArray(std::forward<Stream>(out), a, n);
+      }
 
       /// Converts the content of the stored vector into a string.
       explicit operator std::string() const
-        { std::ostringstream sstr; this->operator()(sstr); return sstr.str(); }
+      {
+        std::ostringstream sstr;
+        this->operator()(sstr);
+        return sstr.str();
+      }
 
     }; // struct ArrayDumper
-
 
     template <typename T>
     struct ArrayDumper<T*> {
@@ -90,21 +104,26 @@ namespace lar {
       using This_t = ArrayDumper<Array_t>;
 
       Array_t a; ///< A reference to the array to be printed.
-      size_t n; ///< Number of elements to be printed.
+      size_t n;  ///< Number of elements to be printed.
 
-      ArrayDumper(Array_t a, size_t n): a(a), n(n) {}
+      ArrayDumper(Array_t a, size_t n) : a(a), n(n) {}
 
       /// Inserts the content of the referenced array into the specified stream.
       template <typename Stream>
-      void operator() (Stream&& out) const
-        { details::dumpArray(std::forward<Stream>(out), a, n); }
+      void operator()(Stream&& out) const
+      {
+        details::dumpArray(std::forward<Stream>(out), a, n);
+      }
 
       /// Converts the content of the stored vector into a string.
       explicit operator std::string() const
-        { std::ostringstream sstr; this->operator()(sstr); return sstr.str(); }
+      {
+        std::ostringstream sstr;
+        this->operator()(sstr);
+        return sstr.str();
+      }
 
     }; // struct ArrayDumper<T*>
-
 
     /**
      * @brief Manipulator managing the dump of the vector content into a stream.
@@ -158,7 +177,7 @@ namespace lar {
 
       Vector_t const& v; ///< A reference to the vector to be printed.
 
-      explicit VectorDumper(Vector_t const& v): v(v) {}
+      explicit VectorDumper(Vector_t const& v) : v(v) {}
 
       // constructors ahead
       VectorDumper(This_t const& from) = default;
@@ -168,29 +187,32 @@ namespace lar {
 
       /// Inserts the content of the stored vector into the specified stream.
       template <typename Stream>
-      void operator() (Stream&& out) const
-        { out << "{ " << v.X() << "; " << v.Y() << "; " << v.Z() << " }"; }
+      void operator()(Stream&& out) const
+      {
+        out << "{ " << v.X() << "; " << v.Y() << "; " << v.Z() << " }";
+      }
 
       /// Converts the content of the stored vector into a string.
       explicit operator std::string() const
-        { std::ostringstream sstr; this->operator()(sstr); return sstr.str(); }
+      {
+        std::ostringstream sstr;
+        this->operator()(sstr);
+        return sstr.str();
+      }
 
     }; // struct VectorDumper<>
 
-
     // Specialization for bare pointers.
     template <typename T>
-    struct VectorDumper<T*>: public ArrayDumper<T const*> {
-      explicit VectorDumper(T* v): ArrayDumper<T const*>(v, 3U) {}
+    struct VectorDumper<T*> : public ArrayDumper<T const*> {
+      explicit VectorDumper(T* v) : ArrayDumper<T const*>(v, 3U) {}
     }; // VectorDumper<T*>
 
     // Specialization for C-style arrays.
     template <typename T>
-    struct VectorDumper<T[3]>: public ArrayDumper<T const*> {
-      explicit VectorDumper(T const* v): ArrayDumper<T const*>(v, 3U) {}
+    struct VectorDumper<T[3]> : public ArrayDumper<T const*> {
+      explicit VectorDumper(T const* v) : ArrayDumper<T const*>(v, 3U) {}
     }; // VectorDumper<T*>
-
-
 
     /**
      * @brief Returns a manipulator which will print the specified array.
@@ -225,8 +247,10 @@ namespace lar {
      *
      */
     template <size_t N, typename Array>
-    auto array(Array const& a) { return ArrayDumper<Array>(a, N); }
-
+    auto array(Array const& a)
+    {
+      return ArrayDumper<Array>(a, N);
+    }
 
     /**
      * @brief Returns a manipulator which will print the specified array.
@@ -262,9 +286,10 @@ namespace lar {
      *
      */
     template <typename Vector>
-    auto vector(Vector const& v) { return ArrayDumper<Vector>(v, v.size()); }
-
-
+    auto vector(Vector const& v)
+    {
+      return ArrayDumper<Vector>(v, v.size());
+    }
 
     /**
      * @brief Returns a manipulator which will print the specified vector.
@@ -298,9 +323,10 @@ namespace lar {
      *
      */
     template <typename Vector3D>
-    auto vector3D(Vector3D const& v) { return VectorDumper<Vector3D>(v); }
-
-
+    auto vector3D(Vector3D const& v)
+    {
+      return VectorDumper<Vector3D>(v);
+    }
 
     /**
      * @brief Dumps the array contained in the manipulator into a stream.
@@ -333,9 +359,11 @@ namespace lar {
      *
      */
     template <typename Stream, typename Array>
-    Stream& operator<< (Stream&& out, ArrayDumper<Array>&& manip)
-      { manip(std::forward<Stream>(out)); return out; }
-
+    Stream& operator<<(Stream&& out, ArrayDumper<Array>&& manip)
+    {
+      manip(std::forward<Stream>(out));
+      return out;
+    }
 
     /**
      * @brief Dumps the vector contained in the manipulator into a stream.
@@ -367,8 +395,11 @@ namespace lar {
      *
      */
     template <typename Stream, typename Vector>
-    Stream& operator<< (Stream&& out, VectorDumper<Vector>&& manip)
-      { manip(std::forward<Stream>(out)); return out; }
+    Stream& operator<<(Stream&& out, VectorDumper<Vector>&& manip)
+    {
+      manip(std::forward<Stream>(out));
+      return out;
+    }
 
     /**
      * @brief Concatenates a vector to the specified string.
@@ -401,33 +432,41 @@ namespace lar {
      *
      */
     template <typename String, typename Vector>
-    String operator+ (String const& s, VectorDumper<Vector> const& manip)
-      { return s + std::string(manip);}
+    String operator+(String const& s, VectorDumper<Vector> const& manip)
+    {
+      return s + std::string(manip);
+    }
 
     /// Creates a string with s concatenated to the rendered vector.
     template <typename Vector>
-    std::string operator+ (const char* s, VectorDumper<Vector> const& manip)
-      { return std::string(s) + manip;}
+    std::string operator+(const char* s, VectorDumper<Vector> const& manip)
+    {
+      return std::string(s) + manip;
+    }
 
     /// @see documentation of function with arguments swapped.
     template <typename String, typename Vector>
-    String operator+ (VectorDumper<Vector> const& manip, String const& s)
-      { return std::string(manip) + s;}
+    String operator+(VectorDumper<Vector> const& manip, String const& s)
+    {
+      return std::string(manip) + s;
+    }
 
     /// Creates a string with the rendered vector concatenated to s.
     template <typename Vector>
-    std::string operator+ (VectorDumper<Vector> const& manip, const char* s)
-      { return manip + std::string(s);}
+    std::string operator+(VectorDumper<Vector> const& manip, const char* s)
+    {
+      return manip + std::string(s);
+    }
 
     /// Appends a string rendering of a vector to the specified string.
     template <typename String, typename Vector>
-    String& operator+= (String& s, VectorDumper<Vector> const& manip)
-      { return s += std::string(manip); }
+    String& operator+=(String& s, VectorDumper<Vector> const& manip)
+    {
+      return s += std::string(manip);
+    }
 
   } // namespace dump
 
-
 } // namespace lar
-
 
 #endif // LARCORE_COREUTILS_DUMPUTILS_H

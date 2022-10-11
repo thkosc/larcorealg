@@ -9,16 +9,15 @@
  */
 
 // Boost libraries
-#define BOOST_TEST_MODULE ( DebugUtils_test )
+#define BOOST_TEST_MODULE (DebugUtils_test)
 #include <boost/test/unit_test.hpp>
 
 // LArSoft libraries
 #include "larcorealg/CoreUtils/DebugUtils.h"
 
 // C/C++ standard libraries
-#include <type_traits>
 #include <array>
-
+#include <type_traits>
 
 //------------------------------------------------------------------------------
 //--- static tests (would fail at compile time)
@@ -43,17 +42,15 @@ struct OurClass {
 
   using value_type = typename Collection_t::element_type;
 
-  lar::debug::static_assert_on
-    <value_type, std::is_const_v<std::remove_reference_t<Coll>>>
-    debugVar;
+  lar::debug::static_assert_on<value_type, std::is_const_v<std::remove_reference_t<Coll>>> debugVar;
 
 }; // struct OurClass
 
-
-void static_assert_on_test() {
+void static_assert_on_test()
+{
 
   // this should never trigger a static assertion failure:
-  (void) OurClass<std::unique_ptr<double>>();
+  (void)OurClass<std::unique_ptr<double>>();
 
   // this triggers a static assertion failure (#if 1, which we disabled)
 #if 0
@@ -62,10 +59,10 @@ void static_assert_on_test() {
 
 } // static_assert_on_test()
 
-
 //------------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE(ReferencesTestCase) {
+BOOST_AUTO_TEST_CASE(ReferencesTestCase)
+{
 
   static_assert_on_test();
 

@@ -20,7 +20,6 @@
 #include "fhiclcpp/types/Atom.h"
 #include "fhiclcpp/types/TupleAs.h"
 
-
 namespace lar {
 
   /// LArSoft utilities for interface with FHiCL and its libraries.
@@ -31,11 +30,9 @@ namespace lar {
       /// Atom object for reading length (centimeters).
       using Length_t = ::fhicl::Atom<::geo::Length_t>;
 
-
       /// Atom object for reading a 3D point or vector (centimeters).
       template <typename Point>
-      using Point3D = ::fhicl::TupleAs
-        <Point(::geo::Length_t, ::geo::Length_t, ::geo::Length_t)>;
+      using Point3D = ::fhicl::TupleAs<Point(::geo::Length_t, ::geo::Length_t, ::geo::Length_t)>;
 
       /// Atom object for reading a geometry point (centimeters).
       using Vector_t = Point3D<::geo::Vector_t>;

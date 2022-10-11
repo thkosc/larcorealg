@@ -27,33 +27,30 @@
  *
  */
 
-
 #ifndef TEST_GEOMETRY_UNIT_TEST_BASE_H
 #define TEST_GEOMETRY_UNIT_TEST_BASE_H
 
 // LArSoft libraries
-#include "larcorealg/TestUtils/unit_test_base.h"
-#include "larcorealg/Geometry/GeometryCore.h"
 #include "larcorealg/Geometry/ChannelMapAlg.h"
+#include "larcorealg/Geometry/GeometryCore.h"
+#include "larcorealg/TestUtils/unit_test_base.h"
 
 // utility libraries
 #include "fhiclcpp/ParameterSet.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // CET libraries
-#include "cetlib/filesystem.h" // cet::is_absolute_filepath()
 #include "cetlib/filepath_maker.h"
+#include "cetlib/filesystem.h" // cet::is_absolute_filepath()
 #include "cetlib/search_path.h"
 
 // C/C++ standard libraries
 #include <iostream> // for output before message facility is set up
-#include <string>
-#include <memory> // std::unique_ptr<>
 #include <map>
-
+#include <memory> // std::unique_ptr<>
+#include <string>
 
 namespace testing {
-
 
   /** **************************************************************************
    * @brief Class holding a configuration for a test environment
@@ -67,79 +64,81 @@ namespace testing {
    * from it.
    */
   template <typename CHANNELMAP>
-  struct BasicGeometryEnvironmentConfiguration:
-    public BasicEnvironmentConfiguration
-  {
+  struct BasicGeometryEnvironmentConfiguration : public BasicEnvironmentConfiguration {
     using ChannelMapClass = CHANNELMAP;
 
     /// Default constructor; this is what is used in Boost unit test
-    BasicGeometryEnvironmentConfiguration():
-      BasicEnvironmentConfiguration()
-      { LocalInit(); }
+    BasicGeometryEnvironmentConfiguration() : BasicEnvironmentConfiguration() { LocalInit(); }
 
     /// Constructor: acquires parameters from the command line
-    BasicGeometryEnvironmentConfiguration(int argc, char** argv):
-      BasicEnvironmentConfiguration(argc, argv)
-      { LocalInit(); }
+    BasicGeometryEnvironmentConfiguration(int argc, char** argv)
+      : BasicEnvironmentConfiguration(argc, argv)
+    {
+      LocalInit();
+    }
 
     /// Constructor; accepts the name as parameter
-    BasicGeometryEnvironmentConfiguration(std::string name):
-      BasicEnvironmentConfiguration(name)
-      { LocalInit(); }
+    BasicGeometryEnvironmentConfiguration(std::string name) : BasicEnvironmentConfiguration(name)
+    {
+      LocalInit();
+    }
 
-    BasicGeometryEnvironmentConfiguration
-      (int argc, char** argv, std::string name):
-      BasicEnvironmentConfiguration(argc, argv, name)
-      { LocalInit(); }
-
+    BasicGeometryEnvironmentConfiguration(int argc, char** argv, std::string name)
+      : BasicEnvironmentConfiguration(argc, argv, name)
+    {
+      LocalInit();
+    }
 
     /// @{
     /// @name Access to configuration
     /// FHiCL path for the geometry configuration
     std::string GeometryParameterSetPath() const
-      { return ServiceParameterSetPath(GeometryServiceName()); }
+    {
+      return ServiceParameterSetPath(GeometryServiceName());
+    }
 
     /// A string describing the default parameter set to configure geometry
     std::string DefaultGeometryConfiguration() const
-      { return DefaultServiceConfiguration(GeometryServiceName()); }
+    {
+      return DefaultServiceConfiguration(GeometryServiceName());
+    }
 
     ///@}
-
 
     /// @{
     /// @name Set configuration
 
     /// Sets the FHiCL path for the geometry configuration
     void SetGeometryParameterSetPath(std::string path)
-      { SetServiceParameterSetPath(GeometryServiceName(), path); }
+    {
+      SetServiceParameterSetPath(GeometryServiceName(), path);
+    }
 
     /// Sets a string describing the default parameter set to configure geometry
     void SetDefaultGeometryConfiguration(std::string cfg)
-      { AddDefaultServiceConfiguration(GeometryServiceName(), cfg); }
+    {
+      AddDefaultServiceConfiguration(GeometryServiceName(), cfg);
+    }
 
     ///@}
-
 
     /// Returns the name of the service
     static std::string GeometryServiceName() { return "Geometry"; }
 
-      protected:
-
+  protected:
     /// Initialize with some default values
     void LocalInit()
-      {
-        SetDefaultGeometryConfiguration(R"(
+    {
+      SetDefaultGeometryConfiguration(R"(
           SurfaceY:        200.  # in cm, vertical distance to the surface
           Name:            "lartpcdetector"
           GDML:            "LArTPCdetector.gdml"
           ROOT:            "LArTPCdetector.gdml"
           SortingParameters: {}  # empty parameter set for default
           )");
-      } // LocalInit()
+    } // LocalInit()
 
   }; // class BasicGeometryEnvironmentConfiguration<>
-
-
 
   /** **************************************************************************
    * @brief Environment for a geometry test
@@ -188,9 +187,7 @@ namespace testing {
    * (GeometryTesterEnvironment<ConfigurationClass>(no_setup))
    */
   template <typename ConfigurationClass>
-  class GeometryTesterEnvironment
-    : public TesterEnvironment<ConfigurationClass>
-  {
+  class GeometryTesterEnvironment : public TesterEnvironment<ConfigurationClass> {
 
     /// Base class
     using TesterEnvironment_t = TesterEnvironment<ConfigurationClass>;
@@ -198,7 +195,7 @@ namespace testing {
     /// this implements the singleton interface
     using GeoResources_t = TestSharedGlobalResource<geo::GeometryCore const>;
 
-      public:
+  public:
     using SharedGeoPtr_t = GeoResources_t::ResourcePtr_t;
 
     /**
@@ -207,9 +204,10 @@ namespace testing {
      * The configuration is from a default-constructed ConfigurationClass.
      * This is suitable for use as Boost unit test fixture.
      */
-    GeometryTesterEnvironment(bool bSetup = true)
-      : TesterEnvironment_t(false)
-      { if (bSetup) Setup(); }
+    GeometryTesterEnvironment(bool bSetup = true) : TesterEnvironment_t(false)
+    {
+      if (bSetup) Setup();
+    }
 
     //@{
     /**
@@ -224,18 +222,20 @@ namespace testing {
      *
      * In the r-value-reference constructor, the configurer is moved.
      */
-    GeometryTesterEnvironment
-      (ConfigurationClass const& cfg_obj, bool bSetup = true)
+    GeometryTesterEnvironment(ConfigurationClass const& cfg_obj, bool bSetup = true)
       : TesterEnvironment_t(cfg_obj, false)
-      { if (bSetup) Setup(); }
+    {
+      if (bSetup) Setup();
+    }
     GeometryTesterEnvironment(ConfigurationClass&& cfg_obj, bool bSetup = true)
       : TesterEnvironment_t(std::move(cfg_obj), false)
-      { if (bSetup) Setup(); }
+    {
+      if (bSetup) Setup();
+    }
     //@}
 
     /// Destructor: closing remarks
     virtual ~GeometryTesterEnvironment();
-
 
     //@{
     /// Returns a pointer to the geometry
@@ -243,20 +243,15 @@ namespace testing {
     SharedGeoPtr_t SharedGeometry() const { return geom; }
     //@}
 
-
     /// Returns the current global geometry instance
     /// @throws std::out_of_range if not present
-    static geo::GeometryCore const* GlobalGeometry()
-      { return &GeoResources_t::Resource(); }
+    static geo::GeometryCore const* GlobalGeometry() { return &GeoResources_t::Resource(); }
 
     /// Returns the current global geometry instance (may be nullptr if none)
-    static SharedGeoPtr_t SharedGlobalGeometry()
-      { return GeoResources_t::ShareResource(); }
+    static SharedGeoPtr_t SharedGlobalGeometry() { return GeoResources_t::ShareResource(); }
 
-      protected:
-
+  protected:
     using ChannelMapClass = typename ConfigurationClass::ChannelMapClass;
-
 
     /// The complete initialization, ran at construction by default
     virtual void Setup();
@@ -268,30 +263,29 @@ namespace testing {
     /// Get ownership of the specified geometry and registers it as global
     virtual void RegisterGeometry(SharedGeoPtr_t new_geom);
     virtual void RegisterGeometry(geo::GeometryCore const* new_geom)
-      { RegisterGeometry(SharedGeoPtr_t(new_geom)); }
+    {
+      RegisterGeometry(SharedGeoPtr_t(new_geom));
+    }
     //@}
 
     /// Sets up the geometry (creates and registers it)
     virtual void SetupGeometry();
 
-      private:
-
+  private:
     ConfigurationClass config; ///< instance of the configurer
 
     SharedGeoPtr_t geom; ///< pointer to the geometry
 
   }; // class GeometryTesterEnvironment<>
 
-
-
   //****************************************************************************
   template <typename ConfigurationClass>
-  GeometryTesterEnvironment<ConfigurationClass>::~GeometryTesterEnvironment() {
+  GeometryTesterEnvironment<ConfigurationClass>::~GeometryTesterEnvironment()
+  {
 
     mf::LogInfo("Test") << config.ApplicationName() << " completed.";
 
   } // GeometryTesterEnvironment<>::~GeometryTesterEnvironment()
-
 
   /** **************************************************************************
    * @brief Sets the geometry of the standard detector up
@@ -308,23 +302,19 @@ namespace testing {
   GeometryTesterEnvironment<ConfigurationClass>::CreateNewGeometry() const
   {
 
-    std::string ProviderParameterSetPath
-      = this->Config().GeometryParameterSetPath();
+    std::string ProviderParameterSetPath = this->Config().GeometryParameterSetPath();
 
     //
     // create the new geometry service provider
     //
-    fhicl::ParameterSet ProviderConfig
-      = this->Parameters().template get<fhicl::ParameterSet>
-        (ProviderParameterSetPath);
+    fhicl::ParameterSet ProviderConfig =
+      this->Parameters().template get<fhicl::ParameterSet>(ProviderParameterSetPath);
     auto new_geom = std::make_unique<geo::GeometryCore>(ProviderConfig);
 
-    std::string RelativePath
-      = ProviderConfig.get< std::string>("RelativePath", "");
+    std::string RelativePath = ProviderConfig.get<std::string>("RelativePath", "");
 
-    std::string
-      GDMLFileName = RelativePath + ProviderConfig.get<std::string>("GDML"),
-      ROOTFileName = RelativePath + ProviderConfig.get<std::string>("ROOT");
+    std::string GDMLFileName = RelativePath + ProviderConfig.get<std::string>("GDML"),
+                ROOTFileName = RelativePath + ProviderConfig.get<std::string>("ROOT");
 
     // Search all reasonable locations for the geometry file;
     // we see if by any chance art's FW_SEARCH_PATH directory is set and try
@@ -338,19 +328,16 @@ namespace testing {
     // we really don't care of GDML file, since we are not going to run Geant4
     std::string GDMLfile;
     if (!sp.find_file(GDMLFileName, GDMLfile)) {
-      mf::LogWarning("CreateNewGeometry") << "GDML file '"
-        << GDMLfile << "' not found.";
+      mf::LogWarning("CreateNewGeometry") << "GDML file '" << GDMLfile << "' not found.";
     }
 
     // initialize the geometry with the files we have found
     new_geom->LoadGeometryFile(GDMLfile, ROOTfile);
 
-
     //
     // create the new channel map
     //
-    auto const SortingParameters
-      = ProviderConfig.get<fhicl::ParameterSet>("SortingParameters", {});
+    auto const SortingParameters = ProviderConfig.get<fhicl::ParameterSet>("SortingParameters", {});
 
     // connect the channel map with the geometry, that shares ownsership
     // (we give up ours at the end of this method)
@@ -359,10 +346,8 @@ namespace testing {
     return new_geom;
   } // GeometryTesterEnvironment<>::CreateNewGeometry()
 
-
   template <typename ConfigurationClass>
-  void GeometryTesterEnvironment<ConfigurationClass>::RegisterGeometry
-    (SharedGeoPtr_t new_geom)
+  void GeometryTesterEnvironment<ConfigurationClass>::RegisterGeometry(SharedGeoPtr_t new_geom)
   {
     // update the current geometry, that becomes owner;
     // also update the global one if it happens to be already our previous
@@ -374,10 +359,9 @@ namespace testing {
       GeoResources_t::ReplaceDefaultSharedResource(my_old_geom, new_geom);
   } // GeometryTesterEnvironment<>::RegisterGeometry()
 
-
-
   template <typename ConfigurationClass>
-  void GeometryTesterEnvironment<ConfigurationClass>::SetupGeometry() {
+  void GeometryTesterEnvironment<ConfigurationClass>::SetupGeometry()
+  {
     //
     // horrible, shameful hack to support the "new" testing environment
     // while the old one, informally deprecated, is still around;
@@ -389,10 +373,9 @@ namespace testing {
     this->template AcquireProvider<geo::GeometryCore>(CreateNewGeometry());
   } // GeometryTesterEnvironment<>::SetupGeometry()
 
-
-
   template <typename ConfigurationClass>
-  void GeometryTesterEnvironment<ConfigurationClass>::Setup() {
+  void GeometryTesterEnvironment<ConfigurationClass>::Setup()
+  {
 
     //
     // parse configuration, set up message facility
@@ -404,11 +387,9 @@ namespace testing {
     //
     SetupGeometry();
 
-    mf::LogInfo("Test")
-       << config.ApplicationName() << " Geometry setup complete.";
+    mf::LogInfo("Test") << config.ApplicationName() << " Geometry setup complete.";
 
   } // GeometryTesterEnvironment<>::Setup()
-
 
 } // namespace testing
 

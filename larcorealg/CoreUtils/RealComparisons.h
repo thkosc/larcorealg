@@ -12,9 +12,8 @@
 #define LARCORE_COREUTILS_REALCOMPARISONS_H
 
 // C/C++ standard libraries
-#include <cmath> // std::abs()
+#include <cmath>   // std::abs()
 #include <utility> // std::move()
-
 
 namespace lar {
   namespace util {
@@ -67,74 +66,59 @@ namespace lar {
       using Value_t = RealType; /// type of values being compered
 
       /// Constructor: specify the threshold
-      constexpr RealComparisons(Value_t threshold): threshold(threshold) {}
+      constexpr RealComparisons(Value_t threshold) : threshold(threshold) {}
 
       /// Returns whether the value is no farther from 0 than the threshold
-      constexpr bool zero(Value_t value) const
-        { return std::abs(value) <= threshold; }
+      constexpr bool zero(Value_t value) const { return std::abs(value) <= threshold; }
 
       /// Returns whether the value is farther from 0 than the threshold
-      constexpr bool nonZero(Value_t value) const
-        { return !zero(value); }
+      constexpr bool nonZero(Value_t value) const { return !zero(value); }
 
       /// Returns whether a and b are no farther than the threshold
-      constexpr bool equal(Value_t a, Value_t b) const
-        { return zero(a - b); }
+      constexpr bool equal(Value_t a, Value_t b) const { return zero(a - b); }
 
       /// Returns whether a and b are farther than the threshold
-      constexpr bool nonEqual(Value_t a, Value_t b) const
-        { return !equal(a, b); }
+      constexpr bool nonEqual(Value_t a, Value_t b) const { return !equal(a, b); }
 
       /// Returns whether value is larger than zero beyond tolerance
-      constexpr bool strictlyNegative(Value_t value) const
-        { return value < -threshold; }
+      constexpr bool strictlyNegative(Value_t value) const { return value < -threshold; }
 
       /// Returns whether value is smaller than zero beyond tolerance
-      constexpr bool strictlyPositive(Value_t value) const
-        { return value > threshold; }
+      constexpr bool strictlyPositive(Value_t value) const { return value > threshold; }
 
       /// Returns whether value is larger than or `equal()` to zero
-      constexpr bool nonNegative(Value_t value) const
-        { return value >= -threshold; }
+      constexpr bool nonNegative(Value_t value) const { return value >= -threshold; }
 
       /// Returns whether value is smaller than or `equal()` to zero
-      constexpr bool nonPositive(Value_t value) const
-        { return value <= threshold; }
+      constexpr bool nonPositive(Value_t value) const { return value <= threshold; }
 
       /// Returns whether a is strictly smaller than b
-      constexpr bool strictlySmaller(Value_t a, Value_t b) const
-        { return strictlyNegative(a - b); }
+      constexpr bool strictlySmaller(Value_t a, Value_t b) const { return strictlyNegative(a - b); }
 
       /// Returns whether a is greater than (or equal to) b
-      constexpr bool nonSmaller(Value_t a, Value_t b) const
-        { return nonNegative(a - b); }
+      constexpr bool nonSmaller(Value_t a, Value_t b) const { return nonNegative(a - b); }
 
       /// Returns whether a is strictly greater than b
-      constexpr bool strictlyGreater(Value_t a, Value_t b) const
-        { return strictlyPositive(a - b); }
+      constexpr bool strictlyGreater(Value_t a, Value_t b) const { return strictlyPositive(a - b); }
 
       /// Returns whether a is smaller than (or equal to) b
-      constexpr bool nonGreater(Value_t a, Value_t b) const
-        { return nonPositive(a - b); }
+      constexpr bool nonGreater(Value_t a, Value_t b) const { return nonPositive(a - b); }
 
       /// Returns whether value is between the bounds (included)
       constexpr bool within(Value_t value, Value_t lower, Value_t upper) const
-        { return nonNegative(value - lower) && nonPositive(value - upper); }
+      {
+        return nonNegative(value - lower) && nonPositive(value - upper);
+      }
 
       /// Returns whether value is between bounds (included); bounds are sorted
-      constexpr bool withinSorted
-        (Value_t value, Value_t lower, Value_t upper) const
-        {
-          return (lower < upper)
-            ? within(value, lower, upper)
-            : within(value, upper, lower)
-            ;
-        } // sortedWithin
+      constexpr bool withinSorted(Value_t value, Value_t lower, Value_t upper) const
+      {
+        return (lower < upper) ? within(value, lower, upper) : within(value, upper, lower);
+      } // sortedWithin
 
       Value_t threshold; /// Threshold to compare the values to
 
     }; // struct RealComparisons<>
-
 
     //--------------------------------------------------------------------------
     /// Class comparing 2D vectors
@@ -144,14 +128,13 @@ namespace lar {
       using Comp_t = RealComparisons<RealType>;
 
       /// Copy the specified comparison.
-      constexpr Vector2DComparison(Comp_t const& comparer)
-        : comparer(comparer) {}
+      constexpr Vector2DComparison(Comp_t const& comparer) : comparer(comparer) {}
 
       /// Steal the specified comparison.
-      Vector2DComparison(Comp_t&& comparer): comparer(std::move(comparer)) {}
+      Vector2DComparison(Comp_t&& comparer) : comparer(std::move(comparer)) {}
 
       /// Use the specified threshold.
-      constexpr Vector2DComparison(RealType threshold): comparer(threshold) {}
+      constexpr Vector2DComparison(RealType threshold) : comparer(threshold) {}
 
       /// Returns the basic value comparer.
       constexpr Comp_t comp() const { return comparer; }
@@ -159,40 +142,50 @@ namespace lar {
       /// Returns whether the specified vector is null (within tolerance).
       template <typename Vect>
       constexpr bool zero(Vect const& v) const
-        { return comp().zero(v.X()) && comp().zero(v.Y()); }
+      {
+        return comp().zero(v.X()) && comp().zero(v.Y());
+      }
 
       /// Returns whether the specified vector is not null (within tolerance).
       template <typename Vect>
-      constexpr bool nonZero(Vect const& v) const { return !zero(v); }
+      constexpr bool nonZero(Vect const& v) const
+      {
+        return !zero(v);
+      }
 
       /// Returns whether the specified vectors match (within tolerance).
       template <typename VectA, typename VectB>
       constexpr bool equal(VectA const& a, VectB const& b) const
-        { return comp().equal(a.X(), b.X()) && comp().equal(a.Y(), b.Y()); }
+      {
+        return comp().equal(a.X(), b.X()) && comp().equal(a.Y(), b.Y());
+      }
 
       /// Returns whether the specified vectors do not match (within tolerance).
       template <typename VectA, typename VectB>
       constexpr bool nonEqual(VectA const& a, VectB const& b) const
-        { return !equal(a, b); }
+      {
+        return !equal(a, b);
+      }
 
-        private:
+    private:
       Comp_t const comparer; ///< Comparison object.
 
     }; // struct Vector2DComparison
-
 
     //--------------------------------------------------------------------------
     /// Creates a `Vector2DComparison` from a `RealComparisons` object.
     template <typename RealType>
     auto makeVector2DComparison(RealType threshold)
-      { return Vector2DComparison<RealType>(threshold); }
+    {
+      return Vector2DComparison<RealType>(threshold);
+    }
 
     /// Creates a `Vector2DComparison` from a `RealComparisons` object.
     template <typename RealType>
-    auto makeVector2DComparison
-      (lar::util::RealComparisons<RealType> const& comp)
-      { return Vector2DComparison<RealType>(comp); }
-
+    auto makeVector2DComparison(lar::util::RealComparisons<RealType> const& comp)
+    {
+      return Vector2DComparison<RealType>(comp);
+    }
 
     //--------------------------------------------------------------------------
     /// Class comparing 2D vectors.
@@ -206,14 +199,13 @@ namespace lar {
       using Comp2D_t = Vector2DComparison<typename Comp_t::Value_t>;
 
       /// Copy the specified comparison.
-      constexpr Vector3DComparison(Comp_t const& comparer)
-        : comparer(comparer) {}
+      constexpr Vector3DComparison(Comp_t const& comparer) : comparer(comparer) {}
 
       /// Steal the specified comparison.
-      Vector3DComparison(Comp_t&& comparer): comparer(std::move(comparer)) {}
+      Vector3DComparison(Comp_t&& comparer) : comparer(std::move(comparer)) {}
 
       /// Use the specified threshold.
-      constexpr Vector3DComparison(RealType threshold): comparer(threshold) {}
+      constexpr Vector3DComparison(RealType threshold) : comparer(threshold) {}
 
       /// Returns the base value comparer.
       constexpr Comp_t comp() const { return comp2D().comp(); }
@@ -224,46 +216,54 @@ namespace lar {
       /// Returns whether the specified vector is null (within tolerance).
       template <typename Vect>
       constexpr bool zero(Vect const& v) const
-        { return comp2D().zero(v) && comp().zero(v.Z()); }
+      {
+        return comp2D().zero(v) && comp().zero(v.Z());
+      }
 
       /// Returns whether the specified vector is not null (within tolerance).
       template <typename Vect>
-      constexpr bool nonZero(Vect const& v) const { return !zero(v); }
+      constexpr bool nonZero(Vect const& v) const
+      {
+        return !zero(v);
+      }
 
       /// Returns whether the specified vectors match (within tolerance).
       template <typename VectA, typename VectB>
       constexpr bool equal(VectA const& a, VectB const& b) const
-        { return comp2D().equal(a, b) && comp().equal(a.Z(), b.Z()); }
+      {
+        return comp2D().equal(a, b) && comp().equal(a.Z(), b.Z());
+      }
 
       /// Returns whether the specified vectors do not match (within tolerance).
       template <typename VectA, typename VectB>
       constexpr bool nonEqual(VectA const& a, VectB const& b) const
-        { return !equal(a, b); }
+      {
+        return !equal(a, b);
+      }
 
-        private:
+    private:
       Comp2D_t comparer;
 
     }; // struct Vector3DComparison
-
 
     //--------------------------------------------------------------------------
     /// Creates a `Vector3DComparison` from a `RealComparisons` object.
     template <typename RealType>
     auto makeVector3DComparison(RealType threshold)
-      { return Vector3DComparison<RealType>(threshold); }
+    {
+      return Vector3DComparison<RealType>(threshold);
+    }
 
     /// Creates a `Vector3DComparison` from a `RealComparisons` object.
     template <typename RealType>
-    auto makeVector3DComparison
-      (lar::util::RealComparisons<RealType> const& comp)
-      { return Vector3DComparison<RealType>(comp); }
-
+    auto makeVector3DComparison(lar::util::RealComparisons<RealType> const& comp)
+    {
+      return Vector3DComparison<RealType>(comp);
+    }
 
     //--------------------------------------------------------------------------
 
-
   } // namespace util
 } // namespace lar
-
 
 #endif // LARCORE_COREUTILS_REALCOMPARISONS_H

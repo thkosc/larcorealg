@@ -31,7 +31,6 @@ namespace geoalgo {
   class Cylinder : public Line {
 
   public:
-
     /// Default constructor
     Cylinder();
 
@@ -39,15 +38,19 @@ namespace geoalgo {
     virtual ~Cylinder(){};
 
     /// Alternative ctor (0)
-    Cylinder(const double x_min, const double y_min, const double z_min,
-	     const double x_max, const double y_max, const double z_max,
-	     const double radius);
+    Cylinder(const double x_min,
+             const double y_min,
+             const double z_min,
+             const double x_max,
+             const double y_max,
+             const double z_max,
+             const double radius);
 
     /// Altenartive ctor (1)
     Cylinder(const Point_t& min, const Vector_t& max, const double radius);
 
     /// Containment evaluation
-    bool Contain(const Point_t &pt) const; ///< Test if a point is contained within the box
+    bool Contain(const Point_t& pt) const; ///< Test if a point is contained within the box
 
     /// Getters
     double GetRadius() { return _radius; }
@@ -55,12 +58,10 @@ namespace geoalgo {
     void SetRadius(double r) { _radius = r; }
 
   protected:
-
-    double  _radius; ///< Radius of the cylinder
+    double _radius; ///< Radius of the cylinder
 
     // geoalgo utility
     GeoAlgo _geoAlgo;
-
   };
 
   typedef Cylinder Cylinder_t;

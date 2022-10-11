@@ -10,21 +10,19 @@
 #ifndef LARCOREALG_COREUTILS_COUNTER_H
 #define LARCOREALG_COREUTILS_COUNTER_H
 
-
 // LArSoft libraries
 #include "larcorealg/CoreUtils/span.h"
 
 // C/C++ libraries
-#include <utility> // std::move()
 #include <cstddef> // std::size_t
-
+#include <utility> // std::move()
 
 namespace util {
-  
+
   // -- BEGIN -- Counted iterations --------------------------------------------
   /// @name Counted iterations
   /// @{
-  
+
   /**
    * @brief An iterator dereferencing to a counter value.
    * @tparam T the type of counter returned on dereferenciation
@@ -52,29 +50,27 @@ namespace util {
    */
   template <typename T = std::size_t>
   class count_iterator {
-    
-      public:
-    
+
+  public:
     // --- BEGIN -- Traits and data types --------------------------------------
     /// @name Traits and data types
     /// @{
-    
+
     using iterator_type = count_iterator<T>; ///< Type of this iterator.
-    
+
     using difference_type = std::ptrdiff_t;
-    using value_type = T; ///< Type of index returned by this iterator.
+    using value_type = T;       ///< Type of index returned by this iterator.
     using reference = T const&; ///< Type returned by dereference operator.
     using pointer = T*;
     using iterator_category = std::bidirectional_iterator_tag;
-    
+
     /// @}
     // --- END -- Traits and data types ----------------------------------------
-    
-    
+
     // --- BEGIN Constructors --------------------------------------------------
     /// @name Construction
     /// @{
-    
+
     /**
      * @brief Initializes the iterator.
      * 
@@ -82,77 +78,91 @@ namespace util {
      * type, which is usually some variation on the concept of `0`.
      */
     count_iterator() = default;
-    
+
     /**
      * @brief Initializes the iterator with the specified loop count.
      * @param count the initial loop count
      */
-    count_iterator(value_type count): fCount(count) {}
-    
+    count_iterator(value_type count) : fCount(count) {}
+
     /// @}
     // --- END Constructors ----------------------------------------------------
-    
-    
+
     // --- BEGIN -- Data access ------------------------------------------------
     /// @name Data access
     /// @{
-    
+
     /// Returns the current loop count.
-    reference operator* () const { return fCount; }
-    
+    reference operator*() const { return fCount; }
+
     /// @}
     // --- END -- Data access --------------------------------------------------
-    
-    
+
     // --- BEGIN -- Modification -----------------------------------------------
     /// @name Modification
     /// @{
-    
+
     /// Increments the loop count of this iterator, which is then returned.
-    iterator_type& operator++ () { ++fCount; return *this; }
-    
+    iterator_type& operator++()
+    {
+      ++fCount;
+      return *this;
+    }
+
     /// Increments the loop count of this iterator, returning a copy with the
     /// value before the increment.
-    iterator_type operator++ (int) const
-      { iterator_type const old = *this; operator++(); return old; }
-    
+    iterator_type operator++(int) const
+    {
+      iterator_type const old = *this;
+      operator++();
+      return old;
+    }
+
     /// Decrements the loop count of this iterator, which is then returned.
-    iterator_type& operator-- () { --fCount; return *this; }
-    
+    iterator_type& operator--()
+    {
+      --fCount;
+      return *this;
+    }
+
     /// Decrements the loop count of this iterator, returning a copy with the
     /// value before the decrement.
-    iterator_type operator-- (int) const
-      { iterator_type const old = *this; operator--(); return old; }
-    
+    iterator_type operator--(int) const
+    {
+      iterator_type const old = *this;
+      operator--();
+      return old;
+    }
+
     /// @}
     // --- END -- Modification -------------------------------------------------
-    
-    
+
     // --- BEGIN -- Comparisons ------------------------------------------------
     /// @name Comparisons
     /// @{
-    
+
     /// Iterators are equal if their loop counts compare equal.
     template <typename U>
-    bool operator == (count_iterator<U> const& other) const
-      { return fCount == other.fCount; }
-    
+    bool operator==(count_iterator<U> const& other) const
+    {
+      return fCount == other.fCount;
+    }
+
     /// Iterators are equal if their loop counts compare different.
     template <typename U>
-    bool operator != (count_iterator<U> const& other) const
-      { return fCount != other.fCount; }
-    
+    bool operator!=(count_iterator<U> const& other) const
+    {
+      return fCount != other.fCount;
+    }
+
     /// @}
     // --- END -- Comparisons --------------------------------------------------
-    
-    
-      private:
-    
-    value_type fCount {}; ///< Internal counter.
-    
+
+  private:
+    value_type fCount{}; ///< Internal counter.
+
   }; // class count_iterator<>
-  
-  
+
   /**
    * @brief Returns an object to iterate values from `begin` to `end` in a
    *        range-for loop.
@@ -177,12 +187,15 @@ namespace util {
    */
   template <typename T>
   auto counter(T begin, T end);
-  
+
   /// Version of `util::counter()` starting at default-constructed `T`
   /// (usually some form of `0`).
   template <typename T>
-  auto counter(T end) { return counter(T{}, end); }
-  
+  auto counter(T end)
+  {
+    return counter(T{}, end);
+  }
+
   /**
    * @brief Version of `util::counter()` starting at `begin` and never ending.
    * @tparam T type of counter value
@@ -204,14 +217,11 @@ namespace util {
    */
   template <typename T = std::size_t>
   auto infinite_counter(T begin = T{});
-  
-  
+
   /// @}
   // -- END -- Counted iterations ----------------------------------------------
-  
-  
-} // namespace util
 
+} // namespace util
 
 //==============================================================================
 //=== template implementation
@@ -220,7 +230,7 @@ namespace util {
 //--- util::counter()
 //------------------------------------------------------------------------------
 namespace util::details {
-  
+
   /**
    * @brief Class used as end iterator (sentinel) for an infinite loop.
    * @tparam T the nominal count type
@@ -234,68 +244,66 @@ namespace util::details {
   class infinite_endcount_iterator {
     using this_iterator_t = infinite_endcount_iterator<T>;
     using count_iterator_t = count_iterator<T>;
-      
-      public:
-    
+
+  public:
     // mock-up of stuff required by `util::span`
     using value_type = T;
     using reference = T const&;
     using pointer = T const*;
     using difference_type = std::ptrdiff_t;
     using iterator_category = std::forward_iterator_tag; // this is a lie
-    
-    
+
     /// Never admit this iterator is equal to anything else (except the same).
-    bool operator== (this_iterator_t const&) const { return true; }
-    
+    bool operator==(this_iterator_t const&) const { return true; }
+
     /// Never admit this iterator is equal to anything else (except the same).
-    bool operator!= (this_iterator_t const&) const { return false; }
-    
+    bool operator!=(this_iterator_t const&) const { return false; }
+
   }; // class infinite_endcount_iterator
-  
+
   /// Never admit a `infinite_endcount_iterator` to be equal to anything else.
   template <typename T>
-  bool operator!=
-    (infinite_endcount_iterator<T> const&, count_iterator<T> const&)
-    { return true; }
-  
-  template <typename T>
-  bool operator!=
-    (count_iterator<T> const&, infinite_endcount_iterator<T> const&)
-    { return true; }
-  
-  template <typename T>
-  bool operator==
-    (infinite_endcount_iterator<T> const&, count_iterator<T> const&)
-    { return false; }
-  
-  template <typename T>
-  bool operator==
-    (count_iterator<T> const&, infinite_endcount_iterator<T> const&)
-    { return false; }
-  
-  
-  //----------------------------------------------------------------------------
-  
-} // namespace util::details
+  bool operator!=(infinite_endcount_iterator<T> const&, count_iterator<T> const&)
+  {
+    return true;
+  }
 
+  template <typename T>
+  bool operator!=(count_iterator<T> const&, infinite_endcount_iterator<T> const&)
+  {
+    return true;
+  }
+
+  template <typename T>
+  bool operator==(infinite_endcount_iterator<T> const&, count_iterator<T> const&)
+  {
+    return false;
+  }
+
+  template <typename T>
+  bool operator==(count_iterator<T> const&, infinite_endcount_iterator<T> const&)
+  {
+    return false;
+  }
+
+  //----------------------------------------------------------------------------
+
+} // namespace util::details
 
 //------------------------------------------------------------------------------
 template <typename T>
 auto util::counter(T begin, T end)
-  { return util::span(count_iterator(begin), count_iterator(end)); }
-
+{
+  return util::span(count_iterator(begin), count_iterator(end));
+}
 
 //------------------------------------------------------------------------------
 template <typename T>
 auto util::infinite_counter(T begin)
 {
-  return util::span
-    (count_iterator(begin), details::infinite_endcount_iterator<T>());
+  return util::span(count_iterator(begin), details::infinite_endcount_iterator<T>());
 } // util::infinite_counter()
 
-
 //------------------------------------------------------------------------------
-
 
 #endif // LARCOREALG_COREUTILS_COUNTER_H

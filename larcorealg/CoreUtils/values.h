@@ -10,27 +10,24 @@
 #ifndef LARCOREALG_COREUTILS_VALUES_H
 #define LARCOREALG_COREUTILS_VALUES_H
 
-
 // LArSoft libraries
-#include "larcorealg/CoreUtils/span.h" // util::make_transformed_span()
 #include "larcorealg/CoreUtils/get_elements.h"
+#include "larcorealg/CoreUtils/span.h" // util::make_transformed_span()
 
 // C/C++ libraries
+#include <cstddef> // std::size_t
 #include <map>
-#include <unordered_map>
-#include <utility> // std::forward(), std::as_const()
 #include <tuple> // std::get()
 #include <type_traits>
-#include <cstddef> // std::size_t
-
+#include <unordered_map>
+#include <utility> // std::forward(), std::as_const()
 
 namespace util {
-  
-  
+
   // -- BEGIN -- Transformed iterations ----------------------------------------
   /// @name Transformed iterations
   /// @{
-  
+
   /**
    * @brief Range-for loop helper iterating across the values of the specified
    *        collection.
@@ -59,7 +56,7 @@ namespace util {
    */
   template <typename Coll>
   decltype(auto) values(Coll&& coll);
-  
+
   /**
    * @brief Range-for loop helper iterating across the constant values of the
    *        specified collection.
@@ -70,14 +67,11 @@ namespace util {
    */
   template <typename Coll>
   decltype(auto) const_values(Coll&& coll);
-  
-  
+
   /// @}
   // -- END -- Transformed iterations ------------------------------------------
-  
-  
-} // namespace util
 
+} // namespace util
 
 //==============================================================================
 //=== template implementation
@@ -86,60 +80,57 @@ namespace util {
 //--- util::values()
 //------------------------------------------------------------------------------
 namespace util::details {
-  
+
   //----------------------------------------------------------------------------
   template <typename Coll, typename = void>
   struct values_impl {
-    
+
     template <typename T>
     static constexpr decltype(auto) iterate(T&& coll) noexcept
-      { return coll; }
-    
+    {
+      return coll;
+    }
+
   }; // struct values_impl
-  
-  
+
   //----------------------------------------------------------------------------
   template <typename Map, std::size_t NElement = 1U>
   struct map_values_impl {
-    
+
     template <typename T>
     static constexpr decltype(auto) iterate(T&& coll) noexcept
-      { return util::get_elements<NElement>(std::forward<T>(coll)); }
-    
+    {
+      return util::get_elements<NElement>(std::forward<T>(coll));
+    }
+
   }; // map_values_impl
-  
-  
+
   //----------------------------------------------------------------------------
   template <typename Key, typename Value, typename... Args>
   struct values_impl<std::map<Key, Value, Args...>>
-    : map_values_impl<std::map<Key, Value, Args...>>
-  {};
+    : map_values_impl<std::map<Key, Value, Args...>> {};
   template <typename Key, typename Value, typename... Args>
   struct values_impl<std::unordered_map<Key, Value, Args...>>
-    : map_values_impl<std::unordered_map<Key, Value, Args...>>
-  {};
-  
-  
-  //----------------------------------------------------------------------------
-  
-} // namespace util::details
+    : map_values_impl<std::unordered_map<Key, Value, Args...>> {};
 
+  //----------------------------------------------------------------------------
+
+} // namespace util::details
 
 //------------------------------------------------------------------------------
 template <typename Coll>
-decltype(auto) util::values(Coll&& coll) {
-  return details::values_impl<std::decay_t<Coll>>::iterate
-    (std::forward<Coll>(coll)); 
+decltype(auto) util::values(Coll&& coll)
+{
+  return details::values_impl<std::decay_t<Coll>>::iterate(std::forward<Coll>(coll));
 } // util::values()
-
 
 //------------------------------------------------------------------------------
 template <typename Coll>
 decltype(auto) util::const_values(Coll&& coll)
-  { return values(std::as_const(coll)); }
-
+{
+  return values(std::as_const(coll));
+}
 
 //------------------------------------------------------------------------------
-
 
 #endif // LARCOREALG_COREUTILS_VALUES_H

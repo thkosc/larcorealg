@@ -10,20 +10,17 @@
 #ifndef LARCOREALG_GEOMETRY_LOCALTRANSFORMATION_H
 #define LARCOREALG_GEOMETRY_LOCALTRANSFORMATION_H
 
-
 // ROOT libraries
 // (none)
 
 // C/C++ standard libraries
-#include <vector>
-#include <utility> // std::move(), std::forward()
+#include <cstdlib>     // std::size_t
 #include <type_traits> // std::enable_if_t<>, std::decay_t<>
-#include <cstdlib> // std::size_t
-
+#include <utility>     // std::move(), std::forward()
+#include <vector>
 
 // forward declarations
 class TGeoNode;
-
 
 namespace geo {
 
@@ -32,9 +29,7 @@ namespace geo {
     struct TransformationMatrixConverter;
   } // namespace details
 
-
   using GeoNodeIterator_t = std::vector<TGeoNode const*>::const_iterator;
-
 
   /// Builds a matrix to go from local to world coordinates in one step
   template <typename StoredMatrix, typename ITER>
@@ -42,9 +37,9 @@ namespace geo {
 
   /// Builds a matrix to go from local to world coordinates in one step
   template <typename StoredMatrix>
-  static StoredMatrix transformationFromPath(std::vector<TGeoNode const*> const& path, size_t depth);
+  static StoredMatrix transformationFromPath(std::vector<TGeoNode const*> const& path,
+                                             size_t depth);
   //  { return transformationFromPath(path.begin(), path.begin() + depth); }
-
 
   /**
    * @brief Class to transform between world and local coordinates
@@ -62,8 +57,7 @@ namespace geo {
    */
   template <typename StoredMatrix>
   class LocalTransformation {
-      public:
-
+  public:
     /// Type of transformation matrix
     using TransformationMatrix_t = StoredMatrix;
 
@@ -79,10 +73,8 @@ namespace geo {
      * The specified matrix is copied into a local copy unless a R-value
      * reference argument is specified (e.g. with `std::move()`).
      */
-    LocalTransformation(TransformationMatrix_t const& matrix)
-      : fGeoMatrix(matrix) {}
-    LocalTransformation(TransformationMatrix_t&& matrix)
-      : fGeoMatrix(std::move(matrix)) {}
+    LocalTransformation(TransformationMatrix_t const& matrix) : fGeoMatrix(matrix) {}
+    LocalTransformation(TransformationMatrix_t&& matrix) : fGeoMatrix(std::move(matrix)) {}
     //@}
 
     /**
@@ -94,10 +86,8 @@ namespace geo {
      * `depth` nodes from the first on.
      */
     LocalTransformation(std::vector<TGeoNode const*> const& path, size_t depth)
-      : fGeoMatrix
-        (transformationFromPath<StoredMatrix>(path.begin(), path.begin() + depth + 1))
-      {}
-
+      : fGeoMatrix(transformationFromPath<StoredMatrix>(path.begin(), path.begin() + depth + 1))
+    {}
 
     /**
      * @brief Constructor: chains the transformations from all specified nodes.
@@ -107,7 +97,8 @@ namespace geo {
      * the first to the last node of the path.
      */
     LocalTransformation(std::vector<TGeoNode const*> const& path)
-      : LocalTransformation(path, path.size()) {}
+      : LocalTransformation(path, path.size())
+    {}
 
     /**
      * @brief Constructor: sequence of transformations from a node path.
@@ -120,8 +111,8 @@ namespace geo {
      */
     template <typename ITER>
     LocalTransformation(ITER begin, ITER end)
-      : fGeoMatrix(transformationFromPath<StoredMatrix>(begin, end)) {}
-
+      : fGeoMatrix(transformationFromPath<StoredMatrix>(begin, end))
+    {}
 
     /**
      * @brief Transforms a point from local frame to world frame
@@ -144,7 +135,6 @@ namespace geo {
      */
     void LocalToWorld(double const* local, double* world) const;
 
-
     // @{
     /**
      * @brief Transforms a point from local frame to world frame
@@ -164,15 +154,18 @@ namespace geo {
      * local coordinates (a TVector3 is by default constructed to point to the
      * origin).
      */
-    template <
-      typename DestPoint, typename SrcPoint,
-      typename = std::enable_if_t<!std::is_same<SrcPoint, DestPoint>::value>
-      >
+    template <typename DestPoint,
+              typename SrcPoint,
+              typename = std::enable_if_t<!std::is_same<SrcPoint, DestPoint>::value>>
     DestPoint LocalToWorld(SrcPoint const& local) const
-      { return LocalToWorldImpl<DestPoint>(local); }
+    {
+      return LocalToWorldImpl<DestPoint>(local);
+    }
     template <typename Point>
     Point LocalToWorld(Point const& local) const
-      { return LocalToWorldImpl<Point>(local); }
+    {
+      return LocalToWorldImpl<Point>(local);
+    }
     // @}
 
     /**
@@ -199,17 +192,19 @@ namespace geo {
      * The translation is not applied, since the argument is supposed to be a
      * vector, relative difference between two points.
      */
-    template <
-      typename DestVector, typename SrcVector,
-      typename = std::enable_if_t<!std::is_same<SrcVector, DestVector>::value>
-      >
+    template <typename DestVector,
+              typename SrcVector,
+              typename = std::enable_if_t<!std::is_same<SrcVector, DestVector>::value>>
     DestVector LocalToWorldVect(SrcVector const& local) const
-      { return LocalToWorldVectImpl<DestVector>(local); }
+    {
+      return LocalToWorldVectImpl<DestVector>(local);
+    }
     template <typename Vector>
     Vector LocalToWorldVect(Vector const& local) const
-      { return LocalToWorldVectImpl<Vector>(local); }
+    {
+      return LocalToWorldVectImpl<Vector>(local);
+    }
     //@}
-
 
     /**
      * @brief Transforms a point from world frame to local frame
@@ -247,15 +242,18 @@ namespace geo {
      * `local` will be a `TVector3` containing the local coordinates of the
      * specified point.
      */
-    template <
-      typename DestPoint, typename SrcPoint,
-      typename = std::enable_if_t<!std::is_same<SrcPoint, DestPoint>::value>
-      >
+    template <typename DestPoint,
+              typename SrcPoint,
+              typename = std::enable_if_t<!std::is_same<SrcPoint, DestPoint>::value>>
     DestPoint WorldToLocal(SrcPoint const& world) const
-      { return WorldToLocalImpl<DestPoint>(world); }
+    {
+      return WorldToLocalImpl<DestPoint>(world);
+    }
     template <typename Point>
     Point WorldToLocal(Point const& world) const
-      { return WorldToLocalImpl<Point>(world); }
+    {
+      return WorldToLocalImpl<Point>(world);
+    }
     //@}
 
     /**
@@ -271,7 +269,6 @@ namespace geo {
      */
     void WorldToLocalVect(const double* world, double* local) const;
 
-
     //@{
     /**
      * @brief Transforms a vector from world frame to local frame
@@ -283,25 +280,25 @@ namespace geo {
      * The translation is not applied, since the argument is supposed to be a
      * vector, relative difference between two points.
      */
-    template <
-      typename DestVector, typename SrcVector,
-      typename = std::enable_if_t<!std::is_same<SrcVector, DestVector>::value>
-      >
+    template <typename DestVector,
+              typename SrcVector,
+              typename = std::enable_if_t<!std::is_same<SrcVector, DestVector>::value>>
     DestVector WorldToLocalVect(SrcVector const& world) const
-      { return WorldToLocalVectImpl<DestVector>(world); }
+    {
+      return WorldToLocalVectImpl<DestVector>(world);
+    }
     template <typename Vector>
     Vector WorldToLocalVect(Vector const& world) const
-      { return WorldToLocalVectImpl<Vector>(world); }
+    {
+      return WorldToLocalVectImpl<Vector>(world);
+    }
     //@}
-
 
     /// Direct access to the transformation matrix
     TransformationMatrix_t const& Matrix() const { return fGeoMatrix; }
 
-      protected:
-
+  protected:
     TransformationMatrix_t fGeoMatrix; ///< local to world transform
-
 
     template <typename DestPoint, typename SrcPoint>
     DestPoint LocalToWorldImpl(SrcPoint const& local) const;
@@ -317,19 +314,15 @@ namespace geo {
 
   }; // class LocalTransformation<>
 
-
   /// Converts a transformation matrix into `Dest` format.
   template <typename Dest, typename Src>
   decltype(auto) convertTransformationMatrix(Src&& trans)
-    {
-      return details::TransformationMatrixConverter
-        <std::decay_t<Dest>, std::decay_t<Src>>::convert
-        (std::forward<Src>(trans));
-    }
-
+  {
+    return details::TransformationMatrixConverter<std::decay_t<Dest>, std::decay_t<Src>>::convert(
+      std::forward<Src>(trans));
+  }
 
 } // namespace geo
-
 
 //------------------------------------------------------------------------------
 // template implementation
@@ -337,6 +330,5 @@ namespace geo {
 #include "LocalTransformation.tcc"
 
 //------------------------------------------------------------------------------
-
 
 #endif // LARCOREALG_GEOMETRY_LOCALTRANSFORMATION_H

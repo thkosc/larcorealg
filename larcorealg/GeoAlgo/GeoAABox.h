@@ -14,7 +14,7 @@
 #ifndef BASICTOOL_GEOAABOX_H
 #define BASICTOOL_GEOAABOX_H
 
-#include "larcorealg/GeoAlgo/GeoVector.h"  // for Point_t, Vector_t
+#include "larcorealg/GeoAlgo/GeoVector.h" // for Point_t, Vector_t
 
 namespace geoalgo {
   /**
@@ -34,7 +34,6 @@ namespace geoalgo {
   class AABox {
 
   public:
-
     /// Default constructor
     AABox();
 
@@ -42,8 +41,12 @@ namespace geoalgo {
     virtual ~AABox(){};
 
     /// Alternative ctor (0)
-    AABox(const double x_min, const double y_min, const double z_min,
-	  const double x_max, const double y_max, const double z_max);
+    AABox(const double x_min,
+          const double y_min,
+          const double z_min,
+          const double x_max,
+          const double y_max,
+          const double z_max);
 
     /// Altenartive ctor (1)
     AABox(const Point_t& min, const Vector_t& max);
@@ -51,27 +54,24 @@ namespace geoalgo {
     //
     // Attribute accessor
     //
-    const Point_t& Min() const; ///< Minimum point getter
-    const Point_t& Max() const; ///< Maximum point getter
+    const Point_t& Min() const;                               ///< Minimum point getter
+    const Point_t& Max() const;                               ///< Maximum point getter
     void Min(const double x, const double y, const double z); ///< Minimum point setter
     void Max(const double x, const double y, const double z); ///< Maximum point setter
-    bool Contain(const Point_t &pt) const; ///< Test if a point is contained within the box
+    bool Contain(const Point_t& pt) const; ///< Test if a point is contained within the box
 
   protected:
-
     Point_t _min; ///< Minimum point
     Point_t _max; ///< Maximum point
 
   public:
-
     //
     // Template
     //
     /// Alternative ctor using template (3)
-    template <class T, class U> AABox(const T& min, const U& max)
-      : AABox(Point_t(min), Point_t(max))
+    template <class T, class U>
+    AABox(const T& min, const U& max) : AABox(Point_t(min), Point_t(max))
     {}
-
   };
 
   typedef AABox AABox_t;

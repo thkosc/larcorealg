@@ -18,7 +18,6 @@
  *
  */
 
-
 #ifndef TEST_BOOST_UNIT_TEST_BASE_H
 #define TEST_BOOST_UNIT_TEST_BASE_H
 
@@ -30,7 +29,6 @@
 
 // C/C++ standard libraries
 #include <string>
-
 
 namespace testing {
 
@@ -50,31 +48,25 @@ namespace testing {
    * It also hides all the constructors except two.
    */
   template <typename CONFIGURATIONCLASS>
-  struct BoostCommandLineConfiguration: public CONFIGURATIONCLASS {
+  struct BoostCommandLineConfiguration : public CONFIGURATIONCLASS {
 
     using Base_t = CONFIGURATIONCLASS;
 
     /// Default constructor; this is what is used in Boost unit test
-    BoostCommandLineConfiguration(): Base_t()
-      { ParseCommandLineFromBoost(); }
+    BoostCommandLineConfiguration() : Base_t() { ParseCommandLineFromBoost(); }
 
     /// Constructor; accepts the name as parameter
-    BoostCommandLineConfiguration(std::string name): Base_t(name)
-      { ParseCommandLineFromBoost(); }
+    BoostCommandLineConfiguration(std::string name) : Base_t(name) { ParseCommandLineFromBoost(); }
 
-      protected:
-
+  protected:
     /// Parses arguments as delivered by Boost
     void ParseCommandLineFromBoost()
-      {
-        Base_t::ParseCommandLine(
-          boost::unit_test::framework::master_test_suite().argc,
-          boost::unit_test::framework::master_test_suite().argv
-          );
-      }
+    {
+      Base_t::ParseCommandLine(boost::unit_test::framework::master_test_suite().argc,
+                               boost::unit_test::framework::master_test_suite().argv);
+    }
 
   }; // class BoostCommandLineConfiguration<>
-
 
 } // namespace testing
 

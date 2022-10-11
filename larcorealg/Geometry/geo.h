@@ -8,25 +8,30 @@
 
 #include "stdexcept"
 
-
 /// Detector geometry definition and interface
 namespace geo {
   void ProjectToBoxEdge(const double xyz[],
-			const double dxyz[],
-			double xlo, double xhi,
-			double ylo, double yhi,
-			double zlo, double zhi,
-			double xyzout[]);
+                        const double dxyz[],
+                        double xlo,
+                        double xhi,
+                        double ylo,
+                        double yhi,
+                        double zlo,
+                        double zhi,
+                        double xyzout[]);
   double ClosestApproach(const double point[],
-			 const double intercept[],
-			 const double slopes[],
-			 double closest[]);
-  bool CrossesBoundary ( double x0[],
-                         double gradient[],
-                         double x_lo, double x_hi,
-                         double y_lo, double y_hi,
-                         double z_lo, double z_hi,
-                         double point[] );
+                         const double intercept[],
+                         const double slopes[],
+                         double closest[]);
+  bool CrossesBoundary(double x0[],
+                       double gradient[],
+                       double x_lo,
+                       double x_hi,
+                       double y_lo,
+                       double y_hi,
+                       double z_lo,
+                       double z_hi,
+                       double point[]);
 }
 
 ///
@@ -47,39 +52,50 @@ namespace geo {
 /// output.
 ///
 inline void geo::ProjectToBoxEdge(const double xyz[],
-				  const double dxyz[],
-				  double xlo, double xhi,
-				  double ylo, double yhi,
-				  double zlo, double zhi,
-				  double xyzout[])
+                                  const double dxyz[],
+                                  double xlo,
+                                  double xhi,
+                                  double ylo,
+                                  double yhi,
+                                  double zlo,
+                                  double zhi,
+                                  double xyzout[])
 {
   // Make sure we're inside the box!
-  if( !(xyz[0]>=xlo && xyz[0]<=xhi) ||
-      !(xyz[1]>=ylo && xyz[1]<=yhi) ||
-      !(xyz[2]>=zlo && xyz[2]<=zhi)  )
+  if (!(xyz[0] >= xlo && xyz[0] <= xhi) || !(xyz[1] >= ylo && xyz[1] <= yhi) ||
+      !(xyz[2] >= zlo && xyz[2] <= zhi))
     throw cet::exception("ProjectToBoxEdge") << "desired point is not"
-					     << " in the specififed box\n";
+                                             << " in the specififed box\n";
 
   // Compute the distances to the x/y/z walls
   double dx = 99.E99;
   double dy = 99.E99;
   double dz = 99.E99;
-  if      (dxyz[0]>0.0) { dx = (xhi-xyz[0])/dxyz[0]; }
-  else if (dxyz[0]<0.0) { dx = (xlo-xyz[0])/dxyz[0]; }
-  if      (dxyz[1]>0.0) { dy = (yhi-xyz[1])/dxyz[1]; }
-  else if (dxyz[1]<0.0) { dy = (ylo-xyz[1])/dxyz[1]; }
-  if      (dxyz[2]>0.0) { dz = (zhi-xyz[2])/dxyz[2]; }
-  else if (dxyz[2]<0.0) { dz = (zlo-xyz[2])/dxyz[2]; }
+  if (dxyz[0] > 0.0) { dx = (xhi - xyz[0]) / dxyz[0]; }
+  else if (dxyz[0] < 0.0) {
+    dx = (xlo - xyz[0]) / dxyz[0];
+  }
+  if (dxyz[1] > 0.0) { dy = (yhi - xyz[1]) / dxyz[1]; }
+  else if (dxyz[1] < 0.0) {
+    dy = (ylo - xyz[1]) / dxyz[1];
+  }
+  if (dxyz[2] > 0.0) { dz = (zhi - xyz[2]) / dxyz[2]; }
+  else if (dxyz[2] < 0.0) {
+    dz = (zlo - xyz[2]) / dxyz[2];
+  }
 
   // Choose the shortest distance
   double d = 0.0;
-  if      (dx<dy && dx<dz) d = dx;
-  else if (dy<dz && dy<dx) d = dy;
-  else if (dz<dx && dz<dy) d = dz;
+  if (dx < dy && dx < dz)
+    d = dx;
+  else if (dy < dz && dy < dx)
+    d = dy;
+  else if (dz < dx && dz < dy)
+    d = dz;
 
   // Make the step
-  for (int i=0; i<3; ++i) {
-    xyzout[i] = xyz[i] + dxyz[i]*d;
+  for (int i = 0; i < 3; ++i) {
+    xyzout[i] = xyz[i] + dxyz[i] * d;
   }
 }
 
@@ -94,23 +110,18 @@ inline void geo::ProjectToBoxEdge(const double xyz[],
 /// \returns distance from point to line
 ///
 inline double geo::ClosestApproach(const double point[],
-				   const double intercept[],
-				   const double slopes[],
-				   double closest[])
+                                   const double intercept[],
+                                   const double slopes[],
+                                   double closest[])
 {
-  double s =
-    (slopes[0]*(point[0]-intercept[0]) +
-     slopes[1]*(point[1]-intercept[1]) +
-     slopes[2]*(point[2]-intercept[2]));
-  double sd =
-    (slopes[0]*slopes[0] +
-     slopes[1]*slopes[1] +
-     slopes[2]*slopes[2]);
-  if (sd>0.0) {
+  double s = (slopes[0] * (point[0] - intercept[0]) + slopes[1] * (point[1] - intercept[1]) +
+              slopes[2] * (point[2] - intercept[2]));
+  double sd = (slopes[0] * slopes[0] + slopes[1] * slopes[1] + slopes[2] * slopes[2]);
+  if (sd > 0.0) {
     s /= sd;
-    closest[0] = intercept[0] + s*slopes[0];
-    closest[1] = intercept[1] + s*slopes[1];
-    closest[2] = intercept[2] + s*slopes[2];
+    closest[0] = intercept[0] + s * slopes[0];
+    closest[1] = intercept[1] + s * slopes[1];
+    closest[2] = intercept[2] + s * slopes[2];
   }
   else {
     // How to handle this zero gracefully? Assume that the intercept
@@ -121,11 +132,9 @@ inline double geo::ClosestApproach(const double point[],
     closest[1] = intercept[1];
     closest[2] = intercept[2];
   }
-  return std::sqrt(pow((point[0]-closest[0]),2)+
-	      pow((point[1]-closest[1]),2)+
-	      pow((point[2]-closest[2]),2));
+  return std::sqrt(pow((point[0] - closest[0]), 2) + pow((point[1] - closest[1]), 2) +
+                   pow((point[2] - closest[2]), 2));
 }
-
 
 ///
 /// Determine whether or not track intersects box of volume:
@@ -145,73 +154,82 @@ inline double geo::ClosestApproach(const double point[],
 ///
 /// *** assumes particle's track is linear
 ///
-inline bool geo::CrossesBoundary ( double x0[],          // initial particle position
-				   double gradient[],    // initial particle gradient
-				   double x_lo,          // -
-				   double x_hi,          //  |
-				   double y_lo,          //  |- box coordinates
-				   double y_hi,          //  |  (make into vectors?)
-				   double z_lo,          //  |
-				   double z_hi,          // -
-				   double point[] )
+inline bool geo::CrossesBoundary(double x0[],       // initial particle position
+                                 double gradient[], // initial particle gradient
+                                 double x_lo,       // -
+                                 double x_hi,       //  |
+                                 double y_lo,       //  |- box coordinates
+                                 double y_hi,       //  |  (make into vectors?)
+                                 double z_lo,       //  |
+                                 double z_hi,       // -
+                                 double point[])
 {
 
   double distance[3]; // distance to plane
 
   // puts box coordinates into more useful vectors (for loop later)
-  double lo[3] = { x_lo , y_lo , z_lo };
-  double hi[3] = { x_hi , y_hi , z_hi };
+  double lo[3] = {x_lo, y_lo, z_lo};
+  double hi[3] = {x_hi, y_hi, z_hi};
 
   // puts box coordinates into more useful vector (for loop later)
-  double facecoord[6] = { lo[0] , hi[0] ,
-			  lo[1] , hi[1] ,
-			  lo[2] , hi[2] };
+  double facecoord[6] = {lo[0], hi[0], lo[1], hi[1], lo[2], hi[2]};
 
-  int intersect[6]={0,0,0,0,0,0}; // initialize intersection tally vector
-  int count=0;
+  int intersect[6] = {0, 0, 0, 0, 0, 0}; // initialize intersection tally vector
+  int count = 0;
   // iterates through spatial axes (0,1,2) = (x,y,z)
-  for(int i=0; i<3; i++) {
+  for (int i = 0; i < 3; i++) {
     // try both planes with normal parallel to axis
-    for(int p=0; p<2; p++ ) {
+    for (int p = 0; p < 2; p++) {
 
-      point[i] = facecoord[count];           // point on face
-      distance[i] = point[i] - x0[i];        // calculate x-coordinate of track distance
+      point[i] = facecoord[count];    // point on face
+      distance[i] = point[i] - x0[i]; // calculate x-coordinate of track distance
 
-      double C_dg = distance[i] / gradient[i];  // calculate correlation b/w gradient and distance
+      double C_dg = distance[i] / gradient[i]; // calculate correlation b/w gradient and distance
 
-      for(int m=0; m<3; m++){ distance[m] = C_dg * gradient[m];     }
-      for(int n=0; n<3; n++){    point[n] = x0[n] + distance[n]; }
+      for (int m = 0; m < 3; m++) {
+        distance[m] = C_dg * gradient[m];
+      }
+      for (int n = 0; n < 3; n++) {
+        point[n] = x0[n] + distance[n];
+      }
 
       int j, k;
       switch (i) {
-        case 0: j=1; k=2; break;
-        case 1: j=2; k=0; break;
-        case 2: j=0; k=1; break;
-        default:
-          throw std::logic_error("Big trouble");
+      case 0:
+        j = 1;
+        k = 2;
+        break;
+      case 1:
+        j = 2;
+        k = 0;
+        break;
+      case 2:
+        j = 0;
+        k = 1;
+        break;
+      default: throw std::logic_error("Big trouble");
       } // switch
 
       // now want to check to see if the point is in the right plane
-      if ( lo[j] < point[j] && point[j] < hi[j]
-	   && lo[k] < point[k] && point[k] < hi[k] ) {
+      if (lo[j] < point[j] && point[j] < hi[j] && lo[k] < point[k] && point[k] < hi[k]) {
 
-	//           double length = std::sqrt( distance[0]*distance[0]
-	//                               + distance[1]*distance[1]
-	//                               + distance[2]*distance[2] );
+        //           double length = std::sqrt( distance[0]*distance[0]
+        //                               + distance[1]*distance[1]
+        //                               + distance[2]*distance[2] );
 
-	// direction of motion w.r.t. start point
-	int direction = distance[i]*gradient[i]
-	  / std::sqrt( (distance[i]*distance[i]) * (gradient[i]*gradient[i]) );
-	bool directed = ( direction + 1 ) / 2;
+        // direction of motion w.r.t. start point
+        int direction = distance[i] * gradient[i] /
+                        std::sqrt((distance[i] * distance[i]) * (gradient[i] * gradient[i]));
+        bool directed = (direction + 1) / 2;
 
-	// checks if particle passes through face
-	// and also checks to see whether it passes inward or outward
-	//if ( track_length > length && directed ) {
-	if ( directed ) {
-	  int normal = pow( -1 , count + 1 );
-	  int thru = normal * gradient[i] / std::sqrt(gradient[i]*gradient[i]) ;
-	  intersect[count]=thru;
-	}
+        // checks if particle passes through face
+        // and also checks to see whether it passes inward or outward
+        //if ( track_length > length && directed ) {
+        if (directed) {
+          int normal = pow(-1, count + 1);
+          int thru = normal * gradient[i] / std::sqrt(gradient[i] * gradient[i]);
+          intersect[count] = thru;
+        }
       }
       count++;
     }
@@ -219,14 +237,13 @@ inline bool geo::CrossesBoundary ( double x0[],          // initial particle pos
 
   // count faces it passes through,
   // ... not necessary now, but maybe useful in the future
-  int passes=0;
-  for ( int face=0; face<6; ++face ) {
-    passes+=(intersect[face]*intersect[face]);
+  int passes = 0;
+  for (int face = 0; face < 6; ++face) {
+    passes += (intersect[face] * intersect[face]);
   }
 
-  if ( passes==0 ) {
-    return 0;
-  } else {
+  if (passes == 0) { return 0; }
+  else {
     return 1;
   }
 }

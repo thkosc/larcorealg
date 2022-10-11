@@ -12,9 +12,8 @@
 #define DETECTORINFO_PROVIDERUTIL_H 1
 
 // C/C++ standard libraries
-#include <string>
 #include <set>
-
+#include <string>
 
 namespace lar {
 
@@ -33,17 +32,14 @@ namespace lar {
    * * art framework service keywords
    */
   inline std::set<std::string> const& IgnorableProviderConfigKeys()
-    {
-      static std::set<std::string> const ignorable {
-        "service_type",     // added by art: service name (possibly interface)
-        "service_provider"  // art: service implementation name
-        };
-      return ignorable;
-    } // IgnorableProviderConfigKeys()
-
-
+  {
+    static std::set<std::string> const ignorable{
+      "service_type",    // added by art: service name (possibly interface)
+      "service_provider" // art: service implementation name
+    };
+    return ignorable;
+  } // IgnorableProviderConfigKeys()
 
 } // namespace lar
-
 
 #endif // DETECTORINFO_PROVIDERUTIL_H

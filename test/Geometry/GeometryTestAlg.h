@@ -19,16 +19,15 @@
 #include "TVector3.h"
 
 // C/C++ standard libraries
-#include <string>
-#include <set>
-#include <vector>
 #include <array>
+#include <set>
+#include <string>
+#include <vector>
 
 // forward declarations
 namespace fhicl {
   class ParameterSet;
 }
-
 
 namespace geo {
 
@@ -107,7 +106,7 @@ namespace geo {
    *     detector and cryostats, which may take a lot of time.
    */
   class GeometryTestAlg {
-      public:
+  public:
     explicit GeometryTestAlg(fhicl::ParameterSet const& pset);
 
     /// Virtual destructor
@@ -120,17 +119,16 @@ namespace geo {
     virtual unsigned int Run();
 
     /// Returns the direction on plane orthogonal to wires where wire number increases
-    static std::array<double, 3> GetIncreasingWireDirection
-      (const geo::PlaneGeo& plane);
+    static std::array<double, 3> GetIncreasingWireDirection(const geo::PlaneGeo& plane);
 
   private:
     geo::GeometryCore const* geom; ///< pointer to geometry service provider
 
-    bool fDisableValidWireIDcheck;  ///< disable test on out-of-world NearestWire()
+    bool fDisableValidWireIDcheck; ///< disable test on out-of-world NearestWire()
     std::set<std::string> fNonFatalExceptions;
-    std::vector<double> fExpectedWirePitches; ///< wire pitch on each plane
+    std::vector<double> fExpectedWirePitches;  ///< wire pitch on each plane
     std::vector<double> fExpectedPlanePitches; ///< plane pitch on each plane
-    
+
     bool fComputeMass = true; ///< Whether to print the detector mass.
 
     // using as pointer just not to have to write the declaration in the header
@@ -184,70 +182,64 @@ namespace geo {
 
     /// Prints information of an auxiliary detector into the specified stream.
     template <typename Stream>
-    void printAuxDetGeo(
-      Stream&& out, geo::AuxDetGeo const& auxDet,
-      std::string indent, std::string firstIndent
-      ) const;
+    void printAuxDetGeo(Stream&& out,
+                        geo::AuxDetGeo const& auxDet,
+                        std::string indent,
+                        std::string firstIndent) const;
 
     /// Prints information of an auxiliary detector into the specified stream.
     template <typename Stream>
-    void printAuxDetGeo
-      (Stream&& out, geo::AuxDetGeo const& auxDet, std::string indent = "")
-      const
-      { printAuxDetGeo(std::forward<Stream>(out), auxDet, indent, indent); }
+    void printAuxDetGeo(Stream&& out, geo::AuxDetGeo const& auxDet, std::string indent = "") const
+    {
+      printAuxDetGeo(std::forward<Stream>(out), auxDet, indent, indent);
+    }
 
     /// Prints information of the sensitive auxiliary detector into a stream.
     template <typename Stream>
-    void printAuxDetSensitiveGeo(
-      Stream&& out, geo::AuxDetSensitiveGeo const& auxDetSens,
-      std::string indent, std::string firstIndent
-      ) const;
+    void printAuxDetSensitiveGeo(Stream&& out,
+                                 geo::AuxDetSensitiveGeo const& auxDetSens,
+                                 std::string indent,
+                                 std::string firstIndent) const;
 
     /// Prints information of the sensitive auxiliary detector into a stream.
     template <typename Stream>
-    void printAuxDetSensitiveGeo(
-      Stream&& out, geo::AuxDetSensitiveGeo const& auxDetSens,
-      std::string indent = ""
-      ) const
-      {
-        printAuxDetSensitiveGeo
-          (std::forward<Stream>(out), auxDetSens, indent, indent);
-      }
+    void printAuxDetSensitiveGeo(Stream&& out,
+                                 geo::AuxDetSensitiveGeo const& auxDetSens,
+                                 std::string indent = "") const
+    {
+      printAuxDetSensitiveGeo(std::forward<Stream>(out), auxDetSens, indent, indent);
+    }
 
     /// Returns whether the auxiliary detector at `pos` is the `expected` one.
-    bool CheckAuxDetAtPosition
-      (double const pos[3], unsigned int expected) const;
+    bool CheckAuxDetAtPosition(double const pos[3], unsigned int expected) const;
 
     /// Returns whether the auxiliary sensitive detector at `pos` is expected.
-    bool CheckAuxDetSensitiveAtPosition
-      (double const pos[3], unsigned int expectedDet, unsigned int expectedSens)
-      const;
+    bool CheckAuxDetSensitiveAtPosition(double const pos[3],
+                                        unsigned int expectedDet,
+                                        unsigned int expectedSens) const;
 
     /// Helper function for `testWireIntersection()`.
-    bool isWireAlignedToPlaneDirections
-      (geo::PlaneGeo const& plane, geo::Vector_t const& wireDir) const;
+    bool isWireAlignedToPlaneDirections(geo::PlaneGeo const& plane,
+                                        geo::Vector_t const& wireDir) const;
 
     /// Performs the wire intersection test at a single point
-    unsigned int testWireIntersectionAt
-      (geo::TPCGeo const& TPC, TVector3 const& point) const;
+    unsigned int testWireIntersectionAt(geo::TPCGeo const& TPC, TVector3 const& point) const;
 
     /// Returns dT/dW expected from the specified segment A-to-B
     std::vector<std::pair<geo::PlaneID, double>> ExpectedPlane_dTdW(
-      std::array<double, 3> const& A, std::array<double, 3> const& B,
-      const double driftVelocity = -0.1
-      ) const;
+      std::array<double, 3> const& A,
+      std::array<double, 3> const& B,
+      const double driftVelocity = -0.1) const;
 
     /// Performs the third plane slope test with a single configuration
-    unsigned int testThirdPlane_dTdW_at
-      (std::vector<std::pair<geo::PlaneID, double>> const& plane_dTdW) const;
-
+    unsigned int testThirdPlane_dTdW_at(
+      std::vector<std::pair<geo::PlaneID, double>> const& plane_dTdW) const;
   };
-
 
   namespace details {
     /// Class telling whether a test needs to be run
     class TestTrackerClassBase {
-        public:
+    public:
       using TestList_t = std::set<std::string>;
 
       virtual ~TestTrackerClassBase() = default;
@@ -256,7 +248,7 @@ namespace geo {
       virtual bool ShouldRun(std::string test_name) const = 0;
 
       /// Checks the test and records the request
-      bool operator() (std::string test_name);
+      bool operator()(std::string test_name);
 
       /// Allow the specified test to run
       virtual void PleaseRunAlso(std::string test_name) = 0;
@@ -276,8 +268,8 @@ namespace geo {
       /// Prints information about the configuration of the filter
       virtual void PrintConfiguration(std::ostream&) const;
 
-        protected:
-      TestList_t run; ///< requested tests that should be run
+    protected:
+      TestList_t run;     ///< requested tests that should be run
       TestList_t skipped; ///< requested tests that should be skipped
 
       virtual void RecordRequest(std::string test_name, bool bRun);
@@ -286,12 +278,10 @@ namespace geo {
       virtual bool Query(std::string test_name);
 
       /// Adds a vector of tests into a test set
-      static void CopyList
-        (TestList_t& dest, std::vector<std::string> const& from);
+      static void CopyList(TestList_t& dest, std::vector<std::string> const& from);
     }; // class TestTrackerClassBase
 
   } // namespace details
-
 
 } // namespace geo
 

@@ -18,14 +18,13 @@
 #include <boost/test/unit_test.hpp>
 
 // C/C++ standard libraries
-#include <vector>
-#include <iterator> // std::back_inserter()
 #include <algorithm> // std::transform()
-#include <memory> // std::address_of()
-#include <cstdlib> // std::size_t
+#include <cstdlib>   // std::size_t
+#include <iterator>  // std::back_inserter()
+#include <memory>    // std::address_of()
+#include <vector>
 
 //------------------------------------------------------------------------------
-
 
 struct Neighbors_t {
 
@@ -41,9 +40,9 @@ struct Neighbors_t {
 
 }; // Neighbors_t
 
-
 //------------------------------------------------------------------------------
-void BoxedTopologyTest() {
+void BoxedTopologyTest()
+{
 
   //
   // definition of the topology; something simple here: a 3x3x3 cube
@@ -54,14 +53,16 @@ void BoxedTopologyTest() {
   for (int x = -1; x <= 1; ++x)
     for (int y = -1; y <= 1; ++y)
       for (int z = -1; z <= 1; ++z)
-        boxes.emplace_back(
-          side * (x - 0.5), side * (x + 0.5),
-          side * (y - 0.5), side * (y + 0.5),
-          side * (z - 0.5), side * (z + 0.5)
-          );
+        boxes.emplace_back(side * (x - 0.5),
+                           side * (x + 0.5),
+                           side * (y - 0.5),
+                           side * (y + 0.5),
+                           side * (z - 0.5),
+                           side * (z + 0.5));
   std::vector<geo::BoxBoundedGeo const*> volumes;
-  std::transform(boxes.cbegin(), boxes.cend(), std::back_inserter(volumes),
-    [](auto& obj){ return std::addressof(obj); });
+  std::transform(boxes.cbegin(), boxes.cend(), std::back_inserter(volumes), [](auto& obj) {
+    return std::addressof(obj);
+  });
 
   //
   // discovery of the neighbourhood
@@ -71,17 +72,10 @@ void BoxedTopologyTest() {
   // verification of the result
   //
 
-
-
 } // BoxedTopologyTest()
 
-
-
-
-
-
-
 //------------------------------------------------------------------------------
-BOOST_AUTO_TEST_CASE(BoxedTopologyTestCase) {
+BOOST_AUTO_TEST_CASE(BoxedTopologyTestCase)
+{
   BoxedTopologyTest();
 } // BoxedTopologyTestCase

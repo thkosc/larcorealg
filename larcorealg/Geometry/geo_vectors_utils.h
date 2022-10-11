@@ -22,20 +22,19 @@
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
 
 // ROOT libraries
-#include "Math/GenVector/PositionVector2D.h"
 #include "Math/GenVector/DisplacementVector2D.h"
-#include "Math/GenVector/PositionVector3D.h"
 #include "Math/GenVector/DisplacementVector3D.h"
 #include "Math/GenVector/LorentzVector.h"
+#include "Math/GenVector/PositionVector2D.h"
+#include "Math/GenVector/PositionVector3D.h"
 
 // C/C++ standard library
 #include <array>
-#include <vector>
-#include <iterator> // std::back_inserter()
-#include <type_traits> // std::declval(), std::is_same<>, ...
-#include <functional> // std::mem_fn()
 #include <cassert>
-
+#include <functional>  // std::mem_fn()
+#include <iterator>    // std::back_inserter()
+#include <type_traits> // std::declval(), std::is_same<>, ...
+#include <vector>
 
 namespace geo {
 
@@ -54,37 +53,33 @@ namespace geo {
       template <typename Op, typename... T>
       struct AccumulateImpl;
 
-      template
-        <typename Op, typename First, typename Second, typename... Others>
+      template <typename Op, typename First, typename Second, typename... Others>
       struct AccumulateImpl<Op, First, Second, Others...> {
-        static auto compute(Op op, First&& a, Second&& b, Others&&... others)
-          -> decltype(auto)
-          {
-            return op(
-              a,
-              AccumulateImpl<Op, Second, Others...>::compute
-                (op, std::forward<Second>(b), std::forward<Others>(others)...)
-              );
-          }
+        static auto compute(Op op, First&& a, Second&& b, Others&&... others) -> decltype(auto)
+        {
+          return op(a,
+                    AccumulateImpl<Op, Second, Others...>::compute(
+                      op, std::forward<Second>(b), std::forward<Others>(others)...));
+        }
       }; // AccumulateImpl<>
 
       template <typename Op, typename T>
       struct AccumulateImpl<Op, T> {
-        static auto compute(Op, T&& v) -> decltype(auto)
-          { return std::forward<T>(v); }
+        static auto compute(Op, T&& v) -> decltype(auto) { return std::forward<T>(v); }
       };
 
       template <typename Op, typename... T>
       auto extended_accumulate(Op op, T&&... args)
-        { return AccumulateImpl<Op, T...>::compute(op, std::forward<T>(args)...); }
-
+      {
+        return AccumulateImpl<Op, T...>::compute(op, std::forward<T>(args)...);
+      }
 
       template <typename... T>
       auto extended_and(T... args) -> decltype(auto)
-        {
-          auto and_op = [](auto&& a, auto&& b) { return a && b; };
-          return extended_accumulate(and_op, std::forward<T>(args)...);
-        }
+      {
+        auto and_op = [](auto&& a, auto&& b) { return a && b; };
+        return extended_accumulate(and_op, std::forward<T>(args)...);
+      }
 
       //------------------------------------------------------------------------
       //
@@ -100,35 +95,59 @@ namespace geo {
       //
 
       template <typename Vector>
-      struct VectorScalar { using type = typename Vector::Scalar; };
+      struct VectorScalar {
+        using type = typename Vector::Scalar;
+      };
 
       template <typename Vector>
       using VectorScalar_t = typename VectorScalar<Vector>::type;
 
-
       //------------------------------------------------------------------------
       template <typename Vector>
       struct HasGetter {
-          private:
+      private:
+        template <typename Class>
+        static constexpr bool TestX(decltype(std::declval<Class>().X())*)
+        {
+          return true;
+        }
+        template <typename Class>
+        static constexpr bool TestX(...)
+        {
+          return false;
+        }
+        template <typename Class>
+        static constexpr bool TestY(decltype(std::declval<Class>().Y())*)
+        {
+          return true;
+        }
+        template <typename Class>
+        static constexpr bool TestY(...)
+        {
+          return false;
+        }
+        template <typename Class>
+        static constexpr bool TestZ(decltype(std::declval<Class>().Z())*)
+        {
+          return true;
+        }
+        template <typename Class>
+        static constexpr bool TestZ(...)
+        {
+          return false;
+        }
+        template <typename Class>
+        static constexpr bool TestT(decltype(std::declval<Class>().T())*)
+        {
+          return true;
+        }
+        template <typename Class>
+        static constexpr bool TestT(...)
+        {
+          return false;
+        }
 
-        template<typename Class>
-        static constexpr bool TestX(decltype(std::declval<Class>().X())*) { return true; }
-        template<typename Class>
-        static constexpr bool TestX(...) { return false; }
-        template<typename Class>
-        static constexpr bool TestY(decltype(std::declval<Class>().Y())*) { return true; }
-        template<typename Class>
-        static constexpr bool TestY(...) { return false; }
-        template<typename Class>
-        static constexpr bool TestZ(decltype(std::declval<Class>().Z())*) { return true; }
-        template<typename Class>
-        static constexpr bool TestZ(...) { return false; }
-        template<typename Class>
-        static constexpr bool TestT(decltype(std::declval<Class>().T())*) { return true; }
-        template<typename Class>
-        static constexpr bool TestT(...) { return false; }
-
-          public:
+      public:
         static constexpr bool X = TestX<Vector>(nullptr);
         static constexpr bool Y = TestY<Vector>(nullptr);
         static constexpr bool Z = TestZ<Vector>(nullptr);
@@ -136,34 +155,44 @@ namespace geo {
       }; // struct HasGetter<>
 
       template <typename Vector>
-      constexpr bool HasX() { return HasGetter<Vector>::X; }
+      constexpr bool HasX()
+      {
+        return HasGetter<Vector>::X;
+      }
       template <typename Vector>
-      constexpr bool HasY() { return HasGetter<Vector>::Y; }
+      constexpr bool HasY()
+      {
+        return HasGetter<Vector>::Y;
+      }
       template <typename Vector>
-      constexpr bool HasZ() { return HasGetter<Vector>::Z; }
+      constexpr bool HasZ()
+      {
+        return HasGetter<Vector>::Z;
+      }
       template <typename Vector>
-      constexpr bool HasT() { return HasGetter<Vector>::T; }
+      constexpr bool HasT()
+      {
+        return HasGetter<Vector>::T;
+      }
 
       template <typename Vector, typename = void>
       struct DimensionImpl;
 
       template <typename Vector>
       constexpr unsigned int dimension()
-        { return DimensionImpl<Vector>::value; }
-
+      {
+        return DimensionImpl<Vector>::value;
+      }
 
       /// A STL array suitable to contain all coordinate values of a `Vector`.
       template <typename Vector>
-      using CoordinateArray_t
-        = std::array<VectorScalar_t<Vector>, dimension<Vector>()>;
-
+      using CoordinateArray_t = std::array<VectorScalar_t<Vector>, dimension<Vector>()>;
 
       template <typename T>
       struct MemberFuncReturnType {
         // with C++17 `result_type` is deprecated,
         // and a different way will be needed
-        using type
-          = typename decltype(std::mem_fn(std::declval<T>()))::result_type;
+        using type = typename decltype(std::mem_fn(std::declval<T>()))::result_type;
       }; // MemberFuncReturnType
 
       template <typename T>
@@ -173,11 +202,12 @@ namespace geo {
       struct MemberFuncClassType;
 
       template <typename Class, typename Func>
-      struct MemberFuncClassType<Func Class::*> { using type = Class; };
+      struct MemberFuncClassType<Func Class::*> {
+        using type = Class;
+      };
 
       template <typename T>
       using MemberFuncClass_t = typename MemberFuncClassType<T>::type;
-
 
       template <typename Vector, typename SetterType = void>
       struct BaseCoordTypes;
@@ -191,92 +221,88 @@ namespace geo {
 
       template <typename Vector, typename SetterType>
       struct BaseCoordTypes {
-          private:
+      private:
         using BaseTypes_t = BaseCoordTypes<Vector, void>;
 
-          public:
+      public:
         using Scalar_t = typename BaseTypes_t::Scalar_t;
         using Vector_t = typename BaseTypes_t::Vector_t;
         using Getter_t = typename BaseTypes_t::Getter_t;
         using Setter_t = SetterType;
         using SetterReturn_t = MemberFuncReturn_t<Setter_t>;
-        static_assert(
-          std::is_same<Setter_t, SetterReturn_t (Vector_t::*)(Scalar_t)>(),
-          "Invalid setter type"
-          );
+        static_assert(std::is_same<Setter_t, SetterReturn_t (Vector_t::*)(Scalar_t)>(),
+                      "Invalid setter type");
       }; // struct BaseCoordTypes<>
-
 
       template <typename Vector>
       struct CoordGetterTraits {
-          private:
+      private:
         using BaseTypes_t = BaseCoordTypes<Vector>;
-          public:
+
+      public:
         using Vector_t = typename BaseTypes_t::Vector_t;
         using Scalar_t = typename BaseTypes_t::Scalar_t;
         using Getter_t = typename BaseTypes_t::Getter_t;
       }; // struct CoordGetterTraits
-
 
       /// Helper class for read of a single vector coordinate.
       template <typename Vector>
       class CoordGetter {
         using Traits_t = CoordGetterTraits<Vector>;
 
-          public:
+      public:
         using Vector_t = typename Traits_t::Vector_t;
         using Scalar_t = typename Traits_t::Scalar_t;
         using Getter_t = typename Traits_t::Getter_t;
 
         /// Constructor: sets getter and setter functions.
-        constexpr CoordGetter(Getter_t getter): fGetter(getter) {}
+        constexpr CoordGetter(Getter_t getter) : fGetter(getter) {}
 
         /// Returns the value of the bound coordinate.
-        Scalar_t operator() (Vector_t const& v) const { return get(v); }
+        Scalar_t operator()(Vector_t const& v) const { return get(v); }
 
         /// Returns the value of the bound coordinate.
         Scalar_t get(Vector_t const& v) const { return (v.*fGetter)(); }
 
-          private:
+      private:
         Getter_t fGetter; ///< Member function returning the coordinate value.
 
       }; // class CoordGetter<>
 
       template <typename Getter>
       constexpr auto makeCoordReader(Getter getter)
-        {
-          using Vector_t = std::remove_reference_t<MemberFuncClass_t<Getter>>;
-          return CoordGetter<Vector_t>{ getter };
-        }
-
+      {
+        using Vector_t = std::remove_reference_t<MemberFuncClass_t<Getter>>;
+        return CoordGetter<Vector_t>{getter};
+      }
 
       template <typename Vector, typename SetterType>
       struct CoordManagerTraits {
-          private:
+      private:
         using BaseTypes_t = BaseCoordTypes<Vector, SetterType>;
-          public:
+
+      public:
         using Vector_t = typename BaseTypes_t::Vector_t;
         using Scalar_t = typename BaseTypes_t::Scalar_t;
         using Getter_t = typename BaseTypes_t::Getter_t;
         using Setter_t = typename BaseTypes_t::Setter_t;
       }; // struct VectorCoordManagerTraits<>
 
-
       /// Helper class for read/write of a single vector coordinate.
       template <typename Vector, typename SetterType>
-      class CoordManager: public CoordGetter<Vector> {
+      class CoordManager : public CoordGetter<Vector> {
         using Base_t = CoordGetter<Vector>;
         using Traits_t = CoordManagerTraits<Vector, SetterType>;
 
-          public:
+      public:
         using Vector_t = typename Traits_t::Vector_t; // this is not constant
         using Scalar_t = typename Traits_t::Scalar_t;
         using Getter_t = typename Traits_t::Getter_t;
         using Setter_t = typename Traits_t::Setter_t;
 
         /// Constructor: sets getter and setter functions.
-        constexpr CoordManager(Getter_t getter, Setter_t setter)
-          : Base_t(getter), fSetter(setter) {}
+        constexpr CoordManager(Getter_t getter, Setter_t setter) : Base_t(getter), fSetter(setter)
+        {}
 
         /// Setter: assigns a value to the bound coordinate of specified vector.
         void operator()(Vector_t& v, Scalar_t c) const { set(v, c); }
@@ -296,24 +322,21 @@ namespace geo {
         /// Divides the coordinate by the specified amount.
         void div(Vector_t& v, Scalar_t f) const { set(v, Base_t::get(v) / f); }
 
-          private:
+      private:
         Setter_t fSetter; ///< Member function setting the coordinate value.
-      }; // class CoordManager<>
-
+      };                  // class CoordManager<>
 
       template <typename Getter, typename Setter>
       constexpr auto makeCoordManager(Getter getter, Setter setter)
-        {
-          using Vector_t = std::remove_reference_t<MemberFuncClass_t<Getter>>;
-          return CoordManager<Vector_t, Setter>{getter, setter};
-        }
-
-
+      {
+        using Vector_t = std::remove_reference_t<MemberFuncClass_t<Getter>>;
+        return CoordManager<Vector_t, Setter>{getter, setter};
+      }
 
       template <typename CoordHelper, typename StoredVector>
       class BoundCoordGetter {
 
-          public:
+      public:
         using Stored_t = StoredVector;
 
         using CoordHelper_t = CoordHelper;
@@ -322,39 +345,35 @@ namespace geo {
         using Getter_t = typename CoordHelper_t::Getter_t;
 
         /// Constructor: manage the specified coordinate of specified vector.
-        BoundCoordGetter(Stored_t& v, CoordHelper_t coordManager)
-          : fCoord(coordManager), fVector(v) {}
+        BoundCoordGetter(Stored_t& v, CoordHelper_t coordManager) : fCoord(coordManager), fVector(v)
+        {}
 
         /// Constructor: manage the specified vector with specified methods.
-        BoundCoordGetter(Stored_t& v, Getter_t getter)
-          : fCoord(getter), fVector(v) {}
+        BoundCoordGetter(Stored_t& v, Getter_t getter) : fCoord(getter), fVector(v) {}
 
         /// Returns the value of the bound coordinate.
         Scalar_t get() const { return manager().get(vector()); }
 
         /// Returns the value of the bound coordinate.
-        Scalar_t operator() () const { return get(); }
+        Scalar_t operator()() const { return get(); }
 
         /// Returns the value of the bound coordinate.
         operator Scalar_t() const { return manager().get(vector()); }
 
-          protected:
+      protected:
         CoordHelper_t const& manager() const { return fCoord; }
         Stored_t& vector() const { return fVector; }
 
-          private:
+      private:
         CoordHelper_t fCoord; ///< Helper to manage a specific coordinate.
-        Stored_t& fVector; ///< The vector to manage the coordinate of.
-      }; // class VectorCoordGetter<>
-
+        Stored_t& fVector;    ///< The vector to manage the coordinate of.
+      };                      // class VectorCoordGetter<>
 
       template <typename CoordHelper, typename StoredVector>
-      class BoundCoordManager
-        : public BoundCoordGetter<CoordHelper, StoredVector>
-      {
+      class BoundCoordManager : public BoundCoordGetter<CoordHelper, StoredVector> {
         using Base_t = BoundCoordGetter<CoordHelper, StoredVector>;
 
-          public:
+      public:
         using typename Base_t::Stored_t;
 
         using CoordHelper_t = CoordHelper;
@@ -364,39 +383,53 @@ namespace geo {
         using Setter_t = typename CoordHelper_t::Setter_t;
 
         /// Constructor: manage the specified coordinate of specified vector.
-        BoundCoordManager(Stored_t& v, CoordHelper_t coordManager)
-          : Base_t(v, coordManager) {}
+        BoundCoordManager(Stored_t& v, CoordHelper_t coordManager) : Base_t(v, coordManager) {}
 
         /// Constructor: manage the specified vector with specified methods.
         BoundCoordManager(Stored_t& v, Getter_t getter, Setter_t setter)
-          : Base_t(v, CoordHelper_t(getter, setter)) {}
+          : Base_t(v, CoordHelper_t(getter, setter))
+        {}
 
         /// Setter: assigns a value to the bound coordinate of specified vector.
-        BoundCoordManager& operator= (Scalar_t c)
-          { Base_t::manager().set(Base_t::vector(), c); return *this; }
+        BoundCoordManager& operator=(Scalar_t c)
+        {
+          Base_t::manager().set(Base_t::vector(), c);
+          return *this;
+        }
 
         /// Increments by the specified amount.
-        BoundCoordManager& operator+= (Scalar_t c)
-          { Base_t::manager().incr(Base_t::vector(), c); return *this; }
+        BoundCoordManager& operator+=(Scalar_t c)
+        {
+          Base_t::manager().incr(Base_t::vector(), c);
+          return *this;
+        }
 
         /// Decrements by the specified amount.
-        BoundCoordManager& operator-= (Scalar_t c)
-          { Base_t::manager().decr(Base_t::vector(), c); return *this; }
+        BoundCoordManager& operator-=(Scalar_t c)
+        {
+          Base_t::manager().decr(Base_t::vector(), c);
+          return *this;
+        }
 
         /// Multiplies by the specified amount.
-        BoundCoordManager& operator*= (Scalar_t f)
-          { Base_t::manager().mult(Base_t::vector(), f); return *this; }
+        BoundCoordManager& operator*=(Scalar_t f)
+        {
+          Base_t::manager().mult(Base_t::vector(), f);
+          return *this;
+        }
 
         /// Divides by the specified amount.
-        BoundCoordManager& operator/= (Scalar_t f)
-          { Base_t::manager().div(Base_t::vector(), f); return *this; }
+        BoundCoordManager& operator/=(Scalar_t f)
+        {
+          Base_t::manager().div(Base_t::vector(), f);
+          return *this;
+        }
 
       }; // class BoundCoordManager
 
       //------------------------------------------------------------------------
 
     } // namespace details
-
 
     // BEGIN Geometry group ------------------------------------------------------
     /// @ingroup Geometry
@@ -407,20 +440,21 @@ namespace geo {
 
       /// Returns `value`, rounded to 0 if closer than `tol`.
       template <typename T>
-      constexpr T roundValue0(T value, T tol) {
-        return (std::abs(value) < tol)? T{}: value;
+      constexpr T roundValue0(T value, T tol)
+      {
+        return (std::abs(value) < tol) ? T{} : value;
       } // roundValue0()
 
       /// Returns `value`, rounded to 0, -1 or +1 if closer than `tol`.
       template <typename T>
-      constexpr T roundValue01(T value, T tol) {
+      constexpr T roundValue01(T value, T tol)
+      {
         if (std::abs(value) < tol) return 0.;
-        if (std::abs(std::abs(value) - 1.) < tol) return (value > 0.)? 1.: -1.;
+        if (std::abs(std::abs(value) - 1.) < tol) return (value > 0.) ? 1. : -1.;
         return value;
       } // roundValue01()
 
     } // namespace extra
-
 
     // --- BEGIN Vector coordinate access abstraction --------------------------
     /// @{
@@ -579,9 +613,15 @@ namespace geo {
     //@{
     /// Returns the dimension of the specified vector type.
     template <typename Vector>
-    constexpr unsigned int dimension() { return details::dimension<Vector>(); }
+    constexpr unsigned int dimension()
+    {
+      return details::dimension<Vector>();
+    }
     template <typename Vector>
-    constexpr unsigned int dimension(Vector&&) { return dimension<Vector>(); }
+    constexpr unsigned int dimension(Vector&&)
+    {
+      return dimension<Vector>();
+    }
     //@}
 
     //@{
@@ -620,7 +660,6 @@ namespace geo {
     template <typename Vector, typename Coords>
     constexpr Vector makeFromCoords(Coords&& coords);
 
-
     /**
      * @brief Fills a coordinate array with the coordinates of a vector.
      * @tparam Vector type of vector being copied from
@@ -636,16 +675,13 @@ namespace geo {
     template <typename Vector, typename Coords>
     unsigned int fillCoords(Coords& dest, Vector const& src);
 
-
     /// Type of a coordinate reader for a vector type.
     template <typename Vector>
-    using CoordReader_t
-      = decltype(details::makeCoordReader(&Vector::X));
+    using CoordReader_t = decltype(details::makeCoordReader(&Vector::X));
 
     /// Type of a coordinate manager for a vector type.
     template <typename Vector>
-    using CoordManager_t = decltype
-      (details::makeCoordManager(&Vector::X, &Vector::SetX));
+    using CoordManager_t = decltype(details::makeCoordManager(&Vector::X, &Vector::SetX));
 
     /**
      * @brief Object that can be bound to a vector to manage its X coordinate.
@@ -669,8 +705,7 @@ namespace geo {
      * Note that the use in the example, `Xcoord()` is preferred.
      */
     template <typename Vector>
-    static constexpr auto XcoordManager
-      = details::makeCoordManager(&Vector::X, &Vector::SetX);
+    static constexpr auto XcoordManager = details::makeCoordManager(&Vector::X, &Vector::SetX);
 
     /**
      * @brief Object that can be bound to a vector to access its X coordinate.
@@ -694,45 +729,38 @@ namespace geo {
      * Note that the use in the example, `Xcoord()` is preferred.
      */
     template <typename Vector>
-    static constexpr auto XcoordManager<Vector const>
-      = details::makeCoordReader(&Vector::X);
+    static constexpr auto XcoordManager<Vector const> = details::makeCoordReader(&Vector::X);
 
     /// An object that can be bound to a vector to manage its Y coordinate.
     /// @see `geo::vect::XcoordManager`
     template <typename Vector>
-    static constexpr auto const YcoordManager
-      = details::makeCoordManager(&Vector::Y, &Vector::SetY);
+    static constexpr auto const YcoordManager = details::makeCoordManager(&Vector::Y,
+                                                                          &Vector::SetY);
 
     /// An object that can be bound to a vector to manage its Y coordinate.
     /// @see `geo::vect::XcoordManager`
     template <typename Vector>
-    static constexpr auto YcoordManager<Vector const>
-      = details::makeCoordReader(&Vector::Y);
+    static constexpr auto YcoordManager<Vector const> = details::makeCoordReader(&Vector::Y);
 
     /// An object that can be bound to a vector to manage its Z coordinate.
     /// @see `geo::vect::XcoordManager`
     template <typename Vector>
-    static constexpr auto ZcoordManager
-      = details::makeCoordManager(&Vector::Z, &Vector::SetZ);
+    static constexpr auto ZcoordManager = details::makeCoordManager(&Vector::Z, &Vector::SetZ);
 
     /// An object that can be bound to a vector to manage its Z coordinate.
     /// @see `geo::vect::XcoordManager`
     template <typename Vector>
-    static constexpr auto ZcoordManager<Vector const>
-      = details::makeCoordReader(&Vector::Z);
+    static constexpr auto ZcoordManager<Vector const> = details::makeCoordReader(&Vector::Z);
 
     /// An object that can be bound to a vector to manage its T coordinate.
     /// @see `geo::vect::XcoordManager`
     template <typename Vector>
-    static constexpr auto TcoordManager
-      = details::makeCoordManager(&Vector::T, &Vector::SetT);
+    static constexpr auto TcoordManager = details::makeCoordManager(&Vector::T, &Vector::SetT);
 
     /// An object that can be bound to a vector to manage its T coordinate.
     /// @see `geo::vect::XcoordManager`
     template <typename Vector>
-    static constexpr auto TcoordManager<Vector const>
-      = details::makeCoordReader(&Vector::T);
-
+    static constexpr auto TcoordManager<Vector const> = details::makeCoordReader(&Vector::T);
 
     /**
      * @brief Returns an object that can be bound to a vector to manage one of
@@ -791,7 +819,6 @@ namespace geo {
     template <typename Vector>
     constexpr auto coordManager(unsigned int n, Vector& v);
 
-
     //@{
     /// Returns an array with all coordinate managers for a type of vector.
     template <typename Vector>
@@ -810,20 +837,18 @@ namespace geo {
 
     /// Binds the specified constant vector to the coordinate reader.
     template <typename Vector>
-    constexpr auto bindCoord
-      (Vector const& v, CoordReader_t<Vector> helper)
-      {
-        return details::BoundCoordGetter<CoordReader_t<Vector>, Vector const>
-          (v, helper);
-      }
+    constexpr auto bindCoord(Vector const& v, CoordReader_t<Vector> helper)
+    {
+      return details::BoundCoordGetter<CoordReader_t<Vector>, Vector const>(v, helper);
+    }
 
     /// Binds the specified vector to the coordinate manager.
     template <typename Vector>
     auto bindCoord(Vector& v, CoordManager_t<Vector> helper)
       -> details::BoundCoordManager<CoordManager_t<Vector>, Vector>
-      { return { v, helper }; }
-
-
+    {
+      return {v, helper};
+    }
 
     /**
      * @brief Returns an object to manage the coordinate X of the vector `v`.
@@ -837,7 +862,9 @@ namespace geo {
      */
     template <typename Vector>
     auto Xcoord(Vector& v)
-      { return bindCoord(v, XcoordManager<Vector>); }
+    {
+      return bindCoord(v, XcoordManager<Vector>);
+    }
 
     /**
      * @brief Returns an object to manage the coordinate Y of the vector `v`.
@@ -851,7 +878,9 @@ namespace geo {
      */
     template <typename Vector>
     auto Ycoord(Vector& v)
-      { return bindCoord<Vector>(v, YcoordManager<Vector>); }
+    {
+      return bindCoord<Vector>(v, YcoordManager<Vector>);
+    }
 
     /**
      * @brief Returns an object to manage the coordinate Z of the vector `v`.
@@ -865,7 +894,9 @@ namespace geo {
      */
     template <typename Vector>
     auto Zcoord(Vector& v)
-      { return bindCoord<Vector>(v, ZcoordManager<Vector>); }
+    {
+      return bindCoord<Vector>(v, ZcoordManager<Vector>);
+    }
 
     /**
      * @brief Returns an object to manage the coordinate T of the vector `v`.
@@ -879,7 +910,9 @@ namespace geo {
      */
     template <typename Vector>
     auto Tcoord(Vector& v)
-      { return bindCoord<Vector>(v, TcoordManager<Vector>); }
+    {
+      return bindCoord<Vector>(v, TcoordManager<Vector>);
+    }
 
     /**
      * @brief Returns an object to manage the coordinate `n` of a vector
@@ -895,7 +928,6 @@ namespace geo {
     template <typename Vector>
     auto coord(Vector& v, unsigned int n) noexcept;
 
-
     /// Returns an array with all coordinate managers bound to the specified
     /// vector.
     template <typename Vector>
@@ -906,8 +938,6 @@ namespace geo {
     template <typename Vector>
     constexpr auto bindCoordReaders(Vector const& v);
 
-
-
     /**
      * @brief Constant iterator to vector coordinates.
      * @tparam Vector the type of vector being iterated
@@ -917,10 +947,10 @@ namespace geo {
     template <typename Vector>
     class CoordConstIterator {
 
-        public:
+    public:
       using iterator_t = CoordConstIterator<Vector>; ///< Type of this iterator.
 
-        private:
+    private:
       using Vector_t = Vector; ///< Type of vector being iterated.
       /// Type of vector coordinate.
       using Coord_t = geo::vect::coordinate_t<Vector_t>;
@@ -928,13 +958,11 @@ namespace geo {
       Vector* v = nullptr;
       unsigned int index = std::numeric_limits<unsigned int>::max();
 
-      decltype(auto) access(unsigned int c) const
-        { return geo::vect::bindCoord(v, index); }
+      decltype(auto) access(unsigned int c) const { return geo::vect::bindCoord(v, index); }
 
       iterator_t copy() const { return *this; }
 
-        public:
-
+    public:
       /// --- BEGIN Iterator traits ------------------------------------------------
       /// @name Iterator traits
       /// @{
@@ -950,60 +978,80 @@ namespace geo {
       CoordConstIterator() = default;
 
       /// Constructor: points to `index` coordinate of vector `v`.
-      CoordConstIterator(Vector& v, unsigned int index = 0)
-        : v(&v), index(index)
-        {}
+      CoordConstIterator(Vector& v, unsigned int index = 0) : v(&v), index(index) {}
 
       // --- BEGIN Access ----------------------------------------------------------
       /// @name Access
       /// @{
 
       /// Access the current coordinate.
-      reference operator* () const { return geo::vect::coord(*v, index); }
+      reference operator*() const { return geo::vect::coord(*v, index); }
 
       /// Access the current coordinate.
-      reference operator[] (difference_type n) const
-        { return geo::vect::coord(*v, index + n); }
+      reference operator[](difference_type n) const { return geo::vect::coord(*v, index + n); }
 
       /// @}
       // --- END Access ------------------------------------------------------------
-
 
       // --- BEGIN Moving ----------------------------------------------------------
       /// @name Moving
       /// @{
 
       /// Points to the next coordinate (unchecked).
-      iterator_t& operator++() { ++index; return *this; }
+      iterator_t& operator++()
+      {
+        ++index;
+        return *this;
+      }
 
       /// Points to the next coordinate (unchecked), returns the previous iterator.
-      iterator_t operator++(int) { iterator_t it(*this); ++index; return it; }
+      iterator_t operator++(int)
+      {
+        iterator_t it(*this);
+        ++index;
+        return it;
+      }
 
       /// Points to the previous coordinate (unchecked).
-      iterator_t& operator--() { --index; return *this; }
+      iterator_t& operator--()
+      {
+        --index;
+        return *this;
+      }
 
       /// Points to previous coordinate (unchecked), returns the previous iterator.
-      iterator_t operator--(int) { iterator_t it(*this); --index; return it; }
+      iterator_t operator--(int)
+      {
+        iterator_t it(*this);
+        --index;
+        return it;
+      }
 
       /// Increments the iterator by `d` positions (unchecked).
-      iterator_t& operator+=(difference_type d) { index += d; return *this; }
+      iterator_t& operator+=(difference_type d)
+      {
+        index += d;
+        return *this;
+      }
 
       /// Returns an iterator incremented by `d` positions (unchecked).
       iterator_t operator+(difference_type d) const { return (copy() += d); }
 
       /// Decrements the iterator by `d` positions (unchecked).
-      iterator_t& operator-=(difference_type d) { index -= d; return *this; }
+      iterator_t& operator-=(difference_type d)
+      {
+        index -= d;
+        return *this;
+      }
 
       /// Returns an iterator decremented by `d` positions (unchecked).
       iterator_t operator-(difference_type d) const { return (copy() -= d); }
 
       /// Returns the distance from another iterator.
-      iterator_t operator-(iterator_t const& other) const
-        { return index - other.index; }
+      iterator_t operator-(iterator_t const& other) const { return index - other.index; }
 
       ///@}
       // --- END Moving ------------------------------------------------------------
-
 
       // --- BEGIN Comparison operators --------------------------------------------
       /// @name Comparison operators
@@ -1011,23 +1059,35 @@ namespace geo {
       /// All comparisons between iterators on different vectors fail.
       /// @{
 
-      bool operator== (iterator_t const& other) const
-        { return (v == other.v) && (index == other.index); }
+      bool operator==(iterator_t const& other) const
+      {
+        return (v == other.v) && (index == other.index);
+      }
 
-      bool operator!= (iterator_t const& other) const
-        { return (v != other.v) || (index != other.index); }
+      bool operator!=(iterator_t const& other) const
+      {
+        return (v != other.v) || (index != other.index);
+      }
 
-      bool operator<= (iterator_t const& other) const
-        { return (v == other.v) && (index <= other.index); }
+      bool operator<=(iterator_t const& other) const
+      {
+        return (v == other.v) && (index <= other.index);
+      }
 
-      bool operator>= (iterator_t const& other) const
-        { return (v == other.v) && (index >= other.index); }
+      bool operator>=(iterator_t const& other) const
+      {
+        return (v == other.v) && (index >= other.index);
+      }
 
-      bool operator< (iterator_t const& other) const
-        { return (v == other.v) && (index < other.index); }
+      bool operator<(iterator_t const& other) const
+      {
+        return (v == other.v) && (index < other.index);
+      }
 
-      bool operator> (iterator_t const& other) const
-        { return (v == other.v) && (index > other.index); }
+      bool operator>(iterator_t const& other) const
+      {
+        return (v == other.v) && (index > other.index);
+      }
 
       /// @}
       // --- END Comparison operators ----------------------------------------------
@@ -1035,21 +1095,25 @@ namespace geo {
     }; // class CoordConstIterator
 
     template <typename Vector>
-    CoordConstIterator<Vector> operator+ (
-      typename CoordConstIterator<Vector>::difference_type n,
-      CoordConstIterator<Vector> const& v
-      )
-      { return v + n; }
+    CoordConstIterator<Vector> operator+(typename CoordConstIterator<Vector>::difference_type n,
+                                         CoordConstIterator<Vector> const& v)
+    {
+      return v + n;
+    }
 
     /// Returns a const-iterator pointing to the first coordinate of `v`.
     template <typename Vector>
     auto vector_cbegin(Vector const& v)
-      { return CoordConstIterator(v, 0); }
+    {
+      return CoordConstIterator(v, 0);
+    }
 
     /// Returns a const-iterator pointing after the last coordinate of `v`.
     template <typename Vector>
     auto vector_cend(Vector const& v)
-      { return CoordConstIterator(v, geo::vect::dimension(v)); }
+    {
+      return CoordConstIterator(v, geo::vect::dimension(v));
+    }
 
     /**
      * @brief Returns an object for ranged-for iteration on coordinates.
@@ -1066,8 +1130,9 @@ namespace geo {
      */
     template <typename Vector>
     auto iterateCoords(Vector const& v)
-      { return util::span(vector_cbegin(v), vector_cend(v)); }
-
+    {
+      return util::span(vector_cbegin(v), vector_cend(v));
+    }
 
     /**
      * @brief Returns a vector of type `Dest` with the same content as a `Src`.
@@ -1081,7 +1146,6 @@ namespace geo {
      */
     template <typename Dest, typename Source>
     Dest convertTo(Source const& v);
-
 
     /**
      * @brief Returns a vector of type `Dest` with the same content as a `Src`.
@@ -1101,7 +1165,6 @@ namespace geo {
     template <typename Dest, typename Source>
     std::vector<Dest> convertCollTo(std::vector<Source> const& coll);
 
-
     /**
      * @brief Returns a new vector applying a predicate to each component.
      * @tparam Vector type of the vector in input (and output)
@@ -1118,7 +1181,6 @@ namespace geo {
 
     /// @}
     // --- END Vector coordinate access abstraction ----------------------------
-
 
     // --- BEGIN Functions for common vector operations ------------------------
     /// @{
@@ -1155,27 +1217,30 @@ namespace geo {
     /// Returns a vector with all components rounded if close to 0.
     template <typename Vector, typename Scalar>
     Vector rounded0(Vector const& v, Scalar tol)
-      {
-        return transformCoords
-          (v, [tol](auto c){ return extra::roundValue0(c, tol); });
-      }
+    {
+      return transformCoords(v, [tol](auto c) { return extra::roundValue0(c, tol); });
+    }
 
     /// Returns a vector with all components rounded if close to 0.
     template <typename Vector, typename Scalar>
-    void round0(Vector& v, Scalar tol) { v = rounded0(v, tol); }
+    void round0(Vector& v, Scalar tol)
+    {
+      v = rounded0(v, tol);
+    }
 
     /// Returns a vector with all components rounded if close to 0, -1 or +1.
     template <typename Vector, typename Scalar>
     Vector rounded01(Vector const& v, Scalar tol)
-      {
-        return transformCoords
-          (v, [tol](auto c){ return extra::roundValue01(c, tol); });
-      }
+    {
+      return transformCoords(v, [tol](auto c) { return extra::roundValue01(c, tol); });
+    }
 
     /// Returns a vector with all components rounded if close to 0, -1 or +1.
     template <typename Vector, typename Scalar>
-    void round01(Vector& v, Scalar tol) { v = rounded01(v, tol); }
-
+    void round01(Vector& v, Scalar tol)
+    {
+      v = rounded01(v, tol);
+    }
 
     /// Returns whether all components of the vector are finite.
     template <typename Vector>
@@ -1183,34 +1248,49 @@ namespace geo {
 
     /// Returns a vector parallel to v and with norm 1
     template <typename Vector>
-    Vector normalize(Vector const& v) { return v.Unit(); }
+    Vector normalize(Vector const& v)
+    {
+      return v.Unit();
+    }
 
     /// Return cross product of two vectors
     template <typename Vector>
-    Vector cross(Vector const& a, Vector const& b) { return a.Cross(b); }
+    Vector cross(Vector const& a, Vector const& b)
+    {
+      return a.Cross(b);
+    }
 
     /// Return cross product of two vectors
     template <typename Vector>
-    constexpr auto dot(Vector const& a, Vector const& b) { return a.Dot(b); }
+    constexpr auto dot(Vector const& a, Vector const& b)
+    {
+      return a.Dot(b);
+    }
 
     /// Return norm of the specified vector
     template <typename Vector>
-    auto mag2(Vector const& v) { return v.Mag2(); }
+    auto mag2(Vector const& v)
+    {
+      return v.Mag2();
+    }
 
     /// Return norm of the specified vector
     template <typename Vector>
-    auto norm(Vector const& v) { return v.Mag(); }
+    auto norm(Vector const& v)
+    {
+      return v.Mag();
+    }
 
     /// Return "mixed" product of three vectors:
     /// @f$ \vec{a} \times \vec{b} \cdot \vec{c} @f$
     template <typename Vector>
     auto mixedProduct(Vector const& a, Vector const& b, Vector const& c)
-      { return dot(cross(a, b), c); }
-
+    {
+      return dot(cross(a, b), c);
+    }
 
     /// @}
     // --- END Functions for common vector operations --------------------------
-
 
     /** ************************************************************************
      * @brief Helper class to compute the middle point in a point set.
@@ -1245,10 +1325,10 @@ namespace geo {
     template <unsigned int N = 3U>
     class MiddlePointAccumulatorDim {
       static constexpr unsigned int Dim = N; ///< Dimension of the points.
-      std::array<Length_t, Dim> fSums; ///< Sum of each of the point components.
-      double fW = 0.0; ///< Total weight.
+      std::array<Length_t, Dim> fSums;       ///< Sum of each of the point components.
+      double fW = 0.0;                       ///< Total weight.
 
-        public:
+    public:
       /// Default constructor: starts with no accumulated point.
       MiddlePointAccumulatorDim() { fSums.fill(0.); }
 
@@ -1261,10 +1341,10 @@ namespace geo {
        * @see add()
        */
       template <typename BeginIter, typename EndIter>
-      MiddlePointAccumulatorDim(BeginIter begin, EndIter end)
-        : MiddlePointAccumulatorDim()
-        { add(begin, end); }
-
+      MiddlePointAccumulatorDim(BeginIter begin, EndIter end) : MiddlePointAccumulatorDim()
+      {
+        add(begin, end);
+      }
 
       // --- BEGIN Result query ------------------------------------------------
       /// @{
@@ -1290,13 +1370,13 @@ namespace geo {
       template <typename Point>
       Point middlePointAs() const
       //  { return { fSums[0] / fW, fSums[1] / fW, fSums[2] / fW }; }
-        { return makeWeightedPoint<Point>(1.0 / fW); }
+      {
+        return makeWeightedPoint<Point>(1.0 / fW);
+      }
 
       /// Returns the middle point as a `geo::Point_t`,
       /// NaN components if no point.
-      geo::Point_t middlePoint() const
-        { return middlePointAs<geo::Point_t>(); }
-
+      geo::Point_t middlePoint() const { return middlePointAs<geo::Point_t>(); }
 
       /// @}
       // --- END Result query --------------------------------------------------
@@ -1314,11 +1394,12 @@ namespace geo {
        */
       template <typename Point>
       void add(Point const& p)
-        {
-          std::size_t ic = 0U;
-          for (auto c: geo::vect::bindCoordManagers(p)) fSums[ic++] += c();
-          fW += 1.0;
-        }
+      {
+        std::size_t ic = 0U;
+        for (auto c : geo::vect::bindCoordManagers(p))
+          fSums[ic++] += c();
+        fW += 1.0;
+      }
 
       /**
        * @brief Accumulates a point.
@@ -1328,12 +1409,12 @@ namespace geo {
        */
       template <typename Point>
       void add(Point const& p, double weight)
-        {
-          std::size_t ic = 0U;
-          for (auto c: geo::vect::bindCoordManagers(p))
-            fSums[ic++] += weight * c();
-          fW += weight;
-        }
+      {
+        std::size_t ic = 0U;
+        for (auto c : geo::vect::bindCoordManagers(p))
+          fSums[ic++] += weight * c();
+        fW += weight;
+      }
 
       /**
        * @brief Adds a sequence of points.
@@ -1346,43 +1427,54 @@ namespace geo {
        */
       template <typename BeginIter, typename EndIter>
       void add(BeginIter begin, EndIter end)
-        { std::for_each(begin, end, [this](auto const& p){ this->add(p); }); }
+      {
+        std::for_each(begin, end, [this](auto const& p) { this->add(p); });
+      }
 
       /// Resets the status of the object to no accumulated points.
-      void clear() { fSums.fill(0.); fW = 0.0; }
+      void clear()
+      {
+        fSums.fill(0.);
+        fW = 0.0;
+      }
 
       /// @}
       // --- END Addition of points --------------------------------------------
 
-        private:
+    private:
       using IndexSequence_t = std::make_index_sequence<Dim>;
 
       template <typename Point, std::size_t... I>
       Point makePointImpl(std::index_sequence<I...>) const
-        { return { fSums.operator[](I)... }; }
+      {
+        return {fSums.operator[](I)...};
+      }
 
       template <typename Point, std::size_t... I>
       Point makeWeightedPointImpl(double w, std::index_sequence<I...>) const
-        { return { (fSums.operator[](I) * w)... }; }
+      {
+        return {(fSums.operator[](I) * w)...};
+      }
 
       /// Converts the internal sums into a `Point`.
       template <typename Point>
       Point makePoint() const
-        { return geo::vect::makeFromCoords<Point>(fSums); }
+      {
+        return geo::vect::makeFromCoords<Point>(fSums);
+      }
 
       /// Converts the internal sums into a `Point` with components scaled by
       /// `w`.
       template <typename Point>
       Point makeWeightedPoint(double w) const
-        { return makeWeightedPointImpl<Point>(w, IndexSequence_t{}); }
-
+      {
+        return makeWeightedPointImpl<Point>(w, IndexSequence_t{});
+      }
 
     }; // MiddlePointAccumulatorDim()
 
-
     /// Middle-point accumulator for vectors of dimension 3.
     using MiddlePointAccumulator = MiddlePointAccumulatorDim<3U>;
-
 
     // --- BEGIN Middle point functions ----------------------------------------
     /// @{
@@ -1413,11 +1505,10 @@ namespace geo {
      */
     template <typename Point, typename BeginIter, typename EndIter>
     Point middlePointAs(BeginIter begin, EndIter end)
-      {
-        constexpr auto Dim = geo::vect::dimension<Point>();
-        return MiddlePointAccumulatorDim<Dim>(begin, end)
-          .template middlePointAs<Point>();
-      }
+    {
+      constexpr auto Dim = geo::vect::dimension<Point>();
+      return MiddlePointAccumulatorDim<Dim>(begin, end).template middlePointAs<Point>();
+    }
 
     /**
      * @brief Returns the middle of the specified points.
@@ -1442,7 +1533,9 @@ namespace geo {
      */
     template <typename BeginIter, typename EndIter>
     geo::Point_t middlePoint(BeginIter begin, EndIter end)
-      { return middlePointAs<geo::Point_t>(begin, end); }
+    {
+      return middlePointAs<geo::Point_t>(begin, end);
+    }
 
     /**
      * @brief Returns the middle of the specified points.
@@ -1462,59 +1555,66 @@ namespace geo {
      */
     template <typename Point>
     Point middlePoint(std::initializer_list<Point> points)
-      {
-        constexpr auto Dim = geo::vect::dimension<Point>();
-        return MiddlePointAccumulatorDim<Dim>(points.begin(), points.end())
-          .template middlePointAs<Point>();
-      }
+    {
+      constexpr auto Dim = geo::vect::dimension<Point>();
+      return MiddlePointAccumulatorDim<Dim>(points.begin(), points.end())
+        .template middlePointAs<Point>();
+    }
 
     /// @}
     // --- END Middle point functions ------------------------------------------
-
 
     // --- BEGIN Support for LArSoft geometry vectors --------------------------
     /// @{
     /// @name Support for LArSoft geometry vectors
 
     // import global definitions
-    using ::geo::Vector_t;
     using ::geo::Point_t;
+    using ::geo::Vector_t;
 
     /// Convert the specified point into a `geo::Point_t`.
     template <typename Point>
     ::geo::Point_t toPoint(Point const& p)
-      { return geo::vect::convertTo<::geo::Point_t>(p); }
+    {
+      return geo::vect::convertTo<::geo::Point_t>(p);
+    }
 
     /// Convert the specified vector into a `geo::Vector_t`.
     template <typename Vector>
     ::geo::Vector_t toVector(Vector const& v)
-      { return geo::vect::convertTo<::geo::Vector_t>(v); }
-
+    {
+      return geo::vect::convertTo<::geo::Vector_t>(v);
+    }
 
     /// Convert the specified collection of points into a collection of
     /// `geo::Point_t`.
     template <typename Point>
-    std::vector<geo::Point_t> convertCollToPoint
-      (std::vector<Point> const& coll)
-      { return convertCollTo<geo::Point_t>(coll); }
+    std::vector<geo::Point_t> convertCollToPoint(std::vector<Point> const& coll)
+    {
+      return convertCollTo<geo::Point_t>(coll);
+    }
 
     /// Convert the specified collection of vectors into a collection of
     /// `geo::Vector_t`.
     template <typename Vector>
-    std::vector<geo::Vector_t> convertCollToVector
-      (std::vector<Vector> const& coll)
-      { return convertCollTo<geo::Vector_t>(coll); }
-
+    std::vector<geo::Vector_t> convertCollToVector(std::vector<Vector> const& coll)
+    {
+      return convertCollTo<geo::Vector_t>(coll);
+    }
 
     /// Creates a `geo::Point_t` from its coordinates (see `makeFromCoords()`).
     template <typename Coords>
     GENVECTOR_CONSTEXPR ::geo::Point_t makePointFromCoords(Coords&& coords)
-      { return makeFromCoords<::geo::Point_t>(std::forward<Coords>(coords)); }
+    {
+      return makeFromCoords<::geo::Point_t>(std::forward<Coords>(coords));
+    }
 
     /// Creates a `geo::Vector_t` from its coordinates (see `makeFromCoords()`).
     template <typename Coords>
     GENVECTOR_CONSTEXPR ::geo::Vector_t makeVectorFromCoords(Coords&& coords)
-      { return makeFromCoords<::geo::Vector_t>(std::forward<Coords>(coords)); }
+    {
+      return makeFromCoords<::geo::Vector_t>(std::forward<Coords>(coords));
+    }
 
     /// @}
     // --- END Support for LArSoft geometry vectors ----------------------------
@@ -1522,11 +1622,9 @@ namespace geo {
     /// @}
     // END Geometry group ------------------------------------------------------
 
-
   } // namespace vect
 
 } // namespace geo
-
 
 //------------------------------------------------------------------------------
 //---  STL specialization for ROOT GenVector vectors
@@ -1537,98 +1635,133 @@ namespace ROOT::Math {
   /// @{
 
   // --- BEGIN 2D vectors ------------------------------------------------------
-  template<class CoordSystem, class Tag>
+  template <class CoordSystem, class Tag>
   decltype(auto) begin(ROOT::Math::PositionVector2D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cbegin(v); }
+  {
+    return geo::vect::vector_cbegin(v);
+  }
 
-  template<class CoordSystem, class Tag>
+  template <class CoordSystem, class Tag>
   decltype(auto) cbegin(ROOT::Math::PositionVector2D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cbegin(v); }
+  {
+    return geo::vect::vector_cbegin(v);
+  }
 
-  template<class CoordSystem, class Tag>
+  template <class CoordSystem, class Tag>
   decltype(auto) end(ROOT::Math::PositionVector2D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cend(v); }
+  {
+    return geo::vect::vector_cend(v);
+  }
 
-  template<class CoordSystem, class Tag>
+  template <class CoordSystem, class Tag>
   decltype(auto) cend(ROOT::Math::PositionVector2D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cend(v); }
+  {
+    return geo::vect::vector_cend(v);
+  }
 
-  template<class CoordSystem, class Tag>
-  decltype(auto)
-  begin(ROOT::Math::DisplacementVector2D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cbegin(v); }
+  template <class CoordSystem, class Tag>
+  decltype(auto) begin(ROOT::Math::DisplacementVector2D<CoordSystem, Tag> const& v)
+  {
+    return geo::vect::vector_cbegin(v);
+  }
 
-  template<class CoordSystem, class Tag>
+  template <class CoordSystem, class Tag>
   decltype(auto) cbegin(ROOT::Math::DisplacementVector2D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cbegin(v); }
+  {
+    return geo::vect::vector_cbegin(v);
+  }
 
-  template<class CoordSystem, class Tag>
+  template <class CoordSystem, class Tag>
   decltype(auto) end(ROOT::Math::DisplacementVector2D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cend(v); }
+  {
+    return geo::vect::vector_cend(v);
+  }
 
-  template<class CoordSystem, class Tag>
+  template <class CoordSystem, class Tag>
   decltype(auto) cend(ROOT::Math::DisplacementVector2D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cend(v); }
+  {
+    return geo::vect::vector_cend(v);
+  }
 
   // --- END 2D vectors --------------------------------------------------------
 
-
   // --- BEGIN 3D vectors ------------------------------------------------------
-  template<class CoordSystem, class Tag>
+  template <class CoordSystem, class Tag>
   decltype(auto) begin(ROOT::Math::PositionVector3D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cbegin(v); }
+  {
+    return geo::vect::vector_cbegin(v);
+  }
 
-  template<class CoordSystem, class Tag>
+  template <class CoordSystem, class Tag>
   decltype(auto) cbegin(ROOT::Math::PositionVector3D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cbegin(v); }
+  {
+    return geo::vect::vector_cbegin(v);
+  }
 
-  template<class CoordSystem, class Tag>
+  template <class CoordSystem, class Tag>
   decltype(auto) end(ROOT::Math::PositionVector3D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cend(v); }
+  {
+    return geo::vect::vector_cend(v);
+  }
 
-  template<class CoordSystem, class Tag>
+  template <class CoordSystem, class Tag>
   decltype(auto) cend(ROOT::Math::PositionVector3D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cend(v); }
+  {
+    return geo::vect::vector_cend(v);
+  }
 
-  template<class CoordSystem, class Tag>
-  decltype(auto)
-  begin(ROOT::Math::DisplacementVector3D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cbegin(v); }
+  template <class CoordSystem, class Tag>
+  decltype(auto) begin(ROOT::Math::DisplacementVector3D<CoordSystem, Tag> const& v)
+  {
+    return geo::vect::vector_cbegin(v);
+  }
 
-  template<class CoordSystem, class Tag>
+  template <class CoordSystem, class Tag>
   decltype(auto) cbegin(ROOT::Math::DisplacementVector3D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cbegin(v); }
+  {
+    return geo::vect::vector_cbegin(v);
+  }
 
-  template<class CoordSystem, class Tag>
+  template <class CoordSystem, class Tag>
   decltype(auto) end(ROOT::Math::DisplacementVector3D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cend(v); }
+  {
+    return geo::vect::vector_cend(v);
+  }
 
-  template<class CoordSystem, class Tag>
+  template <class CoordSystem, class Tag>
   decltype(auto) cend(ROOT::Math::DisplacementVector3D<CoordSystem, Tag> const& v)
-    { return geo::vect::vector_cend(v); }
+  {
+    return geo::vect::vector_cend(v);
+  }
 
   // --- END 3D vectors --------------------------------------------------------
 
-
   // --- BEGIN 4D vectors ------------------------------------------------------
-  template<class CoordSystem>
+  template <class CoordSystem>
   decltype(auto) begin(ROOT::Math::LorentzVector<CoordSystem> const& v)
-    { return geo::vect::vector_cbegin(v); }
+  {
+    return geo::vect::vector_cbegin(v);
+  }
 
-  template<class CoordSystem>
+  template <class CoordSystem>
   decltype(auto) cbegin(ROOT::Math::LorentzVector<CoordSystem> const& v)
-    { return geo::vect::vector_cbegin(v); }
+  {
+    return geo::vect::vector_cbegin(v);
+  }
 
-  template<class CoordSystem>
+  template <class CoordSystem>
   decltype(auto) end(ROOT::Math::LorentzVector<CoordSystem> const& v)
-    { return geo::vect::vector_cend(v); }
+  {
+    return geo::vect::vector_cend(v);
+  }
 
-  template<class CoordSystem>
+  template <class CoordSystem>
   decltype(auto) cend(ROOT::Math::LorentzVector<CoordSystem> const& v)
-    { return geo::vect::vector_cend(v); }
+  {
+    return geo::vect::vector_cend(v);
+  }
 
   // --- END 4D vectors --------------------------------------------------------
-
 
   /// @}
 
@@ -1643,12 +1776,14 @@ namespace geo::vect {
 
   //----------------------------------------------------------------------------
   template <>
-  inline auto norm(geo::Vector_t const& v) { return v.R(); }
+  inline auto norm(geo::Vector_t const& v)
+  {
+    return v.R();
+  }
 
   //----------------------------------------------------------------------------
 
 } // namespace geo::vect
-
 
 //------------------------------------------------------------------------------
 //---  template implementation
@@ -1656,45 +1791,39 @@ namespace geo::vect {
 namespace geo::vect::details {
 
   //----------------------------------------------------------------------------
-  template <typename> struct AlwaysFalse: std::false_type {};
-
+  template <typename>
+  struct AlwaysFalse : std::false_type {};
 
   // constexpr variant of forward (from StackExchange)
   template <typename T>
   constexpr T&& constexpr_forward(std::remove_reference_t<T>& t)
-    { return static_cast<T&&>(t); }
+  {
+    return static_cast<T&&>(t);
+  }
 
-  template<typename T>
+  template <typename T>
   constexpr T&& constexpr_forward(std::remove_reference_t<T>&& t)
-    {
-      static_assert(!std::is_lvalue_reference<T>(),
-        "template argument substituting T is an lvalue reference type");
-      return static_cast<T&&>(t);
-    }
+  {
+    static_assert(!std::is_lvalue_reference<T>(),
+                  "template argument substituting T is an lvalue reference type");
+    return static_cast<T&&>(t);
+  }
 
   //----------------------------------------------------------------------------
   template <typename Vector, typename /* = void */>
   struct DimensionImpl
     : public std::integral_constant<
-      unsigned int,
-      HasT<Vector>()? 4U
-        : HasZ<Vector>()? 3U
-        : HasY<Vector>()? 2U
-        : HasX<Vector>()? 1U
-        : 0U
-      >
-    {};
+        unsigned int,
+        HasT<Vector>() ? 4U :
+                         HasZ<Vector>() ? 3U : HasY<Vector>() ? 2U : HasX<Vector>() ? 1U : 0U> {};
 
   template <typename Array>
-  struct DimensionImpl<Array, std::enable_if_t<(std::extent_v<Array> > 0)>>
-    : public std::integral_constant<unsigned int, std::extent_v<Array>>
-    {};
+  struct DimensionImpl<Array, std::enable_if_t<(std::extent_v<Array>> 0)>>
+    : public std::integral_constant<unsigned int, std::extent_v<Array>> {};
 
   template <typename T, std::size_t Dim>
   struct DimensionImpl<std::array<T, Dim>, void>
-    : public std::integral_constant<unsigned int, Dim>
-    {};
-
+    : public std::integral_constant<unsigned int, Dim> {};
 
   //----------------------------------------------------------------------------
   /// Type of sequence of indices up to `Vector` size.
@@ -1702,41 +1831,48 @@ namespace geo::vect::details {
   using VectorIndices_t = std::make_index_sequence<dimension<Vector>()>;
 
   template <typename Vector>
-  constexpr auto makeVectorIndices() { return VectorIndices_t<Vector>{}; }
+  constexpr auto makeVectorIndices()
+  {
+    return VectorIndices_t<Vector>{};
+  }
 
   template <typename Vector>
   constexpr auto makeVectorIndices(Vector&&)
-    { return makeVectorIndices<Vector>(); }
-
+  {
+    return makeVectorIndices<Vector>();
+  }
 
   template <typename T, T... Indices>
   constexpr auto makeIndexSeqImpl(std::integer_sequence<T, Indices...>)
-    // BUG the double brace syntax is required to work around clang bug 21629
-    // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-    { return std::array<T, sizeof...(Indices)>{{ Indices... }}; }
+  // BUG the double brace syntax is required to work around clang bug 21629
+  // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+  {
+    return std::array<T, sizeof...(Indices)>{{Indices...}};
+  }
 
   // fill a sequence object with the first `N` values of type `T`.
   template <typename T, T N>
   constexpr auto makeIndexSeq()
-    { return makeIndexSeqImpl<T>(std::make_integer_sequence<T, N>{}); }
-
+  {
+    return makeIndexSeqImpl<T>(std::make_integer_sequence<T, N>{});
+  }
 
   //----------------------------------------------------------------------------
   template <std::size_t I, typename Data>
-  constexpr auto accessElement(Data&& data) { return data[I]; }
+  constexpr auto accessElement(Data&& data)
+  {
+    return data[I];
+  }
 
   template <typename Vector, typename Coords, std::size_t... Indices>
-  constexpr Vector makeFromCoordsImpl
-    (Coords&& coords, std::index_sequence<Indices...>)
-    {
-      return
-        { accessElement<Indices>(constexpr_forward<Coords>(coords))... };
-    }
-
+  constexpr Vector makeFromCoordsImpl(Coords&& coords, std::index_sequence<Indices...>)
+  {
+    return {accessElement<Indices>(constexpr_forward<Coords>(coords))...};
+  }
 
   //----------------------------------------------------------------------------
   template <typename Vector>
-  constexpr CoordManager_t<Vector> NoCoordManager{ nullptr, nullptr };
+  constexpr CoordManager_t<Vector> NoCoordManager{nullptr, nullptr};
 
   template <typename Vector, unsigned int Dim = dimension<Vector>()>
   struct CoordManagerImpl;
@@ -1744,37 +1880,35 @@ namespace geo::vect::details {
   template <typename Vector>
   struct CoordManagerImpl<Vector, 1U> {
     static auto get(unsigned int n) noexcept
-      { return (n == 0)? XcoordManager<Vector>: NoCoordManager<Vector>; }
+    {
+      return (n == 0) ? XcoordManager<Vector> : NoCoordManager<Vector>;
+    }
   }; // CoordManagerImpl<1U>
 
   template <typename Vector>
   struct CoordManagerImpl<Vector, 2U> {
     static auto get(unsigned int n) noexcept
-      {
-        return (n == 1)
-          ? YcoordManager<Vector>: CoordManagerImpl<Vector, 1U>::get(n);
-      }
+    {
+      return (n == 1) ? YcoordManager<Vector> : CoordManagerImpl<Vector, 1U>::get(n);
+    }
   }; // CoordManagerImpl<2U>
 
   template <typename Vector>
   struct CoordManagerImpl<Vector, 3U> {
     static auto get(unsigned int n) noexcept
-      {
-        return (n == 2)
-          ? ZcoordManager<Vector>: CoordManagerImpl<Vector, 2U>::get(n);
-      }
+    {
+      return (n == 2) ? ZcoordManager<Vector> : CoordManagerImpl<Vector, 2U>::get(n);
+    }
   }; // CoordManagerImpl<3U>
 
   template <typename Vector>
   struct CoordManagerImpl<Vector, 4U> {
     static auto get(unsigned int n) noexcept
-      {
-        return (n == 3)
-          ? TcoordManager<Vector>: CoordManagerImpl<Vector, 3U>::get(n);
-      }
+    {
+      return (n == 3) ? TcoordManager<Vector> : CoordManagerImpl<Vector, 3U>::get(n);
+    }
 
   }; // CoordManagerImpl<4U>
-
 
   //----------------------------------------------------------------------------
   template <typename Vector, unsigned int N>
@@ -1791,59 +1925,43 @@ namespace geo::vect::details {
   struct CoordManagersImpl;
 
   template <typename Vector>
-  struct CoordManagersImpl<Vector, 2U>
-    : private CoordManagersImplBase<Vector, 2U>
-  {
+  struct CoordManagersImpl<Vector, 2U> : private CoordManagersImplBase<Vector, 2U> {
     using Base_t = CoordManagersImplBase<Vector, 2U>;
     using typename Base_t::Return_t;
     static constexpr Return_t get()
-      {
-        // BUG the double brace syntax is required to work around clang bug 21629
-        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-        return {{
-            XcoordManager<Vector>
-          , YcoordManager<Vector>
-        }};
-      }
+    {
+      // BUG the double brace syntax is required to work around clang bug 21629
+      // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+      return {{XcoordManager<Vector>, YcoordManager<Vector>}};
+    }
   }; // CoordManagersImpl<2U>
 
   template <typename Vector>
-  struct CoordManagersImpl<Vector, 3U>
-    : private CoordManagersImplBase<Vector, 3U>
-  {
+  struct CoordManagersImpl<Vector, 3U> : private CoordManagersImplBase<Vector, 3U> {
     using Base_t = CoordManagersImplBase<Vector, 3U>;
     using typename Base_t::Return_t;
     static constexpr Return_t get()
-      {
-        // BUG the double brace syntax is required to work around clang bug 21629
-        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-        return {{
-            XcoordManager<Vector>
-          , YcoordManager<Vector>
-          , ZcoordManager<Vector>
-        }};
-      }
+    {
+      // BUG the double brace syntax is required to work around clang bug 21629
+      // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+      return {{XcoordManager<Vector>, YcoordManager<Vector>, ZcoordManager<Vector>}};
+    }
   }; // CoordManagersImpl<3U>
 
   template <typename Vector>
-  struct CoordManagersImpl<Vector, 4U>
-    : private CoordManagersImplBase<Vector, 4U>
-  {
+  struct CoordManagersImpl<Vector, 4U> : private CoordManagersImplBase<Vector, 4U> {
     using Base_t = CoordManagersImplBase<Vector, 4U>;
     using typename Base_t::Return_t;
     static constexpr Return_t get()
-      {
-        // BUG the double brace syntax is required to work around clang bug 21629
-        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-        return {{
-            XcoordManager<Vector>
-          , YcoordManager<Vector>
-          , ZcoordManager<Vector>
-          , TcoordManager<Vector>
-        }};
-      }
+    {
+      // BUG the double brace syntax is required to work around clang bug 21629
+      // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+      return {{XcoordManager<Vector>,
+               YcoordManager<Vector>,
+               ZcoordManager<Vector>,
+               TcoordManager<Vector>}};
+    }
   }; // CoordManagersImpl<4U>
-
 
   //----------------------------------------------------------------------------
   template <typename Vector, unsigned int N>
@@ -1860,98 +1978,67 @@ namespace geo::vect::details {
   struct BindCoordManagersImpl;
 
   template <typename Vector>
-  struct BindCoordManagersImpl<Vector, 2U>
-    : private BindCoordManagersImplBase<Vector, 2U>
-  {
+  struct BindCoordManagersImpl<Vector, 2U> : private BindCoordManagersImplBase<Vector, 2U> {
     using Base_t = CoordManagersImplBase<Vector, 2U>;
     using typename Base_t::Return_t;
     static Return_t bind(Vector& v)
-      {
-        // BUG the double brace syntax is required to work around clang bug 21629
-        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-        return {{
-            Xcoord(v)
-          , Ycoord(v)
-        }};
-      }
+    {
+      // BUG the double brace syntax is required to work around clang bug 21629
+      // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+      return {{Xcoord(v), Ycoord(v)}};
+    }
   }; // BindCoordManagersImpl<2U>
 
   template <typename Vector>
-  struct BindCoordManagersImpl<Vector, 3U>
-    : private BindCoordManagersImplBase<Vector, 3U>
-  {
+  struct BindCoordManagersImpl<Vector, 3U> : private BindCoordManagersImplBase<Vector, 3U> {
     using Base_t = BindCoordManagersImplBase<Vector, 3U>;
     using typename Base_t::Return_t;
     static Return_t bind(Vector& v)
-      {
-        // BUG the double brace syntax is required to work around clang bug 21629
-        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-        return {{
-            Xcoord(v)
-          , Ycoord(v)
-          , Zcoord(v)
-        }};
-      }
+    {
+      // BUG the double brace syntax is required to work around clang bug 21629
+      // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+      return {{Xcoord(v), Ycoord(v), Zcoord(v)}};
+    }
   }; // BindCoordManagersImpl<3U>
 
   template <typename Vector>
-  struct BindCoordManagersImpl<Vector, 4U>
-    : private BindCoordManagersImplBase<Vector, 4U>
-  {
+  struct BindCoordManagersImpl<Vector, 4U> : private BindCoordManagersImplBase<Vector, 4U> {
     using Base_t = BindCoordManagersImplBase<Vector, 4U>;
     using typename Base_t::Return_t;
     static Return_t bind(Vector& v)
-      {
-        // BUG the double brace syntax is required to work around clang bug 21629
-        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-        return {{
-            Xcoord(v)
-          , Ycoord(v)
-          , Zcoord(v)
-          , Tcoord(v)
-        }};
-      }
+    {
+      // BUG the double brace syntax is required to work around clang bug 21629
+      // (https://bugs.llvm.org/show_bug.cgi?id=21629)
+      return {{Xcoord(v), Ycoord(v), Zcoord(v), Tcoord(v)}};
+    }
   }; // BindCoordManagersImpl<4U>
 
-
   //----------------------------------------------------------------------------
-  template<typename Dest, typename Source>
+  template <typename Dest, typename Source>
   struct ConvertToImplBase {
     static_assert(dimension<Source>() == dimension<Dest>(),
-      "Source and destination vectors must have the same dimension.");
+                  "Source and destination vectors must have the same dimension.");
   }; // struct ConvertToImplBase
 
-
   template <typename Dest, typename Source, unsigned int Dim>
-  struct ConvertArrayTo: private ConvertToImplBase<Dest, Source>
-  {
-    static_assert
-      (std::is_arithmetic_v<std::decay_t<decltype(std::declval<Source>()[0])>>);
-    static Dest convert(Source const& v)
-      { return geo::vect::makeFromCoords<Dest>(v); }
+  struct ConvertArrayTo : private ConvertToImplBase<Dest, Source> {
+    static_assert(std::is_arithmetic_v<std::decay_t<decltype(std::declval<Source>()[0])>>);
+    static Dest convert(Source const& v) { return geo::vect::makeFromCoords<Dest>(v); }
   }; // struct ConvertArrayTo
-
 
   // will handle cases with specific dimensionality
   template <typename Dest, typename Source, unsigned int Dim>
   struct ConvertToImplDim;
 
-
   template <typename Dest, typename Source>
-  struct ConvertToImpl
-    : public ConvertToImplDim<Dest, Source, dimension<Source>()>
-    {};
-
+  struct ConvertToImpl : public ConvertToImplDim<Dest, Source, dimension<Source>()> {};
 
   template <typename Dest, typename T, std::size_t Dim>
   struct ConvertToImpl<Dest, std::array<T, Dim>>
-    : public ConvertArrayTo<Dest, std::array<T, Dim>, Dim>
-    {};
+    : public ConvertArrayTo<Dest, std::array<T, Dim>, Dim> {};
 
   template <typename Dest, typename T, std::size_t Dim>
-  struct ConvertToImpl<Dest, T[Dim]>
-    : public ConvertArrayTo<Dest, T[Dim], Dim>
-    {};
+  struct ConvertToImpl<Dest, T[Dim]> : public ConvertArrayTo<Dest, T[Dim], Dim> {};
 
   // special special implementation for T*, since we can't guess its dimension
   template <typename Dest, typename T>
@@ -1960,44 +2047,33 @@ namespace geo::vect::details {
     static Dest convert(T* v) { return geo::vect::makeFromCoords<Dest>(v); }
   }; // struct ConvertToImpl<T*>
 
-
   // handled cases with specific dimensionality
   template <typename Dest, typename Source, unsigned int Dim>
   struct ConvertToImplDim {
     // trivial to do: open a feature request!
-    static_assert(
-      AlwaysFalse<Dest>(),
-      "This vector dimensionality is not implemented yet."
-      );
+    static_assert(AlwaysFalse<Dest>(), "This vector dimensionality is not implemented yet.");
   }; // struct ConvertToImplDim
 
   template <typename Dest, typename Source>
-  struct ConvertToImplDim<Dest, Source, 2U>
-    : private ConvertToImplBase<Dest, Source>
-  {
-    static Dest convert(Source const& v)
-      { return { Xcoord(v)(), Ycoord(v)() }; }
+  struct ConvertToImplDim<Dest, Source, 2U> : private ConvertToImplBase<Dest, Source> {
+    static Dest convert(Source const& v) { return {Xcoord(v)(), Ycoord(v)()}; }
   }; // struct ConvertToImplDim<2U>
 
   template <typename Dest, typename Source>
-  struct ConvertToImplDim<Dest, Source, 3U>
-    : private ConvertToImplBase<Dest, Source>
-  {
-    static Dest convert(Source const& v)
-      { return { Xcoord(v)(), Ycoord(v)(), Zcoord(v)() }; }
+  struct ConvertToImplDim<Dest, Source, 3U> : private ConvertToImplBase<Dest, Source> {
+    static Dest convert(Source const& v) { return {Xcoord(v)(), Ycoord(v)(), Zcoord(v)()}; }
   }; // struct ConvertToImplDim<3U>
 
   template <typename Dest, typename Source>
-  struct ConvertToImplDim<Dest, Source, 4U>
-    : private ConvertToImplBase<Dest, Source>
-  {
+  struct ConvertToImplDim<Dest, Source, 4U> : private ConvertToImplBase<Dest, Source> {
     static Dest convert(Source const& v)
-      { return { Xcoord(v)(), Ycoord(v)(), Zcoord(v)(), Tcoord(v)() }; }
+    {
+      return {Xcoord(v)(), Ycoord(v)(), Zcoord(v)(), Tcoord(v)()};
+    }
   }; // struct ConvertToImplDim<4U>
 
-
   template <typename Dest, typename Source>
-  struct ConvertToDispatcher: public ConvertToImpl<Dest, Source> {};
+  struct ConvertToDispatcher : public ConvertToImpl<Dest, Source> {};
 
   // special pass-through case
   template <typename Vector>
@@ -2005,137 +2081,141 @@ namespace geo::vect::details {
     static constexpr decltype(auto) convert(Vector const& v) { return v; }
   }; // struct ConvertToDispatcher<pass through>
 
-
   //----------------------------------------------------------------------------
   template <typename Point, std::size_t... I>
   bool isfiniteImpl(Point const& point, std::index_sequence<I...>)
-    { return extended_and(std::isfinite(coord(point, I).get())...); }
+  {
+    return extended_and(std::isfinite(coord(point, I).get())...);
+  }
 
   //----------------------------------------------------------------------------
 
 } // namespace geo::vect::details
 
-
 //------------------------------------------------------------------------------
 template <typename Vector>
-constexpr std::array<std::size_t, geo::vect::dimension<Vector>()>
-  geo::vect::indices()
+constexpr std::array<std::size_t, geo::vect::dimension<Vector>()> geo::vect::indices()
 {
   return details::makeIndexSeq<std::size_t, dimension<Vector>()>();
 }
 
 template <typename Vector>
 constexpr auto geo::vect::indices(Vector const&) -> decltype(indices<Vector>())
-  { return indices<Vector>(); }
-
+{
+  return indices<Vector>();
+}
 
 //------------------------------------------------------------------------
 template <typename Vector, typename Coords>
-constexpr Vector geo::vect::makeFromCoords(Coords&& coords) {
+constexpr Vector geo::vect::makeFromCoords(Coords&& coords)
+{
   using namespace geo::vect::details;
-  return makeFromCoordsImpl<Vector>
-    (constexpr_forward<Coords>(coords), makeVectorIndices<Vector>());
+  return makeFromCoordsImpl<Vector>(constexpr_forward<Coords>(coords), makeVectorIndices<Vector>());
 } // geo::vect::makeFromCoords()
-
 
 //------------------------------------------------------------------------------
 template <typename Vector>
 constexpr auto geo::vect::coordManager(unsigned int n)
-  { return details::CoordManagerImpl<Vector>::get(n); }
-
+{
+  return details::CoordManagerImpl<Vector>::get(n);
+}
 
 //------------------------------------------------------------------------------
 template <typename Vector>
-auto geo::vect::coord(Vector& v, unsigned int n) noexcept {
+auto geo::vect::coord(Vector& v, unsigned int n) noexcept
+{
   return vect::bindCoord<Vector>(v, coordManager<Vector>(n));
 }
 
-
 //------------------------------------------------------------------------
 template <typename Vector, typename Coords>
-unsigned int geo::vect::fillCoords(Coords& dest, Vector const& src) {
+unsigned int geo::vect::fillCoords(Coords& dest, Vector const& src)
+{
   // this is simpler than makeFromCoords() because doesn't attempt constexpr
   for (std::size_t i = 0; i < geo::vect::dimension(src); ++i)
     dest[i] = geo::vect::coord(src, i);
   return geo::vect::dimension(src);
 } // geo::vect::fillCoords()
 
-
 //------------------------------------------------------------------------------
 template <typename Vector>
-constexpr auto geo::vect::coordManagers() {
+constexpr auto geo::vect::coordManagers()
+{
   using PlainVector = std::remove_reference_t<Vector>;
-  return
-    details::CoordManagersImpl<PlainVector, dimension<PlainVector>()>::get();
+  return details::CoordManagersImpl<PlainVector, dimension<PlainVector>()>::get();
 } // geo::vect::coordManagers()
 
 template <typename Vector>
 constexpr auto geo::vect::coordManagers(Vector&&)
-  { return coordManagers<Vector>(); }
-
+{
+  return coordManagers<Vector>();
+}
 
 template <typename Vector>
-constexpr auto geo::vect::coordReaders() {
+constexpr auto geo::vect::coordReaders()
+{
   using ConstVector = std::add_const_t<std::remove_reference_t<Vector>>;
-  return
-    details::CoordManagersImpl<ConstVector, dimension<ConstVector>()>::get();
+  return details::CoordManagersImpl<ConstVector, dimension<ConstVector>()>::get();
 } // geo::vect::coordReaders()
 
 template <typename Vector>
 constexpr auto geo::vect::coordReaders(Vector&&)
-  { return coordReaders<Vector>(); }
-
+{
+  return coordReaders<Vector>();
+}
 
 //------------------------------------------------------------------------------
 template <typename Vector>
-constexpr auto geo::vect::bindCoordManagers(Vector& v) {
+constexpr auto geo::vect::bindCoordManagers(Vector& v)
+{
   return details::BindCoordManagersImpl<Vector, dimension<Vector>()>::bind(v);
 } // geo::vect::bindCoordManagers()
 
-
 template <typename Vector>
-constexpr auto geo::vect::bindCoordReaders(Vector const& v) {
+constexpr auto geo::vect::bindCoordReaders(Vector const& v)
+{
   using ConstVector = std::add_const_t<std::remove_reference_t<Vector>>;
-  return details::BindCoordManagersImpl<ConstVector, dimension<ConstVector>()>
-    ::bind(v);
+  return details::BindCoordManagersImpl<ConstVector, dimension<ConstVector>()>::bind(v);
 } // geo::vect::bindCoordReaders()
-
 
 //------------------------------------------------------------------------------
 template <typename Dest, typename Source>
 Dest geo::vect::convertTo(Source const& v)
-  { return details::ConvertToDispatcher<Dest, Source>::convert(v); }
-
+{
+  return details::ConvertToDispatcher<Dest, Source>::convert(v);
+}
 
 //----------------------------------------------------------------------------
 template <typename Dest, typename Source>
-std::vector<Dest> geo::vect::convertCollTo(std::vector<Source> const& coll) {
+std::vector<Dest> geo::vect::convertCollTo(std::vector<Source> const& coll)
+{
 
   std::vector<Dest> dest;
   dest.reserve(coll.size());
-  std::transform(coll.begin(), coll.end(), std::back_inserter(dest),
-    geo::vect::convertTo<Dest, Source>);
+  std::transform(
+    coll.begin(), coll.end(), std::back_inserter(dest), geo::vect::convertTo<Dest, Source>);
   return dest;
 
 } // geo::vect::convertCollTo()
 
-
 //------------------------------------------------------------------------
 template <typename Vector, typename Pred>
-Vector geo::vect::transformCoords(Vector const& v, Pred&& pred) {
+Vector geo::vect::transformCoords(Vector const& v, Pred&& pred)
+{
   details::CoordinateArray_t<Vector> values;
   unsigned int i = 0;
-  for (auto c: bindCoordReaders(v)) values[i++] = pred(c());
+  for (auto c : bindCoordReaders(v))
+    values[i++] = pred(c());
   return makeFromCoords<Vector>(values);
 } // geo::vect::transformCoords()
-
 
 //------------------------------------------------------------------------------
 template <typename Vector>
 bool geo::vect::isfinite(Vector const& v)
-  { return details::isfiniteImpl(v, details::makeVectorIndices<Vector>()); }
+{
+  return details::isfiniteImpl(v, details::makeVectorIndices<Vector>());
+}
 
 //------------------------------------------------------------------------------
-
 
 #endif // LARCOREOBJ_SIMPLETYPESANDCONSTANTS_GEO_VECTORS_UTILS_H

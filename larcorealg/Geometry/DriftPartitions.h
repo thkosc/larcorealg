@@ -12,8 +12,8 @@
 #define LARCOREALG_GEOMETRY_DRIFTPARTITIONS_H
 
 // LArSoft libraries
-#include "larcorealg/Geometry/Partitions.h"
 #include "larcorealg/Geometry/Decomposer.h"
+#include "larcorealg/Geometry/Partitions.h"
 #include "larcorealg/Geometry/SimpleGeo.h"
 #include "larcorealg/Geometry/TPCGeo.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
@@ -23,14 +23,13 @@
 #include "Math/GenVector/DisplacementVector2D.h"
 
 // C/C++ standard libraries
-#include <vector>
-#include <string>
+#include <algorithm>  // std::upper_bound()
 #include <functional> // std::less()
-#include <algorithm> // std::upper_bound()
-#include <utility> // std::forward()
-#include <memory> // std::unique_ptr()
+#include <memory>     // std::unique_ptr()
+#include <string>
 #include <type_traits> // std::decay_t<>, std::declval()
-
+#include <utility>     // std::forward()
+#include <vector>
 
 namespace geo {
 
@@ -43,16 +42,15 @@ namespace geo {
     template <>
     struct PartitionDataDescriber<geo::TPCGeo> {
       template <typename Stream>
-      PartitionDataDescriber(
-        Stream&& out, geo::TPCGeo const* pTPC,
-        std::string indent = "", std::string firstIndent = ""
-        );
+      PartitionDataDescriber(Stream&& out,
+                             geo::TPCGeo const* pTPC,
+                             std::string indent = "",
+                             std::string firstIndent = "");
     }; // PartitionDataDescriber(TPCGeo)
 
     //--------------------------------------------------------------------------
 
   } // namespace part
-
 
   namespace details {
 
@@ -60,21 +58,21 @@ namespace geo {
     /// Function translation of `std::less`.
     template <typename T>
     auto static_less(T a, T b)
-      { return std::less<T>()(a, b); }
+    {
+      return std::less<T>()(a, b);
+    }
 
     //--------------------------------------------------------------------------
     /// Class managing comparisons between `T` objects via a `Key` key.
-    template <
-      typename T, typename Key,
-      Key KeyExtractor(T const&),
-      bool KeyComparer(Key, Key) = static_less<Key>
-      >
+    template <typename T,
+              typename Key,
+              Key KeyExtractor(T const&),
+              bool KeyComparer(Key, Key) = static_less<Key>>
     struct Comparer;
 
     //--------------------------------------------------------------------------
 
   } // namespace details
-
 
   // --- BEGIN -----------------------------------------------------------------
   /// @ingroup Geometry
@@ -88,7 +86,7 @@ namespace geo {
   */
   class DriftPartitions {
 
-      public:
+  public:
     /// Type of TPC collection for the partition of a single drift volume.
     using TPCPartition_t = geo::part::Partition<geo::TPCGeo const>;
 
@@ -103,24 +101,20 @@ namespace geo {
       Range_t driftCoverage;
 
       /// Constructor: imports the specified partition and drift coverage range.
-      DriftVolume_t
-        (std::unique_ptr<TPCPartition_t>&& part, Range_t const& cover)
-        : partition(std::move(part)), driftCoverage(cover) {}
+      DriftVolume_t(std::unique_ptr<TPCPartition_t>&& part, Range_t const& cover)
+        : partition(std::move(part)), driftCoverage(cover)
+      {}
 
       /// Returns whether this drift volume covers specified drift coordinate.
-      bool coversDrift(double drift) const
-        { return driftCoverage.contains(drift); }
+      bool coversDrift(double drift) const { return driftCoverage.contains(drift); }
 
       /// Returns the drift coordinate of the specified partition.
-      static double Position(DriftVolume_t const& part)
-        { return part.driftCoverage.lower; }
+      static double Position(DriftVolume_t const& part) { return part.driftCoverage.lower; }
 
       /// Type of static object to compare `DriftVolume_t` objects.
-      using Comparer_t
-        = details::Comparer<DriftVolume_t, double, DriftVolume_t::Position>;
+      using Comparer_t = details::Comparer<DriftVolume_t, double, DriftVolume_t::Position>;
 
     }; // DriftPartitions::DriftVolume_t
-
 
     /// Type representing a position in 3D space.
     using Position_t = geo::Point_t;
@@ -129,8 +123,7 @@ namespace geo {
     using Direction_t = geo::Vector_t;
 
     /// Type representing a position in the 2D space.
-    using Projection_t
-      = ROOT::Math::DisplacementVector2D<ROOT::Math::Cartesian2D<double>>;
+    using Projection_t = ROOT::Math::DisplacementVector2D<ROOT::Math::Cartesian2D<double>>;
 
     /// Type representing the drift direction (assumed to have norm 1).
     using DriftDir_t = Direction_t;
@@ -138,25 +131,25 @@ namespace geo {
     /// Object used to compute projections on drift volume readout plane.
     using Decomposer_t = geo::Decomposer<Direction_t, Position_t, Projection_t>;
 
-
     /// All drift volumes, sorted by position.
     std::vector<DriftVolume_t> volumes;
     Decomposer_t decomposer; ///< Decomposition on drift, width and depth axes.
 
     /// Constructor: no partition, but sets the main "drift" direction.
-    explicit DriftPartitions(Decomposer_t const& decomp): decomposer(decomp) {}
+    explicit DriftPartitions(Decomposer_t const& decomp) : decomposer(decomp) {}
 
     /// @{
     /// @name Drift volume lookup.
 
     /// Returns drift coordinate (in the drift-volume-specific frame) of `pos`.
-    double driftCoord(Position_t const& pos) const
-      { return decomposer.PointNormalComponent(pos); }
+    double driftCoord(Position_t const& pos) const { return decomposer.PointNormalComponent(pos); }
 
     /// Returns which partition contains the specified position.
     /// @return volume containing the specified position (`nullptr` if none)
     DriftVolume_t const* driftVolumeAt(Position_t const& pos) const
-      { return driftVolumeAt(driftCoord(pos)); }
+    {
+      return driftVolumeAt(driftCoord(pos));
+    }
 
     /// Returns which volume contains the specified drift (`nullptr` if none).
     DriftVolume_t const* driftVolumeAt(double drift) const;
@@ -173,9 +166,7 @@ namespace geo {
     /// Adds the specified partition as a new drift volume.
     void addPartition(std::unique_ptr<TPCPartition_t>&& part);
 
-
-      private:
-
+  private:
     /// Returns an iterator to the drift volume starting after `pos`.
     std::vector<DriftVolume_t>::iterator volumeAfter(double pos);
 
@@ -186,7 +177,6 @@ namespace geo {
     Range_t computeCoverage(TPCPartition_t const& TPCpart) const;
 
   }; // class DriftPartitions
-
 
   //----------------------------------------------------------------------------
   /**
@@ -210,12 +200,10 @@ namespace geo {
    */
   DriftPartitions buildDriftVolumes(geo::CryostatGeo const& cryo);
 
-
   /// @}
   // --- END -------------------------------------------------------------------
 
 } // namespace geo
-
 
 //------------------------------------------------------------------------------
 //---  inline and template implementation
@@ -226,24 +214,24 @@ namespace geo {
 
     //--------------------------------------------------------------------------
     // TODO use SorterByKey instead?
-    template <
-      typename T, typename Key,
-      Key KeyExtractor(T const&),
-      bool KeyComparer(Key, Key) /* = static_less<Key> */
-      >
+    template <typename T,
+              typename Key,
+              Key KeyExtractor(T const&),
+              bool KeyComparer(Key, Key) /* = static_less<Key> */
+              >
     struct Comparer {
-      using Key_t = Key; ///< Type of comparison key.
+      using Key_t = Key;  ///< Type of comparison key.
       using Object_t = T; ///< Type of object to be compared.
 
-      bool operator() (Key_t a, Key_t b) const { return key_comp(a, b); }
-      bool operator() (Object_t const& a, Key_t b) const
-        { return this->operator() (key(a), b); }
-      bool operator() (Key_t a, Object_t const& b) const
-        { return this->operator() (a, key(b)); }
-      bool operator() (Object_t const& a, Object_t const& b) const
-        { return this->operator() (key(a), b); }
+      bool operator()(Key_t a, Key_t b) const { return key_comp(a, b); }
+      bool operator()(Object_t const& a, Key_t b) const { return this->operator()(key(a), b); }
+      bool operator()(Key_t a, Object_t const& b) const { return this->operator()(a, key(b)); }
+      bool operator()(Object_t const& a, Object_t const& b) const
+      {
+        return this->operator()(key(a), b);
+      }
 
-        private:
+    private:
       static auto key(T const& v) { return KeyExtractor(v); }
       static auto key_comp(Key_t a, Key_t b) { return KeyComparer(a, b); }
 
@@ -254,13 +242,14 @@ namespace geo {
   } // namespace details
 } // namespace geo
 
-
 //------------------------------------------------------------------------------
 template <typename Stream>
 geo::part::PartitionDataDescriber<geo::TPCGeo>::PartitionDataDescriber(
-  Stream&& out, geo::TPCGeo const* pTPC,
-  std::string indent /* = "" */, std::string firstIndent /* = "" */
-  )
+  Stream&& out,
+  geo::TPCGeo const* pTPC,
+  std::string indent /* = "" */,
+  std::string firstIndent /* = "" */
+)
 {
   out << firstIndent;
   if (!pTPC) {
@@ -272,38 +261,32 @@ geo::part::PartitionDataDescriber<geo::TPCGeo>::PartitionDataDescriber(
   pTPC->PrintTPCInfo(std::forward<Stream>(out), indent, 2U);
 } // geo::part::PartitionDataDescriber<TPCGeo>::PartitionDataDescriber()
 
-
 //------------------------------------------------------------------------------
 //--- geo::DriftPartitions
 //---
-inline auto geo::DriftPartitions::volumeAfter(double pos)
-  -> std::vector<DriftVolume_t>::iterator
+inline auto geo::DriftPartitions::volumeAfter(double pos) -> std::vector<DriftVolume_t>::iterator
 {
-  return std::upper_bound
-    (volumes.begin(), volumes.end(), pos, DriftVolume_t::Comparer_t());
+  return std::upper_bound(volumes.begin(), volumes.end(), pos, DriftVolume_t::Comparer_t());
 } // geo::DriftPartitions::volumeAfter()
 
 inline auto geo::DriftPartitions::volumeAfter(double pos) const
   -> std::vector<DriftVolume_t>::const_iterator
 {
-  return std::upper_bound
-    (volumes.begin(), volumes.end(), pos, DriftVolume_t::Comparer_t());
+  return std::upper_bound(volumes.begin(), volumes.end(), pos, DriftVolume_t::Comparer_t());
 } // geo::DriftPartitions::volumeAfter()
-
 
 //------------------------------------------------------------------------------
 template <typename Stream>
-void geo::DriftPartitions::print(Stream&& out) const {
+void geo::DriftPartitions::print(Stream&& out) const
+{
 
   out << volumes.size() << " drift volume partitions:";
-  for (auto const& driftVol: volumes) {
-    out << "\n[" << driftVol.driftCoverage.lower
-      << " -- " << driftVol.driftCoverage.upper << "]: "
-      << driftVol.partition->describe("  ", "");
+  for (auto const& driftVol : volumes) {
+    out << "\n[" << driftVol.driftCoverage.lower << " -- " << driftVol.driftCoverage.upper
+        << "]: " << driftVol.partition->describe("  ", "");
   } // for
   out << "\n";
 } // geo::DriftPartitions::print()
-
 
 //------------------------------------------------------------------------------
 

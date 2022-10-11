@@ -11,34 +11,27 @@
  * This library is header-only and (likely) no additional linkage.
  */
 
-
 #ifndef LARCOREALG_GEOMETRY_LINECLOSESTPOINT_H
 #define LARCOREALG_GEOMETRY_LINECLOSESTPOINT_H
-
 
 // C++ standard library
 #include <utility> // std::pair<>
 
-
 // -----------------------------------------------------------------------------
 namespace geo {
-  
-  
+
   /// Data structure for return values of `LineClosestPointAndOffsets()`.
   template <typename Point>
   struct IntersectionPointAndOffsets {
-    
+
     Point point;    ///< Intersection point.
     double offset1; ///< Distance from reference point of first line.
     double offset2; ///< Distance from reference point of second line.
-    
+
     /// Helper to assign to `std::tie()`.
-    operator std::tuple<Point&, double&, double&>() noexcept
-      { return { point, offset1, offset2 }; }
-    
+    operator std::tuple<Point&, double&, double&>() noexcept { return {point, offset1, offset2}; }
+
   }; // IntersectionPointAndOffsets<>
-  
-  
 
   /**
    * @brief Returns the point of a line that is closest to a second line.
@@ -89,12 +82,11 @@ namespace geo {
    * 
    */
   template <typename Point, typename Vector>
-  IntersectionPointAndOffsets<Point> LineClosestPointAndOffsets(
-    Point const& startA, Vector const& dirA,
-    Point const& startB, Vector const& dirB
-    );
-  
-  
+  IntersectionPointAndOffsets<Point> LineClosestPointAndOffsets(Point const& startA,
+                                                                Vector const& dirA,
+                                                                Point const& startB,
+                                                                Vector const& dirB);
+
   /**
    * @brief Returns the point of a line that is closest to a second line.
    * @tparam Point a type describing a point
@@ -133,12 +125,11 @@ namespace geo {
    * 
    */
   template <typename Point, typename Vector>
-  Point LineClosestPoint(
-    Point const& startA, Vector const& dirA,
-    Point const& startB, Vector const& dirB
-    );
+  Point LineClosestPoint(Point const& startA,
+                         Vector const& dirA,
+                         Point const& startB,
+                         Vector const& dirB);
 
-  
   /**
    * @brief Returns the point of a line that is closest to a second line.
    * @tparam Point a type describing a point
@@ -183,11 +174,11 @@ namespace geo {
    */
   template <typename Point, typename UnitVector>
   IntersectionPointAndOffsets<Point> LineClosestPointAndOffsetsWithUnitVectors(
-    Point const& startA, UnitVector const& dirA,
-    Point const& startB, UnitVector const& dirB
-    );
-  
-  
+    Point const& startA,
+    UnitVector const& dirA,
+    Point const& startB,
+    UnitVector const& dirB);
+
   /**
    * @brief Returns the point of a line that is closest to a second line.
    * @tparam Point a type describing a point
@@ -235,14 +226,12 @@ namespace geo {
    * 
    */
   template <typename Point, typename UnitVector>
-  Point LineClosestPointWithUnitVectors(
-    Point const& startA, UnitVector const& dirA,
-    Point const& startB, UnitVector const& dirB
-    );
-  
-  
-} // namespace geo
+  Point LineClosestPointWithUnitVectors(Point const& startA,
+                                        UnitVector const& dirA,
+                                        Point const& startB,
+                                        UnitVector const& dirB);
 
+} // namespace geo
 
 // -----------------------------------------------------------------------------
 // ---  template implementation
@@ -250,6 +239,5 @@ namespace geo {
 #include "larcorealg/Geometry/LineClosestPoint.tcc"
 
 // -----------------------------------------------------------------------------
-
 
 #endif // LARCOREALG_GEOMETRY_LINECLOSESTPOINT_H
