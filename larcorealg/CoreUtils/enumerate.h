@@ -3,7 +3,7 @@
  * @brief  Definition of `util::enumerate()`.
  * @author Gianluca Petrillo (petrillo@slac.stanford.edu)
  * @date   April 14, 2019
- * 
+ *
  * This is a header-only library.
  */
 
@@ -30,7 +30,7 @@ namespace util {
    * @tparam Iterables type of objects to be iterated together
    * @param iterables all iterable objects to be iterated together
    * @return an object suitable for range-for loop
-   * 
+   *
    * In the range-for loop, at each iteration this object yields a `tuple` of
    * values, each of the type returned by dereferencing `begin(iterable)`.
    * For example:
@@ -38,12 +38,12 @@ namespace util {
    * constexpr std::size_t N = 4;
    * std::array<int, N> twice;
    * std::vector<double> thrice(N + 1);
-   * 
+   *
    * for (auto&& [i, a, b]: util::enumerate(twice, thrice)) {
-   *   
+   *
    *   a = 2 * i;
    *   b = 3.0 * i;
-   *   
+   *
    * } // for
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * In this example, `N` iterations will be run because that is the size of
@@ -52,14 +52,14 @@ namespace util {
    * is completely equivalent to the former one:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * for (auto&& [i, b, a]: util::enumerate<1U>(thrice, twice)) {
-   *   
+   *
    *   a = 2 * i;
    *   b = 3.0 * i;
-   *   
+   *
    * } // for
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * (the index is zero-based, so `1U` refers to the second argument).
-   * 
+   *
    */
   template <std::size_t Lead, typename... Iterables>
   auto enumerate(Iterables&&... iterables)

@@ -170,7 +170,7 @@ namespace geo {
      * @tparam ShapeObj type of ROOT geometry object representing the shape
      * @return whether this detector has the specified shape
      * @see `isShapeLike()`, `isBox()`, `isSphere()`, `isTube()`
-     * 
+     *
      * Example:
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
      * bool const isSphere = opDet.isShape<TGeoSphere>();
@@ -188,7 +188,7 @@ namespace geo {
      * @tparam ShapeObj type of ROOT geometry object representing the shape
      * @return whether this detector has a shape derived from the specified one
      * @see `isShape()`, `isBox()`, `isSphere()`, `isTube()`
-     * 
+     *
      * Example:
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
      * bool const isTubeLike = opDet.isShapeLike<TGeoTube>();

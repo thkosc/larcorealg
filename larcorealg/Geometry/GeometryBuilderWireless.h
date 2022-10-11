@@ -17,11 +17,11 @@ namespace geo {
 
   /**
    * @brief Geometry builder which ignores wires on wire planes.
-   * 
+   *
    * This builder works like `geo::GeometryBuilderStandard`, with the exception
    * that it does not consider the wires on the wire plane objects: wires may
    * or may not exist.
-   * 
+   *
    */
   class GeometryBuilderWireless : public geo::GeometryBuilderStandard {
 

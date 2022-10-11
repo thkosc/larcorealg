@@ -54,17 +54,17 @@ namespace geo {
  * @brief Class managing the mapping between geometry/readout ID and flat index.
  * @tparam IDType the geometry or readout ID to be managed
  * @tparam Index (default: `std::size_t`) type of flat index
- * 
+ *
  * This class maps multi-level ID's (e.g. `geo::WireID`, `readout::TPCsetID`)
  * into a single linear index.
- * 
+ *
  * The current implementation guarantees that the indices are ordered like their
  * respective IDs, and that there are no gaps so that each index up to `size()`
  * (excluded) corresponds to a "valid" ID.
  * The range of valid IDs is a hyperbox so that all elements of a certain level
  * have the same number of sub-elements (for examples, all planes have the same
  * number of wires, all valid from the mapping point of view).
- * 
+ *
  * Note that this mapping is typically not suitable for channel mapping, since
  * usually planes with different wire orientations may have different number of
  * wires, making some of the indices that are valid from the point of view of
@@ -81,7 +81,7 @@ public:
   /**
    * @brief Default constructor: all dimensions empty.
    * @see `resize()`
-   * 
+   *
    * The indexer must be resized before being of any use.
    */
   GeoIDmapper();
@@ -90,7 +90,7 @@ public:
    * @brief Prepares the indexer.
    * @param dims number of elements on all levels of the mapping
    * @see `resize()`
-   * 
+   *
    * The size of each dimension is specified by the corresponding number,
    * starting from the size of the outer dimension (cryostat).
    */
@@ -155,7 +155,7 @@ public:
    * @brief Resizes the mapping to accommodate the specified dimension sizes.
    * @param dims number of elements on all levels of the mapping
    * @see `resizeAs()`
-   * 
+   *
    * The size of each dimension is specified by the corresponding number,
    * starting from the size of the outer dimension (cryostat).
    */
@@ -164,7 +164,7 @@ public:
   /**
    * @brief Resizes the mapping to reflect the one from another mapping.
    * @param other ID mapping to take dimensions from
-   * 
+   *
    * The size of each dimension is taken by the matching one in `other`.
    */
   template <typename OIDType, typename OIndex>
@@ -173,7 +173,7 @@ public:
   /**
    * @brief Sets all dimension sizes to `0`.
    * @see `resize()`
-   * 
+   *
    * The mapping needs to be resized before it is useful again.
    */
   void clear();
@@ -198,7 +198,7 @@ private:
    * @param id the ID to be filled
    * @param index the index corresponding to the ID
    * @see `indexLevel()`, `index()`
-   * 
+   *
    * Fills the specified ID with its index. This can be considered the inverse
    * operation of the `index()` method.
    * The `index` argument is local to the level to be filled, e.g. for cryostats
@@ -245,7 +245,7 @@ private:
  * @brief Mapping for TPC identifiers.
  * @tparam Index (default: `std::size_t`) type of flat index
  * @see `geo::GeoIDmapper`
- * 
+ *
  * A customized version of `geo::GeoIDmapper` offering TPC ID-specific
  * interface.
  */
@@ -283,7 +283,7 @@ public:
    * @param nCryo number of cryostats
    * @param nTPCs number of TPCs
    * @see `resizeAs()`
-   * 
+   *
    * The mapping is sized to map `nCryo` cryostats, each with `nTPCs` TPCs.
    */
   void resize(unsigned int nCryo, unsigned int nTPCs) { BaseMapper_t::resize({nCryo, nTPCs}); }
@@ -310,7 +310,7 @@ public:
  * @brief Mapping for sensitive plane identifiers.
  * @tparam Index (default: `std::size_t`) type of flat index
  * @see `geo::GeoIDmapper`
- * 
+ *
  * A customized version of `geo::GeoIDmapper` offering
  * sensitive plane ID-specific interface.
  */
@@ -353,7 +353,7 @@ public:
    * @param nTPCs number of TPCs
    * @param nPlanes number of planes per TPC
    * @see `resizeAs()`
-   * 
+   *
    * The mapping is sized to map `nCryo` cryostats, each with `nTPCs` TPCs,
    * each one with `nPlanes` wire planes.
    */

@@ -2201,7 +2201,7 @@ namespace geo {
   void GeometryTestAlg::testWireIntersection() const
   {
     /*
-     * This is a test for geo::GeometryCore::WireIDsIntersect() and 
+     * This is a test for geo::GeometryCore::WireIDsIntersect() and
      * geo::WireGeo::IntersectionWith() methods, that return whether two wires
      * intersect, and where.
      *

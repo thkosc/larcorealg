@@ -250,7 +250,7 @@ namespace geo {
     /**
      * @brief Returns an object for iterating through all `geo::PlaneGeo`.
      * @return an (undisclosed) object for iterating through all `geo::PlaneGeo`
-     * 
+     *
      * For example, this snippet computes `MaxWires()` of `TPC` (a `TPCGeo`):
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
      * unsigned int maxWires = 0U;

@@ -21,7 +21,7 @@ namespace util {
   /**
    * @name C++ standard library customization for user-defined classes.
    * @defgroup LArSoft_CoreUtils_StdUtils C++ STL customizations
-   * 
+   *
    * There are a number of functions that are provided by C++ standard library
    * for the data types and classes defined in the standard.
    * It is often desirable to have your class react to these standard functions
@@ -42,7 +42,7 @@ namespace util {
    * will look in the namespace where the type of `obj` is defined (that is
    * `userns`) for a `userns::to_string`, then will consider `std::to_string`
    * it self.
-   * 
+   *
    * The utilities provided here provide a transparent way to do that, at the
    * cost of a new header and some non-standard call. The equivalent call of the
    * above would be:
@@ -51,7 +51,7 @@ namespace util {
    * // ...
    * std::string objstr = util::to_string(obj);
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   * 
+   *
    * @note For customization of templates, like `std::hash` or
    *       `std::numeric_limits`, specialization of classes in `std` is allowed
    *       by the standard, so no particular trick is required.

@@ -3,7 +3,7 @@
  * @brief  Provides a few simple operations for use in generic programming.
  * @author Gianluca Petrillo (petrillo@slac.stanford.edu)
  * @date   June 5, 2019
- * 
+ *
  * This is a header-only library.
  */
 
@@ -19,7 +19,7 @@ namespace util {
   /**
    * @brief Functor returning the address in memory of the operand.
    * @see `util::takeAddress()`
-   * 
+   *
    * Example:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * std::vector<int*> ptrs(data.size());
@@ -27,7 +27,7 @@ namespace util {
    *   (data.begin(), data.end(), ptrs.begin(), util::AddressTaker{});
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * will fill the vector `ptrs` with pointers to the elements of `data`.
-   * 
+   *
    * @note The address is extracted via `std::addressof()` and it bypasses the
    *       `operator&()` of the operand.
    */
@@ -45,7 +45,7 @@ namespace util {
   /**
    * @brief Returns a functor that returns the address of its argument.
    * @see `util::AddressTaker`
-   * 
+   *
    * Example:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * std::vector<int*> ptrs(data.size());
@@ -53,17 +53,17 @@ namespace util {
    *   (data.begin(), data.end(), ptrs.begin(), util::takeAddress());
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * will fill the vector `ptrs` with pointers to the elements of `data`.
-   * 
+   *
    * Why bother?
    * ------------
-   * 
+   *
    * C++ already provides a tool to effectively take an address,
    * `std::addressof`. The reason for `takeAddress()` is that `std::addressof()`
    * is a function, with many overloads, and to use it in a STL algorithm the
    * overload has to be resolved first. For example:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * using addressof_t = int const*(*)(int const&);
-   * 
+   *
    * std::transform(data.cbegin(), data.cend(), std::back_inserter(dataPtr),
    *   ((addressof_t) &std::addressof));
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -74,7 +74,7 @@ namespace util {
    * a new function, like:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * auto takeAddress = [](auto&& ref){ return std::addressof(ref); };
-   * 
+   *
    * std::vector<int const*> dataPtr;
    * std::transform(data.cbegin(), data.cend(), std::back_inserter(dataPtr),
    *   takeAddress);
@@ -88,7 +88,7 @@ namespace util {
   /**
    * @brief Functor dereferencing the operand.
    * @see `util::dereference()`
-   * 
+   *
    * Example:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * std::vector<int> values(ptrs.size());
@@ -112,7 +112,7 @@ namespace util {
   /**
    * @brief Returns a functor that returns `*ptr` of its argument `ptr`.
    * @see `util::Dereferencer`
-   * 
+   *
    * Example:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * std::vector<int> values(ptrs.size());

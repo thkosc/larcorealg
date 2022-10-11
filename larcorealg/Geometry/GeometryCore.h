@@ -4290,13 +4290,13 @@ namespace geo {
      * The "intersection" point is actually the point belonging to the first
      * wire (`wid2`) which is the closest (in Euclidean 3D metric) to the second
      * wire.
-     * 
+     *
      * The intersection is computed only if the wires belong to different planes
      * of the same TPC. If that is not the case (i.e. they belong to different
      * TPC or cryostat, or if they belong to the same plane), `false` is
      * returned and `intersection` is set with all components to infinity
      * (`std::numeric_limits<>::infinity()`).
-     * 
+     *
      * When the intersection is computed, it is always stored in the
      * `intersection` output parameter. Return value is `true` if this
      * intersection lies within the physical boundaries first wire, while it is
@@ -4736,7 +4736,7 @@ namespace geo {
      * @param worldLoc 3D coordinates of the point (world reference frame)
      * @param adg (output) auxiliary detector index
      * @param sv (output) sensitive volume index
-     * @param tolerance tolerance (cm) for matches. Default 0.  
+     * @param tolerance tolerance (cm) for matches. Default 0.
      * @deprecated Use the version with `geo::Point_t`.
      */
     void FindAuxDetSensitiveAtPosition(double const worldLoc[3],

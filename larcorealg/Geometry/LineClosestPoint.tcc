@@ -49,7 +49,7 @@ namespace geo::details {
      * If w1 and w2 are unit vectors, t and u are in fact the distance of the
      * point from the "start" of the respective lines in "standard" geometry
      * units.
-     * 
+     *
      * If `locOnLines` is non-null, it is filled with { t, u }.
      */
 

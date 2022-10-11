@@ -32,7 +32,7 @@ namespace readout {
 /// @{
 
 //------------------------------------------------------------------------------
-/** 
+/**
  * @brief Container with one element per readout TPC set.
  * @tparam T type of the contained datum
  * @see `geo::GeometryCore::makeTPCsetData`
@@ -64,7 +64,7 @@ public:
   /**
    * @brief Default constructor: empty container.
    * @see `resize()`
-   * 
+   *
    * The container starts with no room for any data.
    * The only guarantee is that `empty()` is `true` and `size()` is `0`.
    * Use `resize()` before anything else.
@@ -110,10 +110,10 @@ public:
    * @param nCryo number of cryostats
    * @param nTPCsets number of TPC sets
    * @see `clear()`, `fill()`
-   * 
+   *
    * The container is sized to host data for `nCryo` cryostats, each with
    * `nTPCsets` TPC sets. Each element in the container is default-constructed.
-   * 
+   *
    * Existing data is not touched, but it may be rearranged in a
    * non-straightforward way.
    */
@@ -128,7 +128,7 @@ public:
    * @param nTPCsets number of TPC sets
    * @param defValue the value copied to fill all entries in the container
    * @see `clear()`, `fill()`
-   * 
+   *
    * The container is sized to host data for `nCryo` cryostats, each with
    * `nTPCsets` TPC sets. Each element in the container is a copy of `defValue`.
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
@@ -169,7 +169,7 @@ public:
 }; // class readout::TPCsetDataContainer<>
 
 //------------------------------------------------------------------------------
-/** 
+/**
  * @brief Container with one element per readout plane.
  * @tparam T type of the contained datum
  * @see `geo::GeometryCore::makeROPdata`
@@ -200,7 +200,7 @@ public:
   /**
    * @brief Default constructor: empty container.
    * @see `resize()`
-   * 
+   *
    * The container starts with no room for any data.
    * The only guarantee is that `empty()` is `true` and `size()` is `0`.
    * Use `resize()` before anything else.
@@ -251,11 +251,11 @@ public:
    * @param nTPCsets number of TPC sets
    * @param nROPs number of readout planes per TPC set
    * @see `clear()`, `fill()`
-   * 
+   *
    * The container is sized to host data for `nCryo` cryostats, each with
    * `nTPCsets` TPC sets, and each of them with `nROPs` readout planes.
    * Each element in the container is default-constructed.
-   * 
+   *
    * Existing data is not touched, but it may be rearranged in a
    * non-straightforward way.
    */
@@ -271,11 +271,11 @@ public:
    * @param nROPs number of readout planes per TPC set
    * @param defValue the value copied to fill all entries in the container
    * @see `clear()`, `fill()`
-   * 
+   *
    * The container is sized to host data for `nCryo` cryostats, each with
    * `nTPCsets` TPC sets, and each of them with `nROPs` readout planes.
    * Each element in the container is a copy of `defValue`.
-   * 
+   *
    * Existing data is not touched, but it may be rearranged in a
    * non-straightforward way.
    */

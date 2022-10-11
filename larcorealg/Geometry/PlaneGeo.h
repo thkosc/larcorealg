@@ -359,7 +359,7 @@ namespace geo {
      * (note that all data types here can be replaced with `auto`).
      * The resulting sequence exposes the wires within the plane in their
      * ID order, from plane `0` to `Nplanes() - 1`.
-     * 
+     *
      * Since the wire ID is not contained in `geo::WireGeo`, further steps are
      * needed to obtain it if needed. For example:
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -371,16 +371,16 @@ namespace geo {
      *   geo::PlaneID const planeid { plane.ID() };
      *
      *   for (auto&& iWire, wire: util::enumerate(plane.IterateWires())) {
-     *     
+     *
      *     geo::WireID const wireid (planeID, iWire);
-     *     
+     *
      *     // do something with each single wire and ID
-     *     
+     *
      *   }
      * } // for planes
      *
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * 
+     *
      */
     ElementIteratorBox IterateElements() const { return fWire; }
     ElementIteratorBox IterateWires() const { return IterateElements(); }
@@ -665,16 +665,16 @@ namespace geo {
      * @brief Returns the distance between wires along the specified direction.
      * @param projDir the direction, projected on the plane (2D)
      * @return the distance between wires along that direction [cm]
-     * 
+     *
      * The direction is specified as a `geo::PlaneGeo::WireCoordProjection_t`
      * vector, defined as in `geo::PlaneGeo::Projection()`.
      * The modulus of the projection is ignored but expected to be non null.
-     * 
+     *
      * The returned distance is the space that would be covered starting from
      * a wire toward the `projDir` direction and stopping at the first wire met.
      * This distance is returned in centimeters, always positive and
      * not smaller than the wire pitch.
-     * 
+     *
      * @note If the direction is too close to the wire direction, the result
      *       will be numerically unstable and might be infinite (test with
      *       `std::isinf()`, `std::isfinite()` or `std::isnormal()`).
@@ -689,16 +689,16 @@ namespace geo {
      * @brief Returns the distance between wires along the specified direction.
      * @param dir the direction (3D)
      * @return the distance between wires along that direction [cm]
-     * 
+     *
      * The direction is specified as a 3D vector in the world coordinate frame.
      * The modulus of the vector is ignored but expected to be non null.
-     * 
+     *
      * The returned distance is the space that would be covered starting from
      * a wire toward the `dir` direction and stopping when the projection on
      * the wire plane reaches another wire.
      * This distance is returned in centimeters, always positive and
      * not smaller than the wire pitch.
-     * 
+     *
      * @note If the direction is too close to the wire direction, the result
      *       will be numerically unstable and might be infinite (test with
      *       `std::isinf()`, `std::isfinite()` or `std::isnormal()`).
@@ -719,15 +719,15 @@ namespace geo {
      * @param dir the direction in detector space (3D)
      * @return the distance between wires along that direction [cm]
      * @see `InterWireProjectedDistance(geo::PlaneGeo::WireCoordProjection_t const&) const`
-     * 
+     *
      * The direction is specified as a 3D vector.
      * Its modulus is ignored but expected to be non null.
-     * 
+     *
      * The returned distance is the space that would be covered starting from
      * a wire toward the direction projection of `dir` on the wire plane,
      * and stopping at the first wire met.
      * This distance is returned in centimeters and always positive.
-     * 
+     *
      * @note This is not a 3D distance (for example, it's not useful to compute
      *       @f$ ds @f$ of a track to get its ionization energy @f$ dE/ds @f$),
      *       but it is the distance projected on the wire plane.

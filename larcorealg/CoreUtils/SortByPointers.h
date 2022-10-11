@@ -99,7 +99,7 @@ namespace util {
    * @tparam Sorter type of sorter function
    * @param coll collection to be sorted
    * @param sorter sorting procedure
-   * 
+   *
    * This adapter moves the unique pointers around to match a sorted version of
    * source.
    * This is an expensive procedure, implying the creation of a temporary

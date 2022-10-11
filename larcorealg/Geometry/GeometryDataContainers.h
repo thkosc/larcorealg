@@ -152,7 +152,7 @@ public:
   /**
    * @brief Default constructor: container has no room at all.
    * @see `resize()`
-   * 
+   *
    * The object *must* be resized before being of any use.
    */
   GeoIDdataContainer() = default;
@@ -161,7 +161,7 @@ public:
    * @brief Prepares the container with default-constructed data.
    * @param dims number of elements on all levels of the container
    * @see `resize()`
-   * 
+   *
    * The size of each dimension is specified by the corresponding number,
    * starting from the size of the outer dimension (cryostat).
    *
@@ -175,7 +175,7 @@ public:
    * @param dims number of elements on all levels of the container
    * @param defValue the value copied to fill all entries in the container
    * @see `resize()`
-   * 
+   *
    * The size of each dimension is specified by the corresponding number,
    * starting from the size of the outer dimension (cryostat).
    *
@@ -259,26 +259,26 @@ public:
   // --- BEGIN Iterators -----------------------------------------------------
   /**
    * @name Iterators
-   * 
+   *
    * Two types of iterators are provided:
-   * 
+   *
    * 1. "standard" iterators pointing to data values
    * 2. "item" pseudo-iterators dereferencing to a (ID, value) pair
-   * 
+   *
    * Reverse iterators are not supported (yet?).
-   * 
+   *
    * Standard iterators
    * -------------------
-   * 
+   *
    * The STL-like interface provides iterators that go through the entire range
    * of allowed data, i.e. all the `size()` elements that are also reached
    * via random access (`operator[]()`).
-   * 
+   *
    * These iterators have an interface extension: the data member `ID()` returns
    * the ID of the element the iterator is pointing to. For example:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * auto iData = data.begin();
-   * auto const dend = data.end(); 
+   * auto const dend = data.end();
    * while (iData != dend) {
    *   std::cout << "data[" << iData.ID() << "] = " << *iData << std::endl;
    *   ++iData;
@@ -286,11 +286,11 @@ public:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * Note that using the range-for loop, you don't get access to the iterator
    * and therefore not even to the ID.
-   * 
-   * 
+   *
+   *
    * Item iterators
    * ---------------
-   * 
+   *
    * The item iterators are iterators adapted from the standard ones, which
    * when dereferenced return a pair ( `ID_t`, `reference` ).
    * They can be accessed with `item_begin()`, `item_end()` etc, and range-for
@@ -302,7 +302,7 @@ public:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * (this loop has the same effect as the one in the example of the standard
    * iterators, but it's more compact).
-   * 
+   *
    */
   /// @{
 
@@ -354,7 +354,7 @@ public:
   // --- BEGIN Data modification ---------------------------------------------
   /**
    * @name Data modification
-   * 
+   *
    * In general, each single element can be accessed and changed.
    * In addition, this section includes methods acting on multiple elements
    * at once.
@@ -372,10 +372,10 @@ public:
    * @tparam Op type of operation
    * @param op Operation
    * @return the operation object after operations took place
-   * 
+   *
    * The operation `op` is a unary functor, i.e. an object that supports the
    * call to `op(value_type&)`.
-   * 
+   *
    * The return values of `op` calls are discarded.
    */
   template <typename Op>
@@ -386,10 +386,10 @@ public:
    * @tparam Op type of operation
    * @param op Operation
    * @return the operation object after operations took place
-   * 
+   *
    * The operation `op` is a unary functor, i.e. an object that supports the
    * call to `op(value_type const&)`.
-   * 
+   *
    * The return values of `op` calls are discarded.
    * Note that while the elements of this container can't be modified, the
    * operation itself still can if not constant, and it is returned.
@@ -408,7 +408,7 @@ public:
    * @brief Prepares the container with default-constructed data.
    * @param dims number of elements on all levels of the container
    * @see `clear()`, `fill()`
-   * 
+   *
    * The size of each dimension is specified by the corresponding number,
    * starting from the size of the outer dimension (cryostat).
    *
@@ -424,7 +424,7 @@ public:
    * @param dims number of elements on all levels of the container
    * @param defValue the value copied to fill all entries in the container
    * @see `clear()`, `fill()`
-   * 
+   *
    * The size of each dimension is specified by the corresponding number,
    * starting from the size of the outer dimension (cryostat).
    *
@@ -438,7 +438,7 @@ public:
   /**
    * @brief Prepares the container with default-constructed data.
    * @param other data collection to take dimensions from
-   * 
+   *
    * The size of each dimension is taken by the matching one in `other`.
    *
    * The container is sized to host data for all the elements.
@@ -453,7 +453,7 @@ public:
    * @brief Prepares the container initializing all its data.
    * @param other data collection to take dimensions from
    * @param defValue the value copied to fill all entries in the container
-   * 
+   *
    * The size of each dimension is taken by the matching one in `other`.
    *
    * The container is sized to host data for all the elements.
@@ -467,7 +467,7 @@ public:
   /**
    * @brief Makes the container empty, with no usable storage space.
    * @see `resize()`
-   * 
+   *
    * The container needs to be resized before it is useful again.
    */
   void clear();
@@ -489,7 +489,7 @@ private:
 }; // class geo::GeoIDdataContainer<>
 
 //------------------------------------------------------------------------------
-/** 
+/**
  * @brief Container with one element per geometry TPC.
  * @tparam T type of the contained datum
  * @see `geo::GeometryCore::makeTPCData`
@@ -534,7 +534,7 @@ public:
   /**
    * @brief Default constructor: empty container.
    * @see `resize()`
-   * 
+   *
    * The container starts with no room for any data.
    * The only guarantee is that `empty()` is `true` and `size()` is `0`.
    * Use `resize()` before anything else.
@@ -580,10 +580,10 @@ public:
    * @param nCryo number of cryostats
    * @param nTPCs number of TPCs
    * @see `clear()`, `fill()`
-   * 
+   *
    * The container is sized to host data for `nCryo` cryostats, each with
    * `nTPCs` TPCs. Each element in the container is default-constructed.
-   * 
+   *
    * Existing data is not touched, but it may be rearranged in a
    * non-straightforward way.
    */
@@ -595,7 +595,7 @@ public:
    * @param nTPCs number of TPCs
    * @param defValue the value copied to fill all entries in the container
    * @see `clear()`, `fill()`
-   * 
+   *
    * The container is sized to host data for `nCryo` cryostats, each with
    * `nTPCs` TPCs. Each element in the container is a copy of `defValue`.
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
@@ -603,7 +603,7 @@ public:
    * geo::TPCDataContainer<unsigned int> countPerPlane
    * countPerPlane.resize(geom->NCryostats(), geom->MaxTPCs(), 0U);
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   * 
+   *
    * Existing data is not touched, but it may be rearranged in a
    * non-straightforward way.
    */
@@ -634,7 +634,7 @@ public:
 }; // class geo::details::TPCDataContainer<>
 
 //------------------------------------------------------------------------------
-/** 
+/**
  * @brief Container with one element per geometry wire plane.
  * @tparam T type of the contained datum
  * @see `geo::GeometryCore::makePlaneData`
@@ -677,7 +677,7 @@ public:
   /**
    * @brief Default constructor: empty container.
    * @see `resize()`
-   * 
+   *
    * The container starts with no room for any data.
    * The only guarantee is that `empty()` is `true` and `size()` is `0`.
    * Use `resize()` before anything else.
@@ -731,11 +731,11 @@ public:
    * @param nTPCs number of TPCs
    * @param nPlanes number of planes per TPC
    * @see `clear()`, `fill()`
-   * 
+   *
    * The container is sized to host data for `nCryo` cryostats, each with
    * `nTPCs` TPCs, each one with `nPlanes` wire planes. Each element in the
    * container is default-constructed.
-   * 
+   *
    * Existing data is not touched, but it may be rearranged in a
    * non-straightforward way.
    */
@@ -751,7 +751,7 @@ public:
    * @param nPlanes number of planes per TPC
    * @param defValue the value copied to fill all entries in the container
    * @see `clear()`, `fill()`
-   * 
+   *
    * The container is sized to host data for `nCryo` cryostats, each with
    * `nTPCs` TPCs, and each of them with `nPlanes` planes. Each element in
    * the container is a copy of `defValue`.
@@ -761,7 +761,7 @@ public:
    * countPerPlane.resize
    *   (geom->NCryostats(), geom->MaxTPCs(), geom->MaxPlanes(), 0U);
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   * 
+   *
    * Existing data is not touched, but it may be rearranged in a
    * non-straightforward way.
    */
@@ -799,7 +799,7 @@ public:
  * @brief Iterator for `geo::GeoIDdataContainer` class.
  * @tparam GeoIDdataContainerClass type of the class being iterated
  * @tparam BaseIterator type of iterator to the actual data
- * 
+ *
  * @note These iterators haven't been extensively tested. Caveat emptor...
  */
 template <typename GeoIDmapperClass, typename BaseIterator>
@@ -881,9 +881,9 @@ private:
 /**
  * @brief Item iterator for `geo::GeoIDdataContainer` class.
  * @tparam GeoIDIteratorClass type of iterator being wrapped
- * 
+ *
  * This iterator is just a wrapper.
- * 
+ *
  * @note These iterators haven't been extensively tested. Caveat emptor...
  */
 template <typename GeoIDIteratorClass>
@@ -909,7 +909,7 @@ class geo::details::GeoIDdataContainerItemIterator
    *      access iterator since it dereferences to a temporary value (rvalue)
    *      like an input iterator can; but for the rest it's a full blown random
    *      access iterator (same stuff as the infamous `std::vector<bool>`)
-   * 
+   *
    */
 
   using GeoIDiterator_t = GeoIDIteratorClass; ///< Type of wrapped iterator.
@@ -1013,7 +1013,7 @@ public:
   // --- BEGIN Data modification -----------------------------------------------
   /**
    * @name Data modification
-   * 
+   *
    * In general, each single element can be accessed and changed.
    * In addition, this section includes methods acting on multiple elements
    * at once.
@@ -1031,10 +1031,10 @@ public:
    * @tparam Op type of operation
    * @param op Operation
    * @return the operation object after operations took place
-   * 
+   *
    * The operation `op` is a unary functor, i.e. an object that supports the
    * call to `op(value_type&)`.
-   * 
+   *
    * The return values of `op` calls are discarded.
    */
   template <typename Op>
@@ -1050,10 +1050,10 @@ public:
    * @tparam Op type of operation
    * @param op Operation
    * @return the operation object after operations took place
-   * 
+   *
    * The operation `op` is a unary functor, i.e. an object that supports the
    * call to `op(value_type const&)`.
-   * 
+   *
    * The return values of `op` calls are discarded.
    */
   template <typename Op>
@@ -1075,7 +1075,7 @@ public:
    * @brief Prepares the container with default-constructed data.
    * @param size number of elements in the container
    * @see `clear()`, `fill()`
-   * 
+   *
    * The container is sized to host data for all the elements.
    * Each new element in the container is default-constructed.
    * Existing data is not touched.
@@ -1087,7 +1087,7 @@ public:
    * @param size number of elements in the container
    * @param defValue the value copied to fill all entries in the container
    * @see `clear()`, `fill()`
-   * 
+   *
    * The container is sized to host data for all the elements.
    * Each new element in the container is constructed as copy of `defValue`.
    * Existing data is not touched.
@@ -1097,7 +1097,7 @@ public:
   /**
    * @brief Makes the container empty, with no usable storage space.
    * @see `resize()`
-   * 
+   *
    * The container needs to be resized before it is useful again.
    */
   void clear() { fData.clear(); }

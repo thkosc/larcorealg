@@ -237,7 +237,7 @@ namespace util {
    * @return a `util::span` object iterating via an adapter to `cont`
    * @see `make_adapted_span(BIter, EIter, Adaptor&&)`,
    *      `make_adapted_const_span(Cont, Adaptor&&)`
-   * 
+   *
    * This interface is just a little help on using _iterator_ adapters.
    * Note that `adapter` transforms the iterators of `cont`, not its values.
    * The adapter needs to be written aside and it's in general not trivial.
@@ -245,13 +245,13 @@ namespace util {
    * `float` for simplicity) stored as unique pointers in a collection:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * float accumulate(std::vector<std::unique_ptr<float>> const& v) {
-   *   
+   *
    *   using src_iterator = std::vector<std::unique_ptr<float>>::const_iterator;
-   *   
+   *
    *   float sum = 0.0F;
    *   for (float v: util::make_adapted_span(v, boost::make_indirect_iterator<src_iterator>))
    *     sum += v;
-   *   
+   *
    *   return sum;
    * } // accumulate()
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -283,9 +283,9 @@ namespace util {
   // --- BEGIN -- Transformed span helper functions ----------------------------
   /**
    * @name Transformed span helper functions
-   * 
-   * 
-   * 
+   *
+   *
+   *
    */
   /// @{
 
@@ -306,7 +306,7 @@ namespace util {
    * @see `make_transformed_span(BIter, EIter, Op&&)`,
    *      `make_transformed_const_span(Cont, Op&&)`,
    *      `make_adapted_span()`,
-   * 
+   *
    * This function transforms as directed by the unary operation `op` the result
    * of each iteration cycle, so that instead of `cont[i]`, a `op(cont[i])`
    * is assigned to the iteration control variable.
@@ -314,11 +314,11 @@ namespace util {
    * `float` for simplicity) stored as unique pointers in a collection:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * float accumulate(std::vector<std::unique_ptr<float>> const& v) {
-   *   
+   *
    *   float sum = 0.0F;
    *   for (float v: util::make_transformed_span(v, [](auto& ptr){ return *ptr; }))
    *     sum += v;
-   *   
+   *
    *   return sum;
    * } // accumulate()
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -329,10 +329,10 @@ namespace util {
    * For have it by reference, the operation `op` must be properly written:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * void scale(std::vector<std::unique_ptr<float>>& v, float factor) {
-   *   
+   *
    *   for (float& v: util::make_transformed_span(v, [](auto& ptr) -> float& { return *ptr; }))
    *     v *= factor;
-   *   
+   *
    * } // scale()
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */

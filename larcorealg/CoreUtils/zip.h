@@ -3,7 +3,7 @@
  * @brief  Definition of `util::zip()`.
  * @author Gianluca Petrillo (petrillo@slac.stanford.edu)
  * @date   April 14, 2019
- * 
+ *
  * This is a header-only library.
  */
 
@@ -33,7 +33,7 @@ namespace util {
    * @param iterables all iterable objects to be iterated together
    * @return an object suitable for range-for loop
    * @see `util::enumerate()`
-   * 
+   *
    * In the range-for loop, at each iteration this object yields a `tuple` of
    * values, each of the type returned by dereferencing `begin(iterable)`.
    * For example:
@@ -41,15 +41,15 @@ namespace util {
    * constexpr std::size_t N = 4;
    * std::array<int, N> twice;
    * std::vector<double> thrice(N + 1);
-   * 
+   *
    * unsigned int i = 0;
    * for (auto&& [ a, b]: util::zip(twice, thrice)) {
-   *   
+   *
    *   a = 2 * i;
    *   b = 3.0 * i;
-   *   
+   *
    *   ++i;
-   *   
+   *
    * } // for
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * In this example, `N` iterations will be run because that is the size of
@@ -59,16 +59,16 @@ namespace util {
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * unsigned int i = 0;
    * for (auto&& [ b, a]: util::zip<1U>(thrice, twice)) {
-   *   
+   *
    *   a = 2 * i;
    *   b = 3.0 * i;
-   *   
+   *
    *   ++i;
-   *   
+   *
    * } // for
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * (the index is zero-based, so `1U` refers to the second argument).
-   * 
+   *
    */
   template <std::size_t Lead, typename... Iterables>
   auto zip(Iterables&&... iterables);

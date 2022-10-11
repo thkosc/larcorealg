@@ -3,7 +3,7 @@
  * @brief  Definition of `util::values()` and `util::const_values()`.
  * @author Gianluca Petrillo (petrillo@slac.stanford.edu)
  * @date   May 8, 2019
- * 
+ *
  * This is a header-only library.
  */
 
@@ -35,24 +35,24 @@ namespace util {
    * @param coll the collection to iterate through
    * @return an object suitable for range-for loop
    * @see `util::const_values()`
-   * 
+   *
    * This function is in most of cases a no-operation, returning the collection
    * just as it was specified, to be iterated on directly.
    * In case of mapping types, though, a different object is returned and the
    * iteration will happen to the value type of the mapping instead than on
    * the key-value pair.
-   * 
+   *
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * std::map<int, float> data { { 1, 4.0F }, { 3, 12.0F }, { 2, 8.0F } };
    * std::vector<float> values;
-   * 
-   * for (float value: util::values(data)) 
+   *
+   * for (float value: util::values(data))
    *   values.push_back(value);
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * will result in `values` vector being of size `3` and with values
    * `{ 4.0F, 8.0F, 12.0F }` (the order is the one of iterating through a
    * `std::map`).
-   * 
+   *
    */
   template <typename Coll>
   decltype(auto) values(Coll&& coll);
@@ -61,7 +61,7 @@ namespace util {
    * @brief Range-for loop helper iterating across the constant values of the
    *        specified collection.
    * @see `util::values()`
-   * 
+   *
    * This function is equivalent to `util::values()` but the values are
    * extracted as if the specified collection were constant.
    */

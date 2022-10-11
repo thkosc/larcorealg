@@ -223,7 +223,7 @@ namespace geo {
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * The resulting sequence exposes the TPCs within the cryostat in their
      * ID order, from TPC `0` to `NTPC() - 1`.
-     * 
+     *
      * This method is designed for templated code, where the object
      * `obj.IterateElements()` may be a `geo::CryostatGeo` or some other one.
      * For non-template code, prefer `IterateTPCs()` for clarity.
@@ -240,7 +240,7 @@ namespace geo {
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * The resulting sequence exposes the TPCs within the cryostat in their
      * ID order, from TPC `0` to `NTPC() - 1`.
-     * 
+     *
      * A version of this functionality designed for template code is provided
      * under the generic name `IterateElements()`.
      */
@@ -256,7 +256,7 @@ namespace geo {
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      * The resulting sequence exposes the TPCs within the cryostat in their
      * ID order, from TPC `0` to `NTPC() - 1`.
-     * 
+     *
      * @deprecated `TPCs()` is informally deprecated because it used to return
      *             a collection of `geo::TPCGeo` and it might soon be unable to
      *             do so. For iterations, `IterateTPCs()` is just as good.

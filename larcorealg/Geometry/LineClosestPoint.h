@@ -7,7 +7,7 @@
  *
  * This utility is used as implementation of detector wires, but it can stand on
  * its own.
- * 
+ *
  * This library is header-only and (likely) no additional linkage.
  */
 
@@ -49,12 +49,12 @@ namespace geo {
    * @see `LineClosestPointAndOffsets()`
    *
    * The point of line `A` that is closest to line `B` is returned.
-   * 
+   *
    * This function is equivalent to `LineClosestPoint()`, but it
    * returns in addition the offsets of the intersection point from the
    * reference points of the two lines, in the direction specified by
    * `dirA`/`dirB`.
-   * 
+   *
    * The return value is a data structure of type
    * `geo::IntersectionPointAndOffsets`, which is most easily unpacked
    * immediately:
@@ -79,7 +79,7 @@ namespace geo {
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * (`point` to `geo::Point{ 2, 1, 0 }`, `offsetA` to `2.039...` and `offsetB`
    * to `2`, because the intersection point is always on the first line).
-   * 
+   *
    */
   template <typename Point, typename Vector>
   IntersectionPointAndOffsets<Point> LineClosestPointAndOffsets(Point const& startA,
@@ -99,30 +99,30 @@ namespace geo {
    * @see LineClosestPointAndOffsets(), LineClosestPointWithUnitVectors()
    *
    * The point of line `A` that is closest to line `B` is returned.
-   * 
+   *
    * The two lines are _assumed_ not to be parallel, and when this prerequisite
    * is not met the behaviour is undefined.
-   * 
+   *
    * @note This formulation is valid for lines in a Euclidean space of any
    *       dimension; the minimized distance is the Euclidean one.
-   * 
+   *
    * A separate function, `LineClosestPointAndOffsets()`,
    * also returns the offset of the intersection from the two reference points.
-   * 
-   * 
+   *
+   *
    * Requirements
    * -------------
-   * 
+   *
    * The following operations between points, vectors and scalars must be
    * defined:
-   * 
+   *
    * * `Vector operator- (Point, Point)`: the difference of two points always
    *   exists and it returns a `Vector`;
    * * `Point operator+ (Point, Vector)`: translation of a point by a
    *   displacement vector;
    * * `Vector operator* (Vector, double)`: vector scaling by a real factor;
    * * `double dot(Vector, Vector)`: scalar (inner) product of two vectors.
-   * 
+   *
    */
   template <typename Point, typename Vector>
   Point LineClosestPoint(Point const& startA,
@@ -146,7 +146,7 @@ namespace geo {
    * @see `LineClosestPointAndOffsets()`
    *
    * The point of line `A` that is closest to line `B` is returned.
-   * 
+   *
    * The return value is a data structure of type
    * `geo::IntersectionPointAndOffsets`, which is most easily unpacked
    * immediately:
@@ -170,7 +170,7 @@ namespace geo {
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * (`point` to `geo::Point{ 2, 1, 0 }`, `offsetA` to `2` and `offsetB` to `1`,
    * because the intersection point is always on the first line).
-   * 
+   *
    */
   template <typename Point, typename UnitVector>
   IntersectionPointAndOffsets<Point> LineClosestPointAndOffsetsWithUnitVectors(
@@ -191,10 +191,10 @@ namespace geo {
    * @see LineClosestPointAndOffsetsWithUnitVectors(), LineClosestPoint()
    *
    * The point of line `A` that is closest to line `B` is returned.
-   * 
+   *
    * The two lines are _assumed_ not to be parallel, and when this prerequisite
    * is not met the behaviour is undefined.
-   * 
+   *
    * The two directions are _required_ to have norm `1`. While formally if this
    * prerequisite is not met the result is undefined, the result will be still
    * mostly correct if their norm departs from unity only by a rounding error.
@@ -203,17 +203,17 @@ namespace geo {
    *
    * @note This formulation is valid for lines in a Euclidean space of any
    *       dimension; the minimized distance is the Euclidean one.
-   * 
+   *
    * A separate function, `LineClosestPointAndOffsetsWithUnitVectors()`,
    * also returne the offset of the intersection from the two reference points.
-   * 
-   * 
+   *
+   *
    * Requirements
    * -------------
-   * 
+   *
    * The following operations between points, vectors and scalars must be
    * defined:
-   * 
+   *
    * * `Vector operator* (UnitVector, double)`: scaling of a unit vector by a
    *   real factor to produce a non-unit vector;
    * * `Vector operator- (Point, Point)`: the difference of two points always
@@ -223,7 +223,7 @@ namespace geo {
    * * `double dot(Vector, UnitVector)`, `double dot(UnitVector, UnitVector)`:
    *   scalar (inner) product of one unit vector and a vector, or two unit
    *   vectors.
-   * 
+   *
    */
   template <typename Point, typename UnitVector>
   Point LineClosestPointWithUnitVectors(Point const& startA,

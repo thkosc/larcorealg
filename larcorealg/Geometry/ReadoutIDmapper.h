@@ -44,7 +44,7 @@ namespace readout {
  * @brief Mapping for TPC set identifiers.
  * @tparam Index (default: `std::size_t`) type of flat index
  * @see `geo::GeoIDmapper`
- * 
+ *
  * A customized version of `geo::GeoIDmapper` offering TPC set ID-specific
  * interface.
  */
@@ -83,7 +83,7 @@ public:
    * @param nCryo number of cryostats
    * @param nTPCsets number of TPC sets
    * @see `resizeAs()`
-   * 
+   *
    * The mapping is sized to map `nCryo` cryostats, each with `nTPCsets` TPC
    * sets.
    */
@@ -117,7 +117,7 @@ public:
  * @brief Mapping for readout plane identifiers.
  * @tparam Index (default: `std::size_t`) type of flat index
  * @see `geo::GeoIDmapper`
- * 
+ *
  * A customized version of `geo::GeoIDmapper` offering
  * readout plane ID-specific interface.
  */
@@ -160,7 +160,7 @@ public:
    * @param nTPCsets number of TPC sets per cryostat
    * @param nROPs number of readout planes per TPC set
    * @see `resizeAs()`
-   * 
+   *
    * The mapping is sized to map `nCryo` cryostats, each with `nTPCsets` TPC
    * sets, each one with `nROPs` readout planes.
    */

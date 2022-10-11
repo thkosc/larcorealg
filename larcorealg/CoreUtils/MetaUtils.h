@@ -181,7 +181,7 @@ namespace util {
    * @tparam StartFrom number of `Types` that will be ignored
    * @tparam Types the possible types `T` can match.
    * @see    `util::find_next_type`
-   * 
+   *
    * The value of the trait is the index of `T` within the specified list of
    * `Types` (first type as index `0`).
    * The first `StartFrom` `Types` are ignored, but still counted.
@@ -189,7 +189,7 @@ namespace util {
    * If none of the `Types` exactly matches `T`, the trait value will be the
    * number of types (i.e. `sizeof...(Types)`), which is the index after the
    * last of the types.
-   * 
+   *
    * This is a integral trait (type `std::size_t`): use it as
    * `std::integer_constant`.
    */
@@ -206,13 +206,13 @@ namespace util {
    * @tparam T the type of check the presence of
    * @tparam Types the possible types `T` can match.
    * @see    `util::find_next_type`
-   * 
+   *
    * The value of the trait is the index of `T` within the specified list of
    * `Types` (first type as index `0`). The match is exact, as in
    * `std::is_same`. If none of the `Types` exactly matches `T`, the trait value
    * will be the number of types (i.e. `sizeof...(Types)`), which is the index
    * after the last of the types.
-   * 
+   *
    * This is a integral trait (type `std::size_t`): use it as
    * `std::integer_constant`.
    */
@@ -229,9 +229,9 @@ namespace util {
    * @brief Trait: whether `T` is among the specified `Types`.
    * @tparam T the type of check the presence of
    * @tparam Types the possible types `T` can match.
-   * 
+   *
    * Matching is for the exact type, as in `std::is_same`.
-   * 
+   *
    * This is a boolean trait: use it as `std::bool_constant`.
    */
   template <typename T, typename... Types>
@@ -414,7 +414,7 @@ namespace util {
   /**
    * @brief Trait: whether type `T` is a character type.
    * @tparam T the type to be tested
-   * 
+   *
    * Character types are `char` (in all its sign options), `wchar_t`, `char32_t`
    * and `char16_t`, in any combination of constantness and volatility.
    * References to types yield the same value as the types they reference.
@@ -431,7 +431,7 @@ namespace util {
    * @brief Trait: whether type `T` is a character string type.
    * @tparam T the type to be tested
    * @see `util::is_character_type`
-   * 
+   *
    * In this definition, any container of character types is a string.
    * A container is defined as a type having a `value_type` member.
    * Also, C-style arrays and pointers to characters are considered strings.
@@ -448,7 +448,7 @@ namespace util {
   /**
    * @brief Trait: whether type `T` is a STL string type.
    * @tparam T the type to be tested
-   * 
+   *
    * This trait has `value` `true` if `T` is an instance of `std::basic_string`
    * template, `false` otherwise.
    */
@@ -464,7 +464,7 @@ namespace util {
   /**
    * @brief Trait: whether type `T` is a `std::string_view` type.
    * @tparam T the type to be tested
-   * 
+   *
    * This trait has `value` `true` if `T` is an instance of
    * `std::basic_string_view` template, `false` otherwise.
    */
@@ -564,7 +564,7 @@ namespace util {
   /**
    * @brief Functor applying the proper `referenced_address()` function.
    * @see `referenced_address()`
-   * 
+   *
    * This class operates in the same way as `util::referenced_address()`, but it
    * is easier to use in STL algorithms since it's not a template:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}

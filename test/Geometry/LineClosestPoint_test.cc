@@ -121,7 +121,7 @@ void LineClosestPointAndOffsetsDocumentation_test()
 
   /*
    * The promise:
-   * 
+   *
    * --- 8< --------------------------------------------------------------------
    * The return value is a triplet, which is most easily unpacked immediately:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
@@ -256,7 +256,7 @@ void LineClosestPointAndOffsetsWithUnitVectorsDocumentation_test()
 
   /*
    * The promise:
-   * 
+   *
    * --- 8< --------------------------------------------------------------------
    * The return value is a triplet, which is most easily unpacked immediately:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}

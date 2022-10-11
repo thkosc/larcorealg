@@ -3,7 +3,7 @@
  * @brief  Test of `util::counter` and support utilities.
  * @author Gianluca Petrillo (petrillo@slac.stanford.edu)
  * @date   April 14, 2019
- * 
+ *
  * This is a header-only library.
  */
 
@@ -27,7 +27,7 @@ namespace util {
    * @brief An iterator dereferencing to a counter value.
    * @tparam T the type of counter returned on dereferenciation
    * @see `util::counter()`
-   * 
+   *
    * This iterator returns on dereferencing the net count of how many times it
    * has been incremented.
    * So for example:
@@ -42,11 +42,11 @@ namespace util {
    * iteration, `1` on the second and so forth, until at the eleventh iteration,
    * just before it can push `10`, the loop is forcibly broken leaving 10
    * elements in `data`.
-   * 
+   *
    * The iterator can be made to start from an index `n` different than `0`, in
    * which case it behaves like it had already been incremented `n` times.
    * End iterators can be build in that way too; see also `util::counter()`.
-   * 
+   *
    */
   template <typename T = std::size_t>
   class count_iterator {
@@ -73,7 +73,7 @@ namespace util {
 
     /**
      * @brief Initializes the iterator.
-     * 
+     *
      * The initial loop count is the default-constructed value of the counter
      * type, which is usually some variation on the concept of `0`.
      */
@@ -169,7 +169,7 @@ namespace util {
    * @tparam T type of counter value
    * @return a control object for range-for loop
    * @see `util::count_iterator`
-   * 
+   *
    * An example of usage:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * std::vector<std::size_t> data;
@@ -202,7 +202,7 @@ namespace util {
    * @param begin the count to start from (default-constructed, usually some
    *              form of `0`, by default)
    * @return a control object for range-for loop
-   * 
+   *
    * An example of usage:
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
    * std::vector<unsigned char> data;
@@ -213,7 +213,7 @@ namespace util {
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    * This loop runs through the full range of a character (8 bits, supposedly)
    * twice before being broken.
-   * 
+   *
    */
   template <typename T = std::size_t>
   auto infinite_counter(T begin = T{});
@@ -234,7 +234,7 @@ namespace util::details {
   /**
    * @brief Class used as end iterator (sentinel) for an infinite loop.
    * @tparam T the nominal count type
-   * 
+   *
    * This "iterator" offers a very limited interface, not at all like a real
    * iterator.
    * In fact, it can only be compared to other `count_iterator` objects on the

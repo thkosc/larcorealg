@@ -32,16 +32,16 @@ namespace geo {
 //------------------------------------------------------------------------------
 /**
  * @brief Executes an operation on all the nodes of the ROOT geometry.
- * 
+ *
  * For example, to collect the path (see `geo::GeoNodePath`) of all the volumes
  * named `"volTPC"` in the geometry loaded in LArSoft:
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
  * std::string const volumeName = "volTPC";
- * 
+ *
  * auto const& geom = *(lar::providerFrom<geo::Geometry>());
- * 
+ *
  * geo::ROOTGeometryNavigator navigator { *(geom.ROOTGeoManager()) };
- * 
+ *
  * // the operation executed on all nodes accumulates the paths in `volumePaths`
  * std::vector<geo::GeoNodePath> volumePaths;
  * auto findVolume = [&volumePaths, volumeName](auto& path)
@@ -50,13 +50,13 @@ namespace geo {
  *       volumePaths.push_back(path);
  *     return true;
  *   };
- * 
+ *
  * geo::ROOTGeometryNavigator navigator { *(geom.ROOTGeoManager()) };
- * 
+ *
  * navigator.apply(findVolume);
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- * 
- * 
+ *
+ *
  */
 class geo::ROOTGeometryNavigator {
 
@@ -72,13 +72,13 @@ public:
    * @param path the path to the first node to operate on
    * @param op operation to be applied
    * @return whether all nodes in the path were processed
-   * 
+   *
    * The operation `Op` must be a callable accepting a `geo::GeoNodePath`
    * immutable argument and returning a value convertible to boolean.
    * If a call to `op` results into a `false` value, the recursion is
    * terminated and `false` is returned. `path` will be pointing to the
    * last node already processed.
-   * 
+   *
    * The node at the head of the path is processed first, then for each
    * daughter node, first the daughter itself then its own daughters,
    * recursively.
@@ -93,7 +93,7 @@ public:
    * @param op operation to be applied
    * @return whether all nodes in the path were processed
    * @see `apply(geo::GeoNodePath&, Op&&) const`
-   * 
+   *
    * The operation `Op` must be a callable accepting a `geo::GeoNodePath`
    * immutable argument.
    */
@@ -105,7 +105,7 @@ public:
    * @tparam Op type of operation (see description)
    * @param op operation to be applied
    * @return whether all nodes in the path were processed
-   * 
+   *
    * The operation `Op` must be a callable accepting a `geo::GeoNodePath`
    * immutable argument.
    */
