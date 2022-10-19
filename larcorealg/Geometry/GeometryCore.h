@@ -141,8 +141,7 @@ namespace geo {
      * Currently, backward iterations are not supported.
      */
     template <typename GEOID>
-    class cryostat_id_iterator_base : virtual public std::forward_iterator_tag,
-                                      public geometry_iterator_base {
+    class cryostat_id_iterator_base : public geometry_iterator_base {
     public:
       using ElementPtr_t = geo::CryostatGeo const*;
       using GeoID_t = GEOID; ///< type of the actual ID stored in the iterator
@@ -159,7 +158,7 @@ namespace geo {
       using value_type = LocalID_t;
       using reference = value_type const&;
       using pointer = value_type const*;
-      using iterator_category = std::input_iterator_tag;
+      using iterator_category = std::forward_iterator_tag;
       /// @}
 
       /// Default constructor; effect not defined: assign to it before using!
@@ -300,8 +299,7 @@ namespace geo {
      * Currently, backward iterations are not supported.
      */
     template <typename GEOID>
-    class TPC_id_iterator_base : virtual public std::forward_iterator_tag,
-                                 protected cryostat_id_iterator_base<GEOID> {
+    class TPC_id_iterator_base : protected cryostat_id_iterator_base<GEOID> {
       using upper_iterator = cryostat_id_iterator_base<GEOID>;
 
     public:
@@ -330,7 +328,7 @@ namespace geo {
       using value_type = LocalID_t;
       using reference = value_type const&;
       using pointer = value_type const*;
-      using iterator_category = std::input_iterator_tag;
+      using iterator_category = std::forward_iterator_tag;
       /// @}
 
       /// Default constructor; effect not defined: assign to it before using!
@@ -456,8 +454,7 @@ namespace geo {
      * Currently, backward iterations are not supported.
      */
     template <typename GEOID>
-    class plane_id_iterator_base : virtual public std::forward_iterator_tag,
-                                   protected TPC_id_iterator_base<GEOID> {
+    class plane_id_iterator_base : protected TPC_id_iterator_base<GEOID> {
       using upper_iterator = TPC_id_iterator_base<GEOID>;
 
     public:
@@ -487,7 +484,7 @@ namespace geo {
       using value_type = LocalID_t;
       using reference = value_type const&;
       using pointer = value_type const*;
-      using iterator_category = std::input_iterator_tag;
+      using iterator_category = std::forward_iterator_tag;
       /// @}
 
       /// Default constructor; effect not defined: assign to it before using!
@@ -616,8 +613,7 @@ namespace geo {
      * Currently, backward iterations are not supported.
      */
     template <typename GEOID>
-    class wire_id_iterator_base : virtual public std::forward_iterator_tag,
-                                  protected plane_id_iterator_base<GEOID> {
+    class wire_id_iterator_base : protected plane_id_iterator_base<GEOID> {
       using upper_iterator = plane_id_iterator_base<GEOID>;
 
     public:
@@ -647,7 +643,7 @@ namespace geo {
       using value_type = LocalID_t;
       using reference = value_type const&;
       using pointer = value_type const*;
-      using iterator_category = std::input_iterator_tag;
+      using iterator_category = std::forward_iterator_tag;
       /// @}
 
       /// Default constructor; effect not defined: assign to it before using!
@@ -808,8 +804,7 @@ namespace geo {
      * iterator.
      */
     template <typename GEOIDITER>
-    class geometry_element_iterator : public std::forward_iterator_tag,
-                                      public geometry_iterator_types {
+    class geometry_element_iterator : public geometry_iterator_types {
     public:
       using id_iterator_t = GEOIDITER;
 
@@ -961,8 +956,7 @@ namespace geo {
      * Currently, backward iterations are not supported.
      */
     template <typename GEOID>
-    class TPCset_id_iterator_base : virtual public std::forward_iterator_tag,
-                                    protected cryostat_id_iterator_base<GEOID> {
+    class TPCset_id_iterator_base : protected cryostat_id_iterator_base<GEOID> {
       using upper_iterator = cryostat_id_iterator_base<GEOID>;
 
     public:
@@ -991,7 +985,7 @@ namespace geo {
       using value_type = LocalID_t;
       using reference = value_type const&;
       using pointer = value_type const*;
-      using iterator_category = std::input_iterator_tag;
+      using iterator_category = std::forward_iterator_tag;
       /// @}
 
       /// Default constructor; effect not defined: assign to it before using!
@@ -1122,8 +1116,7 @@ namespace geo {
      * Currently, backward iterations are not supported.
      */
     template <typename GEOID>
-    class ROP_id_iterator_base : virtual public std::forward_iterator_tag,
-                                 protected TPCset_id_iterator_base<GEOID> {
+    class ROP_id_iterator_base : protected TPCset_id_iterator_base<GEOID> {
       using upper_iterator = TPCset_id_iterator_base<GEOID>;
 
     public:
@@ -1152,7 +1145,7 @@ namespace geo {
       using value_type = LocalID_t;
       using reference = value_type const&;
       using pointer = value_type const*;
-      using iterator_category = std::input_iterator_tag;
+      using iterator_category = std::forward_iterator_tag;
       /// @}
 
       /// Default constructor; effect not defined: assign to it before using!
