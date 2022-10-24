@@ -12,6 +12,7 @@
 #define GEO_GEOMETRYTESTALG_H
 
 // LArSoft includes
+#include "larcorealg/Geometry/fwd.h"
 #include "larcorealg/TestUtils/NameSelector.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
 
@@ -32,12 +33,6 @@ namespace fhicl {
 namespace geo {
 
   // forward declarations
-  class GeometryCore;
-  class CryostatGeo;
-  class TPCGeo;
-  class PlaneGeo;
-  class AuxDetGeo;
-  class AuxDetSensitiveGeo;
   struct CryostatID;
   struct PlaneID;
 

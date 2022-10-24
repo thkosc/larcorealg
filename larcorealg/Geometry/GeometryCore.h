@@ -52,6 +52,7 @@
 #include "larcorealg/Geometry/ReadoutDataContainers.h" // readout::ROPDataContainer
 #include "larcorealg/Geometry/TPCGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/fwd.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h"       // geo::vect namespace
 #include "larcoreobj/SimpleTypesAndConstants/RawTypes.h" // raw::ChannelID_t
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
@@ -79,14 +80,82 @@ class TGeoNode;
 class TGeoVolume;
 class TGeoMaterial;
 
+namespace unrelated {
+  // Functions to allow determination if two wires intersect, and if so where.
+  // This is useful information during 3D reconstruction.
+  //......................................................................
+  bool ValueInRange(double value, double min, double max);
+
+  // The following functions are utilized to determine if two wires
+  // in the TPC intersect or not, and if they do then
+  // determine the coordinates of the intersection.
+
+  /**
+     * @brief Computes the intersection between two lines on a plane
+     * @param A_start_x x coordinate of one point of the first segment
+     * @param A_start_y y coordinate of one point of the first segment
+     * @param A_end_x x coordinate of another point of the first segment
+     * @param A_end_y y coordinate of another point of the first segment
+     * @param B_start_x x coordinate of one point of the second segment
+     * @param B_start_y y coordinate of one point of the second segment
+     * @param B_end_x x coordinate of another point of the second segment
+     * @param B_end_y y coordinate of another point of the second segment
+     * @param x _(output)_ variable to store the x coordinate of intersection
+     * @param y _(output)_ variable to store the y coordinate of intersection
+     * @return whether intersection exists
+     *
+     * The order of the ends is not relevant.
+     * The return value is `false` if the two segments are parallel.
+     * In that case, `x` and `y` variables are not changed.
+     * Otherwise, they hold the intersection coordinate, even if the
+     * intersection point is beyond one or both the segments.
+     */
+  bool IntersectLines(double A_start_x,
+                      double A_start_y,
+                      double A_end_x,
+                      double A_end_y,
+                      double B_start_x,
+                      double B_start_y,
+                      double B_end_x,
+                      double B_end_y,
+                      double& x,
+                      double& y);
+
+  /**
+     * @brief Computes the intersection between two segments on a plane
+     * @param A_start_x x coordinate of the start of the first segment
+     * @param A_start_y y coordinate of the start of the first segment
+     * @param A_end_x x coordinate of the end of the first segment
+     * @param A_end_y y coordinate of the end of the first segment
+     * @param B_start_x x coordinate of the start of the second segment
+     * @param B_start_y y coordinate of the start of the second segment
+     * @param B_end_x x coordinate of the end of the second segment
+     * @param B_end_y y coordinate of the end of the second segment
+     * @param x _(output)_ variable to store the x coordinate of intersection
+     * @param y _(output)_ variable to store the y coordinate of intersection
+     * @return whether intersection exists and is on both segments
+     *
+     * The order of the ends is not relevant.
+     * The return value is `false` if the two segments are parallel, or if their
+     * intersection point is not on _both_ the segments.
+     * If the segments are parallel, x and y variables are not changed.
+     * Otherwise, they hold the intersection coordinate, even if the
+     * intersection point is beyond one or both the segments.
+     */
+  bool IntersectSegments(double A_start_x,
+                         double A_start_y,
+                         double A_end_x,
+                         double A_end_y,
+                         double B_start_x,
+                         double B_start_y,
+                         double B_end_x,
+                         double B_end_y,
+                         double& x,
+                         double& y);
+}
+
 /// Namespace collecting geometry-related classes utilities
 namespace geo {
-
-  // Forward declarations within namespace.
-  class AuxDetGeo;
-  class AuxDetSensitiveGeo;
-  class OpDetGeo;
-  class GeometryCore;
 
   //
   // iterators
@@ -94,34 +163,18 @@ namespace geo {
 
   namespace details {
 
-    /// Base class for geometry iterators, containing some type definitions
-    class geometry_iterator_types {
-    public:
-      //@{
-      /// Structures to distinguish the constructors.
-      struct BeginPos_t {};
-      struct EndPos_t {};
-      struct UndefinedPos_t {};
-
-      static constexpr BeginPos_t begin_pos = {};
-      static constexpr EndPos_t end_pos = {};
-      static constexpr UndefinedPos_t undefined_pos = {};
-      //@}
-
-    }; // class geometry_iterator_types
-
     /// Base class for geometry iterators (note: this is not an iterator)
-    class geometry_iterator_base : public geometry_iterator_types {
+    class geometry_iterator_base {
     public:
       /// Constructor: associates with the specified geometry
-      geometry_iterator_base(geo::GeometryCore const* geom) : pGeo(geom) {}
+      geometry_iterator_base(GeometryCore const* geom) : pGeo(geom) {}
 
     protected:
       /// Returns a pointer to the geometry
-      geo::GeometryCore const* geometry() const { return pGeo; }
+      GeometryCore const* geometry() const { return pGeo; }
 
       /// Default constructor; do not use a default-constructed iterator as-is!
-      geometry_iterator_base() {}
+      geometry_iterator_base() = default;
 
     private:
       GeometryCore const* pGeo = nullptr; ///< pointer to the geometry
@@ -143,14 +196,13 @@ namespace geo {
     template <typename GEOID>
     class cryostat_id_iterator_base : public geometry_iterator_base {
     public:
-      using ElementPtr_t = geo::CryostatGeo const*;
+      using ElementPtr_t = CryostatGeo const*;
       using GeoID_t = GEOID; ///< type of the actual ID stored in the iterator
 
       using iterator = cryostat_id_iterator_base<GeoID_t>; ///< this iterator
 
-      using LocalID_t = geo::CryostatID; ///< type of the ID we change
-      static_assert(std::is_base_of<LocalID_t, GEOID>::value,
-                    "template type GEOID is not a LocalID_t");
+      using LocalID_t = CryostatID; ///< type of the ID we change
+      static_assert(std::is_base_of<LocalID_t, GEOID>{}, "template type GEOID is not a LocalID_t");
 
       /// @name Iterator traits
       /// @{
@@ -162,33 +214,10 @@ namespace geo {
       /// @}
 
       /// Default constructor; effect not defined: assign to it before using!
-      cryostat_id_iterator_base() {}
-
-      /// Constructor: points to begin
-      cryostat_id_iterator_base(geo::GeometryCore const* geom)
-        : cryostat_id_iterator_base(geom, begin_pos)
-      {}
+      cryostat_id_iterator_base() = default;
 
       /// Constructor: points to the specified cryostat
-      cryostat_id_iterator_base(geo::GeometryCore const* geom, GeoID_t const& start_from)
-        : cryostat_id_iterator_base(geom, undefined_pos)
-      {
-        id = start_from;
-      }
-
-      /// Constructor: points to begin
-      cryostat_id_iterator_base(geo::GeometryCore const* geom, BeginPos_t const)
-        : cryostat_id_iterator_base(geom, undefined_pos)
-      {
-        set_begin();
-      }
-
-      /// Constructor: points to end
-      cryostat_id_iterator_base(geo::GeometryCore const* geom, EndPos_t)
-        : cryostat_id_iterator_base(geom, undefined_pos)
-      {
-        set_end();
-      }
+      cryostat_id_iterator_base(GeometryCore const* geom, GeoID_t const& start_from);
 
       // TODO reconsider if the additional template is indeed needed
       /// Returns true if the two iterators point to the same cryostat
@@ -226,21 +255,8 @@ namespace geo {
         return old;
       }
 
-      /// Returns whether the iterator is pointing to a valid cryostat
-      operator bool() const;
-
-      /// Returns a pointer to cryostat, or nullptr if invalid
-      ElementPtr_t get() const;
-
     protected:
       using ID_t = typename LocalID_t::CryostatID_t;
-
-      /// Constructor: does not set the current ID
-      cryostat_id_iterator_base(geo::GeometryCore const* geom, UndefinedPos_t)
-        : geometry_iterator_base(geom), id()
-      {
-        set_local_limits();
-      }
 
       //@{
       /// Returns the actual type of ID we store
@@ -255,28 +271,19 @@ namespace geo {
       bool at_end() const { return local_index() == limit; }
 
     private:
-      GeoID_t id;                        ///< ID of the current cryostat
+      GeoID_t id{};                      ///< ID of the current cryostat
       ID_t limit = LocalID_t::InvalidID; ///< maximum number of cryostats
-
-      /// Sets the limit member to the past-the-end cryostat number
-      void set_local_limits();
-
-      /// Sets the iterator to the begin position
-      void set_begin();
-
-      /// Sets the iterator to the end position
-      void set_end();
 
       //@{
       /// Returns the type of ID we act on
-      LocalID_t const& localID() const { return static_cast<LocalID_t const&>(ID()); }
-      LocalID_t& localID() { return static_cast<LocalID_t&>(ID()); }
+      LocalID_t const& localID() const { return ID(); }
+      LocalID_t& localID() { return ID(); }
       //@}
 
       //@{
       /// Returns the index (part if the ID) this iterator runs on
-      ID_t const& local_index() const { return localID().Cryostat; }
-      ID_t& local_index() { return localID().Cryostat; }
+      ID_t const& local_index() const { return localID().deepestIndex(); }
+      ID_t& local_index() { return localID().deepestIndex(); }
       //@}
 
     }; // class cryostat_id_iterator_base<>
@@ -303,24 +310,13 @@ namespace geo {
       using upper_iterator = cryostat_id_iterator_base<GEOID>;
 
     public:
-      using ElementPtr_t = geo::TPCGeo const*;
+      using ElementPtr_t = TPCGeo const*;
       using GeoID_t = typename upper_iterator::GeoID_t;
 
-      using LocalID_t = geo::TPCID; ///< type of the ID we change
-      static_assert(std::is_base_of<LocalID_t, GEOID>::value,
-                    "template type GEOID is not a LocalID_t");
+      using LocalID_t = TPCID; ///< type of the ID we change
+      static_assert(std::is_base_of<LocalID_t, GEOID>{}, "template type GEOID is not a LocalID_t");
 
       using iterator = TPC_id_iterator_base<GeoID_t>; ///< type of this iterator
-
-      // import all the useful types from the base templated class
-      using typename upper_iterator::BeginPos_t;
-      using typename upper_iterator::EndPos_t;
-      using typename upper_iterator::UndefinedPos_t;
-
-      // import all the useful members from the base templated class
-      using upper_iterator::begin_pos;
-      using upper_iterator::end_pos;
-      using upper_iterator::undefined_pos;
 
       /// @name Iterator traits
       /// @{
@@ -332,28 +328,14 @@ namespace geo {
       /// @}
 
       /// Default constructor; effect not defined: assign to it before using!
-      TPC_id_iterator_base() {}
-
-      /// Constructor: points to begin
-      TPC_id_iterator_base(geo::GeometryCore const* geom) : TPC_id_iterator_base(geom, begin_pos) {}
+      TPC_id_iterator_base() = default;
 
       /// Constructor: points to the specified TPC
-      TPC_id_iterator_base(geo::GeometryCore const* geom, GeoID_t const& start_from)
+      TPC_id_iterator_base(GeometryCore const* geom, GeoID_t const& start_from)
         : upper_iterator(geom, start_from)
       {
         set_local_limits();
       }
-
-      /// Constructor: points to begin
-      TPC_id_iterator_base(geo::GeometryCore const* geom, BeginPos_t const)
-        : upper_iterator(geom, begin_pos)
-      {
-        set_local_limits();
-      }
-
-      /// Constructor: points to end
-      TPC_id_iterator_base(geo::GeometryCore const* geom, EndPos_t) : upper_iterator(geom, end_pos)
-      {} // the local limit is ill-defined and left invalid
 
       // TODO reconsider if the additional template is indeed needed
       /// Returns true if the two iterators point to the same TPC
@@ -391,27 +373,13 @@ namespace geo {
         return old;
       }
 
-      /// Returns whether the iterator is pointing to a valid TPC
-      operator bool() const;
-
-      /// Returns a pointer to TPC, or nullptr if invalid
-      ElementPtr_t get() const;
-
     protected:
       using ID_t = typename LocalID_t::TPCID_t; ///< specific type for TPC ID
-
-      /// Constructor: position undefined (meaning undefined local limits too)
-      TPC_id_iterator_base(geo::GeometryCore const* geom, UndefinedPos_t)
-        : upper_iterator(geom, undefined_pos)
-      {}
 
       using upper_iterator::ID; // to be explicit; this is NOT overloaded
 
       /// Returns the type of ID we act on
-      LocalID_t const& localID() const
-      {
-        return static_cast<LocalID_t const&>(upper_iterator::ID());
-      }
+      LocalID_t const& localID() const { return upper_iterator::ID(); }
 
       using upper_iterator::at_end; // to be explicit; this is NOT overloaded
 
@@ -419,7 +387,7 @@ namespace geo {
       void next();
 
       /// Returns the index (part if the ID) this iterator runs on
-      ID_t const& local_index() const { return localID().TPC; }
+      ID_t const& local_index() const { return localID().deepestIndex(); }
 
     private:
       /// maximum number of TPCs in the current cryostat
@@ -429,10 +397,10 @@ namespace geo {
       void set_local_limits();
 
       /// Returns the type of ID we act on (non-const version)
-      LocalID_t& localID() { return static_cast<LocalID_t&>(ID()); }
+      LocalID_t& localID() { return ID(); }
 
       /// Returns the index (part if the ID) this iterator runs on  (non-const)
-      ID_t& local_index() { return localID().TPC; }
+      ID_t& local_index() { return localID().deepestIndex(); }
 
     }; // class TPC_id_iterator_base
 
@@ -458,25 +426,14 @@ namespace geo {
       using upper_iterator = TPC_id_iterator_base<GEOID>;
 
     public:
-      using ElementPtr_t = geo::PlaneGeo const*;
+      using ElementPtr_t = PlaneGeo const*;
       using GeoID_t = typename upper_iterator::GeoID_t;
 
-      using LocalID_t = geo::PlaneID; ///< type of the ID we change
-      static_assert(std::is_base_of<LocalID_t, GEOID>::value,
-                    "template type GEOID is not a LocalID_t");
+      using LocalID_t = PlaneID; ///< type of the ID we change
+      static_assert(std::is_base_of<LocalID_t, GEOID>{}, "template type GEOID is not a LocalID_t");
 
       /// type of this iterator
       using iterator = plane_id_iterator_base<GeoID_t>;
-
-      // import all the useful types from the base templated class
-      using typename upper_iterator::BeginPos_t;
-      using typename upper_iterator::EndPos_t;
-      using typename upper_iterator::UndefinedPos_t;
-
-      // import all the useful members from the base templated class
-      using upper_iterator::begin_pos;
-      using upper_iterator::end_pos;
-      using upper_iterator::undefined_pos;
 
       /// @name Iterator traits
       /// @{
@@ -488,31 +445,14 @@ namespace geo {
       /// @}
 
       /// Default constructor; effect not defined: assign to it before using!
-      plane_id_iterator_base() {}
-
-      /// Constructor: points to begin
-      plane_id_iterator_base(geo::GeometryCore const* geom)
-        : plane_id_iterator_base(geom, begin_pos)
-      {}
+      plane_id_iterator_base() = default;
 
       /// Constructor: points to the specified plane
-      plane_id_iterator_base(geo::GeometryCore const* geom, GeoID_t const& start_from)
+      plane_id_iterator_base(GeometryCore const* geom, GeoID_t const& start_from)
         : upper_iterator(geom, start_from)
       {
         set_local_limits();
       }
-
-      /// Constructor: points to begin
-      plane_id_iterator_base(geo::GeometryCore const* geom, BeginPos_t const)
-        : upper_iterator(geom, begin_pos)
-      {
-        set_local_limits();
-      }
-
-      /// Constructor: points to end
-      plane_id_iterator_base(geo::GeometryCore const* geom, EndPos_t)
-        : upper_iterator(geom, end_pos)
-      {} // the local limit is ill-defined and left invalid
 
       // TODO reconsider if the additional template is indeed needed
       /// Returns true if the two iterators point to the same plane
@@ -550,27 +490,13 @@ namespace geo {
         return old;
       }
 
-      /// Returns whether the iterator is pointing to a valid plane
-      operator bool() const;
-
-      /// Returns a pointer to plane, or nullptr if invalid
-      ElementPtr_t get() const;
-
     protected:
       using ID_t = typename LocalID_t::PlaneID_t; ///< specific type for plane ID
-
-      /// Constructor: position undefined (meaning undefined local limits too)
-      plane_id_iterator_base(geo::GeometryCore const* geom, UndefinedPos_t)
-        : upper_iterator(geom, undefined_pos)
-      {}
 
       using upper_iterator::ID; // to be explicit; this is NOT overloaded
 
       /// Returns the type of ID we act on
-      LocalID_t const& localID() const
-      {
-        return static_cast<LocalID_t const&>(upper_iterator::ID());
-      }
+      LocalID_t const& localID() const { return upper_iterator::ID(); }
 
       using upper_iterator::at_end; // to be explicit; this is NOT overloaded
 
@@ -578,7 +504,7 @@ namespace geo {
       void next();
 
       /// Returns the index (part if the ID) this iterator runs on
-      ID_t const& local_index() const { return localID().Plane; }
+      ID_t const& local_index() const { return localID().deepestIndex(); }
 
     private:
       /// maximum number of planes in the current TPC
@@ -588,10 +514,10 @@ namespace geo {
       void set_local_limits();
 
       /// Returns the type of ID we act on (non-const version)
-      LocalID_t& localID() { return static_cast<LocalID_t&>(ID()); }
+      LocalID_t& localID() { return ID(); }
 
       /// Returns the index (part if the ID) this iterator runs on  (non-const)
-      ID_t& local_index() { return localID().Plane; }
+      ID_t& local_index() { return localID().deepestIndex(); }
 
     }; // class plane_id_iterator_base
 
@@ -617,25 +543,14 @@ namespace geo {
       using upper_iterator = plane_id_iterator_base<GEOID>;
 
     public:
-      using ElementPtr_t = geo::WireGeo const*;
+      using ElementPtr_t = WireGeo const*;
       using GeoID_t = typename upper_iterator::GeoID_t;
 
-      using LocalID_t = geo::WireID; ///< type of the ID we change
-      static_assert(std::is_base_of<LocalID_t, GEOID>::value,
-                    "template type GEOID is not a LocalID_t");
+      using LocalID_t = WireID; ///< type of the ID we change
+      static_assert(std::is_base_of<LocalID_t, GEOID>{}, "template type GEOID is not a LocalID_t");
 
       /// type of this iterator
       using iterator = wire_id_iterator_base<GeoID_t>;
-
-      // import all the useful types from the base templated class
-      using typename upper_iterator::BeginPos_t;
-      using typename upper_iterator::EndPos_t;
-      using typename upper_iterator::UndefinedPos_t;
-
-      // import all the useful members from the base templated class
-      using upper_iterator::begin_pos;
-      using upper_iterator::end_pos;
-      using upper_iterator::undefined_pos;
 
       /// @name Iterator traits
       /// @{
@@ -647,29 +562,14 @@ namespace geo {
       /// @}
 
       /// Default constructor; effect not defined: assign to it before using!
-      wire_id_iterator_base() {}
-
-      /// Constructor: points to begin
-      wire_id_iterator_base(geo::GeometryCore const* geom) : wire_id_iterator_base(geom, begin_pos)
-      {}
+      wire_id_iterator_base() = default;
 
       /// Constructor: points to the specified wire
-      wire_id_iterator_base(geo::GeometryCore const* geom, GeoID_t const& start_from)
+      wire_id_iterator_base(GeometryCore const* geom, GeoID_t const& start_from)
         : upper_iterator(geom, start_from)
       {
         set_local_limits();
       }
-
-      /// Constructor: points to begin
-      wire_id_iterator_base(geo::GeometryCore const* geom, BeginPos_t const)
-        : upper_iterator(geom, begin_pos)
-      {
-        set_local_limits();
-      }
-
-      /// Constructor: points to end
-      wire_id_iterator_base(geo::GeometryCore const* geom, EndPos_t) : upper_iterator(geom, end_pos)
-      {} // the local limit is ill-defined and left invalid
 
       // TODO reconsider if the additional template is indeed needed
       /// Returns true if the two iterators point to the same wire
@@ -707,27 +607,13 @@ namespace geo {
         return old;
       }
 
-      /// Returns whether the iterator is pointing to a valid wire
-      operator bool() const;
-
-      /// Returns a pointer to wire, or nullptr if invalid
-      ElementPtr_t get() const;
-
     protected:
       using ID_t = typename LocalID_t::WireID_t; ///< specific type for wire ID
-
-      /// Constructor: position undefined (meaning undefined local limits too)
-      wire_id_iterator_base(geo::GeometryCore const* geom, UndefinedPos_t)
-        : upper_iterator(geom, undefined_pos)
-      {}
 
       using upper_iterator::ID; // to be explicit; this is NOT overloaded
 
       /// Returns the type of ID we act on
-      LocalID_t const& localID() const
-      {
-        return static_cast<LocalID_t const&>(upper_iterator::ID());
-      }
+      LocalID_t const& localID() const { return upper_iterator::ID(); }
 
       using upper_iterator::at_end; // to be explicit; this is NOT overloaded
 
@@ -735,7 +621,7 @@ namespace geo {
       void next();
 
       /// Returns the index (part if the ID) this iterator runs on
-      ID_t const& local_index() const { return localID().Wire; }
+      ID_t const& local_index() const { return localID().deepestIndex(); }
 
     private:
       /// maximum number of wires in the current plane
@@ -745,10 +631,10 @@ namespace geo {
       void set_local_limits();
 
       /// Returns the type of ID we act on (non-const version)
-      LocalID_t& localID() { return static_cast<LocalID_t&>(ID()); }
+      LocalID_t& localID() { return ID(); }
 
       /// Returns the index (part if the ID) this iterator runs on (non-const)
-      ID_t& local_index() { return localID().Wire; }
+      ID_t& local_index() { return localID().deepestIndex(); }
 
     }; // class wire_id_iterator_base
 
@@ -804,11 +690,11 @@ namespace geo {
      * iterator.
      */
     template <typename GEOIDITER>
-    class geometry_element_iterator : public geometry_iterator_types {
+    class geometry_element_iterator {
     public:
       using id_iterator_t = GEOIDITER;
 
-      static_assert(std::is_base_of<geometry_iterator_base, id_iterator_t>::value,
+      static_assert(std::is_base_of<geometry_iterator_base, id_iterator_t>{},
                     "template class for geometry_element_iterator"
                     " must be a geometry iterator");
 
@@ -818,17 +704,7 @@ namespace geo {
       /// @name Types mirrored from the ID iterator
       using LocalID_t = typename id_iterator_t::LocalID_t;
       using GeoID_t = typename id_iterator_t::GeoID_t;
-      using UndefinedPos_t = typename id_iterator_t::UndefinedPos_t;
-      using BeginPos_t = typename id_iterator_t::BeginPos_t;
-      using EndPos_t = typename id_iterator_t::EndPos_t;
       using ElementPtr_t = typename id_iterator_t::ElementPtr_t;
-      /// @}
-
-      /// @{
-      /// @name Constants inherited from the ID iterator
-      using geometry_iterator_types::begin_pos;
-      using geometry_iterator_types::end_pos;
-      using geometry_iterator_types::undefined_pos;
       /// @}
 
       /// Geometry class pointed by the iterator
@@ -846,28 +722,19 @@ namespace geo {
       /// Default constructor; effect not defined: assign to it before using!
       geometry_element_iterator() = default;
 
-      /// Constructor: points to begin
-      geometry_element_iterator(geo::GeometryCore const* geom) : id_iter(geom) {}
+      /// Constructor: points to the same element as the specified ID iterator.
+      geometry_element_iterator(GeometryCore const* geo, id_iterator_t const& iter)
+        : geom{geo}, id_iter(iter)
+      {}
 
       /// Constructor: points to the same element as the specified ID iterator.
-      geometry_element_iterator(id_iterator_t const& iter) : id_iter(iter) {}
-
-      /// Constructor: points to the same element as the specified ID iterator.
-      geometry_element_iterator(id_iterator_t&& iter) : id_iter(iter) {}
+      geometry_element_iterator(GeometryCore const* geo, id_iterator_t&& iter)
+        : geom{geo}, id_iter(iter)
+      {}
 
       /// Constructor: points to the specified geometry element
-      geometry_element_iterator(geo::GeometryCore const* geom, GeoID_t const& start_from)
-        : id_iter(geom, start_from)
-      {}
-
-      /// Constructor: points to beginning
-      geometry_element_iterator(geo::GeometryCore const* geom, BeginPos_t const pos)
-        : id_iter(geom, pos)
-      {}
-
-      /// Constructor: points to end
-      geometry_element_iterator(geo::GeometryCore const* geom, EndPos_t const pos)
-        : id_iter(geom, pos)
+      geometry_element_iterator(GeometryCore const* geo, GeoID_t const& start_from)
+        : geom{geo}, id_iter(geom, start_from)
       {}
 
       /// Returns true if the two iterators point to the same object
@@ -909,22 +776,22 @@ namespace geo {
       }
 
       /// Returns whether the iterator is pointing to a valid geometry element
-      operator bool() const { return bool(id_iterator()) && (id_iterator().get() != nullptr); }
+      operator bool() const;
 
       /// Returns a pointer to the geometry element, or nullptr if invalid
-      ElementPtr_t get() const { return id_iterator().get(); }
+      ElementPtr_t get() const;
 
       /// Returns the ID of the pointed geometry element
       LocalID_t const& ID() const { return *(id_iterator()); }
 
     protected:
-      friend bool geo::details::operator==
+      friend bool details::operator==
         <id_iterator_t>(iterator const& iter, id_iterator_t const& id_iter);
-      friend bool geo::details::operator==
+      friend bool details::operator==
         <id_iterator_t>(id_iterator_t const& id_iter, iterator const& iter);
-      friend bool geo::details::operator!=
+      friend bool details::operator!=
         <id_iterator_t>(iterator const& iter, id_iterator_t const& id_iter);
-      friend bool geo::details::operator!=
+      friend bool details::operator!=
         <id_iterator_t>(id_iterator_t const& id_iter, iterator const& iter);
 
       //@{
@@ -934,9 +801,9 @@ namespace geo {
       //@}
 
     private:
+      geo::GeometryCore const* geom;
       id_iterator_t id_iter; ///< iterator performing the job
-
-    }; // class geometry_element_iterator<>
+    };                       // class geometry_element_iterator<>
 
     /**
      * @brief Base forward iterator browsing all TPC set IDs in the detector.
@@ -963,21 +830,10 @@ namespace geo {
       using GeoID_t = typename upper_iterator::GeoID_t;
 
       using LocalID_t = readout::TPCsetID; ///< Type of the ID we change.
-      static_assert(std::is_base_of<LocalID_t, GEOID>::value,
-                    "template type GEOID is not a LocalID_t");
+      static_assert(std::is_base_of<LocalID_t, GEOID>{}, "template type GEOID is not a LocalID_t");
 
       ///< Type of this iterator.
       using iterator = TPCset_id_iterator_base<GeoID_t>;
-
-      // import all the useful types from the base templated class
-      using typename upper_iterator::BeginPos_t;
-      using typename upper_iterator::EndPos_t;
-      using typename upper_iterator::UndefinedPos_t;
-
-      // import all the useful members from the base templated class
-      using upper_iterator::begin_pos;
-      using upper_iterator::end_pos;
-      using upper_iterator::undefined_pos;
 
       /// @name Iterator traits
       /// @{
@@ -989,31 +845,14 @@ namespace geo {
       /// @}
 
       /// Default constructor; effect not defined: assign to it before using!
-      TPCset_id_iterator_base() {}
-
-      /// Constructor: points to begin.
-      TPCset_id_iterator_base(geo::GeometryCore const* geom)
-        : TPCset_id_iterator_base(geom, begin_pos)
-      {}
+      TPCset_id_iterator_base() = default;
 
       /// Constructor: points to the specified TPC set.
-      TPCset_id_iterator_base(geo::GeometryCore const* geom, GeoID_t const& start_from)
+      TPCset_id_iterator_base(GeometryCore const* geom, GeoID_t const& start_from)
         : upper_iterator(geom, start_from)
       {
         set_local_limits();
       }
-
-      /// Constructor: points to begin.
-      TPCset_id_iterator_base(geo::GeometryCore const* geom, BeginPos_t const)
-        : upper_iterator(geom, begin_pos)
-      {
-        set_local_limits();
-      }
-
-      /// Constructor: points to end.
-      TPCset_id_iterator_base(geo::GeometryCore const* geom, EndPos_t)
-        : upper_iterator(geom, end_pos)
-      {} // the local limit is ill-defined and left invalid
 
       // TODO reconsider if the additional template is indeed needed
       /// Returns true if the two iterators point to the same TPC set.
@@ -1051,25 +890,14 @@ namespace geo {
         return old;
       }
 
-      /// Returns whether the iterator is pointing to a valid TPC set.
-      operator bool() const;
-
     protected:
       /// Specific type for TPC set ID.
       using ID_t = typename LocalID_t::TPCsetID_t;
 
-      /// Constructor: position undefined (meaning undefined local limits too).
-      TPCset_id_iterator_base(geo::GeometryCore const* geom, UndefinedPos_t)
-        : upper_iterator(geom, undefined_pos)
-      {}
-
       using upper_iterator::ID; // to be explicit; this is NOT overloaded
 
       /// Returns the type of ID we act on.
-      LocalID_t const& localID() const
-      {
-        return static_cast<LocalID_t const&>(upper_iterator::ID());
-      }
+      LocalID_t const& localID() const { return upper_iterator::ID(); }
 
       using upper_iterator::at_end; // to be explicit; this is NOT overloaded
 
@@ -1077,7 +905,7 @@ namespace geo {
       void next();
 
       /// Returns the index (part if the ID) this iterator runs on.
-      ID_t const& local_index() const { return localID().TPCset; }
+      ID_t const& local_index() const { return localID().deepestIndex(); }
 
     private:
       /// maximum number of TPC sets in the current cryostat.
@@ -1087,13 +915,10 @@ namespace geo {
       void set_local_limits();
 
       /// Returns the type of ID we act on (non-const version).
-      LocalID_t& localID() { return static_cast<LocalID_t&>(ID()); }
+      LocalID_t& localID() { return ID(); }
 
       /// Returns the index (part if the ID) this iterator runs on  (non-const).
-      ID_t& local_index() { return localID().TPCset; }
-
-      // no object is currently implemented for TPC sets
-      typename upper_iterator::ElementPtr_t get() const = delete;
+      ID_t& local_index() { return localID().deepestIndex(); }
 
     }; // class TPCset_id_iterator_base
 
@@ -1123,21 +948,10 @@ namespace geo {
       using GeoID_t = typename upper_iterator::GeoID_t;
 
       using LocalID_t = readout::ROPID; ///< type of the ID we change
-      static_assert(std::is_base_of<LocalID_t, GEOID>::value,
-                    "template type GEOID is not a LocalID_t");
+      static_assert(std::is_base_of<LocalID_t, GEOID>{}, "template type GEOID is not a LocalID_t");
 
       /// Type of this iterator.
       using iterator = ROP_id_iterator_base<GeoID_t>;
-
-      // import all the useful types from the base templated class
-      using typename upper_iterator::BeginPos_t;
-      using typename upper_iterator::EndPos_t;
-      using typename upper_iterator::UndefinedPos_t;
-
-      // import all the useful members from the base templated class
-      using upper_iterator::begin_pos;
-      using upper_iterator::end_pos;
-      using upper_iterator::undefined_pos;
 
       /// @name Iterator traits
       /// @{
@@ -1151,26 +965,12 @@ namespace geo {
       /// Default constructor; effect not defined: assign to it before using!
       ROP_id_iterator_base() = default;
 
-      /// Constructor: points to begin.
-      ROP_id_iterator_base(geo::GeometryCore const* geom) : ROP_id_iterator_base(geom, begin_pos) {}
-
       /// Constructor: points to the specified readout plane.
-      ROP_id_iterator_base(geo::GeometryCore const* geom, GeoID_t const& start_from)
+      ROP_id_iterator_base(GeometryCore const* geom, GeoID_t const& start_from)
         : upper_iterator(geom, start_from)
       {
         set_local_limits();
       }
-
-      /// Constructor: points to begin.
-      ROP_id_iterator_base(geo::GeometryCore const* geom, BeginPos_t const)
-        : upper_iterator(geom, begin_pos)
-      {
-        set_local_limits();
-      }
-
-      /// Constructor: points to end.
-      ROP_id_iterator_base(geo::GeometryCore const* geom, EndPos_t) : upper_iterator(geom, end_pos)
-      {} // the local limit is ill-defined and left invalid
 
       // TODO reconsider if the additional template is indeed needed
       /// Returns true if the two iterators point to the same readout plane.
@@ -1208,24 +1008,13 @@ namespace geo {
         return old;
       }
 
-      /// Returns whether the iterator is pointing to a valid plane.
-      operator bool() const;
-
     protected:
       using ID_t = typename LocalID_t::ROPID_t; ///< Specific type for plane ID.
-
-      /// Constructor: position undefined (meaning undefined local limits too).
-      ROP_id_iterator_base(geo::GeometryCore const* geom, UndefinedPos_t)
-        : upper_iterator(geom, undefined_pos)
-      {}
 
       using upper_iterator::ID; // to be explicit; this is NOT overloaded
 
       /// Returns the type of ID we act on.
-      LocalID_t const& localID() const
-      {
-        return static_cast<LocalID_t const&>(upper_iterator::ID());
-      }
+      LocalID_t const& localID() const { return upper_iterator::ID(); }
 
       using upper_iterator::at_end; // to be explicit; this is NOT overloaded
 
@@ -1233,7 +1022,7 @@ namespace geo {
       void next();
 
       /// Returns the index (part if the ID) this iterator runs on.
-      ID_t const& local_index() const { return localID().ROP; }
+      ID_t const& local_index() const { return localID().deepestIndex(); }
 
     private:
       /// Maximum number of readout planes in the current TPC set.
@@ -1244,10 +1033,10 @@ namespace geo {
       void set_local_limits();
 
       /// Returns the type of ID we act on (non-const version).
-      LocalID_t& localID() { return static_cast<LocalID_t&>(ID()); }
+      LocalID_t& localID() { return ID(); }
 
       /// Returns the index (part if the ID) this iterator runs on  (non-const).
-      ID_t& local_index() { return localID().ROP; }
+      ID_t& local_index() { return localID().deepestIndex(); }
 
     }; // class ROP_id_iterator_base
 
@@ -1260,11 +1049,10 @@ namespace geo {
    * @brief Forward iterator browsing all cryostats in the detector
    *
    * Prefer asking GeometryCore object for iterators rather than constructing
-   * them anew: see geo::GeometryCore::cryostat_id_iterator for the recommended
-   * usage.
+   * them anew.
    * Stand-alone example (not recommended):
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-   * geo::GeometryCore::cryostat_id_iterator iCryostat,
+   * geo::cryostat_id_iterator iCryostat,
    *   cbegin(geom, geo::cryostat_id_iterator::begin_pos),
    *   cend(geom, geo::cryostat_id_iterator::end_pos);
    * for (iCryostat = cbegin; iCryostat != cend; ++iCryostat) {
@@ -1275,7 +1063,7 @@ namespace geo {
    * } // for
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */
-  using cryostat_id_iterator = details::cryostat_id_iterator_base<geo::CryostatID>;
+  using cryostat_id_iterator = details::cryostat_id_iterator_base<CryostatID>;
 
   /**
    * @brief Forward iterator browsing all cryostats in the detector
@@ -1290,11 +1078,10 @@ namespace geo {
    * @brief Forward iterator browsing all TPCs in the detector
    *
    * Prefer asking the geometry object for iterators rather than constructing
-   * them anew: see geo::GeometryCore::TPC_id_iterator for the recommended
-   * usage.
+   * them anew.
    * Stand-alone example (not recommended):
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-   * geo::GeometryCore::TPC_id_iterator iTPC,
+   * geo::TPC_id_iterator iTPC,
    *   tbegin(geom, geo::TPC_id_iterator::begin_pos),
    *   tend(geom, geo::TPC_id_iterator::end_pos);
    * for (iTPC = tbegin; iTPC != tend; ++iTPC) {
@@ -1305,7 +1092,7 @@ namespace geo {
    * } // for
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */
-  using TPC_id_iterator = details::TPC_id_iterator_base<geo::TPCID>;
+  using TPC_id_iterator = details::TPC_id_iterator_base<TPCID>;
 
   /**
    * @brief Forward iterator browsing all TPCs in the detector
@@ -1320,11 +1107,10 @@ namespace geo {
    * @brief Forward iterator browsing all planes in the detector
    *
    * Prefer asking the geometry object for iterators rather than constructing
-   * them anew: see geo::GeometryCore::plane_id_iterator for the recommended
-   * usage.
+   * them anew.
    * Stand-alone example (not recommended):
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-   * geo::GeometryCore::plane_id_iterator iPlane,
+   * geo::plane_id_iterator iPlane,
    *   pbegin(geom, geo::plane_id_iterator::begin_pos),
    *   pend(geom, geo::plane_id_iterator::end_pos);
    * for (iPlane = pbegin; iPlane != pend; ++iPlane) {
@@ -1335,7 +1121,7 @@ namespace geo {
    * } // for
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */
-  using plane_id_iterator = details::plane_id_iterator_base<geo::PlaneID>;
+  using plane_id_iterator = details::plane_id_iterator_base<PlaneID>;
 
   /**
    * @brief Forward iterator browsing all planes in the detector
@@ -1350,10 +1136,10 @@ namespace geo {
    * @brief Forward iterator browsing all wires in the detector
    *
    * Prefer asking the geometry object for iterators rather than constructing
-   * them anew: see geo::GeometryCore::wire_id_iterator for the recommended usage.
+   * them anew.
    * Stand-alone example (not recommended):
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-   * geo::GeometryCore::wire_id_iterator iWire,
+   * geo::wire_id_iterator iWire,
    *   wbegin(geom, geo::wire_id_iterator::begin_pos),
    *   wend(geom, geo::wire_id_iterator::end_pos);
    * for (iWire = wbegin; iWire != wend; ++iWire) {
@@ -1364,7 +1150,7 @@ namespace geo {
    * } // for
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    */
-  using wire_id_iterator = details::wire_id_iterator_base<geo::WireID>;
+  using wire_id_iterator = details::wire_id_iterator_base<WireID>;
 
   /**
    * @brief Forward iterator browsing all wires in the detector
@@ -1379,11 +1165,10 @@ namespace geo {
    * @brief Forward iterator browsing all TPC sets in the detector.
    *
    * Prefer asking the geometry object for iterators rather than constructing
-   * them anew: see `geo::GeometryCore::TPCset_id_iterator` for the recommended
-   * usage.
+   * them anew.
    * Stand-alone example (not recommended):
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-   * geo::GeometryCore::TPCset_id_iterator iTPCset,
+   * geo::TPCset_id_iterator iTPCset,
    *   tbegin(geom, geo::iterators::begin_pos),
    *   tend(geom, geo::iterators::end_pos);
    * for (iTPCset = tbegin; iTPCset != tend; ++iTPCset) {
@@ -1399,11 +1184,10 @@ namespace geo {
    * @brief Forward iterator browsing all readout planes in the detector.
    *
    * Prefer asking the geometry object for iterators rather than constructing
-   * them anew: see geo::GeometryCore::ROP_id_iterator for the recommended
-   * usage.
+   * them anew.
    * Stand-alone example (not recommended):
    * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-   * geo::GeometryCore::ROP_id_iterator iROP,
+   * geo::ROP_id_iterator iROP,
    *   rbegin(geom, geo::iterators::begin_pos),
    *   rend(geom, geo::iterators::end_pos);
    * for (iROP = rbegin; iROP != rend; ++iROP) {
@@ -1415,42 +1199,8 @@ namespace geo {
    */
   using ROP_id_iterator = details::ROP_id_iterator_base<readout::ROPID>;
 
-  template <typename Iter,
-            Iter (GeometryCore::*BeginFunc)() const,
-            Iter (GeometryCore::*EndFunc)() const>
-  class IteratorBox : public util::span<Iter> {
-  public:
-    IteratorBox(GeometryCore const* geom)
-      : util::span<Iter>((geom->*BeginFunc)(), (geom->*EndFunc)())
-    {}
-
-  }; // IteratorBox<>
-
-  template <typename Iter,
-            typename GeoID,
-            Iter (GeometryCore::*BeginFunc)(GeoID const&) const,
-            Iter (GeometryCore::*EndFunc)(GeoID const&) const>
-  class LocalIteratorBox : public util::span<Iter> {
-  public:
-    LocalIteratorBox(GeometryCore const* geom, GeoID const& ID)
-      : util::span<Iter>((geom->*BeginFunc)(ID), (geom->*EndFunc)(ID))
-    {}
-
-  }; // LocalIteratorBox<>
-
-  /// Namespace for geometry iterators.
-  /// (currently quite depleted)
-  namespace iterators {
-
-    using BeginPos_t = details::geometry_iterator_types::BeginPos_t;
-    using EndPos_t = details::geometry_iterator_types::EndPos_t;
-    using UndefinedPos_t = details::geometry_iterator_types::UndefinedPos_t;
-
-    constexpr auto begin_pos = details::geometry_iterator_types::begin_pos;
-    constexpr auto end_pos = details::geometry_iterator_types::end_pos;
-    constexpr auto undefined_pos = details::geometry_iterator_types::undefined_pos;
-
-  } // namespace iterators
+  template <typename Iter>
+  using IteratorBox = util::span<Iter>;
 
   //
   // GeometryCore
@@ -1530,190 +1280,6 @@ namespace geo {
     /// volumes.
     static constexpr std::size_t MaxWireDepthInGDML = 20U;
 
-    /// Value of tolerance for equality comparisons
-    static lar::util::RealComparisons<geo::Length_t> coordIs;
-
-    // import iterators
-    /**
-     * @brief Forward-iterator browsing all cryostat IDs in the detector.
-     *
-     * Usage example with a while loop:
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-     * geo::GeometryCore::cryostat_id_iterator
-     *   iCryostat = geom->begin_cryostat_id(), cend = geom->end_cryostat_id();
-     * while (iCryostat != cend) {
-     *   std::cout << "Cryo: " << iCryostat->Cryostat << std::endl;
-     *   const geo::CryostatGeo* pCryo = iCryostat.get();
-     *   ++iCryostat;
-     *   // ...
-     * } // while
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * The recommended way to iterate is actually to use
-     * `GeometryCore::IterateCryostatIDs()` in a range-for loop.
-     * It is recommended to save the end iterator rather than calling
-     * `GeometryCore::end_cryostat_id()` on every check.
-     */
-    using cryostat_id_iterator = geo::cryostat_id_iterator;
-
-    /**
-     * @brief Forward-iterator browsing all cryostats in the detector.
-     *
-     * Usage example with a while loop:
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-     * geo::GeometryCore::cryostat_iterator
-     *   iCryostat = geom->begin_cryostat(), cend = geom->end_cryostat();
-     * while (iCryostat != cend) {
-     *   std::cout << "Cryo: " << iCryostat.ID() << std::endl;
-     *   geo::CryostatGeo const& Cryo = *iCryostat;
-     *   ++iCryostat;
-     *   // ...
-     * } // while
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * The recommended way to iterate is actually to use
-     * `GeometryCore::IterateCryostats()` in a range-for loop.
-     * It is recommended to save the end iterator rather than calling
-     * `GeometryCore::end_cryostat()` on every check.
-     */
-    using cryostat_iterator = geo::cryostat_iterator;
-
-    /**
-     * @brief Forward-iterator browsing all TPC IDs in the detector.
-     *
-     * Usage example with a while loop:
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-     * geo::GeometryCore::TPC_id_iterator iTPC = geom->begin_TPC_id(),
-     *   tend = geom->end_TPC_id();
-     * while (iTPC != tend) {
-     *   std::cout << "TPC: " << *iTPC << std::endl;
-     *   // the TPC descriptor object
-     *   const geo::TPCGeo* pTPC = iTPC.get();
-     *   // the cryostat the TPC is in
-     *   geo::CryostatGeo const& Cryo = geom->Cryostat(*iTPC);
-     *   ++iTPC;
-     *   // ...
-     * } // while
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * The recommended way to iterate is actually to use
-     * `GeometryCore::IterateTPCIDs()` in a range-for loop.
-     * It is recommended to save the end iterator rather than calling
-     * `GeometryCore::end_TPC_id()` on every check.
-     */
-    using TPC_id_iterator = geo::TPC_id_iterator;
-
-    /**
-     * @brief Forward-iterator browsing all TPCs in the detector.
-     *
-     * Usage example with a while loop:
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-     * geo::GeometryCore::TPC_iterator iTPC = geom->begin_TPC(),
-     *   tend = geom->end_TPC();
-     * while (iTPC != tend) {
-     *   std::cout << "TPC: " << iTPC.ID() << std::endl;
-     *   // the TPC descriptor object
-     *   geo::TPCGeo const& TPC = *iTPC;
-     *   ++iTPC;
-     *   // ...
-     * } // while
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * The recommended way to iterate is actually to use
-     * `GeometryCore::IterateTPCs()` in a range-for loop.
-     * It is recommended to save the end iterator rather than calling
-     * `GeometryCore::end_TPC()` on every check.
-     */
-    using TPC_iterator = geo::TPC_iterator;
-
-    /**
-     * @brief Forward-iterator browsing all plane IDs in the detector.
-     *
-     * Usage example with a while loop:
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-     * geo::GeometryCore::plane_id_iterator iPlane = geom->begin_plane_id(),
-     *   pend = geom->end_plane_id();
-     * while (iPlane != pend) {
-     *   std::cout << "Plane: " << *iPlane << std::endl;
-     *   // the plane descriptor object
-     *   const geo::PlaneGeo* pPlane = iPlane.get();
-     *   // the TPC the plane is in
-     *   geo::TPCGeo const& TPC = geom->TPC(*iPlane);
-     *   ++iPlane;
-     *   // ...
-     * } // while
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * The recommended way to iterate is actually to use
-     * `GeometryCore::IteratePlaneIDs()` in a range-for loop.
-     * It is recommended to save the end iterator rather than calling
-     * `GeometryCore::end_plane_id()` on every check.
-     */
-    using plane_id_iterator = geo::plane_id_iterator;
-
-    /**
-     * @brief Forward-iterator browsing all planes in the detector.
-     *
-     * Usage example with a while loop:
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-     * geo::GeometryCore::plane_iterator iPlane = geom->begin_plane(),
-     *   pend = geom->end_plane();
-     * while (iPlane != pend) {
-     *   std::cout << "Plane: " << iPlane.ID() << std::endl;
-     *   // the plane descriptor object
-     *   geo::PlaneGeo const& Plane = *iPlane;
-     *   ++iPlane;
-     *   // ...
-     * } // while
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * The recommended way to iterate is actually to use
-     * `GeometryCore::IteratePlanes()` in a range-for loop.
-     * It is recommended to save the end iterator rather than calling
-     * `GeometryCore::end_plane()` on every check.
-     */
-    using plane_iterator = geo::plane_iterator;
-
-    /**
-     * @brief Forward-iterator browsing all wire IDs in the detector.
-     *
-     * Usage example with a while loop:
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-     * geo::GeometryCore::wire_id_iterator iWire = geom->begin_wire_id(),
-     *   wend = geom->end_wire_id();
-     * while (iWire != wend) {
-     *   std::cout << "Wire: " << *iWire << std::endl;
-     *   // the wire descriptor object
-     *   const geo::WireGeo* pWire = iWire.get();
-     *   // the TPC the wire is in
-     *   geo::TPCGeo const& TPC = geom->TPC(*iWire);
-     *   ++iWire;
-     *   // ...
-     * } // while
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * The recommended way to iterate is actually to use
-     * `GeometryCore::IterateWireIDs()` in a range-for loop.
-     * It is recommended to save the end iterator rather than calling
-     * `GeometryCore::end_wire_id()` on every check.
-     */
-    using wire_id_iterator = geo::wire_id_iterator;
-
-    /**
-     * @brief Forward-iterator browsing all wires in the detector.
-     *
-     * Usage example with a while loop:
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-     * geo::GeometryCore::wire_iterator iWire = geom->begin_wire(),
-     *   wend = geom->end_wire();
-     * while (iWire != wend) {
-     *   std::cout << "Wire: " << iWire.ID() << std::endl;
-     *   // the wire descriptor object
-     *   geo::WireGeo const& Wire = *iWire;
-     *   ++iWire;
-     *   // ...
-     * } // while
-     * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     * The recommended way to iterate is actually to use
-     * `GeometryCore::IterateWires()` in a range-for loop.
-     * It is recommended to save the end iterator rather than calling
-     * `GeometryCore::end_wire()` on every check.
-     */
-    using wire_iterator = geo::wire_iterator;
-
     /**
      * @brief Initialize geometry from a given configuration
      * @param pset configuration parameters
@@ -1754,7 +1320,7 @@ namespace geo {
      * This is the full path of the source of the detector geometry GeometryCore
      * relies on.
      */
-    std::string ROOTFile() const { return fROOTfile; }
+    std::string const& ROOTFile() const { return fROOTfile; }
 
     /**
      * @brief Returns the full directory path to the GDML file source
@@ -1763,7 +1329,7 @@ namespace geo {
      * This is the full path of the source of the detector geometry handed to
      * the detector simulation (GEANT).
      */
-    std::string GDMLFile() const { return fGDMLfile; }
+    std::string const& GDMLFile() const { return fGDMLfile; }
 
     // BEGIN Detector information
     /// @name Detector information
@@ -1773,7 +1339,7 @@ namespace geo {
     // global features
     //
     /// Returns a string with the name of the detector, as configured
-    std::string DetectorName() const { return fDetectorName; }
+    std::string const& DetectorName() const { return fDetectorName; }
 
     //
     // position
@@ -1805,7 +1371,7 @@ namespace geo {
 
     /// Returns a box with the extremes of the world volume (from shape axes).
     /// @see `GetWorldVolumeName()`
-    geo::BoxBoundedGeo WorldBox() const;
+    BoxBoundedGeo WorldBox() const;
 
     /**
      * @brief The position of the detector respect to earth surface
@@ -1821,7 +1387,7 @@ namespace geo {
      * @todo check that this is actually how it is used
      */
     //
-    geo::Length_t SurfaceY() const { return fSurfaceY; }
+    Length_t SurfaceY() const { return fSurfaceY; }
 
     //
     // object description and information
@@ -1836,7 +1402,7 @@ namespace geo {
     /// Returns the absolute  coordinates of the detector enclosure volume [cm].
     /// @param name name of the volume to be sought (default: `volDetEnclosure`)
     /// @throw cet::exception if the specified volume is not found
-    geo::BoxBoundedGeo DetectorEnclosureBox(std::string const& name = "volDetEnclosure") const;
+    BoxBoundedGeo DetectorEnclosureBox(std::string const& name = "volDetEnclosure") const;
 
     //@{
     /**
@@ -1847,11 +1413,8 @@ namespace geo {
      * @todo what happens if none?
      * @todo Unify the coordinates type
      */
-    std::string VolumeName(geo::Point_t const& point) const;
-    std::string VolumeName(TVector3 const& point) const
-    {
-      return VolumeName(geo::vect::toPoint(point));
-    }
+    std::string VolumeName(Point_t const& point) const;
+    std::string VolumeName(TVector3 const& point) const { return VolumeName(vect::toPoint(point)); }
     //@}
 
     /**
@@ -1882,7 +1445,7 @@ namespace geo {
       std::set<std::string> const& vol_names) const;
 
     /// Returns the material at the specified position
-    TGeoMaterial const* Material(geo::Point_t const& point) const;
+    TGeoMaterial const* Material(Point_t const& point) const;
     //@{
     /**
      * @brief Name of the deepest material containing the point xyz
@@ -1890,9 +1453,9 @@ namespace geo {
      */
     std::string MaterialName(TVector3 const& point) const
     {
-      return MaterialName(geo::vect::toPoint(point));
+      return MaterialName(vect::toPoint(point));
     }
-    std::string MaterialName(geo::Point_t const& point) const;
+    std::string MaterialName(Point_t const& point) const;
     //@}
 
     //@{
@@ -1915,7 +1478,7 @@ namespace geo {
      *
      * Both points are specified in world coordinates.
      */
-    double MassBetweenPoints(geo::Point_t const& p1, geo::Point_t const& p2) const;
+    double MassBetweenPoints(Point_t const& p1, Point_t const& p2) const;
     double MassBetweenPoints(double* p1, double* p2) const;
     //@}
 
@@ -2011,7 +1574,7 @@ namespace geo {
      */
     unsigned int Ncryostats() const { return Cryostats().size(); }
     unsigned int NElements() const { return Ncryostats(); }
-    unsigned int NSiblingElements(geo::CryostatID const&) const { return Ncryostats(); }
+    unsigned int NSiblingElements(CryostatID const&) const { return Ncryostats(); }
     //@}
 
     //
@@ -2025,8 +1588,8 @@ namespace geo {
      * The HasElement() method is overloaded and its meaning depends on the type
      * of ID.
      */
-    bool HasCryostat(geo::CryostatID const& cryoid) const { return cryoid.Cryostat < Ncryostats(); }
-    bool HasElement(geo::CryostatID const& cryoid) const { return HasCryostat(cryoid); }
+    bool HasCryostat(CryostatID const& cryoid) const { return cryoid.Cryostat < Ncryostats(); }
+    bool HasElement(CryostatID const& cryoid) const { return HasCryostat(cryoid); }
     //@}
 
     //@{
@@ -2042,12 +1605,12 @@ namespace geo {
      *
      * @todo Make the cryostat number mandatory (as CryostatID)
      */
-    CryostatGeo const& Cryostat(geo::CryostatID const& cryoid) const;
+    CryostatGeo const& Cryostat(CryostatID const& cryoid) const;
     CryostatGeo const& Cryostat(unsigned int const cstat = 0) const
     {
-      return Cryostat(geo::CryostatID(cstat));
+      return Cryostat(CryostatID(cstat));
     }
-    CryostatGeo const& GetElement(geo::CryostatID const& cryoid) const { return Cryostat(cryoid); }
+    CryostatGeo const& GetElement(CryostatID const& cryoid) const { return Cryostat(cryoid); }
     //@}
 
     //@{
@@ -2059,14 +1622,11 @@ namespace geo {
      * The GetElementPtr() method is overloaded and its return depends on the
      * type of ID.
      */
-    CryostatGeo const* CryostatPtr(geo::CryostatID const& cryoid) const
+    CryostatGeo const* CryostatPtr(CryostatID const& cryoid) const
     {
       return HasCryostat(cryoid) ? &(Cryostats()[cryoid.Cryostat]) : nullptr;
     }
-    CryostatGeo const* GetElementPtr(geo::CryostatID const& cryoid) const
-    {
-      return CryostatPtr(cryoid);
-    }
+    CryostatGeo const* GetElementPtr(CryostatID const& cryoid) const { return CryostatPtr(cryoid); }
     //@}
 
     /**
@@ -2076,7 +1636,7 @@ namespace geo {
      *
      * The tolerance used here is the one returned by DefaultWiggle().
      */
-    geo::CryostatGeo const* PositionToCryostatPtr(geo::Point_t const& point) const;
+    CryostatGeo const* PositionToCryostatPtr(Point_t const& point) const;
 
     /**
      * @brief Returns the ID of the cryostat at specified location.
@@ -2085,7 +1645,7 @@ namespace geo {
      *
      * The tolerance used here is the one returned by DefaultWiggle().
      */
-    geo::CryostatID PositionToCryostatID(geo::Point_t const& point) const;
+    CryostatID PositionToCryostatID(Point_t const& point) const;
 
     //@{
     /**
@@ -2096,48 +1656,33 @@ namespace geo {
      *
      * The tolerance used here is the one returned by DefaultWiggle().
      */
-    CryostatGeo const& PositionToCryostat(geo::Point_t const& point) const;
+    CryostatGeo const& PositionToCryostat(Point_t const& point) const;
 
     //
     // iterators
     //
 
     /// Initializes the specified ID with the ID of the first cryostat
-    void GetBeginID(geo::CryostatID& id) const
-    {
-      id = geo::CryostatID(0, HasCryostat(geo::CryostatID(0)));
-    }
+    void GetBeginID(CryostatID& id) const { id = CryostatID(0, HasCryostat(CryostatID(0))); }
 
     /// Initializes the specified ID with the invalid ID after the last cryostat
-    void GetEndID(geo::CryostatID& id) const { id = geo::CryostatID(Ncryostats(), false); }
+    void GetEndID(CryostatID& id) const { id = CryostatID(Ncryostats(), false); }
 
     /// Sets the ID to the ID after the specified one.
     /// @return whether the ID is actually valid (validity flag is also set)
-    bool IncrementID(geo::CryostatID& id) const; // inline implementation
+    bool IncrementID(CryostatID& id) const; // inline implementation
 
     /// Returns an iterator pointing to the first cryostat ID
-    cryostat_id_iterator begin_cryostat_id() const
-    {
-      return cryostat_id_iterator(this, cryostat_id_iterator::begin_pos);
-    }
+    cryostat_id_iterator begin_cryostat_id() const { return {this, GetBeginID<CryostatID>()}; }
 
     /// Returns an iterator pointing after the last cryostat ID
-    cryostat_id_iterator end_cryostat_id() const
-    {
-      return cryostat_id_iterator(this, cryostat_id_iterator::end_pos);
-    }
+    cryostat_id_iterator end_cryostat_id() const { return {this, GetEndID<CryostatID>()}; }
 
     /// Returns an iterator pointing to the first cryostat
-    cryostat_iterator begin_cryostat() const
-    {
-      return cryostat_iterator(this, cryostat_iterator::begin_pos);
-    }
+    cryostat_iterator begin_cryostat() const { return {this, begin_cryostat_id()}; }
 
     /// Returns an iterator pointing after the last cryostat
-    cryostat_iterator end_cryostat() const
-    {
-      return cryostat_iterator(this, cryostat_iterator::end_pos);
-    }
+    cryostat_iterator end_cryostat() const { return {this, end_cryostat_id()}; }
 
     /**
      * @brief Enables ranged-for loops on all cryostat IDs of the detector
@@ -2153,12 +1698,9 @@ namespace geo {
      *     } // for all cryostats
      *
      */
-    IteratorBox<cryostat_id_iterator,
-                &GeometryCore::begin_cryostat_id,
-                &GeometryCore::end_cryostat_id>
-    IterateCryostatIDs() const
+    IteratorBox<cryostat_id_iterator> IterateCryostatIDs() const
     {
-      return {this};
+      return {begin_cryostat_id(), end_cryostat_id()};
     }
 
     /**
@@ -2174,10 +1716,9 @@ namespace geo {
      *     } // for all cryostats
      *
      */
-    IteratorBox<cryostat_iterator, &GeometryCore::begin_cryostat, &GeometryCore::end_cryostat>
-    IterateCryostats() const
+    IteratorBox<cryostat_iterator> IterateCryostats() const
     {
-      return {this};
+      return {begin_cryostat(), end_cryostat()};
     }
 
     //
@@ -2186,28 +1727,28 @@ namespace geo {
 
     //@{
     /// Returns the half width of the cryostat (x direction)
-    geo::Length_t CryostatHalfWidth(geo::CryostatID const& cid) const;
-    geo::Length_t CryostatHalfWidth(unsigned int cstat = 0) const
+    Length_t CryostatHalfWidth(CryostatID const& cid) const;
+    Length_t CryostatHalfWidth(unsigned int cstat = 0) const
     {
-      return CryostatHalfWidth(geo::CryostatID(cstat));
+      return CryostatHalfWidth(CryostatID(cstat));
     }
     //@}
 
     //@{
     /// Returns the height of the cryostat (y direction)
-    geo::Length_t CryostatHalfHeight(geo::CryostatID const& cid) const;
-    geo::Length_t CryostatHalfHeight(unsigned int cstat = 0) const
+    Length_t CryostatHalfHeight(CryostatID const& cid) const;
+    Length_t CryostatHalfHeight(unsigned int cstat = 0) const
     {
-      return CryostatHalfHeight(geo::CryostatID(cstat));
+      return CryostatHalfHeight(CryostatID(cstat));
     }
     //@}
 
     //@{
     /// Returns the length of the cryostat (z direction)
-    geo::Length_t CryostatLength(geo::CryostatID const& cid) const;
-    geo::Length_t CryostatLength(unsigned int cstat = 0) const
+    Length_t CryostatLength(CryostatID const& cid) const;
+    Length_t CryostatLength(unsigned int cstat = 0) const
     {
-      return CryostatLength(geo::CryostatID(cstat));
+      return CryostatLength(CryostatID(cstat));
     }
     //@}
 
@@ -2226,10 +1767,10 @@ namespace geo {
      * @todo Use a cryostat ID instead
      * @todo What if it does not exist?
      */
-    std::string GetCryostatVolumeName(geo::CryostatID const& cid) const;
+    std::string GetCryostatVolumeName(CryostatID const& cid) const;
     std::string GetCryostatVolumeName(unsigned int const cstat = 0) const
     {
-      return GetCryostatVolumeName(geo::CryostatID(cstat));
+      return GetCryostatVolumeName(CryostatID(cstat));
     }
     //@}
 
@@ -2250,7 +1791,7 @@ namespace geo {
      * @todo Change return type to size_t
      * @todo what happens if it does not exist?
      */
-    unsigned int NTPC(unsigned int cstat = 0) const { return NTPC(geo::CryostatID(cstat)); }
+    unsigned int NTPC(unsigned int cstat = 0) const { return NTPC(CryostatID(cstat)); }
 
     /// Returns the largest number of TPCs a cryostat in the detector has
     unsigned int MaxTPCs() const;
@@ -2287,7 +1828,7 @@ namespace geo {
      * be not saved in the container).
      */
     template <typename T>
-    geo::TPCDataContainer<T> makeTPCData() const
+    TPCDataContainer<T> makeTPCData() const
     {
       return {Ncryostats(), MaxTPCs()};
     }
@@ -2312,7 +1853,7 @@ namespace geo {
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
     template <typename T>
-    geo::TPCDataContainer<T> makeTPCData(T const& defValue) const
+    TPCDataContainer<T> makeTPCData(T const& defValue) const
     {
       return {Ncryostats(), MaxTPCs(), defValue};
     }
@@ -2328,27 +1869,27 @@ namespace geo {
      *
      * @todo Change return type to size_t
      */
-    unsigned int NTPC(geo::CryostatID const& cryoid) const
+    unsigned int NTPC(CryostatID const& cryoid) const
     {
       CryostatGeo const* pCryo = GetElementPtr(cryoid);
       return pCryo ? pCryo->NElements() : 0;
     }
-    unsigned int NElements(geo::CryostatID const& cryoid) const { return NTPC(cryoid); }
-    unsigned int NSiblingElements(geo::TPCID const& tpcid) const { return NTPC(tpcid); }
+    unsigned int NElements(CryostatID const& cryoid) const { return NTPC(cryoid); }
+    unsigned int NSiblingElements(TPCID const& tpcid) const { return NTPC(tpcid); }
     //@}
 
     //
     // access
     //
     /// Returns whether we have the specified TPC
-    bool HasTPC(geo::TPCID const& tpcid) const
+    bool HasTPC(TPCID const& tpcid) const
     {
       CryostatGeo const* pCryo = CryostatPtr(tpcid);
       return pCryo ? pCryo->HasTPC(tpcid) : false;
     }
 
     /// Returns whether we have the specified TPC
-    bool HasElement(geo::TPCID const& tpcid) const { return HasTPC(tpcid); }
+    bool HasElement(TPCID const& tpcid) const { return HasTPC(tpcid); }
 
     //@{
     /**
@@ -2367,10 +1908,10 @@ namespace geo {
      */
     TPCGeo const& TPC(unsigned int const tpc = 0, unsigned int const cstat = 0) const
     {
-      return TPC(geo::TPCID(cstat, tpc));
+      return TPC(TPCID(cstat, tpc));
     }
-    TPCGeo const& TPC(geo::TPCID const& tpcid) const { return Cryostat(tpcid).TPC(tpcid); }
-    TPCGeo const& GetElement(geo::TPCID const& tpcid) const { return TPC(tpcid); }
+    TPCGeo const& TPC(TPCID const& tpcid) const { return Cryostat(tpcid).TPC(tpcid); }
+    TPCGeo const& GetElement(TPCID const& tpcid) const { return TPC(tpcid); }
     //@}
 
     //@{
@@ -2382,12 +1923,12 @@ namespace geo {
      * The GetElementPtr() method is overloaded and its return depends on the
      * type of ID.
      */
-    TPCGeo const* TPCPtr(geo::TPCID const& tpcid) const
+    TPCGeo const* TPCPtr(TPCID const& tpcid) const
     {
       CryostatGeo const* pCryo = CryostatPtr(tpcid);
       return pCryo ? pCryo->TPCPtr(tpcid) : nullptr;
     } // TPCPtr()
-    TPCGeo const* GetElementPtr(geo::TPCID const& tpcid) const { return TPCPtr(tpcid); }
+    TPCGeo const* GetElementPtr(TPCID const& tpcid) const { return TPCPtr(tpcid); }
     //@}
 
     /**
@@ -2395,9 +1936,9 @@ namespace geo {
      * @param worldLoc 3D coordinates of the point (world reference frame) [cm]
      * @return the TPC ID, or an invalid one if no TPC is there
      */
-    geo::TPCID FindTPCAtPosition(double const worldLoc[3]) const
+    TPCID FindTPCAtPosition(double const worldLoc[3]) const
     {
-      return FindTPCAtPosition(geo::vect::makePointFromCoords(worldLoc));
+      return FindTPCAtPosition(vect::makePointFromCoords(worldLoc));
     }
 
     //@{
@@ -2406,10 +1947,10 @@ namespace geo {
      * @param worldLoc 3D point (world reference frame, centimeters)
      * @return the TPC ID, or an invalid one if no TPC is there
      */
-    geo::TPCID FindTPCAtPosition(geo::Point_t const& point) const;
-    geo::TPCID FindTPCAtPosition(TVector3 const& point) const
+    TPCID FindTPCAtPosition(Point_t const& point) const;
+    TPCID FindTPCAtPosition(TVector3 const& point) const
     {
-      return FindTPCAtPosition(geo::vect::toPoint(point));
+      return FindTPCAtPosition(vect::toPoint(point));
     }
     //@}
 
@@ -2418,7 +1959,7 @@ namespace geo {
      * @param point the location [cm]
      * @return the `geo::TPCGeo` including `point`, or `nullptr` if none
      */
-    geo::TPCGeo const* PositionToTPCptr(geo::Point_t const& point) const;
+    TPCGeo const* PositionToTPCptr(Point_t const& point) const;
 
     //@{
     /**
@@ -2427,10 +1968,10 @@ namespace geo {
      * @return a constant reference to the `geo::TPCGeo` including `point`
      * @throws cet::exception ("Geometry" category) if no TPC matches
      */
-    geo::TPCGeo const& PositionToTPC(geo::Point_t const& point) const;
+    TPCGeo const& PositionToTPC(Point_t const& point) const;
     TPCGeo const& PositionToTPC(double const point[3]) const
     {
-      return PositionToTPC(geo::vect::makePointFromCoords(point));
+      return PositionToTPC(vect::makePointFromCoords(point));
     }
     //@}
 
@@ -2440,73 +1981,58 @@ namespace geo {
      * @return ID of the TPC at specified location, invalid if none
      * @see `PositionToTPC()`
      */
-    geo::TPCID PositionToTPCID(geo::Point_t const& point) const;
+    TPCID PositionToTPCID(Point_t const& point) const;
 
     ///
     /// iterators
     ///
 
     /// Initializes the specified ID with the ID of the first TPC.
-    void GetBeginID(geo::TPCID& id) const
+    void GetBeginID(TPCID& id) const
     {
       GetBeginID(id.asCryostatID());
       id.TPC = 0;
     }
 
     /// Initializes the specified ID with the invalid ID after the last TPC.
-    void GetEndID(geo::TPCID& id) const;
+    void GetEndID(TPCID& id) const;
 
     /// Sets the ID to the ID after the specified one.
     /// @return whether the ID is actually valid (validity flag is also set)
-    bool IncrementID(geo::TPCID& id) const; // inline implementation
+    bool IncrementID(TPCID& id) const; // inline implementation
 
     /// Returns the ID of the first TPC in the specified cryostat.
-    geo::TPCID GetBeginTPCID(geo::CryostatID const& id) const { return {id, 0}; }
+    TPCID GetBeginTPCID(CryostatID const& id) const { return {id, 0}; }
 
     /// Returns the (possibly invalid) ID after the last TPC of the specified
     /// cryostat.
-    geo::TPCID GetEndTPCID(geo::CryostatID const& id) const;
+    TPCID GetEndTPCID(CryostatID const& id) const;
 
     /// Returns an iterator pointing to the first TPC ID in the detector.
-    TPC_id_iterator begin_TPC_id() const
-    {
-      return TPC_id_iterator(this, TPC_id_iterator::begin_pos);
-    }
+    TPC_id_iterator begin_TPC_id() const { return {this, GetBeginID<TPCID>()}; }
 
     /// Returns an iterator pointing after the last TPC ID in the detector.
-    TPC_id_iterator end_TPC_id() const { return TPC_id_iterator(this, TPC_id_iterator::end_pos); }
+    TPC_id_iterator end_TPC_id() const { return {this, GetEndID<TPCID>()}; }
 
     /// Returns an iterator pointing to the first TPC ID in the specified
     /// cryostat.
-    TPC_id_iterator begin_TPC_id(geo::CryostatID const& cid) const
-    {
-      return TPC_id_iterator(this, GetBeginTPCID(cid));
-    }
+    TPC_id_iterator begin_TPC_id(CryostatID const& cid) const { return {this, GetBeginTPCID(cid)}; }
 
     /// Returns an iterator pointing after the last TPC ID in the specified
     /// cryostat.
-    TPC_id_iterator end_TPC_id(geo::CryostatID const& cid) const
-    {
-      return TPC_id_iterator(this, GetEndTPCID(cid));
-    }
+    TPC_id_iterator end_TPC_id(CryostatID const& cid) const { return {this, GetEndTPCID(cid)}; }
 
     /// Returns an iterator pointing to the first TPC in the detector
-    TPC_iterator begin_TPC() const { return TPC_iterator(this, TPC_iterator::begin_pos); }
+    TPC_iterator begin_TPC() const { return {this, begin_TPC_id()}; }
 
     /// Returns an iterator pointing after the last TPC in the detector
-    TPC_iterator end_TPC() const { return TPC_iterator(this, TPC_iterator::end_pos); }
+    TPC_iterator end_TPC() const { return {this, end_TPC_id()}; }
 
     /// Returns an iterator pointing to the first TPC in the detector
-    TPC_iterator begin_TPC(geo::CryostatID const& cid) const
-    {
-      return TPC_iterator(this, GetBeginTPCID(cid));
-    }
+    TPC_iterator begin_TPC(CryostatID const& cid) const { return {this, begin_TPC_id(cid)}; }
 
     /// Returns an iterator pointing after the last TPC in the detector
-    TPC_iterator end_TPC(geo::CryostatID const& cid) const
-    {
-      return TPC_iterator(this, GetEndTPCID(cid));
-    }
+    TPC_iterator end_TPC(CryostatID const& cid) const { return {this, end_TPC_id(cid)}; }
 
     /**
      * @brief Enables ranged-for loops on all TPC IDs of the detector
@@ -2522,11 +2048,7 @@ namespace geo {
      * } // for all TPC
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    IteratorBox<TPC_id_iterator, &GeometryCore::begin_TPC_id, &GeometryCore::end_TPC_id>
-    IterateTPCIDs() const
-    {
-      return {this};
-    }
+    IteratorBox<TPC_id_iterator> IterateTPCIDs() const { return {begin_TPC_id(), end_TPC_id()}; }
 
     /**
      * @brief Enables ranged-for loops on all TPC IDs of the specified cryostat.
@@ -2546,23 +2068,19 @@ namespace geo {
      * } // for all TPC in cryostat #1
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<TPC_id_iterator,
-                     geo::CryostatID,
-                     &GeometryCore::begin_TPC_id,
-                     &GeometryCore::end_TPC_id>
-    IterateTPCIDs(geo::CryostatID const& cid) const
+    IteratorBox<TPC_id_iterator> IterateTPCIDs(CryostatID const& cid) const
     {
-      return {this, cid};
+      return {begin_TPC_id(cid), end_TPC_id(cid)};
     }
 
     /// `IterateTPCIDs()` is not supported on TPC IDs.
-    void IterateTPCIDs(geo::TPCID const& pid) const = delete;
+    void IterateTPCIDs(TPCID const& pid) const = delete;
 
     /// `IterateTPCIDs()` is not supported on plane IDs.
-    void IterateTPCIDs(geo::PlaneID const& pid) const = delete;
+    void IterateTPCIDs(PlaneID const& pid) const = delete;
 
     /// `IterateTPCIDs()` is not supported on wire IDs.
-    void IterateTPCIDs(geo::WireID const& pid) const = delete;
+    void IterateTPCIDs(WireID const& pid) const = delete;
 
     /// `IterateTPCIDs()` is not supported on readout IDs.
     void IterateTPCIDs(readout::TPCsetID const&) const = delete;
@@ -2585,10 +2103,7 @@ namespace geo {
      * } // for TPCs
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    IteratorBox<TPC_iterator, &GeometryCore::begin_TPC, &GeometryCore::end_TPC> IterateTPCs() const
-    {
-      return {this};
-    }
+    IteratorBox<TPC_iterator> IterateTPCs() const { return {begin_TPC(), end_TPC()}; }
 
     /**
      * @brief Enables ranged-for loops on all TPCs of the specified cryostat.
@@ -2607,23 +2122,19 @@ namespace geo {
      * } // for TPCs in cryostat 1
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<TPC_iterator,
-                     geo::CryostatID,
-                     &GeometryCore::begin_TPC,
-                     &GeometryCore::end_TPC>
-    IterateTPCs(geo::CryostatID const& cid) const
+    IteratorBox<TPC_iterator> IterateTPCs(CryostatID const& cid) const
     {
-      return {this, cid};
+      return {begin_TPC(cid), end_TPC(cid)};
     }
 
     /// `IterateTPCs()` is not supported on TPC IDs.
-    void IterateTPCs(geo::TPCID const& pid) const = delete;
+    void IterateTPCs(TPCID const& pid) const = delete;
 
     /// `IterateTPCs()` is not supported on plane IDs.
-    void IterateTPCs(geo::PlaneID const& pid) const = delete;
+    void IterateTPCs(PlaneID const& pid) const = delete;
 
     /// `IterateTPCs()` is not supported on wire IDs.
-    void IterateTPCs(geo::WireID const& pid) const = delete;
+    void IterateTPCs(WireID const& pid) const = delete;
 
     /// `IterateTPCs()` is not supported on readout IDs.
     void IterateTPCs(readout::TPCsetID const&) const = delete;
@@ -2649,10 +2160,10 @@ namespace geo {
      * @todo deprecate this function
      * @todo rename the function
      */
-    geo::Length_t DetHalfWidth(geo::TPCID const& tpcid) const;
-    geo::Length_t DetHalfWidth(unsigned int tpc = 0, unsigned int cstat = 0) const
+    Length_t DetHalfWidth(TPCID const& tpcid) const;
+    Length_t DetHalfWidth(unsigned int tpc = 0, unsigned int cstat = 0) const
     {
-      return DetHalfWidth(geo::TPCID(cstat, tpc));
+      return DetHalfWidth(TPCID(cstat, tpc));
     }
     //@}
 
@@ -2672,10 +2183,10 @@ namespace geo {
      * @todo deprecate this function
      * @todo rename the function
      */
-    geo::Length_t DetHalfHeight(geo::TPCID const& tpcid) const;
-    geo::Length_t DetHalfHeight(unsigned int tpc = 0, unsigned int cstat = 0) const
+    Length_t DetHalfHeight(TPCID const& tpcid) const;
+    Length_t DetHalfHeight(unsigned int tpc = 0, unsigned int cstat = 0) const
     {
-      return DetHalfHeight(geo::TPCID(cstat, tpc));
+      return DetHalfHeight(TPCID(cstat, tpc));
     }
     //@}
 
@@ -2695,10 +2206,10 @@ namespace geo {
      * @todo deprecate this function
      * @todo rename the function
      */
-    geo::Length_t DetLength(geo::TPCID const& tpcid) const;
-    geo::Length_t DetLength(unsigned int tpc = 0, unsigned int cstat = 0) const
+    Length_t DetLength(TPCID const& tpcid) const;
+    Length_t DetLength(unsigned int tpc = 0, unsigned int cstat = 0) const
     {
-      return DetLength(geo::TPCID(cstat, tpc));
+      return DetLength(TPCID(cstat, tpc));
     }
     //@}
 
@@ -2715,11 +2226,11 @@ namespace geo {
      * the positive _z_ direction crosses.
      */
     template <typename Point>
-    Point GetTPCFrontFaceCenter(geo::TPCID const& tpcid) const
+    Point GetTPCFrontFaceCenter(TPCID const& tpcid) const
     {
       return TPC(tpcid).GetFrontFaceCenter<Point>();
     }
-    DefaultPoint_t GetTPCFrontFaceCenter(geo::TPCID const& tpcid) const
+    DefaultPoint_t GetTPCFrontFaceCenter(TPCID const& tpcid) const
     {
       return GetTPCFrontFaceCenter<DefaultPoint_t>(tpcid);
     }
@@ -2740,7 +2251,7 @@ namespace geo {
     template <typename Point>
     Point GetTPCFrontFaceCenter(unsigned int tpc = 0, unsigned int cstat = 0) const
     {
-      return GetTPCFrontFaceCenter<Point>(geo::TPCID(cstat, tpc));
+      return GetTPCFrontFaceCenter<Point>(TPCID(cstat, tpc));
     }
     DefaultPoint_t GetTPCFrontFaceCenter(unsigned int tpc = 0, unsigned int cstat = 0) const
     {
@@ -2765,10 +2276,10 @@ namespace geo {
      * @todo Use a TPCID instead
      * @todo What if it does not exist?
      */
-    std::string GetLArTPCVolumeName(geo::TPCID const& tpcid) const;
+    std::string GetLArTPCVolumeName(TPCID const& tpcid) const;
     std::string GetLArTPCVolumeName(unsigned int const tpc = 0, unsigned int const cstat = 0) const
     {
-      return GetLArTPCVolumeName(geo::TPCID(cstat, tpc));
+      return GetLArTPCVolumeName(TPCID(cstat, tpc));
     }
     //@}
 
@@ -2792,7 +2303,7 @@ namespace geo {
      */
     unsigned int Nplanes(unsigned int tpc = 0, unsigned int cstat = 0) const
     {
-      return Nplanes(geo::TPCID(cstat, tpc));
+      return Nplanes(TPCID(cstat, tpc));
     }
 
     /// Returns the largest number of planes among all TPCs in this detector
@@ -2826,7 +2337,7 @@ namespace geo {
      * `operator[]` call).
      */
     template <typename T>
-    geo::PlaneDataContainer<T> makePlaneData() const
+    PlaneDataContainer<T> makePlaneData() const
     {
       return {Ncryostats(), MaxTPCs(), MaxPlanes()};
     }
@@ -2850,7 +2361,7 @@ namespace geo {
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
     template <typename T>
-    geo::PlaneDataContainer<T> makePlaneData(T const& defValue) const
+    PlaneDataContainer<T> makePlaneData(T const& defValue) const
     {
       return {Ncryostats(), MaxTPCs(), MaxPlanes(), defValue};
     }
@@ -2866,13 +2377,13 @@ namespace geo {
      *
      * @todo Change return type to size_t
      */
-    unsigned int Nplanes(geo::TPCID const& tpcid) const
+    unsigned int Nplanes(TPCID const& tpcid) const
     {
       TPCGeo const* pTPC = GetElementPtr(tpcid);
       return pTPC ? pTPC->NElements() : 0;
     }
-    unsigned int NElements(geo::TPCID const& tpcid) const { return Nplanes(tpcid); }
-    unsigned int NSiblingElements(geo::PlaneID const& planeid) const { return Nplanes(planeid); }
+    unsigned int NElements(TPCID const& tpcid) const { return Nplanes(tpcid); }
+    unsigned int NSiblingElements(PlaneID const& planeid) const { return Nplanes(planeid); }
     //@}
 
     /**
@@ -2900,12 +2411,12 @@ namespace geo {
      * of ID.
      *
      */
-    bool HasPlane(geo::PlaneID const& planeid) const
+    bool HasPlane(PlaneID const& planeid) const
     {
-      geo::TPCGeo const* pTPC = TPCPtr(planeid);
+      TPCGeo const* pTPC = TPCPtr(planeid);
       return pTPC ? pTPC->HasPlane(planeid) : false;
     }
-    bool HasElement(geo::PlaneID const& planeid) const { return HasPlane(planeid); }
+    bool HasElement(PlaneID const& planeid) const { return HasPlane(planeid); }
     //@}
 
     //@{
@@ -2929,10 +2440,10 @@ namespace geo {
                           unsigned int const tpc = 0,
                           unsigned int const cstat = 0) const
     {
-      return Plane(geo::PlaneID(cstat, tpc, p));
+      return Plane(PlaneID(cstat, tpc, p));
     }
-    PlaneGeo const& Plane(geo::PlaneID const& planeid) const { return TPC(planeid).Plane(planeid); }
-    PlaneGeo const& GetElement(geo::PlaneID const& planeid) const { return Plane(planeid); }
+    PlaneGeo const& Plane(PlaneID const& planeid) const { return TPC(planeid).Plane(planeid); }
+    PlaneGeo const& GetElement(PlaneID const& planeid) const { return Plane(planeid); }
     //@}
 
     //@{
@@ -2944,12 +2455,12 @@ namespace geo {
      * The GetElementPtr() method is overloaded and its return depends on the
      * type of ID.
      */
-    PlaneGeo const* PlanePtr(geo::PlaneID const& planeid) const
+    PlaneGeo const* PlanePtr(PlaneID const& planeid) const
     {
-      geo::TPCGeo const* pTPC = TPCPtr(planeid);
+      TPCGeo const* pTPC = TPCPtr(planeid);
       return pTPC ? pTPC->PlanePtr(planeid) : nullptr;
     } // PlanePtr()
-    PlaneGeo const* GetElementPtr(geo::PlaneID const& planeid) const { return PlanePtr(planeid); }
+    PlaneGeo const* GetElementPtr(PlaneID const& planeid) const { return PlanePtr(planeid); }
     //@}
 
     //
@@ -2957,104 +2468,77 @@ namespace geo {
     //
 
     /// Initializes the specified ID with the ID of the first plane.
-    void GetBeginID(geo::PlaneID& id) const
+    void GetBeginID(PlaneID& id) const
     {
       GetBeginID(id.asTPCID());
       id.Plane = 0;
     }
 
     /// Initializes the specified ID with the invalid ID after the last plane.
-    void GetEndID(geo::PlaneID& id) const;
+    void GetEndID(PlaneID& id) const;
 
     /// Sets the ID to the ID after the specified one.
     /// @return whether the ID is actually valid (validity flag is also set)
-    bool IncrementID(geo::PlaneID& id) const; // inline implementation
+    bool IncrementID(PlaneID& id) const; // inline implementation
 
     /// Returns the ID of the first plane of the specified cryostat.
-    geo::PlaneID GetBeginPlaneID(geo::CryostatID const& id) const { return {GetBeginTPCID(id), 0}; }
+    PlaneID GetBeginPlaneID(CryostatID const& id) const { return {GetBeginTPCID(id), 0}; }
 
     /// Returns the (possibly invalid) ID after the last plane of the specified
     /// cryostat.
-    geo::PlaneID GetEndPlaneID(geo::CryostatID const& id) const;
+    PlaneID GetEndPlaneID(CryostatID const& id) const;
 
     /// Returns the ID of the first plane of the specified TPC.
-    geo::PlaneID GetBeginPlaneID(geo::TPCID const& id) const { return {id, 0}; }
+    PlaneID GetBeginPlaneID(TPCID const& id) const { return {id, 0}; }
 
     /// Returns the (possibly invalid) ID after the last plane of the specified
     /// TPC.
-    geo::PlaneID GetEndPlaneID(geo::TPCID const& id) const;
+    PlaneID GetEndPlaneID(TPCID const& id) const;
 
     /// Returns an iterator pointing to the first plane ID in the detector
-    plane_id_iterator begin_plane_id() const
-    {
-      return plane_id_iterator(this, plane_id_iterator::begin_pos);
-    }
+    plane_id_iterator begin_plane_id() const { return {this, GetBeginID<PlaneID>()}; }
 
     /// Returns an iterator pointing after the last plane ID in the detector
-    plane_id_iterator end_plane_id() const
-    {
-      return plane_id_iterator(this, plane_id_iterator::end_pos);
-    }
+    plane_id_iterator end_plane_id() const { return {this, GetEndID<PlaneID>()}; }
 
     /// Returns an iterator pointing to the first plane ID in the specified
     /// cryostat.
-    plane_id_iterator begin_plane_id(geo::CryostatID const& ID) const
+    plane_id_iterator begin_plane_id(CryostatID const& ID) const
     {
-      return plane_id_iterator(this, GetBeginPlaneID(ID));
+      return {this, GetBeginPlaneID(ID)};
     }
 
     /// Returns an iterator pointing after the last plane ID in the specified
     /// cryostat.
-    plane_id_iterator end_plane_id(geo::CryostatID const& ID) const
-    {
-      return plane_id_iterator(this, GetEndPlaneID(ID));
-    }
+    plane_id_iterator end_plane_id(CryostatID const& ID) const { return {this, GetEndPlaneID(ID)}; }
 
     /// Returns an iterator pointing to the first plane ID in the specified
     /// TPC.
-    plane_id_iterator begin_plane_id(geo::TPCID const& ID) const
-    {
-      return plane_id_iterator(this, GetBeginPlaneID(ID));
-    }
+    plane_id_iterator begin_plane_id(TPCID const& ID) const { return {this, GetBeginPlaneID(ID)}; }
 
     /// Returns an iterator pointing after the last plane ID in the specified
     /// TPC.
-    plane_id_iterator end_plane_id(geo::TPCID const& ID) const
-    {
-      return plane_id_iterator(this, GetEndPlaneID(ID));
-    }
+    plane_id_iterator end_plane_id(TPCID const& ID) const { return {this, GetEndPlaneID(ID)}; }
 
     /// Returns an iterator pointing to the first plane in the detector
-    plane_iterator begin_plane() const { return plane_iterator(this, plane_iterator::begin_pos); }
+    plane_iterator begin_plane() const { return {this, begin_plane_id()}; }
 
     /// Returns an iterator pointing after the last plane in the detector
-    plane_iterator end_plane() const { return plane_iterator(this, plane_iterator::end_pos); }
+    plane_iterator end_plane() const { return {this, end_plane_id()}; }
 
     /// Returns an iterator pointing to the first plane in the specified
     /// cryostat.
-    plane_iterator begin_plane(geo::CryostatID const& ID) const
-    {
-      return plane_iterator(this, GetBeginPlaneID(ID));
-    }
+    plane_iterator begin_plane(CryostatID const& ID) const { return {this, GetBeginPlaneID(ID)}; }
 
     /// Returns an iterator pointing after the last plane in the specified
     /// cryostat.
-    plane_iterator end_plane(geo::CryostatID const& ID) const
-    {
-      return plane_iterator(this, GetEndPlaneID(ID));
-    }
+    plane_iterator end_plane(CryostatID const& ID) const { return {this, GetEndPlaneID(ID)}; }
 
     /// Returns an iterator pointing to the first plane in the specified TPC.
-    plane_iterator begin_plane(geo::TPCID const& ID) const
-    {
-      return plane_iterator(this, GetBeginPlaneID(ID));
-    }
+    plane_iterator begin_plane(TPCID const& ID) const { return {this, GetBeginPlaneID(ID)}; }
 
     /// Returns an iterator pointing after the last plane in the specified TPC.
-    plane_iterator end_plane(geo::TPCID const& ID) const
-    {
-      return plane_iterator(this, GetEndPlaneID(ID));
-    }
+    plane_iterator end_plane(TPCID const& ID) const { return {this, GetEndPlaneID(ID)}; }
 
     /**
      * @brief Enables ranged-for loops on all plane IDs of the detector.
@@ -3070,10 +2554,9 @@ namespace geo {
      * } // for all plane IDs
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    IteratorBox<plane_id_iterator, &GeometryCore::begin_plane_id, &GeometryCore::end_plane_id>
-    IteratePlaneIDs() const
+    IteratorBox<plane_id_iterator> IteratePlaneIDs() const
     {
-      return {this};
+      return {begin_plane_id(), end_plane_id()};
     }
 
     /**
@@ -3095,13 +2578,9 @@ namespace geo {
      * } // for all planes in cryostat #1
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<plane_id_iterator,
-                     geo::CryostatID,
-                     &GeometryCore::begin_plane_id,
-                     &GeometryCore::end_plane_id>
-    IteratePlaneIDs(geo::CryostatID const& cid) const
+    IteratorBox<plane_id_iterator> IteratePlaneIDs(CryostatID const& cid) const
     {
-      return {this, cid};
+      return {begin_plane_id(cid), end_plane_id(cid)};
     }
 
     /**
@@ -3122,20 +2601,16 @@ namespace geo {
      * } // for all planes in C:0 T:1
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<plane_id_iterator,
-                     geo::TPCID,
-                     &GeometryCore::begin_plane_id,
-                     &GeometryCore::end_plane_id>
-    IteratePlaneIDs(geo::TPCID const& tid) const
+    IteratorBox<plane_id_iterator> IteratePlaneIDs(TPCID const& tid) const
     {
-      return {this, tid};
+      return {begin_plane_id(tid), end_plane_id(tid)};
     }
 
     /// `IteratePlaneIDs()` is not supported on plane IDs.
-    void IteratePlaneIDs(geo::PlaneID const& pid) const = delete;
+    void IteratePlaneIDs(PlaneID const& pid) const = delete;
 
     /// `IteratePlaneIDs()` is not supported on wire IDs.
-    void IteratePlaneIDs(geo::WireID const& pid) const = delete;
+    void IteratePlaneIDs(WireID const& pid) const = delete;
 
     /// `IteratePlaneIDs()` is not supported on readout IDs.
     void IteratePlaneIDs(readout::TPCsetID const&) const = delete;
@@ -3156,11 +2631,7 @@ namespace geo {
      * } // for all planes
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    IteratorBox<plane_iterator, &GeometryCore::begin_plane, &GeometryCore::end_plane>
-    IteratePlanes() const
-    {
-      return {this};
-    }
+    IteratorBox<plane_iterator> IteratePlanes() const { return {begin_plane(), end_plane()}; }
 
     /**
      * @brief Enables ranged-for loops on all planes of the specified cryostat.
@@ -3179,13 +2650,9 @@ namespace geo {
      * } // for planes in cryostat 1
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<plane_iterator,
-                     geo::CryostatID,
-                     &GeometryCore::begin_plane,
-                     &GeometryCore::end_plane>
-    IteratePlanes(geo::CryostatID const& cid) const
+    IteratorBox<plane_iterator> IteratePlanes(CryostatID const& cid) const
     {
-      return {this, cid};
+      return {begin_plane(cid), end_plane(cid)};
     }
 
     /**
@@ -3205,20 +2672,16 @@ namespace geo {
      * } // for planes in C:0 T:1
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<plane_iterator,
-                     geo::TPCID,
-                     &GeometryCore::begin_plane,
-                     &GeometryCore::end_plane>
-    IteratePlanes(geo::TPCID const& tid) const
+    IteratorBox<plane_iterator> IteratePlanes(TPCID const& tid) const
     {
-      return {this, tid};
+      return {begin_plane(tid), end_plane(tid)};
     }
 
     /// `IteratePlanes()` is not supported on plane IDs.
-    void IteratePlanes(geo::PlaneID const& pid) const = delete;
+    void IteratePlanes(PlaneID const& pid) const = delete;
 
     /// `IteratePlanes()` is not supported on wire IDs.
-    void IteratePlanes(geo::WireID const& pid) const = delete;
+    void IteratePlanes(WireID const& pid) const = delete;
 
     /// `IteratePlanes()` is not supported on readout IDs.
     void IteratePlanes(readout::TPCsetID const&) const = delete;
@@ -3246,14 +2709,14 @@ namespace geo {
      * @todo return the absolute value of the distance (makes the order unimportant)
      * @todo document what will happen (in the future methods) with planes on different TPCs
      */
-    geo::Length_t PlanePitch(geo::TPCID const& tpcid,
-                             geo::PlaneID::PlaneID_t p1 = 0,
-                             geo::PlaneID::PlaneID_t p2 = 1) const;
-    geo::Length_t PlanePitch(geo::PlaneID const& pid1, geo::PlaneID const& pid2) const;
-    geo::Length_t PlanePitch(unsigned int p1 = 0,
-                             unsigned int p2 = 1,
-                             unsigned int tpc = 0,
-                             unsigned int cstat = 0) const;
+    Length_t PlanePitch(TPCID const& tpcid,
+                        PlaneID::PlaneID_t p1 = 0,
+                        PlaneID::PlaneID_t p2 = 1) const;
+    Length_t PlanePitch(PlaneID const& pid1, PlaneID const& pid2) const;
+    Length_t PlanePitch(unsigned int p1 = 0,
+                        unsigned int p2 = 1,
+                        unsigned int tpc = 0,
+                        unsigned int cstat = 0) const;
     //@}
 
     /**
@@ -3261,7 +2724,7 @@ namespace geo {
      * @param plane TPC plane ID
      * @return the type of signal on the specified plane, or geo::kUnknown
      */
-    View_t View(geo::PlaneID const& pid) const;
+    View_t View(PlaneID const& pid) const;
 
     /**
      * @brief Returns the type of signal on the channels of specified TPC plane
@@ -3272,7 +2735,7 @@ namespace geo {
      *
      * @todo verify that kMysteryType is returned on invalid plane
      */
-    SigType_t SignalType(geo::PlaneID const& pid) const;
+    SigType_t SignalType(PlaneID const& pid) const;
 
     /// @} Plane access and information
 
@@ -3295,7 +2758,7 @@ namespace geo {
      */
     unsigned int Nwires(unsigned int p, unsigned int tpc = 0, unsigned int cstat = 0) const
     {
-      return Nwires(geo::PlaneID(cstat, tpc, p));
+      return Nwires(PlaneID(cstat, tpc, p));
     }
 
     //@{
@@ -3309,13 +2772,13 @@ namespace geo {
      *
      * @todo Change return type to size_t
      */
-    unsigned int Nwires(geo::PlaneID const& planeid) const
+    unsigned int Nwires(PlaneID const& planeid) const
     {
       PlaneGeo const* pPlane = GetElementPtr(planeid);
       return pPlane ? pPlane->NElements() : 0;
     }
-    unsigned int NElements(geo::PlaneID const& planeid) const { return Nwires(planeid); }
-    unsigned int NSiblingElements(geo::WireID const& wireid) const { return Nwires(wireid); }
+    unsigned int NElements(PlaneID const& planeid) const { return Nwires(planeid); }
+    unsigned int NSiblingElements(WireID const& wireid) const { return Nwires(wireid); }
 
     /// Returns the largest number of wires among all planes in this detector
     unsigned int MaxWires() const;
@@ -3333,12 +2796,12 @@ namespace geo {
      * The HasElement() method is overloaded and its meaning depends on the type
      * of ID.
      */
-    bool HasWire(geo::WireID const& wireid) const
+    bool HasWire(WireID const& wireid) const
     {
-      geo::PlaneGeo const* pPlane = PlanePtr(wireid);
+      PlaneGeo const* pPlane = PlanePtr(wireid);
       return pPlane ? pPlane->HasWire(wireid) : false;
     }
-    bool HasElement(geo::WireID const& wireid) const { return HasWire(wireid); }
+    bool HasElement(WireID const& wireid) const { return HasWire(wireid); }
     //@}
 
     //@{
@@ -3350,12 +2813,12 @@ namespace geo {
      * The GetElementPtr() method is overloaded and its return depends on the
      * type of ID.
      */
-    WireGeo const* WirePtr(geo::WireID const& wireid) const
+    WireGeo const* WirePtr(WireID const& wireid) const
     {
-      geo::PlaneGeo const* pPlane = PlanePtr(wireid);
+      PlaneGeo const* pPlane = PlanePtr(wireid);
       return pPlane ? pPlane->WirePtr(wireid) : nullptr;
     } // WirePtr()
-    WireGeo const* GetElementPtr(geo::WireID const& wireid) const { return WirePtr(wireid); }
+    WireGeo const* GetElementPtr(WireID const& wireid) const { return WirePtr(wireid); }
     //@}
 
     //@{
@@ -3368,9 +2831,9 @@ namespace geo {
      * The GetElement() method is overloaded and its return depends on the type
      * of ID.
      */
-    WireGeo const& Wire(geo::WireID const& wireid) const { return Plane(wireid).Wire(wireid); }
-    WireGeo const& WireIDToWireGeo(geo::WireID const& wireid) const { return Wire(wireid); }
-    WireGeo const& GetElement(geo::WireID const& wireid) const { return Wire(wireid); }
+    WireGeo const& Wire(WireID const& wireid) const { return Plane(wireid).Wire(wireid); }
+    WireGeo const& WireIDToWireGeo(WireID const& wireid) const { return Wire(wireid); }
+    WireGeo const& GetElement(WireID const& wireid) const { return Wire(wireid); }
     //@}
 
     //
@@ -3378,124 +2841,91 @@ namespace geo {
     //
 
     /// Initializes the specified ID with the ID of the first wire.
-    void GetBeginID(geo::WireID& id) const
+    void GetBeginID(WireID& id) const
     {
       GetBeginID(id.asPlaneID());
       id.Wire = 0;
     }
 
     /// Initializes the specified ID with the invalid ID after the last wire.
-    void GetEndID(geo::WireID& id) const;
+    void GetEndID(WireID& id) const;
 
     /// Sets the ID to the ID after the specified one.
     /// @return whether the ID is actually valid (validity flag is also set)
-    bool IncrementID(geo::WireID& id) const; // inline implementation
+    bool IncrementID(WireID& id) const; // inline implementation
 
     /// Returns the ID of the first wire in the specified cryostat.
-    geo::WireID GetBeginWireID(geo::CryostatID const& id) const { return {GetBeginPlaneID(id), 0}; }
+    WireID GetBeginWireID(CryostatID const& id) const { return {GetBeginPlaneID(id), 0}; }
 
     /// Returns the (possibly invalid) ID after the last wire in the specified
     /// cryostat.
-    geo::WireID GetEndWireID(geo::CryostatID const& id) const;
+    WireID GetEndWireID(CryostatID const& id) const;
 
     /// Returns the ID of the first wire of the specified TPC.
-    geo::WireID GetBeginWireID(geo::TPCID const& id) const { return {geo::PlaneID(id, 0), 0}; }
+    WireID GetBeginWireID(TPCID const& id) const { return {PlaneID(id, 0), 0}; }
 
     /// Returns the (possibly invalid) ID after the last wire of the specified
     /// TPC.
-    geo::WireID GetEndWireID(geo::TPCID const& id) const;
+    WireID GetEndWireID(TPCID const& id) const;
 
     /// Returns the ID of the first wire of the specified wire plane.
-    geo::WireID GetBeginWireID(geo::PlaneID const& id) const { return {id, 0}; }
+    WireID GetBeginWireID(PlaneID const& id) const { return {id, 0}; }
 
     /// Returns the (possibly invalid) ID after the last wire of the specified
     /// wire plane.
-    geo::WireID GetEndWireID(geo::PlaneID const& id) const;
+    WireID GetEndWireID(PlaneID const& id) const;
 
     /// Returns an iterator pointing to the first wire ID in the detector.
-    wire_id_iterator begin_wire_id() const
-    {
-      return wire_id_iterator(this, wire_id_iterator::begin_pos);
-    }
+    wire_id_iterator begin_wire_id() const { return {this, GetBeginID<WireID>()}; }
 
     /// Returns an iterator pointing after the last wire ID in the detector.
-    wire_id_iterator end_wire_id() const
-    {
-      return wire_id_iterator(this, wire_id_iterator::end_pos);
-    }
+    wire_id_iterator end_wire_id() const { return {this, GetEndID<WireID>()}; }
 
     /// Returns an iterator pointing to the first wire ID in specified cryostat.
-    wire_id_iterator begin_wire_id(geo::CryostatID const& id) const
+    wire_id_iterator begin_wire_id(CryostatID const& id) const
     {
-      return wire_id_iterator(this, GetBeginWireID(id));
+      return {this, GetBeginWireID(id)};
     }
 
     /// Returns an iterator pointing after the last wire ID in specified
     /// cryostat.
-    wire_id_iterator end_wire_id(geo::CryostatID const& id) const
-    {
-      return wire_id_iterator(this, GetEndWireID(id));
-    }
+    wire_id_iterator end_wire_id(CryostatID const& id) const { return {this, GetEndWireID(id)}; }
 
     /// Returns an iterator pointing to the first wire ID in specified TPC.
-    wire_id_iterator begin_wire_id(geo::TPCID const& id) const
-    {
-      return wire_id_iterator(this, GetBeginWireID(id));
-    }
+    wire_id_iterator begin_wire_id(TPCID const& id) const { return {this, GetBeginWireID(id)}; }
 
     /// Returns an iterator pointing after the last wire ID in specified TPC.
-    wire_id_iterator end_wire_id(geo::TPCID const& id) const
-    {
-      return wire_id_iterator(this, GetEndWireID(id));
-    }
+    wire_id_iterator end_wire_id(TPCID const& id) const { return {this, GetEndWireID(id)}; }
 
     /// Returns an iterator pointing to the first wire ID in specified plane.
-    wire_id_iterator begin_wire_id(geo::PlaneID const& id) const
-    {
-      return wire_id_iterator(this, GetBeginWireID(id));
-    }
+    wire_id_iterator begin_wire_id(PlaneID const& id) const { return {this, GetBeginWireID(id)}; }
 
     /// Returns an iterator pointing after the last wire ID in specified plane.
-    wire_id_iterator end_wire_id(geo::PlaneID const& id) const
-    {
-      return wire_id_iterator(this, GetEndWireID(id));
-    }
+    wire_id_iterator end_wire_id(PlaneID const& id) const { return {this, GetEndWireID(id)}; }
 
     /// Returns an iterator pointing to the first wire in the detector
-    wire_iterator begin_wire() const { return wire_iterator(this, wire_iterator::begin_pos); }
+    wire_iterator begin_wire() const { return {this, GetBeginID<WireID>()}; }
 
     /// Returns an iterator pointing after the last wire in the detector
-    wire_iterator end_wire() const { return wire_iterator(this, wire_iterator::end_pos); }
+    wire_iterator end_wire() const { return {this, GetEndID<WireID>()}; }
 
     /// Returns an iterator pointing to the first wire in specified cryostat.
-    wire_iterator begin_wire(geo::CryostatID const& id) const
-    {
-      return wire_iterator(begin_wire_id(id));
-    }
+    wire_iterator begin_wire(CryostatID const& id) const { return {this, begin_wire_id(id)}; }
 
     /// Returns an iterator pointing after the last wire in specified cryostat.
-    wire_iterator end_wire(geo::CryostatID const& id) const
-    {
-      return wire_iterator(end_wire_id(id));
-    }
+    wire_iterator end_wire(CryostatID const& id) const { return {this, end_wire_id(id)}; }
 
     /// Returns an iterator pointing to the first wire in specified TPC.
-    wire_iterator begin_wire(geo::TPCID const& id) const
-    {
-      return wire_iterator(begin_wire_id(id));
-    }
+    wire_iterator begin_wire(TPCID const& id) const { return {this, begin_wire_id(id)}; }
 
     /// Returns an iterator pointing after the last wire in specified TPC.
-    wire_iterator end_wire(geo::TPCID const& id) const { return wire_iterator(end_wire_id(id)); }
+    wire_iterator end_wire(TPCID const& id) const { return {this, end_wire_id(id)}; }
 
     /// Returns an iterator pointing to the first wire in specified plane.
-    wire_iterator begin_wire(geo::PlaneID const& id) const
-    {
-      return wire_iterator(begin_wire_id(id));
-    }
+    wire_iterator begin_wire(PlaneID const& id) const { return {this, begin_wire_id(id)}; }
 
     /// Returns an iterator pointing after the last wire in specified plane.
-    wire_iterator end_wire(geo::PlaneID const& id) const { return wire_iterator(end_wire_id(id)); }
+    wire_iterator end_wire(PlaneID const& id) const { return {this, end_wire_id(id)}; }
 
     /**
      * @brief Enables ranged-for loops on all wire IDs of the detector.
@@ -3512,10 +2942,9 @@ namespace geo {
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      *
      */
-    IteratorBox<wire_id_iterator, &GeometryCore::begin_wire_id, &GeometryCore::end_wire_id>
-    IterateWireIDs() const
+    IteratorBox<wire_id_iterator> IterateWireIDs() const
     {
-      return {this};
+      return {begin_wire_id(), end_wire_id()};
     }
 
     /**
@@ -3536,13 +2965,9 @@ namespace geo {
      * } // for all wires
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<wire_id_iterator,
-                     geo::CryostatID,
-                     &GeometryCore::begin_wire_id,
-                     &GeometryCore::end_wire_id>
-    IterateWireIDs(geo::CryostatID const& cid) const
+    IteratorBox<wire_id_iterator> IterateWireIDs(CryostatID const& cid) const
     {
-      return {this, cid};
+      return {begin_wire_id(cid), end_wire_id(cid)};
     }
 
     /**
@@ -3563,13 +2988,9 @@ namespace geo {
      * } // for all wires in C:0 T:1
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<wire_id_iterator,
-                     geo::TPCID,
-                     &GeometryCore::begin_wire_id,
-                     &GeometryCore::end_wire_id>
-    IterateWireIDs(geo::TPCID const& tid) const
+    IteratorBox<wire_id_iterator> IterateWireIDs(TPCID const& tid) const
     {
-      return {this, tid};
+      return {begin_wire_id(tid), end_wire_id(tid)};
     }
 
     /**
@@ -3590,17 +3011,13 @@ namespace geo {
      * } // for all wires in C:0 T:0 P:1
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<wire_id_iterator,
-                     geo::PlaneID,
-                     &GeometryCore::begin_wire_id,
-                     &GeometryCore::end_wire_id>
-    IterateWireIDs(geo::PlaneID const& pid) const
+    IteratorBox<wire_id_iterator> IterateWireIDs(PlaneID const& pid) const
     {
-      return {this, pid};
+      return {begin_wire_id(pid), end_wire_id(pid)};
     }
 
     /// `IterateWireIDs()` is not supported on wire IDs.
-    void IterateWireIDs(geo::WireID const& pid) const = delete;
+    void IterateWireIDs(WireID const& pid) const = delete;
 
     /// `IterateWireIDs()` is not supported on readout IDs.
     void IterateWireIDs(readout::TPCsetID const&) const = delete;
@@ -3621,11 +3038,7 @@ namespace geo {
      * } // for all wires
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    IteratorBox<wire_iterator, &GeometryCore::begin_wire, &GeometryCore::end_wire> IterateWires()
-      const
-    {
-      return {this};
-    }
+    IteratorBox<wire_iterator> IterateWires() const { return {begin_wire(), end_wire()}; }
 
     /**
      * @brief Enables ranged-for loops on all wires of specified cryostat.
@@ -3644,13 +3057,9 @@ namespace geo {
      * } // for all wires
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<wire_iterator,
-                     geo::CryostatID,
-                     &GeometryCore::begin_wire,
-                     &GeometryCore::end_wire>
-    IterateWires(geo::CryostatID const& cid) const
+    IteratorBox<wire_iterator> IterateWires(CryostatID const& cid) const
     {
-      return {this, cid};
+      return {begin_wire(cid), end_wire(cid)};
     }
 
     /**
@@ -3670,10 +3079,9 @@ namespace geo {
      * } // for all wires in C:0 T:1
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<wire_iterator, geo::TPCID, &GeometryCore::begin_wire, &GeometryCore::end_wire>
-    IterateWires(geo::TPCID const& tid) const
+    IteratorBox<wire_iterator> IterateWires(TPCID const& tid) const
     {
-      return {this, tid};
+      return {begin_wire(tid), end_wire(tid)};
     }
 
     /**
@@ -3693,17 +3101,13 @@ namespace geo {
      * } // for all wires in C:0 T:0 T:1
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<wire_iterator,
-                     geo::PlaneID,
-                     &GeometryCore::begin_wire,
-                     &GeometryCore::end_wire>
-    IterateWires(geo::PlaneID const& tid) const
+    IteratorBox<wire_iterator> IterateWires(PlaneID const& tid) const
     {
-      return {this, tid};
+      return {begin_wire(tid), end_wire(tid)};
     }
 
     /// `IterateWires()` is not supported on wire IDs.
-    void IterateWires(geo::WireID const& pid) const = delete;
+    void IterateWires(WireID const& pid) const = delete;
 
     /// `IterateWires()` is not supported on readout IDs.
     void IterateWires(readout::TPCsetID const&) const = delete;
@@ -3732,12 +3136,10 @@ namespace geo {
      * @todo document what will happen (in the future methods) with wires on different planes
      *
      */
-    geo::Length_t WirePitch(geo::PlaneID const& planeid) const;
-    geo::Length_t WirePitch(unsigned int plane = 0,
-                            unsigned int tpc = 0,
-                            unsigned int cstat = 0) const
+    Length_t WirePitch(PlaneID const& planeid) const;
+    Length_t WirePitch(unsigned int plane = 0, unsigned int tpc = 0, unsigned int cstat = 0) const
     {
-      return WirePitch(geo::PlaneID(cstat, tpc, plane));
+      return WirePitch(PlaneID(cstat, tpc, plane));
     }
     //@}
 
@@ -3753,7 +3155,7 @@ namespace geo {
      * This method assumes that all the wires on all the planes on the specified
      * view of all TPCs have the same pitch.
      */
-    geo::Length_t WirePitch(geo::View_t view) const;
+    Length_t WirePitch(View_t view) const;
 
     //@{
     /**
@@ -3772,10 +3174,10 @@ namespace geo {
      *
      * @deprecated This does not feel APA-ready
      */
-    double WireAngleToVertical(geo::View_t view, geo::TPCID const& tpcid) const;
-    double WireAngleToVertical(geo::View_t view, int TPC = 0, int Cryo = 0) const
+    double WireAngleToVertical(View_t view, TPCID const& tpcid) const;
+    double WireAngleToVertical(View_t view, int TPC = 0, int Cryo = 0) const
     {
-      return WireAngleToVertical(view, geo::TPCID(Cryo, TPC));
+      return WireAngleToVertical(view, TPCID(Cryo, TPC));
     }
     //@}
 
@@ -3809,7 +3211,7 @@ namespace geo {
      * @deprecated use the wire ID interface instead (but note that it does not
      *             sort the ends)
      */
-    void WireEndPoints(geo::WireID const& wireid, double* xyzStart, double* xyzEnd) const;
+    void WireEndPoints(WireID const& wireid, double* xyzStart, double* xyzEnd) const;
 
     /**
      * @brief Fills two arrays with the coordinates of the wire end points
@@ -3833,7 +3235,7 @@ namespace geo {
                        double* xyzStart,
                        double* xyzEnd) const
     {
-      WireEndPoints(geo::WireID(cstat, tpc, plane, wire), xyzStart, xyzEnd);
+      WireEndPoints(WireID(cstat, tpc, plane, wire), xyzStart, xyzEnd);
     }
 
     //@{
@@ -3850,8 +3252,8 @@ namespace geo {
      *             sort the ends)
      */
     template <typename Point>
-    Segment<Point> WireEndPoints(geo::WireID const& wireID) const;
-    Segment<DefaultPoint_t> WireEndPoints(geo::WireID const& wireID) const
+    Segment<Point> WireEndPoints(WireID const& wireID) const;
+    Segment<DefaultPoint_t> WireEndPoints(WireID const& wireID) const
     {
       return WireEndPoints<DefaultPoint_t>(wireID);
     }
@@ -3900,7 +3302,7 @@ namespace geo {
      * }
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    geo::WireID NearestWireID(geo::Point_t const& point, geo::PlaneID const& planeid) const;
+    WireID NearestWireID(Point_t const& point, PlaneID const& planeid) const;
 
     //@{
     /**
@@ -3914,37 +3316,13 @@ namespace geo {
      * representing a continuous coordinate in the wire axis, with the round
      * values corresponding to the actual wires.
      */
-    geo::Length_t WireCoordinate(geo::Point_t const& pos, geo::PlaneID const& planeid) const;
+    Length_t WireCoordinate(Point_t const& pos, PlaneID const& planeid) const;
     //@}
 
     //
     // wire intersections
     //
 
-    // The following functions are utilized to determine if two wires
-    // in the TPC intersect or not, and if they do then
-    // determine the coordinates of the intersection.
-
-    /**
-     * @brief Computes the intersection between two lines on a plane
-     * @param A_start_x x coordinate of one point of the first segment
-     * @param A_start_y y coordinate of one point of the first segment
-     * @param A_end_x x coordinate of another point of the first segment
-     * @param A_end_y y coordinate of another point of the first segment
-     * @param B_start_x x coordinate of one point of the second segment
-     * @param B_start_y y coordinate of one point of the second segment
-     * @param B_end_x x coordinate of another point of the second segment
-     * @param B_end_y y coordinate of another point of the second segment
-     * @param x _(output)_ variable to store the x coordinate of intersection
-     * @param y _(output)_ variable to store the y coordinate of intersection
-     * @return whether intersection exists
-     *
-     * The order of the ends is not relevant.
-     * The return value is `false` if the two segments are parallel.
-     * In that case, `x` and `y` variables are not changed.
-     * Otherwise, they hold the intersection coordinate, even if the
-     * intersection point is beyond one or both the segments.
-     */
     bool IntersectLines(double A_start_x,
                         double A_start_y,
                         double A_end_x,
@@ -3954,29 +3332,12 @@ namespace geo {
                         double B_end_x,
                         double B_end_y,
                         double& x,
-                        double& y) const;
+                        double& y) const
+    {
+      return unrelated::IntersectLines(
+        A_start_x, A_start_y, A_end_x, A_end_y, B_start_x, B_start_y, B_end_x, B_end_y, x, y);
+    }
 
-    /**
-     * @brief Computes the intersection between two segments on a plane
-     * @param A_start_x x coordinate of the start of the first segment
-     * @param A_start_y y coordinate of the start of the first segment
-     * @param A_end_x x coordinate of the end of the first segment
-     * @param A_end_y y coordinate of the end of the first segment
-     * @param B_start_x x coordinate of the start of the second segment
-     * @param B_start_y y coordinate of the start of the second segment
-     * @param B_end_x x coordinate of the end of the second segment
-     * @param B_end_y y coordinate of the end of the second segment
-     * @param x _(output)_ variable to store the x coordinate of intersection
-     * @param y _(output)_ variable to store the y coordinate of intersection
-     * @return whether intersection exists and is on both segments
-     *
-     * The order of the ends is not relevant.
-     * The return value is `false` if the two segments are parallel, or if their
-     * intersection point is not on _both_ the segments.
-     * If the segments are parallel, x and y variables are not changed.
-     * Otherwise, they hold the intersection coordinate, even if the
-     * intersection point is beyond one or both the segments.
-     */
     bool IntersectSegments(double A_start_x,
                            double A_start_y,
                            double A_end_x,
@@ -3986,7 +3347,11 @@ namespace geo {
                            double B_end_x,
                            double B_end_y,
                            double& x,
-                           double& y) const;
+                           double& y) const
+    {
+      return unrelated::IntersectSegments(
+        A_start_x, A_start_y, A_end_x, A_end_y, B_start_x, B_start_y, B_end_x, B_end_y, x, y);
+    }
 
     //@{
     /**
@@ -4024,7 +3389,7 @@ namespace geo {
      *       For purely geometric intersection, `geo::LineClosestPoint()` is
      *       also available.
      */
-    bool WireIDsIntersect(WireID const& wid1, WireID const& wid2, geo::Point_t& intersection) const;
+    bool WireIDsIntersect(WireID const& wid1, WireID const& wid2, Point_t& intersection) const;
     bool WireIDsIntersect(WireID const& wid1, WireID const& wid2, TVector3& intersection) const;
     //@}
 
@@ -4073,10 +3438,7 @@ namespace geo {
      * @deprecated This method uses arbitrary assumptions and should not be
      *             used. Use `WireIDsIntersect()` returning a vector, instead.
      */
-    bool IntersectionPoint(geo::WireID const& wid1,
-                           geo::WireID const& wid2,
-                           double& y,
-                           double& z) const;
+    bool IntersectionPoint(WireID const& wid1, WireID const& wid2, double& y, double& z) const;
 
     /**
      * @brief Returns the intersection point of two wires
@@ -4106,7 +3468,7 @@ namespace geo {
                            double& z) const
     {
       return IntersectionPoint(
-        geo::WireID(cstat, tpc, plane1, wire1), geo::WireID(cstat, tpc, plane2, wire2), y, z);
+        WireID(cstat, tpc, plane1, wire1), WireID(cstat, tpc, plane2, wire2), y, z);
     }
 
     /**
@@ -4120,7 +3482,7 @@ namespace geo {
      * This function requires a geometry with exactly three planes.
      * If the two input planes are not on the same TPC, the result is undefined.
      */
-    geo::PlaneID ThirdPlane(geo::PlaneID const& pid1, geo::PlaneID const& pid2) const;
+    PlaneID ThirdPlane(PlaneID const& pid1, PlaneID const& pid2) const;
 
     /**
      * @brief Returns the slope on the third plane, given it in the other two
@@ -4140,11 +3502,11 @@ namespace geo {
      * valid using dt/dw directly in case of equal wire pitch in all planes
      * and uniform drift velocity.
      */
-    double ThirdPlaneSlope(geo::PlaneID const& pid1,
+    double ThirdPlaneSlope(PlaneID const& pid1,
                            double slope1,
-                           geo::PlaneID const& pid2,
+                           PlaneID const& pid2,
                            double slope2,
-                           geo::PlaneID const& output_plane) const;
+                           PlaneID const& output_plane) const;
 
     /**
      * @brief Returns the slope on the third plane, given it in the other two
@@ -4163,9 +3525,9 @@ namespace geo {
      * TPC, in which case the output plane is chosen as the one that is neither
      * of the input planes.
      */
-    double ThirdPlaneSlope(geo::PlaneID const& pid1,
+    double ThirdPlaneSlope(PlaneID const& pid1,
                            double slope1,
-                           geo::PlaneID const& pid2,
+                           PlaneID const& pid2,
                            double slope2) const;
 
     //@{
@@ -4184,14 +3546,13 @@ namespace geo {
      * Given a slope as projected in two planes, returns the slope as projected
      * in the third plane.
      */
-    double ThirdPlaneSlope(geo::PlaneID::PlaneID_t plane1,
+    double ThirdPlaneSlope(PlaneID::PlaneID_t plane1,
                            double slope1,
-                           geo::PlaneID::PlaneID_t plane2,
+                           PlaneID::PlaneID_t plane2,
                            double slope2,
-                           geo::TPCID const& tpcid) const
+                           TPCID const& tpcid) const
     {
-      return ThirdPlaneSlope(
-        geo::PlaneID(tpcid, plane1), slope1, geo::PlaneID(tpcid, plane2), slope2);
+      return ThirdPlaneSlope(PlaneID(tpcid, plane1), slope1, PlaneID(tpcid, plane2), slope2);
     }
     double ThirdPlaneSlope(unsigned int plane1,
                            double slope1,
@@ -4200,7 +3561,7 @@ namespace geo {
                            unsigned int tpc,
                            unsigned int cstat) const
     {
-      return ThirdPlaneSlope(plane1, slope1, plane2, slope2, geo::TPCID(cstat, tpc));
+      return ThirdPlaneSlope(plane1, slope1, plane2, slope2, TPCID(cstat, tpc));
     }
     //@}
 
@@ -4220,11 +3581,11 @@ namespace geo {
      * in the third plane.
      * The dT/dW are defined in time ticks/wide number units.
      */
-    double ThirdPlane_dTdW(geo::PlaneID const& pid1,
+    double ThirdPlane_dTdW(PlaneID const& pid1,
                            double slope1,
-                           geo::PlaneID const& pid2,
+                           PlaneID const& pid2,
                            double slope2,
-                           geo::PlaneID const& output_plane) const;
+                           PlaneID const& output_plane) const;
 
     /**
      * @brief Returns dT/dW on the third plane, given it in the other two
@@ -4243,9 +3604,9 @@ namespace geo {
      * TPC, in which case the output plane is chosen as the one that is neither
      * of the input planes.
      */
-    double ThirdPlane_dTdW(geo::PlaneID const& pid1,
+    double ThirdPlane_dTdW(PlaneID const& pid1,
                            double slope1,
-                           geo::PlaneID const& pid2,
+                           PlaneID const& pid2,
                            double slope2) const;
 
     /**
@@ -4347,7 +3708,7 @@ namespace geo {
      *             (find the cryostat with `PositionToCryostatPtr()`).
      *
      */
-    unsigned int GetClosestOpDet(geo::Point_t const& point) const;
+    unsigned int GetClosestOpDet(Point_t const& point) const;
     unsigned int GetClosestOpDet(double const* point) const;
     //@}
 
@@ -4417,7 +3778,7 @@ namespace geo {
      *
      * @bug Actually, an exception is thrown.
      */
-    unsigned int FindAuxDetAtPosition(geo::Point_t const& point, double tolerance = 0) const;
+    unsigned int FindAuxDetAtPosition(Point_t const& point, double tolerance = 0) const;
 
     /**
      * @brief Fills the indices of the sensitive auxiliary detector at location
@@ -4426,7 +3787,7 @@ namespace geo {
      * @param sv _(output)_ sensitive volume index
      * @param tolerance tolerance (cm) for matches. Default 0.
      */
-    void FindAuxDetSensitiveAtPosition(geo::Point_t const& point,
+    void FindAuxDetSensitiveAtPosition(Point_t const& point,
                                        std::size_t& adg,
                                        std::size_t& sv,
                                        double tolerance = 0) const;
@@ -4440,7 +3801,7 @@ namespace geo {
      *
      * @todo what happens if it does not exist?
      */
-    AuxDetGeo const& PositionToAuxDet(geo::Point_t const& point,
+    AuxDetGeo const& PositionToAuxDet(Point_t const& point,
                                       unsigned int& ad,
                                       double tolerance = 0) const;
 
@@ -4454,7 +3815,7 @@ namespace geo {
      *
      * @todo what happens if it does not exist?
      */
-    const AuxDetSensitiveGeo& PositionToAuxDetSensitive(geo::Point_t const& point,
+    const AuxDetSensitiveGeo& PositionToAuxDetSensitive(Point_t const& point,
                                                         size_t& ad,
                                                         size_t& sv,
                                                         double tolerance = 0) const;
@@ -4491,7 +3852,7 @@ namespace geo {
      * @brief Returns a list of possible views in the detector.
      * @return the set of views
      */
-    std::set<geo::View_t> const& Views() const { return allViews; }
+    std::set<View_t> const& Views() const { return allViews; }
 
     //
     // access
@@ -4526,7 +3887,7 @@ namespace geo {
                                         unsigned int const tpc = 0,
                                         unsigned int const cstat = 0) const
     {
-      return PlaneWireToChannel(geo::WireID(cstat, tpc, plane, wire));
+      return PlaneWireToChannel(WireID(cstat, tpc, plane, wire));
     }
     //@}
 
@@ -4559,7 +3920,7 @@ namespace geo {
      * @return vector containing the ID of all the connected wires
      * @throws cet::exception (category: "Geometry") if non-existent channel
      */
-    std::vector<geo::WireID> ChannelToWire(raw::ChannelID_t const channel) const;
+    std::vector<WireID> ChannelToWire(raw::ChannelID_t const channel) const;
 
     /// Returns the ID of the ROP the channel belongs to
     /// @throws cet::exception (category: "Geometry") if non-existent channel
@@ -4577,8 +3938,7 @@ namespace geo {
      * @bug on invalid wire, a `geo::InvalidWireError` exception is thrown
      *
      */
-    raw::ChannelID_t NearestChannel(geo::Point_t const& worldLoc,
-                                    geo::PlaneID const& planeid) const;
+    raw::ChannelID_t NearestChannel(Point_t const& worldLoc, PlaneID const& planeid) const;
 
     //@{
     /**
@@ -4594,40 +3954,40 @@ namespace geo {
      *
      * @todo remove the integers version
      */
-    raw::ChannelID_t NearestChannel(const double worldLoc[3], geo::PlaneID const& planeid) const;
+    raw::ChannelID_t NearestChannel(const double worldLoc[3], PlaneID const& planeid) const;
     raw::ChannelID_t NearestChannel(std::vector<double> const& worldLoc,
-                                    geo::PlaneID const& planeid) const;
-    raw::ChannelID_t NearestChannel(const TVector3& worldLoc, geo::PlaneID const& planeid) const
+                                    PlaneID const& planeid) const;
+    raw::ChannelID_t NearestChannel(const TVector3& worldLoc, PlaneID const& planeid) const
     {
-      return NearestChannel(geo::vect::toPoint(worldLoc), planeid);
+      return NearestChannel(vect::toPoint(worldLoc), planeid);
     }
     raw::ChannelID_t NearestChannel(const double worldLoc[3],
                                     unsigned int const PlaneNo,
                                     unsigned int const TPCNo = 0,
                                     unsigned int const cstat = 0) const
     {
-      return NearestChannel(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo));
+      return NearestChannel(worldLoc, PlaneID(cstat, TPCNo, PlaneNo));
     }
     raw::ChannelID_t NearestChannel(std::vector<double> const& worldLoc,
                                     unsigned int const PlaneNo,
                                     unsigned int const TPCNo = 0,
                                     unsigned int const cstat = 0) const
     {
-      return NearestChannel(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo));
+      return NearestChannel(worldLoc, PlaneID(cstat, TPCNo, PlaneNo));
     }
     raw::ChannelID_t NearestChannel(const TVector3& worldLoc,
                                     unsigned int const PlaneNo,
                                     unsigned int const TPCNo = 0,
                                     unsigned int const cstat = 0) const
     {
-      return NearestChannel(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo));
+      return NearestChannel(worldLoc, PlaneID(cstat, TPCNo, PlaneNo));
     }
-    raw::ChannelID_t NearestChannel(geo::Point_t const& worldLoc,
+    raw::ChannelID_t NearestChannel(Point_t const& worldLoc,
                                     unsigned int const PlaneNo,
                                     unsigned int const TPCNo = 0,
                                     unsigned int const cstat = 0) const
     {
-      return NearestChannel(worldLoc, geo::PlaneID(cstat, TPCNo, PlaneNo));
+      return NearestChannel(worldLoc, PlaneID(cstat, TPCNo, PlaneNo));
     }
     //@}
 
@@ -4741,7 +4101,7 @@ namespace geo {
     // mapping
     //
     /// Returns the ID of the TPC set tpcid belongs to
-    readout::TPCsetID TPCtoTPCset(geo::TPCID const& tpcid) const;
+    readout::TPCsetID TPCtoTPCset(TPCID const& tpcid) const;
 
     /**
      * @brief Returns a list of ID of TPCs belonging to the specified TPC set
@@ -4753,7 +4113,7 @@ namespace geo {
      * exists. Check the existence of the TPC set first (HasTPCset()).
      * Behaviour on valid, non-existent TPC set IDs is undefined.
      */
-    std::vector<geo::TPCID> TPCsetToTPCs(readout::TPCsetID const& tpcsetid) const;
+    std::vector<TPCID> TPCsetToTPCs(readout::TPCsetID const& tpcsetid) const;
 
     ///
     /// iterators
@@ -4778,39 +4138,30 @@ namespace geo {
     bool IncrementID(readout::TPCsetID& id) const; // inline implementation
 
     /// Returns the ID of the first TPC set in the specified cryostat.
-    readout::TPCsetID GetBeginTPCsetID(geo::CryostatID const& id) const { return {id, 0}; }
+    readout::TPCsetID GetBeginTPCsetID(CryostatID const& id) const { return {id, 0}; }
 
     /// Returns the (possibly invalid) ID after the last TPC set of the
     /// specified cryostat.
-    readout::TPCsetID GetEndTPCsetID(geo::CryostatID const& id) const
-    {
-      return {id.Cryostat + 1, 0};
-    }
+    readout::TPCsetID GetEndTPCsetID(CryostatID const& id) const { return {id.Cryostat + 1, 0}; }
 
     /// Returns an iterator pointing to the first TPC set ID in the detector
-    TPCset_id_iterator begin_TPCset_id() const
-    {
-      return TPCset_id_iterator(this, TPCset_id_iterator::begin_pos);
-    }
+    TPCset_id_iterator begin_TPCset_id() const { return {this, GetBeginID<readout::TPCsetID>()}; }
 
     /// Returns an iterator pointing after the last TPC set ID in the detector
-    TPCset_id_iterator end_TPCset_id() const
-    {
-      return TPCset_id_iterator(this, TPCset_id_iterator::end_pos);
-    }
+    TPCset_id_iterator end_TPCset_id() const { return {this, GetEndID<readout::TPCsetID>()}; }
 
     /// Returns an iterator pointing to the first TPC set ID in the specified
     /// cryostat.
-    TPCset_id_iterator begin_TPCset_id(geo::CryostatID const& cid) const
+    TPCset_id_iterator begin_TPCset_id(CryostatID const& cid) const
     {
-      return TPCset_id_iterator(this, GetBeginTPCsetID(cid));
+      return {this, GetBeginTPCsetID(cid)};
     }
 
     /// Returns an iterator pointing after the last TPC set ID in the specified
     /// cryostat.
-    TPCset_id_iterator end_TPCset_id(geo::CryostatID const& cid) const
+    TPCset_id_iterator end_TPCset_id(CryostatID const& cid) const
     {
-      return TPCset_id_iterator(this, GetEndTPCsetID(cid));
+      return {this, GetEndTPCsetID(cid)};
     }
 
     /**
@@ -4827,10 +4178,9 @@ namespace geo {
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      *
      */
-    IteratorBox<TPCset_id_iterator, &GeometryCore::begin_TPCset_id, &GeometryCore::end_TPCset_id>
-    IterateTPCsetIDs() const
+    IteratorBox<TPCset_id_iterator> IterateTPCsetIDs() const
     {
-      return {this};
+      return {begin_TPCset_id(), end_TPCset_id()};
     }
 
     /**
@@ -4851,13 +4201,9 @@ namespace geo {
      * } // for all TPC sets in cryostat #1
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<TPCset_id_iterator,
-                     geo::CryostatID,
-                     &GeometryCore::begin_TPCset_id,
-                     &GeometryCore::end_TPCset_id>
-    IterateTPCsetIDs(geo::CryostatID const& cid) const
+    IteratorBox<TPCset_id_iterator> IterateTPCsetIDs(CryostatID const& cid) const
     {
-      return {this, cid};
+      return {begin_TPCset_id(cid), end_TPCset_id(cid)};
     }
 
     /// @} TPC set information
@@ -4958,7 +4304,7 @@ namespace geo {
      * points to a non-existent wire plane, the result is undefined.
      * Use HasPlaneID() to check if the wire plane actually exists.
      */
-    readout::ROPID WirePlaneToROP(geo::PlaneID const& planeid) const;
+    readout::ROPID WirePlaneToROP(PlaneID const& planeid) const;
 
     /**
      * @brief Returns a list of ID of planes belonging to the specified ROP
@@ -4970,7 +4316,7 @@ namespace geo {
      * points to a non-existent readout plane, the result is undefined.
      * Use HasROP() to check if the readout plane actually exists.
      */
-    std::vector<geo::PlaneID> ROPtoWirePlanes(readout::ROPID const& ropid) const;
+    std::vector<PlaneID> ROPtoWirePlanes(readout::ROPID const& ropid) const;
 
     /**
      * @brief Returns a list of ID of TPCs the specified ROP spans
@@ -4982,7 +4328,7 @@ namespace geo {
      * the ID actually exists. Check if the ROP exists with HasROP().
      * The behaviour on non-existing readout planes is undefined.
      */
-    std::vector<geo::TPCID> ROPtoTPCs(readout::ROPID const& ropid) const;
+    std::vector<TPCID> ROPtoTPCs(readout::ROPID const& ropid) const;
 
     /**
      * @brief Returns the ID of the first channel in the specified readout plane
@@ -5019,14 +4365,11 @@ namespace geo {
     bool IncrementID(readout::ROPID& id) const; // inline implementation
 
     /// Returns the ID of the first readout plane of the specified cryostat.
-    readout::ROPID GetBeginROPID(geo::CryostatID const& id) const
-    {
-      return {GetBeginTPCsetID(id), 0};
-    }
+    readout::ROPID GetBeginROPID(CryostatID const& id) const { return {GetBeginTPCsetID(id), 0}; }
 
     /// Returns the (possibly invalid) ID after the last readout plane of the
     /// specified cryostat.
-    readout::ROPID GetEndROPID(geo::CryostatID const& id) const { return {GetEndTPCsetID(id), 0}; }
+    readout::ROPID GetEndROPID(CryostatID const& id) const { return {GetEndTPCsetID(id), 0}; }
 
     /// Returns the ID of the first readout plane of the specified TPC set.
     readout::ROPID GetBeginROPID(readout::TPCsetID const& id) const { return {id, 0}; }
@@ -5036,40 +4379,31 @@ namespace geo {
     readout::ROPID GetEndROPID(readout::TPCsetID const& id) const { return {GetNextID(id), 0}; }
 
     /// Returns an iterator pointing to the first ROP ID in the detector.
-    ROP_id_iterator begin_ROP_id() const
-    {
-      return ROP_id_iterator(this, ROP_id_iterator::begin_pos);
-    }
+    ROP_id_iterator begin_ROP_id() const { return {this, GetBeginID<readout::ROPID>()}; }
 
     /// Returns an iterator pointing after the last ROP ID in the detector.
-    ROP_id_iterator end_ROP_id() const { return ROP_id_iterator(this, ROP_id_iterator::end_pos); }
+    ROP_id_iterator end_ROP_id() const { return {this, GetEndID<readout::ROPID>()}; }
 
     /// Returns an iterator pointing to the first readout plane ID in the
     /// specified cryostat.
-    ROP_id_iterator begin_ROP_id(geo::CryostatID const& ID) const
-    {
-      return ROP_id_iterator(this, GetBeginROPID(ID));
-    }
+    ROP_id_iterator begin_ROP_id(CryostatID const& ID) const { return {this, GetBeginROPID(ID)}; }
 
     /// Returns an iterator pointing after the last readout plane ID in the
     /// specified cryostat.
-    ROP_id_iterator end_ROP_id(geo::CryostatID const& ID) const
-    {
-      return ROP_id_iterator(this, GetEndROPID(ID));
-    }
+    ROP_id_iterator end_ROP_id(CryostatID const& ID) const { return {this, GetEndROPID(ID)}; }
 
     /// Returns an iterator pointing to the first readout plane ID in the
     /// specified TPC set.
     ROP_id_iterator begin_ROP_id(readout::TPCsetID const& ID) const
     {
-      return ROP_id_iterator(this, GetBeginROPID(ID));
+      return {this, GetBeginROPID(ID)};
     }
 
     /// Returns an iterator pointing after the last readout plane ID in the
     /// specified TPC set.
     ROP_id_iterator end_ROP_id(readout::TPCsetID const& ID) const
     {
-      return ROP_id_iterator(this, GetEndROPID(ID));
+      return {this, GetEndROPID(ID)};
     }
 
     /**
@@ -5086,11 +4420,7 @@ namespace geo {
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      *
      */
-    IteratorBox<ROP_id_iterator, &GeometryCore::begin_ROP_id, &GeometryCore::end_ROP_id>
-    IterateROPIDs() const
-    {
-      return {this};
-    }
+    IteratorBox<ROP_id_iterator> IterateROPIDs() const { return {begin_ROP_id(), end_ROP_id()}; }
 
     /**
      * @brief Enables ranged-for loops on all readout plane IDs of the specified
@@ -5110,13 +4440,9 @@ namespace geo {
      * } // for all readout planes in cryostat #1
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<ROP_id_iterator,
-                     geo::CryostatID,
-                     &GeometryCore::begin_ROP_id,
-                     &GeometryCore::end_ROP_id>
-    IterateROPIDs(geo::CryostatID const& cid) const
+    IteratorBox<ROP_id_iterator> IterateROPIDs(CryostatID const& cid) const
     {
-      return {this, cid};
+      return {begin_ROP_id(cid), end_ROP_id(cid)};
     }
 
     /**
@@ -5137,13 +4463,9 @@ namespace geo {
      * } // for all readout planes in C:0 S:1
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      */
-    LocalIteratorBox<ROP_id_iterator,
-                     readout::TPCsetID,
-                     &GeometryCore::begin_ROP_id,
-                     &GeometryCore::end_ROP_id>
-    IterateROPIDs(readout::TPCsetID const& sid) const
+    IteratorBox<ROP_id_iterator> IterateROPIDs(readout::TPCsetID const& sid) const
     {
-      return {this, sid};
+      return {begin_ROP_id(sid), end_ROP_id(sid)};
     }
 
     /**
@@ -5158,7 +4480,7 @@ namespace geo {
      * points to a non-existent readout plane, the result is undefined.
      * Use HasROP() to check if the readout plane actually exists.
      */
-    geo::View_t View(readout::ROPID const& ropid) const;
+    View_t View(readout::ROPID const& ropid) const;
 
     /**
      * @brief Returns the type of signal of channels in specified readout plane
@@ -5172,7 +4494,7 @@ namespace geo {
      * points to a non-existent readout plane, the result is undefined.
      * Use HasROP() to check if the readout plane actually exists.
      */
-    geo::SigType_t SignalType(readout::ROPID const& ropid) const;
+    SigType_t SignalType(readout::ROPID const& ropid) const;
 
     /// @} Readout plane information
 
@@ -5235,7 +4557,10 @@ namespace geo {
      * @todo Use wiggle instead of 10^-6
      * @todo resort source code for a bit of speed up
      */
-    bool ValueInRange(double value, double min, double max) const;
+    bool ValueInRange(double value, double min, double max) const
+    {
+      return unrelated::ValueInRange(value, min, max);
+    }
 
     /// @name Geometry initialization
     /// @{
@@ -5266,7 +4591,7 @@ namespace geo {
      */
     void LoadGeometryFile(std::string gdmlfile,
                           std::string rootfile,
-                          geo::GeometryBuilder& builder,
+                          GeometryBuilder& builder,
                           bool bForceReload = false);
 
     /**
@@ -5293,7 +4618,7 @@ namespace geo {
      * This method needs to be called after LoadGeometryFile() to complete the
      * geometry initialization.
      */
-    void ApplyChannelMap(std::unique_ptr<geo::ChannelMapAlg> pChannelMap);
+    void ApplyChannelMap(std::unique_ptr<ChannelMapAlg> pChannelMap);
     /// @}
 
   private:
@@ -5318,11 +4643,11 @@ namespace geo {
     /// Configuration for the geometry builder
     /// (needed since builder is created after construction).
     fhicl::ParameterSet fBuilderParameters;
-    std::unique_ptr<const geo::ChannelMapAlg> fChannelMapAlg;
+    std::unique_ptr<const ChannelMapAlg> fChannelMapAlg;
     ///< Object containing the channel to wire mapping
 
     // cached values
-    std::set<geo::View_t> allViews; ///< All views in the detector.
+    std::set<View_t> allViews; ///< All views in the detector.
 
     std::vector<TGeoNode const*> FindDetectorEnclosure(
       std::string const& name = "volDetEnclosure") const;
@@ -5331,25 +4656,13 @@ namespace geo {
 
     /// Parses ROOT geometry nodes and builds LArSoft geometry representation.
     /// @param builder the algorithm to be used
-    void BuildGeometry(geo::GeometryBuilder& builder);
+    void BuildGeometry(GeometryBuilder& builder);
 
     /// Wire ID check for WireIDsIntersect methods
-    bool WireIDIntersectionCheck(const geo::WireID& wid1, const geo::WireID& wid2) const;
-
-    /// Returns whether x and y are within both specified ranges (A and B).
-    static bool PointWithinSegments(double A_start_x,
-                                    double A_start_y,
-                                    double A_end_x,
-                                    double A_end_y,
-                                    double B_start_x,
-                                    double B_start_y,
-                                    double B_end_x,
-                                    double B_end_y,
-                                    double x,
-                                    double y);
+    bool WireIDIntersectionCheck(const WireID& wid1, const WireID& wid2) const;
 
     /// Runs the sorting of geometry with the sorter provided by channel mapping
-    void SortGeometry(geo::GeoObjectSorter const& sorter);
+    void SortGeometry(GeoObjectSorter const& sorter);
 
     /// Performs all the updates needed after sorting
     void UpdateAfterSorting();
@@ -5357,95 +4670,49 @@ namespace geo {
     /// Deletes the detector geometry structures
     void ClearGeometry();
 
-    /// Throws an exception ("GeometryCore" category) unless pid1 and pid2
-    /// are on different planes of the same TPC (ID validity is not checked)
-    static void CheckIndependentPlanesOnSameTPC(geo::PlaneID const& pid1,
-                                                geo::PlaneID const& pid2,
-                                                const char* caller);
-
   }; // class GeometryCore
-
-  /** **************************************************************************
-   * @brief Iterator to navigate through all the nodes
-   *
-   * Note that this is not a fully standard forward iterator in that it lacks
-   * of the postfix operator. The reason is that it's too expensive and it
-   * should be avoided.
-   * Also I did not bother declaring the standard type definitions
-   * (that's just laziness).
-   *
-   * An example of iteration:
-   *
-   *     TGeoNode const* pCurrentNode;
-   *
-   *     ROOTGeoNodeForwardIterator iNode(geom->ROOTGeoManager()->GetTopNode());
-   *     while ((pCurrentNode = *iNode)) {
-   *       // do something with pCurrentNode
-   *       ++iNode;
-   *     } // while
-   *
-   * These iterators are one use only, and they can't be reset after a loop
-   * is completed.
-   */
-  class ROOTGeoNodeForwardIterator {
-  public:
-    /// Constructor: start from this node
-    ROOTGeoNodeForwardIterator(TGeoNode const* start_node) { init(start_node); }
-
-    /// Returns the pointer to the current node, or nullptr if none
-    TGeoNode const* operator*() const
-    {
-      return current_path.empty() ? nullptr : current_path.back().self;
-    }
-
-    /// Points to the next node, or to nullptr if there are no more
-    ROOTGeoNodeForwardIterator& operator++();
-
-    /// Returns the full path of the current node
-    std::vector<TGeoNode const*> get_path() const;
-
-  protected:
-    using Node_t = TGeoNode const*;
-    struct NodeInfo_t {
-      Node_t self;
-      int sibling;
-      NodeInfo_t(Node_t new_self, int new_sibling) : self(new_self), sibling(new_sibling) {}
-    }; // NodeInfo_t
-
-    /// which node, which sibling?
-    std::vector<NodeInfo_t> current_path;
-
-    void reach_deepest_descendant();
-
-    void init(TGeoNode const* start_node);
-
-  }; // class ROOTGeoNodeForwardIterator
 
   /// @}
   // END Geometry group --------------------------------------------------------
 
 } // namespace geo
 
+template <typename GEOIDITER>
+geo::details::geometry_element_iterator<GEOIDITER>::operator bool() const
+{
+  assert(geom);
+  // FIXME: what if id_iter is invalid?
+  return geom && geom->HasElement(*id_iter) && get() != nullptr;
+}
+
+template <typename GEOIDITER>
+auto geo::details::geometry_element_iterator<GEOIDITER>::get() const -> ElementPtr_t
+{
+  assert(geom);
+  // FIXME: what if id_iter is invalid?
+  return geom->GetElementPtr(*id_iter);
+}
+
 //******************************************************************************
 //*** inline implementation
 //***
-inline bool geo::GeometryCore::IncrementID(geo::CryostatID& id) const
+inline bool geo::GeometryCore::IncrementID(CryostatID& id) const
 {
   ++id.Cryostat;
   if (id) id.isValid = HasCryostat(id); // if invalid already, it stays so
   return bool(id);
-} // geo::GeometryCore::IncrementID(geo::CryostatID)
+}
 
-inline bool geo::GeometryCore::IncrementID(geo::TPCID& id) const
+inline bool geo::GeometryCore::IncrementID(TPCID& id) const
 {
   unsigned int const nTPCsInCryo = NTPC(id);
   if (++id.TPC < nTPCsInCryo) return bool(id); // if was invalid, it stays so
   // no more TPCs in this cryostat
   id.TPC = 0;
   return IncrementID(id.asCryostatID()); // also sets validity
-} // geo::GeometryCore::IncrementID(geo::TPCID)
+}
 
-inline bool geo::GeometryCore::IncrementID(geo::PlaneID& id) const
+inline bool geo::GeometryCore::IncrementID(PlaneID& id) const
 {
   // this implementation is non-optimal, in that the cryostat lookup is
   // performed both here and, potentially, in IncrementID(TPCID)
@@ -5454,9 +4721,9 @@ inline bool geo::GeometryCore::IncrementID(geo::PlaneID& id) const
   // no more planes in this TPCs
   id.Plane = 0;
   return IncrementID(id.asTPCID()); // also sets validity
-} // geo::GeometryCore::IncrementID(geo::PlaneID)
+}
 
-inline bool geo::GeometryCore::IncrementID(geo::WireID& id) const
+inline bool geo::GeometryCore::IncrementID(WireID& id) const
 {
   // this implementation is non-optimal, in that the TPC lookup is
   // performed both here and, potentially, in IncrementID(PlaneID)
@@ -5465,7 +4732,7 @@ inline bool geo::GeometryCore::IncrementID(geo::WireID& id) const
   // no more wires in this plane
   id.Wire = 0;
   return IncrementID(id.asPlaneID()); // also sets validity
-} // geo::GeometryCore::IncrementID(geo::WireID)
+}
 
 inline bool geo::GeometryCore::IncrementID(readout::TPCsetID& id) const
 {
@@ -5474,7 +4741,7 @@ inline bool geo::GeometryCore::IncrementID(readout::TPCsetID& id) const
   // no more TPC sets in this cryostat
   id.TPCset = 0;
   return IncrementID(id.asCryostatID()); // also sets validity
-} // geo::GeometryCore::IncrementID(readout::TPCsetID)
+}
 
 inline bool geo::GeometryCore::IncrementID(readout::ROPID& id) const
 {
@@ -5485,18 +4752,18 @@ inline bool geo::GeometryCore::IncrementID(readout::ROPID& id) const
   // no more readout planes in this TPC set
   id.ROP = 0;
   return IncrementID(id.asTPCsetID()); // also sets validity
-} // geo::GeometryCore::IncrementID(readout::ROPID)
+}
 
 //******************************************************************************
 //***  template implementation
 //***
 //------------------------------------------------------------------------------
 template <typename Point>
-geo::GeometryCore::Segment<Point> geo::GeometryCore::WireEndPoints(geo::WireID const& wireid) const
+geo::GeometryCore::Segment<Point> geo::GeometryCore::WireEndPoints(WireID const& wireid) const
 {
-  geo::WireGeo const& wire = Wire(wireid);
+  WireGeo const& wire = Wire(wireid);
   return {wire.GetStart<Point>(), wire.GetEnd<Point>()};
-} // geo::GeometryCore::WireEndPoints(WireID)
+}
 
 //------------------------------------------------------------------------------
 template <typename Stream>
@@ -5512,33 +4779,33 @@ void geo::GeometryCore::Print(Stream&& out, std::string indent /* = "  " */) con
       << detEnclosureBox.Max() << " cm => ( " << detEnclosureBox.SizeX() << " x "
       << detEnclosureBox.SizeY() << " x " << detEnclosureBox.SizeZ() << " ) cm^3";
 
-  for (geo::CryostatGeo const& cryostat : IterateCryostats()) {
+  for (CryostatGeo const& cryostat : IterateCryostats()) {
     out << "\n" << indent;
     cryostat.PrintCryostatInfo(std::forward<Stream>(out), indent + "  ", cryostat.MaxVerbosity);
 
     const unsigned int nTPCs = cryostat.NTPC();
     for (unsigned int t = 0; t < nTPCs; ++t) {
-      const geo::TPCGeo& tpc = cryostat.TPC(t);
+      const TPCGeo& tpc = cryostat.TPC(t);
 
       out << "\n" << indent << "  ";
       tpc.PrintTPCInfo(std::forward<Stream>(out), indent + "    ", tpc.MaxVerbosity);
 
       const unsigned int nPlanes = tpc.Nplanes();
       for (unsigned int p = 0; p < nPlanes; ++p) {
-        const geo::PlaneGeo& plane = tpc.Plane(p);
+        const PlaneGeo& plane = tpc.Plane(p);
         const unsigned int nWires = plane.Nwires();
 
         out << "\n" << indent << "    ";
         plane.PrintPlaneInfo(std::forward<Stream>(out), indent + "      ", plane.MaxVerbosity);
-        geo::SigType_t const sigType = SignalType(plane.ID());
+        SigType_t const sigType = SignalType(plane.ID());
         out << "\n"
             << indent << "      "
             << "signal type: " << SignalTypeName(sigType) << " (" << static_cast<int>(sigType)
             << ")";
 
         for (unsigned int w = 0; w < nWires; ++w) {
-          const geo::WireGeo& wire = plane.Wire(w);
-          geo::WireID wireID(plane.ID(), w);
+          const WireGeo& wire = plane.Wire(w);
+          WireID wireID(plane.ID(), w);
 
           // the wire should be aligned on z axis, half on each side of 0,
           // in its local frame
@@ -5550,7 +4817,7 @@ void geo::GeometryCore::Print(Stream&& out, std::string indent /* = "  " */) con
 
     unsigned int nOpDets = cryostat.NOpDet();
     for (unsigned int iOpDet = 0; iOpDet < nOpDets; ++iOpDet) {
-      geo::OpDetGeo const& opDet = cryostat.OpDet(iOpDet);
+      OpDetGeo const& opDet = cryostat.OpDet(iOpDet);
       out << "\n" << indent << "  [OpDet #" << iOpDet << "] ";
       opDet.PrintOpDetInfo(std::forward<Stream>(out), indent + "  ", opDet.MaxVerbosity);
     } // for
@@ -5558,7 +4825,7 @@ void geo::GeometryCore::Print(Stream&& out, std::string indent /* = "  " */) con
 
   unsigned int const nAuxDets = NAuxDets();
   for (unsigned int iDet = 0; iDet < nAuxDets; ++iDet) {
-    geo::AuxDetGeo const& auxDet = AuxDet(iDet);
+    AuxDetGeo const& auxDet = AuxDet(iDet);
 
     out << "\n" << indent << "[#" << iDet << "] ";
     auxDet.PrintAuxDetInfo(std::forward<Stream>(out), indent + "  ", auxDet.MaxVerbosity);
@@ -5567,7 +4834,7 @@ void geo::GeometryCore::Print(Stream&& out, std::string indent /* = "  " */) con
     switch (nSensitive) {
     case 0: break;
     case 1: {
-      geo::AuxDetSensitiveGeo const& auxDetS = auxDet.SensitiveVolume(0U);
+      AuxDetSensitiveGeo const& auxDetS = auxDet.SensitiveVolume(0U);
       out << "\n" << indent << "  ";
       auxDetS.PrintAuxDetInfo(std::forward<Stream>(out), indent + "    ", auxDetS.MaxVerbosity);
       break;
@@ -5575,7 +4842,7 @@ void geo::GeometryCore::Print(Stream&& out, std::string indent /* = "  " */) con
     default:
       for (unsigned int iSens = 0; iSens < nSensitive; ++iSens) {
         out << "\n" << indent << "[#" << iSens << "] ";
-        geo::AuxDetSensitiveGeo const& auxDetS = auxDet.SensitiveVolume(iSens);
+        AuxDetSensitiveGeo const& auxDetS = auxDet.SensitiveVolume(iSens);
         auxDetS.PrintAuxDetInfo(std::forward<Stream>(out), indent + "    ", auxDetS.MaxVerbosity);
       } // for
       break;
@@ -5593,28 +4860,27 @@ namespace geo {
 
   template <>
   inline geo::TPCID GeometryCore::GetBeginID<geo::TPCID, geo::CryostatID>(
-    geo::CryostatID const& id) const
+    CryostatID const& id) const
   {
     return GetBeginTPCID(id);
   }
 
   template <>
-  inline geo::TPCID GeometryCore::GetEndID<geo::TPCID, geo::CryostatID>(
-    geo::CryostatID const& id) const
+  inline geo::TPCID GeometryCore::GetEndID<geo::TPCID, geo::CryostatID>(CryostatID const& id) const
   {
     return GetEndTPCID(id);
   }
 
   template <>
   inline geo::PlaneID GeometryCore::GetBeginID<geo::PlaneID, geo::CryostatID>(
-    geo::CryostatID const& id) const
+    CryostatID const& id) const
   {
     return GetBeginPlaneID(id);
   }
 
   template <>
   inline geo::PlaneID GeometryCore::GetEndID<geo::PlaneID, geo::CryostatID>(
-    geo::CryostatID const& id) const
+    CryostatID const& id) const
   {
     return GetEndPlaneID(id);
   }
@@ -5625,65 +4891,31 @@ namespace geo {
 //
 // geo::details::cryostat_id_iterator_base<>
 //
-template <typename GEOID>
-inline geo::details::cryostat_id_iterator_base<GEOID>::operator bool() const
-{
-  return geometry() && geometry()->HasElement(localID());
-}
+namespace geo::details {
+  template <typename GEOID>
+  cryostat_id_iterator_base<GEOID>::cryostat_id_iterator_base(GeometryCore const* geom,
+                                                              GeoID_t const& geo_id)
+    : geometry_iterator_base(geom), id{geo_id}, limit{geom->NSiblingElements(localID())}
+  {}
 
-template <typename GEOID>
-inline auto geo::details::cryostat_id_iterator_base<GEOID>::get() const -> ElementPtr_t
-{
-  return geometry()->GetElementPtr(localID());
-}
-
-template <typename GEOID>
-inline void geo::details::cryostat_id_iterator_base<GEOID>::set_local_limits()
-{
-  limit = geometry()->NSiblingElements(localID());
-}
-
-template <typename GEOID>
-inline void geo::details::cryostat_id_iterator_base<GEOID>::set_begin()
-{
-  geometry()->GetBeginID(ID());
-}
-
-template <typename GEOID>
-inline void geo::details::cryostat_id_iterator_base<GEOID>::set_end()
-{
-  geometry()->GetEndID(ID());
-}
-
-template <typename GEOID>
-void geo::details::cryostat_id_iterator_base<GEOID>::next()
-{
-  if (at_end()) return;
-  if (++local_index() < limit) return;
-  localID().isValid = false;
-} // geo::cryostat_id_iterator_base<GEOID>::next()
+  template <typename GEOID>
+  void cryostat_id_iterator_base<GEOID>::next()
+  {
+    if (at_end()) return;
+    if (++local_index() < limit) return;
+    localID().isValid = false;
+  }
+} // geo::details
 
 //
 // geo::details::TPC_id_iterator_base<>
 //
 template <typename GEOID>
-inline geo::details::TPC_id_iterator_base<GEOID>::operator bool() const
-{
-  return upper_iterator::geometry() && upper_iterator::geometry()->HasElement(localID());
-} // geo::details::TPC_id_iterator_base<>::operator bool()
-
-template <typename GEOID>
-inline auto geo::details::TPC_id_iterator_base<GEOID>::get() const -> ElementPtr_t
-{
-  return upper_iterator::geometry()->GetElementPtr(localID());
-}
-
-template <typename GEOID>
 inline void geo::details::TPC_id_iterator_base<GEOID>::set_local_limits()
 {
   // limit is how many sibling TPCs there are
   limit = upper_iterator::geometry()->NSiblingElements(localID());
-} // geo::details::TPC_id_iterator_base<GEOID>::set_local_limits()
+}
 
 template <typename GEOID>
 inline void geo::details::TPC_id_iterator_base<GEOID>::next()
@@ -5702,29 +4934,17 @@ inline void geo::details::TPC_id_iterator_base<GEOID>::next()
   // - update how many elements there are
   //   (expect 0 if it is now at_end() -- and it does not even matter)
   set_local_limits();
-} // geo::details::TPC_id_iterator_base<GEOID>::next()
+}
 
 //
 // geo::details::plane_id_iterator_base<>
 //
 template <typename GEOID>
-inline geo::details::plane_id_iterator_base<GEOID>::operator bool() const
-{
-  return upper_iterator::geometry() && upper_iterator::geometry()->HasElement(localID());
-} // geo::details::plane_id_iterator_base<>::operator bool()
-
-template <typename GEOID>
-inline auto geo::details::plane_id_iterator_base<GEOID>::get() const -> ElementPtr_t
-{
-  return upper_iterator::geometry()->GetElementPtr(localID());
-}
-
-template <typename GEOID>
 inline void geo::details::plane_id_iterator_base<GEOID>::set_local_limits()
 {
   // limit is how many sibling planes there are
   limit = upper_iterator::geometry()->NSiblingElements(localID());
-} // geo::details::plane_id_iterator_base<GEOID>::set_local_limits()
+}
 
 template <typename GEOID>
 inline void geo::details::plane_id_iterator_base<GEOID>::next()
@@ -5743,29 +4963,17 @@ inline void geo::details::plane_id_iterator_base<GEOID>::next()
   // - update how many elements there are
   //   (expect 0 if it is now at_end() -- and it does not even matter)
   set_local_limits();
-} // geo::details::plane_id_iterator_base<GEOID>::next()
+}
 
 //
 // geo::details::wire_id_iterator_base<>
 //
 template <typename GEOID>
-inline geo::details::wire_id_iterator_base<GEOID>::operator bool() const
-{
-  return upper_iterator::geometry() && upper_iterator::geometry()->HasElement(localID());
-} // geo::details::wire_id_iterator_base<>::operator bool()
-
-template <typename GEOID>
-inline auto geo::details::wire_id_iterator_base<GEOID>::get() const -> ElementPtr_t
-{
-  return upper_iterator::geometry()->GetElementPtr(localID());
-}
-
-template <typename GEOID>
 inline void geo::details::wire_id_iterator_base<GEOID>::set_local_limits()
 {
   // limit is how many sibling wires there are
   limit = upper_iterator::geometry()->NSiblingElements(localID());
-} // geo::details::wire_id_iterator_base<>::set_local_limits()
+}
 
 template <typename GEOID>
 inline void geo::details::wire_id_iterator_base<GEOID>::next()
@@ -5784,7 +4992,7 @@ inline void geo::details::wire_id_iterator_base<GEOID>::next()
   // - update how many elements there are
   //   (expect 0 if it is now at_end() -- and it does not even matter)
   set_local_limits();
-} // geo::details::wire_id_iterator_base<>::next()
+}
 
 //
 // comparison operators between ID iterators and element iterators
@@ -5794,30 +5002,24 @@ bool geo::details::operator==(geometry_element_iterator<GEOIDITER> const& iter,
                               GEOIDITER const& id_iter)
 {
   return iter.id_iterator() == id_iter;
-} // operator==(iterator_t, id_iterator_t)
+}
 
 template <typename GEOIDITER>
 bool geo::details::operator!=(geometry_element_iterator<GEOIDITER> const& iter,
                               GEOIDITER const& id_iter)
 {
   return iter.id_iterator() != id_iter;
-} // operator!=(iterator_t, id_iterator_t)
+}
 
 //
 // geo::details::TPCset_id_iterator_base<>
 //
 template <typename GEOID>
-inline geo::details::TPCset_id_iterator_base<GEOID>::operator bool() const
-{
-  return upper_iterator::geometry() && upper_iterator::geometry()->HasElement(localID());
-} // geo::details::TPCset_id_iterator_base<>::operator bool()
-
-template <typename GEOID>
 inline void geo::details::TPCset_id_iterator_base<GEOID>::set_local_limits()
 {
   // limit is how many sibling TPCs there are
   limit = upper_iterator::geometry()->NSiblingElements(localID());
-} // geo::details::TPCset_id_iterator_base<GEOID>::set_local_limits()
+}
 
 template <typename GEOID>
 inline void geo::details::TPCset_id_iterator_base<GEOID>::next()
@@ -5836,23 +5038,17 @@ inline void geo::details::TPCset_id_iterator_base<GEOID>::next()
   // - update how many elements there are
   //   (expect 0 if it is now at_end() -- and it does not even matter)
   set_local_limits();
-} // geo::details::TPCset_id_iterator_base<GEOID>::next()
+}
 
 //
 // geo::details::ROP_id_iterator_base<>
 //
 template <typename GEOID>
-inline geo::details::ROP_id_iterator_base<GEOID>::operator bool() const
-{
-  return upper_iterator::geometry() && upper_iterator::geometry()->HasElement(localID());
-} // geo::details::ROP_id_iterator_base<>::operator bool()
-
-template <typename GEOID>
 inline void geo::details::ROP_id_iterator_base<GEOID>::set_local_limits()
 {
   // limit is how many sibling planes there are
   limit = upper_iterator::geometry()->NSiblingElements(localID());
-} // geo::details::ROP_id_iterator_base<GEOID>::set_local_limits()
+}
 
 template <typename GEOID>
 inline void geo::details::ROP_id_iterator_base<GEOID>::next()
@@ -5871,7 +5067,7 @@ inline void geo::details::ROP_id_iterator_base<GEOID>::next()
   // - update how many elements there are
   //   (expect 0 if it is now at_end() -- and it does not even matter)
   set_local_limits();
-} // geo::details::ROP_id_iterator_base<GEOID>::next()
+}
 
 //******************************************************************************
 

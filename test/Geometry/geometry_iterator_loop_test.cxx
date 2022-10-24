@@ -68,7 +68,6 @@ using StandardGeometryTestEnvironment =
 //------------------------------------------------------------------------------
 int main(int argc, char const** argv)
 {
-
   StandardGeometryConfiguration config("geometry_iterator_loop_test");
 
   //
@@ -96,11 +95,8 @@ int main(int argc, char const** argv)
   // run the test algorithm
   //
 
-  // 1. we initialize it from the configuration in the environment,
-  geo::GeometryIteratorLoopTestAlg Tester(TestEnvironment.TesterParameters());
-
-  // 2. we set it up with the geometry from the environment
-  Tester.Setup(*(TestEnvironment.Provider<geo::GeometryCore>()));
+  // 1. we initialize it with the geometry from the environment
+  geo::GeometryIteratorLoopTestAlg Tester{TestEnvironment.Provider<geo::GeometryCore>()};
 
   // 3. then we run it!
   unsigned int nErrors = Tester.Run();

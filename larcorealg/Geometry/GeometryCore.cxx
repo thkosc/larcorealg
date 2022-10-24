@@ -46,10 +46,117 @@
 #include <utility> // std::swap()
 #include <vector>
 
-namespace geo {
+namespace {
+  constexpr lar::util::RealComparisons<geo::Length_t> coordIs{1e-8};
+
+  //--------------------------------------------------------------------
+  /// Returns whether x and y are within both specified ranges (A and B).
+  bool PointWithinSegments(double A_start_x,
+                           double A_start_y,
+                           double A_end_x,
+                           double A_end_y,
+                           double B_start_x,
+                           double B_start_y,
+                           double B_end_x,
+                           double B_end_y,
+                           double x,
+                           double y)
+  {
+    return coordIs.withinSorted(x, A_start_x, A_end_x) &&
+           coordIs.withinSorted(y, A_start_y, A_end_y) &&
+           coordIs.withinSorted(x, B_start_x, B_end_x) &&
+           coordIs.withinSorted(y, B_start_y, B_end_y);
+  } // PointWithinSegments()
+
+  /// Throws an exception ("GeometryCore" category) unless pid1 and pid2
+  /// are on different planes of the same TPC (ID validity is not checked)
+  void CheckIndependentPlanesOnSameTPC(geo::PlaneID const& pid1,
+                                       geo::PlaneID const& pid2,
+                                       const char* caller)
+  {
+    if (pid1.asTPCID() != pid2.asTPCID()) {
+      throw cet::exception("GeometryCore")
+        << caller << " needs two planes on the same TPC (got " << std::string(pid1) << " and "
+        << std::string(pid2) << ")\n";
+    }
+    if (pid1 == pid2) { // was: return 999;
+      throw cet::exception("GeometryCore")
+        << caller << " needs two different planes, got " << std::string(pid1) << " twice\n";
+    }
+  } // CheckIndependentPlanesOnSameTPC()
+}
+
+namespace unrelated {
+
+  // Functions to allow determination if two wires intersect, and if so where.
+  // This is useful information during 3D reconstruction.
+  //......................................................................
+  bool ValueInRange(double value, double min, double max)
+  {
+    if (min > max) std::swap(min, max); //protect against funny business due to wire angles
+    if (std::abs(value - min) < 1e-6 || std::abs(value - max) < 1e-6) return true;
+    return (value >= min) && (value <= max);
+  }
 
   //......................................................................
-  lar::util::RealComparisons<geo::Length_t> GeometryCore::coordIs{1e-8};
+  bool IntersectLines(double A_start_x,
+                      double A_start_y,
+                      double A_end_x,
+                      double A_end_y,
+                      double B_start_x,
+                      double B_start_y,
+                      double B_end_x,
+                      double B_end_y,
+                      double& x,
+                      double& y)
+  {
+    // Equation from http://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+    // T.Yang Nov, 2014
+    // Notation: x => coordinate orthogonal to the drift direction and to the beam direction
+    //           y => direction orthogonal to the previous and to beam direction
+
+    double const denom =
+      (A_start_x - A_end_x) * (B_start_y - B_end_y) - (A_start_y - A_end_y) * (B_start_x - B_end_x);
+
+    if (coordIs.zero(denom)) return false;
+
+    double const A = (A_start_x * A_end_y - A_start_y * A_end_x) / denom;
+    double const B = (B_start_x * B_end_y - B_start_y * B_end_x) / denom;
+
+    x = (B_start_x - B_end_x) * A - (A_start_x - A_end_x) * B;
+    y = (B_start_y - B_end_y) * A - (A_start_y - A_end_y) * B;
+
+    return true;
+
+  } // IntersectLines()
+
+  //......................................................................
+  bool IntersectSegments(double A_start_x,
+                         double A_start_y,
+                         double A_end_x,
+                         double A_end_y,
+                         double B_start_x,
+                         double B_start_y,
+                         double B_end_x,
+                         double B_end_y,
+                         double& x,
+                         double& y)
+  {
+    bool bCross = IntersectLines(
+      A_start_x, A_start_y, A_end_x, A_end_y, B_start_x, B_start_y, B_end_x, B_end_y, x, y);
+
+    if (bCross) {
+      mf::LogWarning("IntersectSegments") << "The segments are parallel!";
+      return false;
+    }
+
+    return PointWithinSegments(
+      A_start_x, A_start_y, A_end_x, A_end_y, B_start_x, B_start_y, B_end_x, B_end_y, x, y);
+
+  } // IntersectSegments()
+}
+
+namespace geo {
 
   //......................................................................
   // Constructor.
@@ -82,7 +189,6 @@ namespace geo {
                                       bool bForceReload /* = false*/
   )
   {
-
     if (gdmlfile.empty()) {
       throw cet::exception("GeometryCore") << "No GDML Geometry file specified!\n";
     }
@@ -124,7 +230,6 @@ namespace geo {
 
     mf::LogInfo("GeometryCore") << "New detector geometry loaded from "
                                 << "\n\t" << fROOTfile << "\n\t" << fGDMLfile << "\n";
-
   } // GeometryCore::LoadGeometryFile()
 
   //......................................................................
@@ -159,13 +264,11 @@ namespace geo {
       cryo.UpdateAfterSorting(geo::CryostatID(c));
       ++c;
     } // for
-
-  } // GeometryCore::SortGeometry()
+  }   // GeometryCore::SortGeometry()
 
   //......................................................................
   void GeometryCore::UpdateAfterSorting()
   {
-
     for (size_t c = 0; c < Ncryostats(); ++c)
       Cryostats()[c].UpdateAfterSorting(geo::CryostatID(c));
 
@@ -267,7 +370,6 @@ namespace geo {
     if (aid > NAuxDets() - 1)
       throw cet::exception("Geometry")
         << "Requested AuxDet index " << aid << " is out of range: " << NAuxDets();
-
     return AuxDets()[aid].NSensitiveVolume();
   }
 
@@ -307,14 +409,12 @@ namespace geo {
   {
     if (ad >= NAuxDets())
       throw cet::exception("GeometryCore") << "AuxDet " << ad << " does not exist\n";
-
     return AuxDets()[ad];
   }
 
   //......................................................................
   geo::TPCID GeometryCore::FindTPCAtPosition(geo::Point_t const& point) const
   {
-
     // first find the cryostat
     geo::CryostatGeo const* cryo = PositionToCryostatPtr(point);
     if (!cryo) return {};
@@ -327,7 +427,6 @@ namespace geo {
     tpcid.Cryostat = cryo->ID().Cryostat;
     tpcid.markInvalid();
     return tpcid;
-
   } // GeometryCore::FindTPCAtPosition()
 
   //......................................................................
@@ -542,6 +641,62 @@ namespace geo {
   } // geo::GeometryCore::DetectorEnclosureBox()
 
   //......................................................................
+  /** **************************************************************************
+   * @brief Iterator to navigate through all the nodes
+   *
+   * Note that this is not a fully standard forward iterator in that it lacks
+   * of the postfix operator. The reason is that it's too expensive and it
+   * should be avoided.
+   * Also I did not bother declaring the standard type definitions
+   * (that's just laziness).
+   *
+   * An example of iteration:
+   *
+   *     TGeoNode const* pCurrentNode;
+   *
+   *     ROOTGeoNodeForwardIterator iNode(geom->ROOTGeoManager()->GetTopNode());
+   *     while ((pCurrentNode = *iNode)) {
+   *       // do something with pCurrentNode
+   *       ++iNode;
+   *     } // while
+   *
+   * These iterators are one use only, and they can't be reset after a loop
+   * is completed.
+   */
+  class ROOTGeoNodeForwardIterator {
+  public:
+    /// Constructor: start from this node
+    ROOTGeoNodeForwardIterator(TGeoNode const* start_node) { init(start_node); }
+
+    /// Returns the pointer to the current node, or nullptr if none
+    TGeoNode const* operator*() const
+    {
+      return current_path.empty() ? nullptr : current_path.back().self;
+    }
+
+    /// Points to the next node, or to nullptr if there are no more
+    ROOTGeoNodeForwardIterator& operator++();
+
+    /// Returns the full path of the current node
+    std::vector<TGeoNode const*> get_path() const;
+
+  protected:
+    using Node_t = TGeoNode const*;
+    struct NodeInfo_t {
+      Node_t self;
+      int sibling;
+      NodeInfo_t(Node_t new_self, int new_sibling) : self(new_self), sibling(new_sibling) {}
+    }; // NodeInfo_t
+
+    /// which node, which sibling?
+    std::vector<NodeInfo_t> current_path;
+
+    void reach_deepest_descendant();
+
+    void init(TGeoNode const* start_node);
+
+  }; // class ROOTGeoNodeForwardIterator
+
   struct NodeNameMatcherClass {
     std::set<std::string> const* vol_names;
 
@@ -834,7 +989,6 @@ namespace geo {
   //......................................................................
   geo::WireID GeometryCore::GetEndWireID(geo::PlaneID const& id) const
   {
-
     if (geo::PlaneGeo const* plane = PlanePtr(id); plane && plane->Nwires() > 0)
       return {GetNextID(id), 0};
     geo::WireID wid = GetBeginWireID(id);
@@ -851,7 +1005,6 @@ namespace geo {
   //......................................................................
   geo::BoxBoundedGeo GeometryCore::WorldBox() const
   {
-
     TGeoVolume const* world = WorldVolume();
     if (!world) {
       throw cet::exception("GeometryCore") << "no world volume '" << GetWorldVolumeName() << "'\n";
@@ -903,8 +1056,7 @@ namespace geo {
         << "is not inside the world volume "
         << " half width = " << halfwidth << " half height = " << halfheight
         << " half length = " << halflength << " returning unknown volume name";
-      const std::string unknown("unknownVolume");
-      return unknown;
+      return "unknownVolume";
     }
 
     return gGeoManager->FindNode(point.X(), point.Y(), point.Z())->GetName();
@@ -997,7 +1149,6 @@ namespace geo {
   //......................................................................
   double GeometryCore::MassBetweenPoints(geo::Point_t const& p1, geo::Point_t const& p2) const
   {
-
     //The purpose of this method is to determine the column density
     //between the two points given.  Do that by starting at p1 and
     //stepping until you get to the node of p2.  calculate the distance
@@ -1090,7 +1241,6 @@ namespace geo {
   raw::ChannelID_t GeometryCore::NearestChannel(geo::Point_t const& worldPos,
                                                 geo::PlaneID const& planeid) const
   {
-
     // This method is supposed to return a channel number rather than
     //  a wire number.  Perform the conversion here (although, maybe
     //  faster if we deal in wire numbers rather than channel numbers?)
@@ -1110,16 +1260,6 @@ namespace geo {
   raw::ChannelID_t GeometryCore::PlaneWireToChannel(WireID const& wireid) const
   {
     return fChannelMapAlg->PlaneWireToChannel(wireid);
-  }
-
-  // Functions to allow determination if two wires intersect, and if so where.
-  // This is useful information during 3D reconstruction.
-  //......................................................................
-  bool GeometryCore::ValueInRange(double value, double min, double max) const
-  {
-    if (min > max) std::swap(min, max); //protect against funny business due to wire angles
-    if (std::abs(value - min) < 1e-6 || std::abs(value - max) < 1e-6) return true;
-    return (value >= min) && (value <= max);
   }
 
   //......................................................................
@@ -1148,7 +1288,6 @@ namespace geo {
       std::swap(xyzStart[1], xyzEnd[1]);
       std::swap(xyzStart[2], xyzEnd[2]);
     }
-
   } // GeometryCore::WireEndPoints(WireID, 2x double*)
 
   //Changed to use WireIDsIntersect(). Apr, 2015 T.Yang
@@ -1158,7 +1297,6 @@ namespace geo {
                                        double& y,
                                        double& z) const
   {
-
     // [GP] these errors should be exceptions, and this function is deprecated
     // because it violates interoperability
     std::vector<geo::WireID> chan1wires = ChannelToWire(c1);
@@ -1199,70 +1337,10 @@ namespace geo {
   }
 
   //......................................................................
-  bool GeometryCore::IntersectLines(double A_start_x,
-                                    double A_start_y,
-                                    double A_end_x,
-                                    double A_end_y,
-                                    double B_start_x,
-                                    double B_start_y,
-                                    double B_end_x,
-                                    double B_end_y,
-                                    double& x,
-                                    double& y) const
-  {
-
-    // Equation from http://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-    // T.Yang Nov, 2014
-    // Notation: x => coordinate orthogonal to the drift direction and to the beam direction
-    //           y => direction orthogonal to the previous and to beam direction
-
-    double const denom =
-      (A_start_x - A_end_x) * (B_start_y - B_end_y) - (A_start_y - A_end_y) * (B_start_x - B_end_x);
-
-    if (coordIs.zero(denom)) return false;
-
-    double const A = (A_start_x * A_end_y - A_start_y * A_end_x) / denom;
-    double const B = (B_start_x * B_end_y - B_start_y * B_end_x) / denom;
-
-    x = (B_start_x - B_end_x) * A - (A_start_x - A_end_x) * B;
-    y = (B_start_y - B_end_y) * A - (A_start_y - A_end_y) * B;
-
-    return true;
-
-  } // GeometryCore::IntersectLines()
-
-  //......................................................................
-  bool GeometryCore::IntersectSegments(double A_start_x,
-                                       double A_start_y,
-                                       double A_end_x,
-                                       double A_end_y,
-                                       double B_start_x,
-                                       double B_start_y,
-                                       double B_end_x,
-                                       double B_end_y,
-                                       double& x,
-                                       double& y) const
-  {
-
-    bool bCross = IntersectLines(
-      A_start_x, A_start_y, A_end_x, A_end_y, B_start_x, B_start_y, B_end_x, B_end_y, x, y);
-
-    if (bCross) {
-      mf::LogWarning("IntersectSegments") << "The segments are parallel!";
-      return false;
-    }
-
-    return PointWithinSegments(
-      A_start_x, A_start_y, A_end_x, A_end_y, B_start_x, B_start_y, B_end_x, B_end_y, x, y);
-
-  } // GeometryCore::IntersectSegments()
-
-  //......................................................................
   bool GeometryCore::WireIDsIntersect(const geo::WireID& wid1,
                                       const geo::WireID& wid2,
                                       geo::WireIDIntersection& widIntersect) const
   {
-
     static_assert(std::numeric_limits<decltype(widIntersect.y)>::has_infinity,
                   "the vector coordinate type can't represent infinity!");
     constexpr auto infinity = std::numeric_limits<decltype(widIntersect.y)>::infinity();
@@ -1390,28 +1468,12 @@ namespace geo {
     return geo::PlaneID(pid1, target_plane);
   } // GeometryCore::ThirdPlane()
 
-  void GeometryCore::CheckIndependentPlanesOnSameTPC(geo::PlaneID const& pid1,
-                                                     geo::PlaneID const& pid2,
-                                                     const char* caller)
-  {
-    if (pid1.asTPCID() != pid2.asTPCID()) {
-      throw cet::exception("GeometryCore")
-        << caller << " needs two planes on the same TPC (got " << std::string(pid1) << " and "
-        << std::string(pid2) << ")\n";
-    }
-    if (pid1 == pid2) { // was: return 999;
-      throw cet::exception("GeometryCore")
-        << caller << " needs two different planes, got " << std::string(pid1) << " twice\n";
-    }
-  } // GeometryCore::CheckIndependentPlanesOnSameTPC()
-
   double GeometryCore::ThirdPlaneSlope(geo::PlaneID const& pid1,
                                        double slope1,
                                        geo::PlaneID const& pid2,
                                        double slope2,
                                        geo::PlaneID const& output_plane) const
   {
-
     CheckIndependentPlanesOnSameTPC(pid1, pid2, "ThirdPlaneSlope()");
 
     geo::TPCGeo const& TPC = this->TPC(pid1);
@@ -1441,7 +1503,6 @@ namespace geo {
                                        double slope2,
                                        geo::PlaneID const& output_plane) const
   {
-
     CheckIndependentPlanesOnSameTPC(pid1, pid2, "ThirdPlane_dTdW()");
 
     geo::TPCGeo const& TPC = this->TPC(pid1);
@@ -1717,9 +1778,6 @@ namespace geo {
     }
     // If we made it here, we didn't find the right combination. abort
     throw cet::exception("OpID To OpDetCryo error") << "OpID out of range, " << OpDet << "\n";
-
-    // Will not reach due to exception
-    return this->Cryostat(0).OpDet(0);
   }
 
   //--------------------------------------------------------------------
@@ -1768,32 +1826,6 @@ namespace geo {
   } // GeometryCore::WireIDIntersectionCheck()
 
   //--------------------------------------------------------------------
-  bool GeometryCore::PointWithinSegments(double A_start_x,
-                                         double A_start_y,
-                                         double A_end_x,
-                                         double A_end_y,
-                                         double B_start_x,
-                                         double B_start_y,
-                                         double B_end_x,
-                                         double B_end_y,
-                                         double x,
-                                         double y)
-  {
-    return coordIs.withinSorted(x, A_start_x, A_end_x) &&
-           coordIs.withinSorted(y, A_start_y, A_end_y) &&
-           coordIs.withinSorted(x, B_start_x, B_end_x) &&
-           coordIs.withinSorted(y, B_start_y, B_end_y);
-
-  } // GeometryCore::PointWithinSegments()
-
-  //--------------------------------------------------------------------
-  constexpr details::geometry_iterator_types::BeginPos_t
-    details::geometry_iterator_types::begin_pos;
-  constexpr details::geometry_iterator_types::EndPos_t details::geometry_iterator_types::end_pos;
-  constexpr details::geometry_iterator_types::UndefinedPos_t
-    details::geometry_iterator_types::undefined_pos;
-
-  //--------------------------------------------------------------------
   //--- ROOTGeoNodeForwardIterator
   //---
 
@@ -1822,15 +1854,12 @@ namespace geo {
   //--------------------------------------------------------------------
   std::vector<TGeoNode const*> ROOTGeoNodeForwardIterator::get_path() const
   {
-
     std::vector<TGeoNode const*> node_path(current_path.size());
-
     std::transform(current_path.begin(),
                    current_path.end(),
                    node_path.begin(),
                    [](NodeInfo_t const& node_info) { return node_info.self; });
     return node_path;
-
   } // ROOTGeoNodeForwardIterator::path()
 
   //--------------------------------------------------------------------

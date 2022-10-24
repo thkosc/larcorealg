@@ -71,8 +71,7 @@ public:
   GeometryStandardChannelMappingTestFixture()
   {
     // create a new tester
-    tester_ptr = std::make_shared<Tester_t>(TesterParameters());
-    tester_ptr->Setup(*(Provider<geo::GeometryCore>()));
+    tester_ptr = std::make_shared<Tester_t>(Provider<geo::GeometryCore>());
     // if no tester is default yet, share ours:
     TesterRegistry_t::ProvideDefaultSharedResource(tester_ptr);
   }
@@ -106,16 +105,16 @@ BOOST_GLOBAL_FIXTURE(GeometryStandardChannelMappingTestFixture);
 BOOST_AUTO_TEST_CASE(TPCsetMappingTestCase)
 {
   GeometryStandardChannelMappingTestFixture::GlobalTester().TPCsetMappingTest();
-} // BOOST_AUTO_TEST_CASE( TPCsetMappingTestCase )
+}
 
 BOOST_AUTO_TEST_CASE(ROPMappingTestCase)
 {
   GeometryStandardChannelMappingTestFixture::GlobalTester().ROPMappingTest();
-} // BOOST_AUTO_TEST_CASE( ROPMappingTestCase )
+}
 
 BOOST_AUTO_TEST_CASE(ChannelMappingTestCase)
 {
   GeometryStandardChannelMappingTestFixture::GlobalTester().ChannelMappingTest();
-} // BOOST_AUTO_TEST_CASE( ChannelMappingTestCase )
+}
 
 // BOOST_AUTO_TEST_SUITE_END()

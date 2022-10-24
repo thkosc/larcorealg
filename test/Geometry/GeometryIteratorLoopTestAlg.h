@@ -8,34 +8,19 @@
 #ifndef GEO_GEOMETRYITERATORLOOPTESTALG_H
 #define GEO_GEOMETRYITERATORLOOPTESTALG_H
 
-namespace fhicl {
-  class ParameterSet;
-}
+#include "larcorealg/Geometry/fwd.h"
 
 namespace geo {
 
-  class GeometryCore; // forward declaration
-
-  //----------------------------------------------------------------------------
-
   class GeometryIteratorLoopTestAlg {
   public:
-    /// Constructor: reads configuration, does nothing
-    GeometryIteratorLoopTestAlg(fhicl::ParameterSet const& /* pset */) {}
+    GeometryIteratorLoopTestAlg(geo::GeometryCore const* new_geo) : geom{new_geo} {}
 
-    /// Virtual destructor
-    virtual ~GeometryIteratorLoopTestAlg() = default;
+    unsigned int Run();
 
-    /// Algorithm set up
-    virtual void Setup(geo::GeometryCore const& new_geo) { geom = &new_geo; }
-
-    /// Executes the test
-    virtual unsigned int Run();
-
-  protected:
-    GeometryCore const* geom = nullptr; ///< pointer to the geometry description
-
-  }; // class GeometryIteratorLoopTestAlg
+  private:
+    GeometryCore const* geom = nullptr;
+  };
 
 } // namespace geo
 

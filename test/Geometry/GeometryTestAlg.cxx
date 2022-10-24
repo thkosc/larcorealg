@@ -1060,7 +1060,7 @@ namespace geo {
     //
     // checks that all the wires in the same plane are parallel
     //
-    auto const vectorIs = lar::util::makeVector3DComparison(geom->coordIs);
+    auto const vectorIs = lar::util::makeVector3DComparison(1e-8);
 
     for (geo::PlaneGeo const& plane : geom->IteratePlanes()) {
 
@@ -1490,6 +1490,7 @@ namespace geo {
     //
     // Check the definition of the projection reference
     //
+    lar::util::RealComparisons<double> coordIs(1e-8);
     unsigned int nErrors = 0;
     for (auto const& plane : geom->IteratePlanes()) {
 
@@ -1497,14 +1498,13 @@ namespace geo {
 
       auto decomp = plane.DecomposePoint(reference);
 
-      if (geom->coordIs.nonZero(decomp.distance)) {
+      if (coordIs.nonZero(decomp.distance)) {
         MF_LOG_ERROR("GeometryTest") << "Plane " << plane.ID() << " reference point " << reference
                                      << " has distance " << decomp.distance << " cm (should be 0)";
         ++nErrors;
       }
 
-      if (geom->coordIs.nonZero(decomp.projection.X()) ||
-          geom->coordIs.nonZero(decomp.projection.Y())) {
+      if (coordIs.nonZero(decomp.projection.X()) || coordIs.nonZero(decomp.projection.Y())) {
         MF_LOG_ERROR("GeometryTest")
           << "Plane " << plane.ID() << " reference point " << reference << " has projection ( "
           << decomp.projection.X() << " ; " << decomp.projection.Y() << " ) cm (should be (0;0) )";
@@ -2532,8 +2532,7 @@ namespace geo {
      */
 
     unsigned int nErrors = 0;
-    for (geo::GeometryCore::TPC_id_iterator iTPC(&*geom); iTPC; ++iTPC) {
-      const geo::TPCID tpcid = *iTPC;
+    for (geo::TPCID const& tpcid : geom->IterateTPCIDs()) {
       const geo::TPCGeo& TPC = geom->TPC(tpcid);
 
       const unsigned int nPlanes = TPC.Nplanes();
@@ -2631,8 +2630,7 @@ namespace geo {
      */
 
     unsigned int nErrors = 0;
-    for (geo::GeometryCore::TPC_id_iterator iTPC(&*geom); iTPC; ++iTPC) {
-      const geo::TPCID tpcid = *iTPC;
+    for (geo::TPCID const& tpcid : geom->IterateTPCIDs()) {
       const geo::TPCGeo& TPC = geom->TPC(tpcid);
 
       const double driftVelocity = 0.1 * ((TPC.DriftDirection() == geo::kNegX) ? -1. : +1);

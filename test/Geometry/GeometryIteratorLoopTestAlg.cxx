@@ -22,13 +22,9 @@
 
 namespace geo {
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-variable"
-
   //......................................................................
   unsigned int GeometryIteratorLoopTestAlg::Run()
   {
-
     /*
      * This monstrous test looks through the elements of the geometry.
      * It is structured as follows:
@@ -102,19 +98,19 @@ namespace geo {
 
     unsigned int nErrors = 0;
     unsigned int nCryostats = 0, nTPCs = 0, nPlanes = 0, nWires = 0, cumTPCsets = 0, cumROPs = 0;
-    geo::GeometryCore::cryostat_id_iterator iCryostatID = geom->begin_cryostat_id();
-    geo::GeometryCore::TPC_id_iterator iTPCID = geom->begin_TPC_id();
-    geo::GeometryCore::plane_id_iterator iPlaneID = geom->begin_plane_id();
-    geo::GeometryCore::wire_id_iterator iWireID = geom->begin_wire_id();
+    geo::cryostat_id_iterator iCryostatID = geom->begin_cryostat_id();
+    geo::TPC_id_iterator iTPCID = geom->begin_TPC_id();
+    geo::plane_id_iterator iPlaneID = geom->begin_plane_id();
+    geo::wire_id_iterator iWireID = geom->begin_wire_id();
 
     auto iTPCsetID = geom->begin_TPCset_id();
     auto iROPID = geom->begin_ROP_id();
     // no channel iterator implemented
 
-    geo::GeometryCore::cryostat_iterator iCryostat = geom->begin_cryostat();
-    geo::GeometryCore::TPC_iterator iTPC = geom->begin_TPC();
-    geo::GeometryCore::plane_iterator iPlane = geom->begin_plane();
-    geo::GeometryCore::wire_iterator iWire = geom->begin_wire();
+    geo::cryostat_iterator iCryostat = geom->begin_cryostat();
+    geo::TPC_iterator iTPC = geom->begin_TPC();
+    geo::plane_iterator iPlane = geom->begin_plane();
+    geo::wire_iterator iWire = geom->begin_wire();
 
     geo::CryostatID runningCID{0};
     geo::TPCID runningTID{runningCID, 0};
@@ -138,20 +134,9 @@ namespace geo {
         ++nErrors;
       }
 
-      if (!iCryostatID) {
-        MF_LOG_ERROR("GeometryIteratorLoopTest")
-          << "Cryostat ID iterator thinks it's all over at C=" << c;
-        ++nErrors;
-      }
-      else if (iCryostatID->Cryostat != c) {
+      if (iCryostatID->Cryostat != c) {
         MF_LOG_ERROR("GeometryIteratorLoopTest")
           << "Cryostat ID iterator thinks it's at C=" << (*iCryostatID) << " instead of " << c;
-        ++nErrors;
-      }
-      else if (iCryostatID.get() != &cryo) {
-        MF_LOG_ERROR("GeometryIteratorLoopTest")
-          << "Cryostat ID iterator retrieves CryostatGeo[" << ((void*)iCryostatID.get())
-          << "] instead of [" << ((void*)&cryo) << "]";
         ++nErrors;
       }
 
@@ -186,12 +171,7 @@ namespace geo {
           ++nErrors;
         }
 
-        if (!iTPCID) {
-          MF_LOG_ERROR("GeometryIteratorLoopTest")
-            << "TPC ID iterator thinks it's all over at " << expTID;
-          ++nErrors;
-        }
-        else if (iTPCID->Cryostat != c) {
+        if (iTPCID->Cryostat != c) {
           MF_LOG_ERROR("GeometryIteratorLoopTest")
             << "TPC ID iterator thinks it's at C=" << iTPCID->Cryostat << " instead of " << c;
           ++nErrors;
@@ -199,12 +179,6 @@ namespace geo {
         else if (iTPCID->TPC != t) {
           MF_LOG_ERROR("GeometryIteratorLoopTest")
             << "TPC ID iterator thinks it's at T=" << iTPCID->TPC << " instead of " << t;
-          ++nErrors;
-        }
-        else if (iTPCID.get() != &TPC) {
-          MF_LOG_ERROR("GeometryIteratorLoopTest")
-            << "TPC ID iterator retrieves TPCGeo[" << ((void*)iTPCID.get()) << "] instead of ["
-            << ((void*)&TPC) << "]";
           ++nErrors;
         }
 
@@ -249,12 +223,7 @@ namespace geo {
               << "Plane ID incremented to " << runningPID << ", expected: " << expPID;
             ++nErrors;
           }
-          if (!iPlaneID) {
-            MF_LOG_ERROR("GeometryIteratorLoopTest")
-              << "plane ID iterator thinks it's all over at " << expPID;
-            ++nErrors;
-          }
-          else if (iPlaneID->Cryostat != c) {
+          if (iPlaneID->Cryostat != c) {
             MF_LOG_ERROR("GeometryIteratorLoopTest")
               << "plane ID iterator thinks it's at C=" << iPlaneID->Cryostat << " instead of " << c;
             ++nErrors;
@@ -267,12 +236,6 @@ namespace geo {
           else if (iPlaneID->Plane != p) {
             MF_LOG_ERROR("GeometryIteratorLoopTest")
               << "plane ID iterator thinks it's at P=" << iPlaneID->Plane << " instead of " << p;
-            ++nErrors;
-          }
-          else if (iPlaneID.get() != &Plane) {
-            MF_LOG_ERROR("GeometryIteratorLoopTest")
-              << "plane ID iterator retrieves PlaneGeo[" << ((void*)iPlaneID.get())
-              << "] instead of [" << ((void*)&Plane) << "]";
             ++nErrors;
           }
 
@@ -325,12 +288,7 @@ namespace geo {
             }
 
             MF_LOG_TRACE("GeometryIteratorLoopTest") << "    " << expWID;
-            if (!iWireID) {
-              MF_LOG_ERROR("GeometryIteratorLoopTest")
-                << "wire ID iterator thinks it's all over at " << expWID;
-              ++nErrors;
-            }
-            else if (iWireID->Cryostat != c) {
+            if (iWireID->Cryostat != c) {
               MF_LOG_ERROR("GeometryIteratorLoopTest")
                 << "wire ID iterator thinks it's at C=" << iWireID->Cryostat << " instead of " << c;
               ++nErrors;
@@ -348,12 +306,6 @@ namespace geo {
             else if (iWireID->Wire != w) {
               MF_LOG_ERROR("GeometryIteratorLoopTest")
                 << "wire ID iterator thinks it's at W=" << iWireID->Wire << " instead of " << w;
-              ++nErrors;
-            }
-            else if (iWireID.get() != &Wire) {
-              MF_LOG_ERROR("GeometryIteratorLoopTest")
-                << "wire ID iterator retrieves WireGeo[" << ((void*)iWireID.get())
-                << "] instead of [" << ((void*)&Wire) << "]";
               ++nErrors;
             }
 
@@ -454,7 +406,7 @@ namespace geo {
             ++nErrors;
           } // if
           unsigned int nLoopedWires = 0;
-          for (geo::WireGeo const& wire : geom->IterateWires(expPID)) {
+          for (geo::WireGeo const& wire [[maybe_unused]] : geom->IterateWires(expPID)) {
             if (nLoopedWires >= nWiresInPlane) {
               MF_LOG_ERROR("GeometryIteratorLoopTest")
                 << "After all " << nLoopedWires << " wires in " << expPID
@@ -534,7 +486,7 @@ namespace geo {
           ++nErrors;
         } // if
         unsigned int nLoopedPlanes = 0;
-        for (geo::PlaneGeo const& plane : geom->IteratePlanes(expTID)) {
+        for (geo::PlaneGeo const& plane [[maybe_unused]] : geom->IteratePlanes(expTID)) {
           if (nLoopedPlanes >= nPlanesInTPC) {
             MF_LOG_ERROR("GeometryIteratorLoopTest")
               << "After all " << nLoopedPlanes << " planes in " << expTID
@@ -576,7 +528,7 @@ namespace geo {
           ++nErrors;
         } // if
         unsigned int nLoopedWires = 0;
-        for (geo::WireGeo const& wire : geom->IterateWires(expTID)) {
+        for (geo::WireGeo const& wire [[maybe_unused]] : geom->IterateWires(expTID)) {
           if (nLoopedWires >= nWiresInTPC) {
             MF_LOG_ERROR("GeometryIteratorLoopTest")
               << "After all " << nLoopedWires << " wires in " << expTID
@@ -666,7 +618,7 @@ namespace geo {
         ++nErrors;
       } // if
       unsigned int nLoopedTPCs = 0;
-      for (geo::TPCGeo const& TPC : geom->IterateTPCs(expCID)) {
+      for (geo::TPCGeo const& TPC [[maybe_unused]] : geom->IterateTPCs(expCID)) {
         if (nLoopedTPCs >= nTPCsInCryo) {
           MF_LOG_ERROR("GeometryIteratorLoopTest")
             << "After all " << nLoopedTPCs << " TPCs in " << expCID
@@ -708,7 +660,7 @@ namespace geo {
         ++nErrors;
       } // if
       unsigned int nLoopedPlanes = 0;
-      for (geo::PlaneGeo const& plane : geom->IteratePlanes(expCID)) {
+      for (geo::PlaneGeo const& plane [[maybe_unused]] : geom->IteratePlanes(expCID)) {
         if (nLoopedPlanes >= nPlanesInCryo) {
           MF_LOG_ERROR("GeometryIteratorLoopTest")
             << "After all " << nLoopedPlanes << " planes in " << expCID
@@ -750,7 +702,7 @@ namespace geo {
         ++nErrors;
       } // if
       unsigned int nLoopedWires = 0;
-      for (geo::WireGeo const& wire : geom->IterateWires(expCID)) {
+      for (geo::WireGeo const& wire [[maybe_unused]] : geom->IterateWires(expCID)) {
         if (nLoopedWires >= nWiresInCryo) {
           MF_LOG_ERROR("GeometryIteratorLoopTest")
             << "After all " << nLoopedWires << " wires in " << expCID
@@ -788,12 +740,7 @@ namespace geo {
           ++nErrors;
         }
 
-        if (!iTPCsetID) {
-          MF_LOG_ERROR("GeometryIteratorLoopTest")
-            << "TPCset ID iterator thinks it's all over at " << expSID;
-          ++nErrors;
-        }
-        else if (iTPCsetID->Cryostat != c) {
+        if (iTPCsetID->Cryostat != c) {
           MF_LOG_ERROR("GeometryIteratorLoopTest")
             << "TPC set ID iterator thinks it's at C=" << iTPCsetID->Cryostat << " instead of "
             << c;
@@ -829,12 +776,7 @@ namespace geo {
             ++nErrors;
           }
 
-          if (!iROPID) {
-            MF_LOG_ERROR("GeometryIteratorLoopTest")
-              << "readout plane ID iterator thinks it's all over at " << expRID;
-            ++nErrors;
-          }
-          else if (iROPID->Cryostat != c) {
+          if (iROPID->Cryostat != c) {
             MF_LOG_ERROR("GeometryIteratorLoopTest")
               << "readout plane ID iterator thinks it's at C=" << iROPID->Cryostat << " instead of "
               << c;
@@ -1003,13 +945,8 @@ namespace geo {
       ++nErrors;
     }
 
-    if (iCryostatID) {
-      MF_LOG_ERROR("GeometryIteratorLoopTest") << "Cryostat ID iterator thinks it's still at "
-                                               << *iCryostatID << ", but we are already finished";
-      ++nErrors;
-    }
     try {
-      geo::CryostatGeo const& Cryo = *iCryostat;
+      geo::CryostatGeo const& Cryo [[maybe_unused]] = *iCryostat;
       MF_LOG_ERROR("GeometryIteratorLoopTest") << "Cryostat iterator thinks it's still at "
                                                << iCryostat.ID() << ", but we are already finished";
       ++nErrors;
@@ -1042,7 +979,7 @@ namespace geo {
       ++nErrors;
     } // if
     unsigned int nLoopedCryostats = 0;
-    for (geo::CryostatGeo const& Cryo : geom->IterateCryostats()) {
+    for (geo::CryostatGeo const& Cryo [[maybe_unused]] : geom->IterateCryostats()) {
       if (nLoopedCryostats >= nCryostats) {
         MF_LOG_ERROR("GeometryIteratorLoopTest")
           << "After all " << nLoopedCryostats << " cryostats, iterator has not reached the end";
@@ -1064,13 +1001,8 @@ namespace geo {
       ++nErrors;
     }
 
-    if (iTPCID) {
-      MF_LOG_ERROR("GeometryIteratorLoopTest")
-        << "TPC iterator thinks it's still at " << *iTPCID << ", but we are already finished";
-      ++nErrors;
-    }
     try {
-      geo::TPCGeo const& TPC = *iTPC;
+      geo::TPCGeo const& TPC [[maybe_unused]] = *iTPC;
       MF_LOG_ERROR("GeometryIteratorLoopTest")
         << "TPC iterator thinks it's still at " << iTPC.ID() << ", but we are already finished";
       ++nErrors;
@@ -1102,7 +1034,7 @@ namespace geo {
       ++nErrors;
     } // if
     unsigned int nLoopedTPCs = 0;
-    for (geo::TPCGeo const& TPC : geom->IterateTPCs()) {
+    for (geo::TPCGeo const& TPC [[maybe_unused]] : geom->IterateTPCs()) {
       if (nLoopedTPCs >= nTPCs) {
         MF_LOG_ERROR("GeometryIteratorLoopTest")
           << "After all " << nLoopedTPCs << " TPCs, iterator has not reached the end";
@@ -1123,13 +1055,8 @@ namespace geo {
       ++nErrors;
     }
 
-    if (iPlaneID) {
-      MF_LOG_ERROR("GeometryIteratorLoopTest")
-        << "Plane iterator thinks it's still at " << *iPlaneID << ", but we are already finished";
-      ++nErrors;
-    }
     try {
-      geo::PlaneGeo const& Plane = *iPlane;
+      geo::PlaneGeo const& Plane [[maybe_unused]] = *iPlane;
       MF_LOG_ERROR("GeometryIteratorLoopTest")
         << "Plane iterator thinks it's still at " << iPlane.ID() << ", but we are already finished";
       ++nErrors;
@@ -1161,7 +1088,7 @@ namespace geo {
       ++nErrors;
     } // if
     unsigned int nLoopedPlanes = 0;
-    for (geo::PlaneGeo const& Plane : geom->IteratePlanes()) {
+    for (geo::PlaneGeo const& Plane [[maybe_unused]] : geom->IteratePlanes()) {
       if (nLoopedPlanes >= nPlanes) {
         MF_LOG_ERROR("GeometryIteratorLoopTest")
           << "After all " << nLoopedPlanes << " planes, iterator has not reached the end";
@@ -1183,13 +1110,8 @@ namespace geo {
       ++nErrors;
     }
 
-    if (iWireID) {
-      MF_LOG_ERROR("GeometryIteratorLoopTest")
-        << "Wire iterator thinks it's still at " << *iWireID << ", but we are already finished";
-      ++nErrors;
-    }
     try {
-      geo::WireGeo const& Wire = *iWire;
+      geo::WireGeo const& Wire [[maybe_unused]] = *iWire;
       MF_LOG_ERROR("GeometryIteratorLoopTest")
         << "Wire iterator thinks it's still at " << iWire.ID() << ", but we are already finished";
       ++nErrors;
@@ -1221,7 +1143,7 @@ namespace geo {
       ++nErrors;
     } // if
     unsigned int nLoopedWires = 0;
-    for (geo::WireGeo const& Wire : geom->IterateWires()) {
+    for (geo::WireGeo const& Wire [[maybe_unused]] : geom->IterateWires()) {
       if (nLoopedWires >= nWires) {
         MF_LOG_ERROR("GeometryIteratorLoopTest")
           << "After all " << nLoopedWires << " wires, iterator has not reached the end";
@@ -1240,12 +1162,6 @@ namespace geo {
     if (runningSID) {
       MF_LOG_ERROR("GeometryIteratorLoopTest")
         << "TPC set ID still valid (" << runningSID << ") after incrementing from the last one.";
-      ++nErrors;
-    }
-
-    if (iTPCsetID) {
-      MF_LOG_ERROR("GeometryIteratorLoopTest") << "TPC set iterator thinks it's still at "
-                                               << *iTPCsetID << ", but we are already finished";
       ++nErrors;
     }
 
@@ -1276,12 +1192,6 @@ namespace geo {
       ++nErrors;
     }
 
-    if (iROPID) {
-      MF_LOG_ERROR("GeometryIteratorLoopTest") << "readout plane iterator thinks it's still at "
-                                               << *iROPID << ", but we are already finished";
-      ++nErrors;
-    }
-
     // test if we can loop all planes with the iterators (via iterator box)
     MF_LOG_DEBUG("GeometryIteratorsDump") << "Looping though " << cumROPs << " readout planes";
     unsigned int nLoopedROPIDs = 0;
@@ -1308,7 +1218,5 @@ namespace geo {
   } // GeometryIteratorLoopTestAlg::Run()
 
   //----------------------------------------------------------------------------
-
-#pragma GCC diagnostic pop
 
 } // namespace geo
