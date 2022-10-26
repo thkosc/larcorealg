@@ -196,7 +196,6 @@ namespace geo {
     template <typename GEOID>
     class cryostat_id_iterator_base : public geometry_iterator_base {
     public:
-      using ElementPtr_t = CryostatGeo const*;
       using GeoID_t = GEOID; ///< type of the actual ID stored in the iterator
 
       using iterator = cryostat_id_iterator_base<GeoID_t>; ///< this iterator
@@ -310,7 +309,6 @@ namespace geo {
       using upper_iterator = cryostat_id_iterator_base<GEOID>;
 
     public:
-      using ElementPtr_t = TPCGeo const*;
       using GeoID_t = typename upper_iterator::GeoID_t;
 
       using LocalID_t = TPCID; ///< type of the ID we change
@@ -426,7 +424,6 @@ namespace geo {
       using upper_iterator = TPC_id_iterator_base<GEOID>;
 
     public:
-      using ElementPtr_t = PlaneGeo const*;
       using GeoID_t = typename upper_iterator::GeoID_t;
 
       using LocalID_t = PlaneID; ///< type of the ID we change
@@ -543,7 +540,6 @@ namespace geo {
       using upper_iterator = plane_id_iterator_base<GEOID>;
 
     public:
-      using ElementPtr_t = WireGeo const*;
       using GeoID_t = typename upper_iterator::GeoID_t;
 
       using LocalID_t = WireID; ///< type of the ID we change
@@ -647,32 +643,6 @@ namespace geo {
       return out << "geometry_iterator{ " << *it << " }";
     }
 
-    // forward declarations:
-    template <typename GEOIDITER>
-    class geometry_element_iterator;
-
-    /// Comparison operator: geometry ID and element point to the same ID.
-    template <typename GEOIDITER>
-    bool operator==(geometry_element_iterator<GEOIDITER> const& iter, GEOIDITER const& id_iter);
-    /// Comparison operator: geometry ID and element point to the same ID.
-    template <typename GEOIDITER>
-    inline bool operator==(GEOIDITER const& id_iter,
-                           geometry_element_iterator<GEOIDITER> const& iter)
-    {
-      return iter == id_iter;
-    }
-
-    /// Comparison operator: geometry ID and element point to different IDs.
-    template <typename GEOIDITER>
-    bool operator!=(geometry_element_iterator<GEOIDITER> const& iter, GEOIDITER const& id_iter);
-    /// Comparison operator: geometry ID and element point to different IDs.
-    template <typename GEOIDITER>
-    inline bool operator!=(GEOIDITER const& id_iter,
-                           geometry_element_iterator<GEOIDITER> const& iter)
-    {
-      return iter != id_iter;
-    }
-
     /**
      * @brief Forward iterator browsing all geometry elements in the detector
      * @tparam GEOITER type of geometry ID iterator
@@ -689,7 +659,7 @@ namespace geo {
      * It can also be initialized and compare with the corresponding ID
      * iterator.
      */
-    template <typename GEOIDITER>
+    template <typename Element, typename GEOIDITER>
     class geometry_element_iterator {
     public:
       using id_iterator_t = GEOIDITER;
@@ -698,22 +668,19 @@ namespace geo {
                     "template class for geometry_element_iterator"
                     " must be a geometry iterator");
 
-      using iterator = geometry_element_iterator<id_iterator_t>; ///< this type
+      using iterator = geometry_element_iterator<Element, id_iterator_t>; ///< this type
 
       /// @{
       /// @name Types mirrored from the ID iterator
       using LocalID_t = typename id_iterator_t::LocalID_t;
       using GeoID_t = typename id_iterator_t::GeoID_t;
-      using ElementPtr_t = typename id_iterator_t::ElementPtr_t;
+      using ElementPtr_t = Element const*;
       /// @}
-
-      /// Geometry class pointed by the iterator
-      using Element_t = typename std::remove_pointer<ElementPtr_t>::type;
 
       /// @name Iterator traits
       /// @{
       using difference_type = std::ptrdiff_t;
-      using value_type = Element_t;
+      using value_type = Element;
       using reference = value_type const&;
       using pointer = value_type const*;
       using iterator_category = std::forward_iterator_tag;
@@ -785,15 +752,6 @@ namespace geo {
       LocalID_t const& ID() const { return *(id_iterator()); }
 
     protected:
-      friend bool details::operator==
-        <id_iterator_t>(iterator const& iter, id_iterator_t const& id_iter);
-      friend bool details::operator==
-        <id_iterator_t>(id_iterator_t const& id_iter, iterator const& iter);
-      friend bool details::operator!=
-        <id_iterator_t>(iterator const& iter, id_iterator_t const& id_iter);
-      friend bool details::operator!=
-        <id_iterator_t>(id_iterator_t const& id_iter, iterator const& iter);
-
       //@{
       /// Access to the base ID iterator
       id_iterator_t const& id_iterator() const { return id_iter; }
@@ -1072,7 +1030,7 @@ namespace geo {
    * This object has a different dereferenciation operator that obtains
    * the plane directly, or throws on failure.
    */
-  using cryostat_iterator = details::geometry_element_iterator<cryostat_id_iterator>;
+  using cryostat_iterator = details::geometry_element_iterator<CryostatGeo, cryostat_id_iterator>;
 
   /**
    * @brief Forward iterator browsing all TPCs in the detector
@@ -1101,7 +1059,7 @@ namespace geo {
    * This object has a different dereferenciation operator that obtains
    * the TPC directly, or throws on failure.
    */
-  using TPC_iterator = details::geometry_element_iterator<TPC_id_iterator>;
+  using TPC_iterator = details::geometry_element_iterator<TPCGeo, TPC_id_iterator>;
 
   /**
    * @brief Forward iterator browsing all planes in the detector
@@ -1130,7 +1088,7 @@ namespace geo {
    * This object has a different dereferenciation operator that obtains
    * the plane directly, or throws on failure.
    */
-  using plane_iterator = details::geometry_element_iterator<plane_id_iterator>;
+  using plane_iterator = details::geometry_element_iterator<PlaneGeo, plane_id_iterator>;
 
   /**
    * @brief Forward iterator browsing all wires in the detector
@@ -1159,7 +1117,7 @@ namespace geo {
    * This object has a different dereferenciation operator that obtains
    * the wire directly, or throws on failure.
    */
-  using wire_iterator = details::geometry_element_iterator<wire_id_iterator>;
+  using wire_iterator = details::geometry_element_iterator<WireGeo, wire_id_iterator>;
 
   /**
    * @brief Forward iterator browsing all TPC sets in the detector.
@@ -4677,16 +4635,16 @@ namespace geo {
 
 } // namespace geo
 
-template <typename GEOIDITER>
-geo::details::geometry_element_iterator<GEOIDITER>::operator bool() const
+template <typename Element, typename GEOIDITER>
+geo::details::geometry_element_iterator<Element, GEOIDITER>::operator bool() const
 {
   assert(geom);
   // FIXME: what if id_iter is invalid?
   return geom && geom->HasElement(*id_iter) && get() != nullptr;
 }
 
-template <typename GEOIDITER>
-auto geo::details::geometry_element_iterator<GEOIDITER>::get() const -> ElementPtr_t
+template <typename Element, typename GEOIDITER>
+auto geo::details::geometry_element_iterator<Element, GEOIDITER>::get() const -> ElementPtr_t
 {
   assert(geom);
   // FIXME: what if id_iter is invalid?
@@ -4992,23 +4950,6 @@ inline void geo::details::wire_id_iterator_base<GEOID>::next()
   // - update how many elements there are
   //   (expect 0 if it is now at_end() -- and it does not even matter)
   set_local_limits();
-}
-
-//
-// comparison operators between ID iterators and element iterators
-//
-template <typename GEOIDITER>
-bool geo::details::operator==(geometry_element_iterator<GEOIDITER> const& iter,
-                              GEOIDITER const& id_iter)
-{
-  return iter.id_iterator() == id_iter;
-}
-
-template <typename GEOIDITER>
-bool geo::details::operator!=(geometry_element_iterator<GEOIDITER> const& iter,
-                              GEOIDITER const& id_iter)
-{
-  return iter.id_iterator() != id_iter;
 }
 
 //

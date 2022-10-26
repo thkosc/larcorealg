@@ -48,10 +48,6 @@ namespace {
     static_assert(std::is_same<typename ITER::id_iterator_t, ITERID>{},
                   "CompareIteratorAndIteratorID() requires compatible iterator types");
 
-    // direct comparison
-    BOOST_TEST(iter == id_iter);
-    BOOST_TEST(!(iter != id_iter));
-
     // ID comparison
     BOOST_TEST(iter.ID() == *id_iter);
 
@@ -66,8 +62,8 @@ namespace {
     BOOST_TEST(!(iter_copy != iter));
 
     // check increment operator
-    BOOST_TEST(iter++ == id_iter++);
-    BOOST_TEST(++iter_copy == ++id_iter_copy);
+    BOOST_TEST((iter++).ID() == *(id_iter++));
+    BOOST_TEST((++iter_copy).ID() == *(++id_iter_copy));
 
     BOOST_TEST(iter == iter_copy);
 
@@ -320,10 +316,6 @@ void geo::GeometryIteratorTestAlg::CryostatIteratorsTest() const
     BOOST_TEST_CHECKPOINT("Default created cryostat iterator: " << std::string(*iCryoID));
 
     geo::cryostat_iterator iCryo;
-
-    // direct comparison
-    BOOST_TEST(iCryo == iCryoID);
-    BOOST_TEST(!(iCryo != iCryoID));
 
     // ID comparison
     BOOST_TEST(iCryo.ID() == *iCryoID);
@@ -664,10 +656,6 @@ void geo::GeometryIteratorTestAlg::TPCIteratorsTest() const
     BOOST_TEST_CHECKPOINT("Default created TPC iterator: " << std::string(*iTPCID));
 
     geo::TPC_iterator iTPC;
-
-    // direct comparison
-    BOOST_TEST(iTPC == iTPCID);
-    BOOST_TEST(!(iTPC != iTPCID));
 
     // ID comparison
     BOOST_TEST(iTPC.ID() == *iTPCID);
@@ -1023,10 +1011,6 @@ void geo::GeometryIteratorTestAlg::PlaneIteratorsTest() const
     BOOST_TEST_CHECKPOINT("Default created plane iterator: " << std::string(*iPlaneID));
 
     geo::plane_iterator iPlane;
-
-    // direct comparison
-    BOOST_TEST(iPlane == iPlaneID);
-    BOOST_TEST(!(iPlane != iPlaneID));
 
     // ID comparison
     BOOST_TEST(iPlane.ID() == *iPlaneID);
@@ -1399,10 +1383,6 @@ void geo::GeometryIteratorTestAlg::WireIteratorsTest() const
     BOOST_TEST_CHECKPOINT("Default created wire iterator: " << std::string(*iWireID));
 
     geo::wire_iterator iWire;
-
-    // direct comparison
-    BOOST_TEST(iWire == iWireID);
-    BOOST_TEST(!(iWire != iWireID));
 
     // ID comparison
     BOOST_TEST(iWire.ID() == *iWireID);
