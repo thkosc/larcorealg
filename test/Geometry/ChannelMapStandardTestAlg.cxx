@@ -111,7 +111,7 @@ void geo::ChannelMapStandardTestAlg::TPCsetMappingTest() const
   //
   // cryostat-wide checks
   //
-  for (geo::CryostatID const& cryostatID : geom->IterateCryostatIDs()) {
+  for (geo::CryostatID const& cryostatID : geom->Iterate<CryostatID>()) {
     BOOST_TEST_CHECKPOINT("cryostat: " << std::string(cryostatID));
 
     readout::CryostatID const ROcryostatID = static_cast<readout::CryostatID const&>(cryostatID);
@@ -133,7 +133,7 @@ void geo::ChannelMapStandardTestAlg::TPCsetMappingTest() const
   //
   // TPC-wide checks
   //
-  for (geo::TPCID const& tpcID : geom->IterateTPCIDs()) {
+  for (geo::TPCID const& tpcID : geom->Iterate<TPCID>()) {
     BOOST_TEST_CHECKPOINT("TPC: " << std::string(tpcID));
 
     // check that the IDs of this TPC and of the TPC set including it match
@@ -205,7 +205,7 @@ void geo::ChannelMapStandardTestAlg::ROPMappingTest() const
   //
   // TPC-wide checks
   //
-  for (geo::TPCID const& tpcID : geom->IterateTPCIDs()) {
+  for (geo::TPCID const& tpcID : geom->Iterate<TPCID>()) {
     BOOST_TEST_CHECKPOINT("TPC: " << std::string(tpcID));
 
     // build a non-existent ROP ID (but we pretend it valid)
@@ -227,7 +227,7 @@ void geo::ChannelMapStandardTestAlg::ROPMappingTest() const
   //
   // plane-wide checks
   //
-  for (geo::PlaneID const& planeID : geom->IteratePlaneIDs()) {
+  for (geo::PlaneID const& planeID : geom->Iterate<PlaneID>()) {
     BOOST_TEST_MESSAGE("plane: " << std::string(planeID));
 
     // check that the ROP of this plane matches the plane itself

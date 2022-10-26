@@ -35,8 +35,8 @@ unsigned int geo::GeometryGeoIDTestAlg::Run() const
 void geo::GeometryGeoIDTestAlg::CryostatGeoIDTest() const
 {
 
-  auto iCryo = geom->begin_cryostat_id();
-  for (geo::CryostatGeo const& cryostat : geom->IterateCryostats()) {
+  auto iCryo = geom->begin<CryostatID>();
+  for (geo::CryostatGeo const& cryostat : geom->Iterate<CryostatGeo>()) {
 
     geo::CryostatID const& ID = cryostat.ID();
 
@@ -56,8 +56,8 @@ void geo::GeometryGeoIDTestAlg::CryostatGeoIDTest() const
 void geo::GeometryGeoIDTestAlg::TPCGeoIDTest() const
 {
 
-  auto iTPC = geom->begin_TPC_id();
-  for (geo::TPCGeo const& tpc : geom->IterateTPCs()) {
+  auto iTPC = geom->begin<TPCID>();
+  for (geo::TPCGeo const& tpc : geom->Iterate<TPCGeo>()) {
 
     geo::TPCID const& ID = tpc.ID();
 
@@ -77,8 +77,8 @@ void geo::GeometryGeoIDTestAlg::TPCGeoIDTest() const
 void geo::GeometryGeoIDTestAlg::PlaneGeoIDTest() const
 {
 
-  auto iPlane = geom->begin_plane_id();
-  for (geo::PlaneGeo const& plane : geom->IteratePlanes()) {
+  auto iPlane = geom->begin<PlaneID>();
+  for (geo::PlaneGeo const& plane : geom->Iterate<PlaneGeo>()) {
 
     geo::PlaneID const& ID = plane.ID();
 
@@ -98,8 +98,8 @@ void geo::GeometryGeoIDTestAlg::PlaneGeoIDTest() const
 void geo::GeometryGeoIDTestAlg::WireGeoIDTest() const
 {
 
-  auto iWire = geom->begin_wire_id();
-  for (geo::WireGeo const& wire [[gnu::unused]] : geom->IterateWires()) {
+  auto iWire = geom->begin<WireID>();
+  for (geo::WireGeo const& wire [[maybe_unused]] : geom->Iterate<WireGeo>()) {
 
     // this test is disabled since geo::WireID does not support ID()
     // (as of LArSoft 6.13)

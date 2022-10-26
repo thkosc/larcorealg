@@ -273,7 +273,7 @@ namespace geo {
       Cryostats()[c].UpdateAfterSorting(geo::CryostatID(c));
 
     allViews.clear();
-    for (geo::TPCGeo const& tpc : IterateTPCs()) {
+    for (auto const& tpc : Iterate<geo::TPCGeo>()) {
       auto const& TPCviews = tpc.Views();
       allViews.insert(TPCviews.cbegin(), TPCviews.cend());
     }
@@ -299,9 +299,9 @@ namespace geo {
     std::vector<raw::ChannelID_t> channels;
     channels.reserve(fChannelMapAlg->Nchannels());
 
-    for (const readout::TPCsetID& ts : IterateTPCsetIDs()) {
+    for (auto const& ts : Iterate<readout::TPCsetID>()) {
       for (auto const t : fChannelMapAlg->TPCsetToTPCs(ts)) {
-        for (auto const& wire : IterateWireIDs(t)) {
+        for (auto const& wire : Iterate<geo::WireID>(t)) {
           channels.push_back(fChannelMapAlg->PlaneWireToChannel(wire));
         }
       }
@@ -432,7 +432,7 @@ namespace geo {
   //......................................................................
   geo::CryostatGeo const* GeometryCore::PositionToCryostatPtr(geo::Point_t const& point) const
   {
-    for (geo::CryostatGeo const& cryostat : IterateCryostats()) {
+    for (auto const& cryostat : Iterate<CryostatGeo>()) {
       if (cryostat.ContainsPosition(point, 1.0 + fPositionWiggle)) return &cryostat;
     }
     return nullptr;

@@ -90,7 +90,7 @@ int main(int argc, char const** argv)
   //
 
   unsigned int nErrors = 0;
-  for (auto const& cryo : geom.IterateCryostats()) {
+  for (auto const& cryo : geom.Iterate<geo::CryostatGeo>()) {
     auto partition = geo::buildDriftVolumes(cryo);
     mf::LogVerbatim("driftvolumes_test") << "Partition for cryostat " << cryo.ID() << ":";
     partition.print(mf::LogVerbatim("driftvolumes_test"));
@@ -98,7 +98,7 @@ int main(int argc, char const** argv)
     //
     // test that the partition topology is correct
     //
-    for (geo::TPCGeo const& TPC : geom.IterateTPCs(cryo.ID())) {
+    for (geo::TPCGeo const& TPC : geom.Iterate<geo::TPCGeo>(cryo.ID())) {
 
       auto const& center = TPC.GetCenter<geo::Point_t>();
 

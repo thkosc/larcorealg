@@ -43,6 +43,8 @@ namespace geo {
   class CryostatGeo : public geo::BoxBoundedGeo {
 
   public:
+    using ID_t = CryostatID;
+
     /// Type used internally to store the TPCs.
     using TPCList_t = std::vector<geo::TPCGeo>;
 

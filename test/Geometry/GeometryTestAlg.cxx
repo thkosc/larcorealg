@@ -634,7 +634,7 @@ namespace geo {
     mf::LogVerbatim("GeometryTest")
       << "There are " << geom->Ncryostats() << " cryostats in the detector";
 
-    for (geo::CryostatGeo const& cryo : geom->IterateCryostats()) {
+    for (auto const& cryo : geom->Iterate<geo::CryostatGeo>()) {
 
       {
         mf::LogVerbatim log("GeometryTest");
@@ -730,12 +730,11 @@ namespace geo {
 
   unsigned int GeometryTestAlg::testFindTPCvolumePaths()
   {
-
     unsigned int nErrors = 0;
 
     // search the full path of all TPCs
     std::set<std::string> volume_names;
-    for (geo::TPCGeo const& TPC : geom->IterateTPCs())
+    for (auto const& TPC : geom->Iterate<geo::TPCGeo>())
       volume_names.insert(TPC.TotalVolume()->GetName());
 
     // get the right answer: how many TPCs?
@@ -859,8 +858,6 @@ namespace geo {
 
       MF_LOG_DEBUG("GeometryTest") << "done.";
     } // for TPC
-
-    return;
   }
 
   //......................................................................
@@ -880,8 +877,7 @@ namespace geo {
     lar::util::RealComparisons<double> coordIs(1e-5);
 
     unsigned int nErrors = 0;
-    for (geo::PlaneGeo const& plane : geom->IteratePlanes()) {
-
+    for (auto const& plane : geom->Iterate<geo::PlaneGeo>()) {
       //
       // check the ( wire ; wire coordinate ; normal) base
       //
@@ -944,7 +940,7 @@ namespace geo {
      */
 
     unsigned int nErrors = 0;
-    for (geo::PlaneGeo const& plane : geom->IteratePlanes()) {
+    for (auto const& plane : geom->Iterate<geo::PlaneGeo>()) {
 
       // this funny way declares a reference or not, depending on return type
       decltype(auto) planeNormal = plane.GetNormalDirection();
@@ -994,7 +990,7 @@ namespace geo {
     //
 
     unsigned int nErrors = 0;
-    for (geo::PlaneGeo const& plane : geom->IteratePlanes()) {
+    for (auto const& plane : geom->Iterate<geo::PlaneGeo>()) {
 
       auto const nWires = plane.Nwires();
       auto const wirePitch = plane.WirePitch();
@@ -1062,7 +1058,7 @@ namespace geo {
     //
     auto const vectorIs = lar::util::makeVector3DComparison(1e-8);
 
-    for (geo::PlaneGeo const& plane : geom->IteratePlanes()) {
+    for (auto const& plane : geom->Iterate<geo::PlaneGeo>()) {
 
       decltype(auto) genDir = plane.GetWireDirection();
 
@@ -1113,7 +1109,7 @@ namespace geo {
     auto vectorIs = lar::util::makeVector3DComparison(coordIs);
 
     unsigned int nErrors = 0;
-    for (geo::PlaneGeo const& plane : geom->IteratePlanes()) {
+    for (auto const& plane : geom->Iterate<geo::PlaneGeo>()) {
 
       auto const& planeNorm = plane.GetNormalDirection();
       auto const& wirePitch = plane.WirePitch();
@@ -1298,7 +1294,7 @@ namespace geo {
      *   by PhiZ(), verify that the coordinate increases by 1
      */
 
-    for (geo::PlaneID const& planeid : geom->IteratePlaneIDs()) {
+    for (auto const& planeid : geom->Iterate<geo::PlaneID>()) {
 
       geo::PlaneGeo const& plane = geom->Plane(planeid);
 
@@ -1401,7 +1397,7 @@ namespace geo {
     geo::View_t planeView = geo::kUnknown;
     geo::SigType_t planeSigType = geo::kMysteryType;
 
-    for (geo::WireID testWireID : geom->IterateWireIDs()) {
+    for (auto const& testWireID : geom->Iterate<geo::WireID>()) {
 
       raw::ChannelID_t channel = geom->PlaneWireToChannel(testWireID);
 
@@ -1492,7 +1488,7 @@ namespace geo {
     //
     lar::util::RealComparisons<double> coordIs(1e-8);
     unsigned int nErrors = 0;
-    for (auto const& plane : geom->IteratePlanes()) {
+    for (auto const& plane : geom->Iterate<geo::PlaneGeo>()) {
 
       TVector3 reference = plane.ProjectionReferencePoint();
 
@@ -1549,7 +1545,7 @@ namespace geo {
     constexpr int nOutsides = 1;
 
     unsigned int nErrors = 0;
-    for (geo::PlaneGeo const& plane : geom->IteratePlanes()) {
+    for (auto const& plane : geom->Iterate<geo::PlaneGeo>()) {
 
       auto const& planeNorm = plane.GetNormalDirection();
       auto const& widthDir = plane.WidthDir();
@@ -1744,7 +1740,7 @@ namespace geo {
     constexpr int nOutsides = 2;
 
     unsigned int nErrors = 0;
-    for (geo::PlaneGeo const& plane : geom->IteratePlanes()) {
+    for (auto const& plane : geom->Iterate<geo::PlaneGeo>()) {
 
       double const halfWidth = plane.Width() / 2;
       double const halfDepth = plane.Depth() / 2;
@@ -1950,7 +1946,7 @@ namespace geo {
     bool bTestWireCoordinate = true;
 
     // get a wire and find its center
-    for (geo::PlaneGeo const& plane : geom->IteratePlanes()) {
+    for (auto const& plane : geom->Iterate<geo::PlaneGeo>()) {
 
       geo::PlaneID const& planeID = plane.ID();
       const unsigned int NWires = plane.Nwires();
@@ -2197,7 +2193,7 @@ namespace geo {
      */
 
     unsigned int nErrors = 0;
-    for (geo::TPCGeo const& TPC : geom->IterateTPCs()) {
+    for (auto const& TPC : geom->Iterate<geo::TPCGeo>()) {
 
       MF_LOG_DEBUG("GeometryTest") << "Wire intersection test on " << TPC.ID();
 
@@ -2210,7 +2206,7 @@ namespace geo {
 
         geo::CryostatGeo const& otherCryo = geom->Cryostat(TPC.ID().Cryostat + 1);
         geo::PlaneGeo const* otherPlane = nullptr;
-        for (geo::PlaneGeo const& plane : geom->IteratePlanes(otherCryo.ID())) {
+        for (auto const& plane : geom->Iterate<geo::PlaneGeo>(otherCryo.ID())) {
           if (isWireAlignedToPlaneDirections(plane, wireDir)) continue;
           otherPlane = &plane;
           break;
@@ -2253,7 +2249,7 @@ namespace geo {
 
         geo::CryostatGeo const& cryo = geom->Cryostat(TPC.ID());
         geo::PlaneGeo const* otherPlane = nullptr;
-        for (geo::PlaneGeo const& plane : geom->IteratePlanes(cryo.ID())) {
+        for (auto const& plane : geom->Iterate<geo::PlaneGeo>(cryo.ID())) {
           if (plane.ID().asTPCID() == TPC.ID()) continue; // on the same TPC
           if (isWireAlignedToPlaneDirections(plane, wireDir)) continue;
           otherPlane = &plane;
@@ -2532,7 +2528,7 @@ namespace geo {
      */
 
     unsigned int nErrors = 0;
-    for (geo::TPCID const& tpcid : geom->IterateTPCIDs()) {
+    for (auto const& tpcid : geom->Iterate<geo::TPCID>()) {
       const geo::TPCGeo& TPC = geom->TPC(tpcid);
 
       const unsigned int nPlanes = TPC.Nplanes();
@@ -2630,7 +2626,7 @@ namespace geo {
      */
 
     unsigned int nErrors = 0;
-    for (geo::TPCID const& tpcid : geom->IterateTPCIDs()) {
+    for (geo::TPCID const& tpcid : geom->Iterate<geo::TPCID>()) {
       const geo::TPCGeo& TPC = geom->TPC(tpcid);
 
       const double driftVelocity = 0.1 * ((TPC.DriftDirection() == geo::kNegX) ? -1. : +1);
@@ -2887,7 +2883,7 @@ namespace geo {
       log << " [...]";
     }
 
-    for (geo::PlaneID const& planeid : geom->IteratePlaneIDs()) {
+    for (geo::PlaneID const& planeid : geom->Iterate<geo::PlaneID>()) {
 
       geo::PlaneGeo const& plane = geom->Plane(planeid);
       const unsigned int nWires = plane.Nwires();
@@ -2980,7 +2976,7 @@ namespace geo {
 
     unsigned int nErrors = 0; // error count for the final report
 
-    for (geo::PlaneGeo const& plane : geom->IteratePlanes()) {
+    for (auto const& plane : geom->Iterate<geo::PlaneGeo>()) {
 
       double const pitch = plane.WirePitch();
       auto const normalDir = plane.GetNormalDirection<geo::Vector_t>();
@@ -3093,7 +3089,7 @@ namespace geo {
     }
 
     unsigned int nPitchErrors = 0;
-    for (geo::TPCID const& tpcid : geom->IterateTPCIDs()) {
+    for (geo::TPCID const& tpcid : geom->Iterate<geo::TPCID>()) {
 
       geo::TPCGeo const& TPC = geom->TPC(tpcid);
       const unsigned int nPlanes = TPC.Nplanes();

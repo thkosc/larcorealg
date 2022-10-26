@@ -82,6 +82,7 @@ namespace geo {
     using DefaultPoint_t = TVector3;  // ... not for long
 
   public:
+    using ID_t = PlaneID;
     using WireCollection_t = std::vector<geo::WireGeo>;
     using GeoNodePath_t = std::vector<TGeoNode const*>;
 

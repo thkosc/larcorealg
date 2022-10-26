@@ -69,6 +69,7 @@ namespace geo {
 
   public:
 
+    using ID_t = WireID;
     using GeoNodePath_t = std::vector<TGeoNode const*>;
 
     // -- BEGIN -- Types for geometry-local reference vectors ------------------

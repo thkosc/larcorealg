@@ -40,6 +40,7 @@ namespace geo {
     using DefaultPoint_t = TVector3;  // ... not for long
 
   public:
+    using ID_t = TPCID;
     using PlaneCollection_t = std::vector<geo::PlaneGeo>;
     using GeoNodePath_t = geo::WireGeo::GeoNodePath_t;
 

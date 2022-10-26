@@ -381,6 +381,12 @@ namespace geo::details {
     geo::GeometryCore const* geom;
     id_iterator_t id_iter;
   }; // class geometry_element_iterator<>
+
+  // Element here supports types like CryostatGeo, etc.
+  template <typename Element>
+  using element_iterator_for =
+    details::geometry_element_iterator<Element, details::id_iterator<typename Element::ID_t>>;
+
 } // namespace geo::details
 
 #endif // LARCOREALG_GEOMETRY_DETAILS_GEOMETRY_ITERATORS_H
