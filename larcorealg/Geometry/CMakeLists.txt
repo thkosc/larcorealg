@@ -133,6 +133,7 @@ cet_make_library(SOURCE
   TPCGeo.cxx
   WireGeo.cxx
   details/extractMaxGeometryElements.h
+  details/nSiblings.cxx
   LIBRARIES
   PUBLIC
   larcorealg::GeometryDataContainers
