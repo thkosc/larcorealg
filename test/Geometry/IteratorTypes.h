@@ -1,5 +1,5 @@
-#ifndef LARCOREALG_GEOMETRY_ITERATORTYPES_H
-#define LARCOREALG_GEOMETRY_ITERATORTYPES_H
+#ifndef TEST_GEOMETRY_ITERATORTYPES_H
+#define TEST_GEOMETRY_ITERATORTYPES_H
 
 // LArSoft libraries
 #include "larcorealg/Geometry/CryostatGeo.h"

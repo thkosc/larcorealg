@@ -96,21 +96,9 @@ namespace geo {
     /// @name Coordinate transformation
 
     /// Transform point from local auxiliary detector frame to world frame.
-    void LocalToWorld(const double* auxdet, double* world) const
-    {
-      fTrans.LocalToWorld(auxdet, world);
-    }
-
-    /// Transform point from local auxiliary detector frame to world frame.
     geo::Point_t toWorldCoords(LocalPoint_t const& local) const
     {
       return fTrans.toWorldCoords(local);
-    }
-
-    /// Transform direction vector from local to world.
-    void LocalToWorldVect(const double* auxdet, double* world) const
-    {
-      fTrans.LocalToWorldVect(auxdet, world);
     }
 
     /// Transform direction vector from local to world.
@@ -120,21 +108,9 @@ namespace geo {
     }
 
     /// Transform point from world frame to local auxiliary detector frame.
-    void WorldToLocal(const double* world, double* auxdet) const
-    {
-      fTrans.WorldToLocal(world, auxdet);
-    }
-
-    /// Transform point from world frame to local auxiliary detector frame.
     LocalPoint_t toLocalCoords(geo::Point_t const& world) const
     {
       return fTrans.toLocalCoords(world);
-    }
-
-    /// Transform direction vector from world to local.
-    void WorldToLocalVect(const double* world, double* auxdet) const
-    {
-      fTrans.WorldToLocalVect(world, auxdet);
     }
 
     /// Transform direction vector from world to local.

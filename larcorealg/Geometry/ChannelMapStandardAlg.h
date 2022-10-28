@@ -7,50 +7,44 @@
 #ifndef LARCOREALG_GEOMETRY_CHANNELSTANDARDMAPALG_H
 #define LARCOREALG_GEOMETRY_CHANNELSTANDARDMAPALG_H
 
-#include <set>
-#include <vector>
-
 #include "larcorealg/Geometry/ChannelMapAlg.h"
 #include "larcorealg/Geometry/GeoObjectSorterStandard.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h" // readout::TPCsetID, ...
 
-namespace fhicl {
-  class ParameterSet;
-}
+#include "fhiclcpp/fwd.h"
+
+#include <set>
+#include <vector>
 
 namespace geo {
 
   class ChannelMapStandardAlg : public ChannelMapAlg {
-
   public:
     ChannelMapStandardAlg(fhicl::ParameterSet const& p);
 
-    virtual void Initialize(GeometryData_t const& geodata) override;
-    virtual void Uninitialize() override;
-    virtual std::vector<WireID> ChannelToWire(raw::ChannelID_t channel) const override;
-    virtual unsigned int Nchannels() const override;
+    void Initialize(GeometryData_t const& geodata) override;
+    void Uninitialize() override;
+    std::vector<WireID> ChannelToWire(raw::ChannelID_t channel) const override;
+    unsigned int Nchannels() const override;
 
     /// @brief Returns the number of channels in the specified ROP
     /// @return number of channels in the specified ROP, 0 if non-existent
-    virtual unsigned int Nchannels(readout::ROPID const& ropid) const override;
+    unsigned int Nchannels(readout::ROPID const& ropid) const override;
 
     //@{
-    virtual double WireCoordinate(double YPos,
-                                  double ZPos,
-                                  geo::PlaneID const& planeID) const override;
+    double WireCoordinate(double YPos, double ZPos, PlaneID const& planeID) const override;
     //@}
 
     //@{
-    virtual WireID NearestWireID(const TVector3& worldPos,
-                                 geo::PlaneID const& planeID) const override;
+    WireID NearestWireID(Point_t const& worldPos, PlaneID const& planeID) const override;
     //@}
 
     //@{
-    virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const override;
+    raw::ChannelID_t PlaneWireToChannel(WireID const& wireID) const override;
     //@}
 
-    virtual std::set<PlaneID> const& PlaneIDs() const override;
+    std::set<PlaneID> const& PlaneIDs() const override;
 
     //
     // TPC set interface
@@ -65,14 +59,14 @@ namespace geo {
      * In this mapping, TPCs have independent readout and there is one TPC in
      * each TPC set and one TPC set for each TPC.
      */
-    virtual unsigned int NTPCsets(readout::CryostatID const& cryoid) const override;
+    unsigned int NTPCsets(readout::CryostatID const& cryoid) const override;
 
     /// Returns the largest number of TPC sets any cryostat in the detector has
-    virtual unsigned int MaxTPCsets() const override;
+    unsigned int MaxTPCsets() const override;
 
     /// Returns whether we have the specified TPC set
     /// @return whether the TPC set is valid and exists
-    virtual bool HasTPCset(readout::TPCsetID const& tpcsetid) const override;
+    bool HasTPCset(readout::TPCsetID const& tpcsetid) const override;
 
     /**
      * @brief Returns the ID of the TPC set the specified TPC belongs to
@@ -86,7 +80,7 @@ namespace geo {
      * does not necessarily imply that the TPC specified by the ID actually
      * exists.
      */
-    virtual readout::TPCsetID TPCtoTPCset(geo::TPCID const& tpcid) const override;
+    readout::TPCsetID TPCtoTPCset(TPCID const& tpcid) const override;
 
     /**
      * @brief Returns a list of ID of TPCs belonging to the specified TPC set
@@ -101,10 +95,10 @@ namespace geo {
      * exists. Check the existence of the TPC set first (HasTPCset()).
      * Behaviour on valid, non-existent TPC set IDs is undefined.
      */
-    virtual std::vector<geo::TPCID> TPCsetToTPCs(readout::TPCsetID const& tpcsetid) const override;
+    std::vector<TPCID> TPCsetToTPCs(readout::TPCsetID const& tpcsetid) const override;
 
     /// Returns the ID of the first TPC belonging to the specified TPC set
-    virtual geo::TPCID FirstTPCinTPCset(readout::TPCsetID const& tpcsetid) const override;
+    TPCID FirstTPCinTPCset(readout::TPCsetID const& tpcsetid) const override;
 
     /// @} TPC set mapping
 
@@ -124,14 +118,14 @@ namespace geo {
      * In this mapping, planes have independent readout and there is one wire
      * plane in each readout plane and one readout plane for each wire plane.
      */
-    virtual unsigned int NROPs(readout::TPCsetID const& tpcsetid) const override;
+    unsigned int NROPs(readout::TPCsetID const& tpcsetid) const override;
 
     /// Returns the largest number of ROPs a TPC set in the detector has
-    virtual unsigned int MaxROPs() const override;
+    unsigned int MaxROPs() const override;
 
     /// Returns whether we have the specified ROP
     /// @return whether the readout plane is valid and exists
-    virtual bool HasROP(readout::ROPID const& ropid) const override;
+    bool HasROP(readout::ROPID const& ropid) const override;
 
     /**
      * @brief Returns the ID of the ROP planeid belongs to, or invalid if none
@@ -145,7 +139,7 @@ namespace geo {
      * does not necessarily imply that the plane specified by the ID actually
      * exists.
      */
-    virtual readout::ROPID WirePlaneToROP(geo::PlaneID const& planeid) const override;
+    readout::ROPID WirePlaneToROP(PlaneID const& planeid) const override;
 
     /**
      * @brief Returns a list of ID of wire planes belonging to the specified ROP
@@ -159,7 +153,7 @@ namespace geo {
      * ID, that does not necessarily imply that the readout plane specified by
      * the ID actually exists.
      */
-    virtual std::vector<geo::PlaneID> ROPtoWirePlanes(readout::ROPID const& ropid) const override;
+    std::vector<PlaneID> ROPtoWirePlanes(readout::ROPID const& ropid) const override;
 
     /**
      * @brief Returns a list of ID of TPCs the specified ROP spans
@@ -174,10 +168,10 @@ namespace geo {
      * the ID actually exists. Check if the ROP exists with HasROP().
      * The behaviour on non-existing readout planes is undefined.
      */
-    virtual std::vector<geo::TPCID> ROPtoTPCs(readout::ROPID const& ropid) const override;
+    std::vector<TPCID> ROPtoTPCs(readout::ROPID const& ropid) const override;
 
     /// Returns the ID of the ROP the channel belongs to (invalid if none)
-    virtual readout::ROPID ChannelToROP(raw::ChannelID_t channel) const override;
+    readout::ROPID ChannelToROP(raw::ChannelID_t channel) const override;
 
     /**
      * @brief Returns the ID of the first channel in the specified readout plane
@@ -189,15 +183,15 @@ namespace geo {
      * the ID actually exists. Check if the ROP exists with HasROP().
      * The behaviour for non-existing readout planes is undefined.
      */
-    virtual raw::ChannelID_t FirstChannelInROP(readout::ROPID const& ropid) const override;
+    raw::ChannelID_t FirstChannelInROP(readout::ROPID const& ropid) const override;
 
     /// Returns the ID of the first plane belonging to the specified ROP
-    virtual geo::PlaneID FirstWirePlaneInROP(readout::ROPID const& ropid) const override;
+    PlaneID FirstWirePlaneInROP(readout::ROPID const& ropid) const override;
 
     /// @} readout plane mapping
 
     /// Return the sorter
-    virtual geo::GeoObjectSorter const& Sorter() const override { return fSorter; }
+    GeoObjectSorter const& Sorter() const override { return fSorter; }
 
   private:
     unsigned int fNcryostat;              ///< number of cryostats in the detector
@@ -222,27 +216,27 @@ namespace geo {
     PlaneInfoMap_t<unsigned int> fWiresPerPlane;  ///< The number of wires in this plane
                                                   ///< in the heirachy
 
-    geo::GeoObjectSorterStandard fSorter; ///< class to sort geo objects
+    GeoObjectSorterStandard fSorter; ///< class to sort geo objects
 
-    virtual SigType_t SignalTypeForChannelImpl(raw::ChannelID_t const channel) const override;
+    SigType_t SignalTypeForChannelImpl(raw::ChannelID_t const channel) const override;
 
     /// Retrieved the wire cound for the specified plane ID
-    unsigned int WireCount(geo::PlaneID const& id) const { return AccessElement(fWireCounts, id); }
+    unsigned int WireCount(PlaneID const& id) const { return AccessElement(fWireCounts, id); }
 
     /// Returns the largest number of TPCs in a single cryostat
     unsigned int MaxTPCs() const;
 
     /// Converts a TPC ID into a TPC set ID using the same numerical indices
-    static readout::TPCsetID ConvertTPCtoTPCset(geo::TPCID const& tpcid);
+    static readout::TPCsetID ConvertTPCtoTPCset(TPCID const& tpcid);
 
     /// Converts a TPC set ID into a TPC ID using the same numerical indices
-    static geo::TPCID ConvertTPCsetToTPC(readout::TPCsetID const& tpcsetid);
+    static TPCID ConvertTPCsetToTPC(readout::TPCsetID const& tpcsetid);
 
     /// Converts a ROP ID into a wire plane ID using the same numerical indices
-    static readout::ROPID ConvertWirePlaneToROP(geo::PlaneID const& planeid);
+    static readout::ROPID ConvertWirePlaneToROP(PlaneID const& planeid);
 
     /// Converts a wire plane ID into a ROP ID using the same numerical indices
-    static geo::PlaneID ConvertROPtoWirePlane(readout::ROPID const& ropid);
+    static PlaneID ConvertROPtoWirePlane(readout::ROPID const& ropid);
   };
 
 }

@@ -72,14 +72,6 @@ namespace geo {
               AuxDetSensitiveList_t&& sensitive);
 
     /**
-     * @brief Return the center position of an AuxDet.
-     * @param xyz _(output)_ the returned location: `{ x, y, z }` [cm]
-     * @param localz (default: `0`) distance along the length of the volume (z)
-     *               [cm]
-     */
-    void GetCenter(double* xyz, double localz = 0.0) const;
-
-    /**
      * @brief Returns the geometric center of the sensitive volume.
      * @param localz (default: `0`) distance from the center along the length
      *               of the volume (z) [cm]
@@ -89,9 +81,6 @@ namespace geo {
 
     /// Returns the unit normal vector to the detector.
     geo::Vector_t GetNormalVector() const;
-
-    /// Fills the unit normal vector to the detector.
-    void GetNormalVector(double* xyzDir) const;
 
     /// @{
     /// @name Box geometry
@@ -108,28 +97,15 @@ namespace geo {
     {
       return (point - GetCenter()).R();
     }
-    geo::Length_t DistanceToPoint(double const* point) const;
     //@}
 
     /// @{
     /// @name Coordinate transformation
 
     /// Transform point from local auxiliary detector frame to world frame.
-    void LocalToWorld(const double* auxdet, double* world) const
-    {
-      fTrans.LocalToWorld(auxdet, world);
-    }
-
-    /// Transform point from local auxiliary detector frame to world frame.
     geo::Point_t toWorldCoords(LocalPoint_t const& local) const
     {
       return fTrans.toWorldCoords(local);
-    }
-
-    /// Transform direction vector from local to world.
-    void LocalToWorldVect(const double* auxdet, double* world) const
-    {
-      fTrans.LocalToWorldVect(auxdet, world);
     }
 
     /// Transform direction vector from local to world.
@@ -139,21 +115,9 @@ namespace geo {
     }
 
     /// Transform point from world frame to local auxiliary detector frame.
-    void WorldToLocal(const double* world, double* auxdet) const
-    {
-      fTrans.WorldToLocal(world, auxdet);
-    }
-
-    /// Transform point from world frame to local auxiliary detector frame.
     LocalPoint_t toLocalCoords(geo::Point_t const& world) const
     {
       return fTrans.toLocalCoords(world);
-    }
-
-    /// Transform direction vector from world to local.
-    void WorldToLocalVect(const double* world, double* auxdet) const
-    {
-      fTrans.WorldToLocalVect(world, auxdet);
     }
 
     /// Transform direction vector from world to local.
@@ -249,7 +213,6 @@ void geo::AuxDetGeo::PrintAuxDetInfo(Stream&& out,
                                      unsigned int verbosity /* = 1 */
                                      ) const
 {
-
   //----------------------------------------------------------------------------
   out << "\"" << Name() << "\"";
 
@@ -280,10 +243,6 @@ void geo::AuxDetGeo::PrintAuxDetInfo(Stream&& out,
 
   //----------------------------------------------------------------------------
   out << ", normal facing " << GetNormalVector();
-
-  //  if (verbosity-- <= 0) return; // 4
-
-  //----------------------------------------------------------------------------
 
 } // geo::AuxDetGeo::PrintAuxDetInfo()
 

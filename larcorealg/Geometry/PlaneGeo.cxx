@@ -26,7 +26,6 @@
 #include "TGeoMatrix.h"
 #include "TGeoNode.h"
 #include "TMath.h"
-#include "TVector3.h"
 
 // C/C++ standard library
 #include <array>
@@ -484,12 +483,11 @@ namespace geo {
     return lar::util::RealComparisons(1e-3).nonNegative(GetIncreasingWireDirection().Z());
   } // PlaneGeo::WireIDincreasesWithZ()
 
-  //......................................................................
-  lar::util::simple_geo::Volume<> PlaneGeo::Coverage() const
-  {
-    using point_type = lar::util::simple_geo::Volume<>::Point_t;
-    return {FirstWire().GetStart<point_type>(), LastWire().GetEnd<point_type>()};
-  } // PlaneGeo::Coverage()
+  // //......................................................................
+  // lar::util::simple_geo::Volume<Point_t> PlaneGeo::Coverage() const
+  // {
+  //   return {FirstWire().GetStart(), LastWire().GetEnd()};
+  // } // PlaneGeo::Coverage()
 
   //......................................................................
   std::string PlaneGeo::PlaneInfo(std::string indent /* = "" */,
@@ -555,9 +553,8 @@ namespace geo {
   } // PlaneGeo::MoveProjectionToPlane()
 
   //......................................................................
-  TVector3 PlaneGeo::MovePointOverPlane(TVector3 const& point) const
+  geo::Point_t PlaneGeo::MovePointOverPlane(geo::Point_t const& point) const
   {
-
     //
     // This implementation is subject to rounding errors, since the result of
     // the addition might jitter above or below the border.
@@ -566,21 +563,6 @@ namespace geo {
     auto const deltaProj = DeltaFromPlane(PointWidthDepthProjection(point));
 
     return point + deltaProj.X() * WidthDir() + deltaProj.Y() * DepthDir();
-
-  } // PlaneGeo::MovePointOverPlane()
-
-  geo::Point_t PlaneGeo::MovePointOverPlane(geo::Point_t const& point) const
-  {
-
-    //
-    // This implementation is subject to rounding errors, since the result of
-    // the addition might jitter above or below the border.
-    //
-
-    auto const deltaProj = DeltaFromPlane(PointWidthDepthProjection(point));
-
-    return point + deltaProj.X() * WidthDir<geo::Vector_t>() +
-           deltaProj.Y() * DepthDir<geo::Vector_t>();
 
   } // PlaneGeo::MovePointOverPlane()
 
@@ -676,9 +658,7 @@ namespace geo {
     // update wires
     geo::WireID::WireID_t wireNo = 0;
     for (auto& wire : fWire) {
-
       wire.UpdateAfterSorting(geo::WireID(fID, wireNo), shouldFlipWire(wire));
-
       ++wireNo;
     } // for wires
 
@@ -756,9 +736,7 @@ namespace geo {
     std::array<geo::Vector_t, 3U> sides;
     size_t iSmallest = 3;
     {
-
       size_t iSide = 0;
-      TVector3 dir;
 
       sides[iSide] = toWorldCoords(LocalVector_t{pShape->GetDX(), 0.0, 0.0});
       iSmallest = iSide;
@@ -807,11 +785,10 @@ namespace geo {
     if (NWires < 2) return {}; // why are we even here?
 
     // 1) get the direction of the middle wire
-    auto const WireDir = Wire(NWires / 2).Direction<geo::Vector_t>();
+    auto const WireDir = Wire(NWires / 2).Direction();
 
     // 2) get the direction between the middle wire and the next one
-    auto const ToNextWire =
-      Wire(NWires / 2 + 1).GetCenter<geo::Point_t>() - Wire(NWires / 2).GetCenter<geo::Point_t>();
+    auto const ToNextWire = Wire(NWires / 2 + 1).GetCenter() - Wire(NWires / 2).GetCenter();
 
     // 3) get the direction perpendicular to the plane
     // 4) round it
@@ -836,7 +813,7 @@ namespace geo {
         << "PlaneGeo::UpdateOrientation(): only " << fWire.size() << " wires!\n";
     } // if
 
-    auto normal = GetNormalDirection<geo::Vector_t>();
+    auto normal = GetNormalDirection();
 
     if (std::abs(std::abs(normal.X()) - 1.) < 1e-3)
       fOrientation = kVertical;
@@ -868,16 +845,7 @@ namespace geo {
   //......................................................................
   void PlaneGeo::UpdatePhiZ()
   {
-    TVector3 const& wire_coord_dir = GetIncreasingWireDirection();
-    /*
-    TVector3 const& normal = GetNormalDirection();
-    TVector3 z(0., 0., 1.);
-
-    // being defined in absolute terms as angle respect to z axis,
-    // we take the z component as cosine, and all the rest as sine
-    fCosPhiZ = wire_coord_dir.Dot(z);
-    fSinPhiZ = wire_coord_dir.Cross(z).Dot(normal);
-  */
+    auto const& wire_coord_dir = GetIncreasingWireDirection();
     fCosPhiZ = wire_coord_dir.Z();
     fSinPhiZ = wire_coord_dir.Y();
   } // PlaneGeo::UpdatePhiZ()
@@ -917,8 +885,8 @@ namespace geo {
      *
      */
 
-    auto const& normalDir = GetNormalDirection<geo::Vector_t>();
-    auto const& wireDir = GetWireDirection<geo::Vector_t>();
+    auto const& normalDir = GetNormalDirection();
+    auto const& wireDir = GetWireDirection();
 
     // normal direction has been rounded, so exact comparison can work
     if (std::abs(normalDir.Y()) != 1.0) {
@@ -989,7 +957,7 @@ namespace geo {
     fNormal = GetNormalAxis();
 
     // now evaluate where we are pointing
-    auto const towardCenter = geo::vect::convertTo<TVector3>(TPCbox.Center()) - GetBoxCenter();
+    auto const towardCenter = TPCbox.Center() - GetBoxCenter();
 
     // if they are pointing in opposite directions, flip the normal
     if (fNormal.Dot(towardCenter) < 0) fNormal = -fNormal;
@@ -1031,14 +999,14 @@ namespace geo {
     auto refWireNo = Nwires() / 2;
     if (refWireNo == Nwires() - 1) --refWireNo;
     auto const& refWire = Wire(refWireNo);
-    auto const& WireDir = geo::vect::toVector(refWire.Direction()); // we only rely on the axis
+    auto const& WireDir = refWire.Direction(); // we only rely on the axis
 
     // 2) get the axis perpendicular to it on the wire plane
     //    (arbitrary direction)
-    auto wireCoordDir = GetNormalDirection<geo::Vector_t>().Cross(WireDir).Unit();
+    auto wireCoordDir = GetNormalDirection().Cross(WireDir).Unit();
 
     // 3) where is the next wire?
-    auto toNextWire = geo::vect::toVector(Wire(refWireNo + 1).GetCenter() - refWire.GetCenter());
+    auto toNextWire = Wire(refWireNo + 1).GetCenter() - refWire.GetCenter();
 
     // 4) if wireCoordDir is pointing away from the next wire, flip it
     if (wireCoordDir.Dot(toNextWire) < 0) { wireCoordDir = -wireCoordDir; }
@@ -1050,14 +1018,13 @@ namespace geo {
   void PlaneGeo::UpdateWireDir()
   {
 
-    fDecompWire.SetMainDir(
-      geo::vect::rounded01(geo::vect::toVector(FirstWire().Direction()), 1e-4));
+    fDecompWire.SetMainDir(geo::vect::rounded01(FirstWire().Direction(), 1e-4));
 
     //
     // check that the resulting normal matches the plane one
     //
-    assert(lar::util::makeVector3DComparison(1e-5).equal(fDecompWire.NormalDir(),
-                                                         GetNormalDirection<geo::Vector_t>()));
+    assert(
+      lar::util::makeVector3DComparison(1e-5).equal(fDecompWire.NormalDir(), GetNormalDirection()));
 
   } // PlaneGeo::UpdateWireDir()
 
@@ -1129,7 +1096,7 @@ namespace geo {
     //    normal direction)
     //
 
-    fCenter = GetBoxCenter<geo::Point_t>();
+    fCenter = GetBoxCenter();
 
     DriftPoint(fCenter, DistanceFromPlane(fCenter));
 

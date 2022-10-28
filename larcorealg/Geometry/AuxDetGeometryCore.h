@@ -11,12 +11,10 @@
 // LArSoft libraries
 #include "larcorealg/Geometry/AuxDetChannelMapAlg.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
 
 // Framework and infrastructure libraries
 #include "fhiclcpp/ParameterSet.h"
-
-// ROOT libraries
-#include <TVector3.h>
 
 // C/C++ standard libraries
 #include <cstddef> // size_t
@@ -114,7 +112,7 @@ namespace geo {
      * This is the full path of the source of the detector geometry GeometryCore
      * relies on.
      */
-    std::string ROOTFile() const { return fROOTfile; }
+    std::string const& ROOTFile() const { return fROOTfile; }
 
     /**
      * @brief Returns the full directory path to the GDML file source
@@ -123,10 +121,10 @@ namespace geo {
      * This is the full path of the source of the detector geometry handed to
      * the detector simulation (GEANT).
      */
-    std::string GDMLFile() const { return fGDMLfile; }
+    std::string const& GDMLFile() const { return fGDMLfile; }
 
     /// Returns a string with the name of the detector, as configured
-    std::string DetectorName() const { return fDetectorName; }
+    std::string const& DetectorName() const { return fDetectorName; }
 
     //
     // object description and information
@@ -180,7 +178,7 @@ namespace geo {
      *
      * @todo replace with numeric_limits<>?
      */
-    unsigned int FindAuxDetAtPosition(double const worldLoc[3], double tolerance = 0) const;
+    unsigned int FindAuxDetAtPosition(Point_t const& worldLoc, double tolerance = 0) const;
 
     /**
      * @brief Fills the indices of the sensitive auxiliary detector at location
@@ -189,7 +187,7 @@ namespace geo {
      * @param sv (output) sensitive volume index
      * @param tolerance tolerance (cm) for matches. Default 0.
      */
-    void FindAuxDetSensitiveAtPosition(double const worldLoc[3],
+    void FindAuxDetSensitiveAtPosition(Point_t const& worldLoc,
                                        size_t& adg,
                                        size_t& sv,
                                        double tolerance = 0) const;
@@ -203,7 +201,7 @@ namespace geo {
      *
      * @todo what happens if it does not exist?
      */
-    AuxDetGeo const& PositionToAuxDet(double const worldLoc[3],
+    AuxDetGeo const& PositionToAuxDet(Point_t const& worldLoc,
                                       unsigned int& ad,
                                       double tolerance = 0) const;
 
@@ -217,23 +215,23 @@ namespace geo {
      *
      * @todo what happens if it does not exist?
      */
-    const AuxDetSensitiveGeo& PositionToAuxDetSensitive(double const worldLoc[3],
+    AuxDetSensitiveGeo const& PositionToAuxDetSensitive(Point_t const& worldLoc,
                                                         size_t& ad,
                                                         size_t& sv,
                                                         double tolerance = 0) const;
 
-    uint32_t PositionToAuxDetChannel(double const worldLoc[3], size_t& ad, size_t& sv) const;
+    uint32_t PositionToAuxDetChannel(Point_t const& worldLoc, size_t& ad, size_t& sv) const;
 
-    TVector3 AuxDetChannelToPosition(uint32_t const& channel, std::string const& auxDetName) const;
+    Point_t AuxDetChannelToPosition(std::string const& auxDetName, uint32_t channel) const;
 
-    const AuxDetGeo& ChannelToAuxDet(
+    AuxDetGeo const& ChannelToAuxDet(
       std::string const& auxDetName,
-      uint32_t const& channel) const; // return the AuxDetGeo for the given detector
-                                      // name and channel
+      uint32_t channel) const; // return the AuxDetGeo for the given detector
+                               // name and channel
 
-    const AuxDetSensitiveGeo& ChannelToAuxDetSensitive(
+    AuxDetSensitiveGeo const& ChannelToAuxDetSensitive(
       std::string const& auxDetName,
-      uint32_t const& channel) const; // return the AuxDetSensitiveGeo for the given
+      uint32_t channel) const; // return the AuxDetSensitiveGeo for the given
 
     /// @name Geometry initialization
     /// @{
@@ -306,7 +304,7 @@ namespace geo {
     std::string fGDMLfile;                  ///< path to geometry file used for Geant4 simulation
     std::string fROOTfile;                  ///< path to geometry file for geometry in GeometryCore
     fhicl::ParameterSet fBuilderParameters; ///< Configuration of geometry builder.
-    std::unique_ptr<const geo::AuxDetChannelMapAlg>
+    std::unique_ptr<AuxDetChannelMapAlg const>
       fChannelMapAlg; ///< Object containing the channel to wire mapping
   };                  // class GeometryCore
 

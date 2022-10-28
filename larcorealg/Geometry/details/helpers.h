@@ -9,10 +9,10 @@
  * the GeometryCore object in a separate compilation unit.  The
  * functions are resolved at link-time, avoiding the circularity.
  *
- * N.B. If it should be decided that the "N siblings" functionality
- *      should be templated (i.e. more than just GeometryCore might
- *      support the concept), then the circularity would be removed
- *      because GeometryCore woould become a dependent type.
+ * N.B. If it should be decided that the functionalities here should
+ *      be templated (i.e. more than just GeometryCore might support
+ *      the concept), then the circularity would be removed because
+ *      GeometryCore woould become a dependent type.
  */
 
 #ifndef LARCOREALG_GEOMETRY_DETAILS_NSIBLINGS_H
@@ -30,6 +30,16 @@ namespace geo::details {
   unsigned int NSiblings(GeometryCore const* geom, WireID const& id);
   unsigned int NSiblings(GeometryCore const* geom, readout::TPCsetID const& id);
   unsigned int NSiblings(GeometryCore const* geom, readout::ROPID const& id);
+
+  CryostatGeo const* getElementPtr(GeometryCore const* geom, CryostatID const& id);
+  TPCGeo const* getElementPtr(GeometryCore const* geom, TPCID const& id);
+  PlaneGeo const* getElementPtr(GeometryCore const* geom, PlaneID const& id);
+  WireGeo const* getElementPtr(GeometryCore const* geom, WireID const& id);
+
+  bool validElement(GeometryCore const* geom, CryostatID const& id);
+  bool validElement(GeometryCore const* geom, TPCID const& id);
+  bool validElement(GeometryCore const* geom, PlaneID const& id);
+  bool validElement(GeometryCore const* geom, WireID const& id);
 }
 
-#endif // LARCOREALG_GEOMETRY_DETAILS_NSIBLINGS_H
+#endif // LARCOREALG_GEOMETRY_DETAILS_HELPERS_H

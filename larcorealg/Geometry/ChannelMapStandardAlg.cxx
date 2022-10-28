@@ -16,15 +16,11 @@
 #include "cetlib_except/exception.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
-namespace fhicl {
-  class ParameterSet;
-}
-
 namespace geo {
 
   //----------------------------------------------------------------------------
   ChannelMapStandardAlg::ChannelMapStandardAlg(fhicl::ParameterSet const& p)
-    : fSorter(geo::GeoObjectSorterStandard(p))
+    : fSorter(GeoObjectSorterStandard(p))
   {}
 
   //----------------------------------------------------------------------------
@@ -33,7 +29,7 @@ namespace geo {
     // start over:
     Uninitialize();
 
-    std::vector<geo::CryostatGeo> const& cgeo = geodata.cryostats;
+    std::vector<CryostatGeo> const& cgeo = geodata.cryostats;
 
     fNcryostat = cgeo.size();
 
@@ -55,7 +51,7 @@ namespace geo {
     int RunningTotal = 0;
 
     for (unsigned int cs = 0; cs != fNcryostat; ++cs) {
-      geo::CryostatGeo const& cryo = cgeo[cs];
+      CryostatGeo const& cryo = cgeo[cs];
       fNTPC[cs] = cryo.NTPC();
 
       // Size up all the vectors
@@ -70,7 +66,7 @@ namespace geo {
       fFirstChannelInNextPlane[cs].resize(fNTPC[cs]);
 
       for (unsigned int TPCCount = 0; TPCCount != fNTPC[cs]; ++TPCCount) {
-        geo::TPCGeo const& TPC = cryo.TPC(TPCCount);
+        TPCGeo const& TPC = cryo.TPC(TPCCount);
         unsigned int PlanesThisTPC = TPC.Nplanes();
         fWireCounts[cs][TPCCount].resize(PlanesThisTPC);
         fFirstWireProj[cs][TPCCount].resize(PlanesThisTPC);
@@ -78,13 +74,13 @@ namespace geo {
         fOrthVectorsZ[cs][TPCCount].resize(PlanesThisTPC);
         fNPlanes[cs][TPCCount] = PlanesThisTPC;
         for (unsigned int PlaneCount = 0; PlaneCount != PlanesThisTPC; ++PlaneCount) {
-          geo::PlaneGeo const& plane = TPC.Plane(PlaneCount);
+          PlaneGeo const& plane = TPC.Plane(PlaneCount);
 
           fPlaneIDs.emplace(PlaneID(cs, TPCCount, PlaneCount));
           double ThisWirePitch = TPC.WirePitch(PlaneCount);
           fWireCounts[cs][TPCCount][PlaneCount] = plane.Nwires();
 
-          const geo::WireGeo& firstWire = plane.Wire(0);
+          const WireGeo& firstWire = plane.Wire(0);
           const double sth = firstWire.SinThetaZ(), cth = firstWire.CosThetaZ();
 
           auto WireCenter1 = firstWire.GetCenter();
@@ -93,8 +89,8 @@ namespace geo {
           // figure out if we need to flip the orthogonal vector
           // (should point from wire n -> n+1)
           double OrthY = cth, OrthZ = -sth;
-          if (((WireCenter2[1] - WireCenter1[1]) * OrthY +
-               (WireCenter2[2] - WireCenter1[2]) * OrthZ) < 0) {
+          if (((WireCenter2.Y() - WireCenter1.Y()) * OrthY +
+               (WireCenter2.Z() - WireCenter1.Z()) * OrthZ) < 0) {
             OrthZ *= -1;
             OrthY *= -1;
           }
@@ -109,7 +105,7 @@ namespace geo {
           fOrthVectorsZ[cs][TPCCount][PlaneCount] = OrthZ / ThisWirePitch;
 
           fFirstWireProj[cs][TPCCount][PlaneCount] =
-            WireCenter1[1] * OrthY + WireCenter1[2] * OrthZ;
+            WireCenter1.Y() * OrthY + WireCenter1.Z() * OrthZ;
           fFirstWireProj[cs][TPCCount][PlaneCount] /= ThisWirePitch;
 
           // now to count up wires in each plane and get first channel in each plane
@@ -131,17 +127,15 @@ namespace geo {
     fNchannels = fTopChannel;
 
     MF_LOG_DEBUG("ChannelMapStandard") << "# of channels is " << fNchannels;
-
-    return;
   }
 
   //----------------------------------------------------------------------------
   void ChannelMapStandardAlg::Uninitialize() {}
 
   //----------------------------------------------------------------------------
-  std::vector<geo::WireID> ChannelMapStandardAlg::ChannelToWire(raw::ChannelID_t channel) const
+  std::vector<WireID> ChannelMapStandardAlg::ChannelToWire(raw::ChannelID_t channel) const
   {
-    std::vector<geo::WireID> AllSegments;
+    std::vector<WireID> AllSegments;
     unsigned int cstat = 0;
     unsigned int tpc = 0;
     unsigned int plane = 0;
@@ -173,7 +167,7 @@ namespace geo {
       if (foundWid) break;
     } // end cryostat loop
 
-    geo::WireID CodeWire(cstat, tpc, plane, wire);
+    WireID CodeWire(cstat, tpc, plane, wire);
 
     AllSegments.push_back(CodeWire);
 
@@ -189,23 +183,19 @@ namespace geo {
     if (!HasROP(ropid)) return 0;
     // The number of channels matches the number of wires. Life is easy.
     return WireCount(FirstWirePlaneInROP(ropid));
-  } // ChannelMapStandardAlg::Nchannels(ROPID)
+  }
 
   //----------------------------------------------------------------------------
   double ChannelMapStandardAlg::WireCoordinate(double YPos,
                                                double ZPos,
-                                               geo::PlaneID const& planeID) const
+                                               PlaneID const& planeID) const
   {
-    // Returns the wire number corresponding to a (Y,Z) position in PlaneNo
-    // with float precision.
-    // B. Baller August 2014
     return YPos * AccessElement(fOrthVectorsY, planeID) +
            ZPos * AccessElement(fOrthVectorsZ, planeID) - AccessElement(fFirstWireProj, planeID);
   }
 
   //----------------------------------------------------------------------------
-  WireID ChannelMapStandardAlg::NearestWireID(const TVector3& worldPos,
-                                              geo::PlaneID const& planeID) const
+  WireID ChannelMapStandardAlg::NearestWireID(Point_t const& worldPos, PlaneID const& planeID) const
   {
 
     // This part is the actual calculation of the nearest wire number, where we assume
@@ -226,13 +216,13 @@ namespace geo {
         NearestWireNumber = WireCount(planeID) - 1;
 
       throw InvalidWireError("Geometry", planeID, wireNumber, NearestWireNumber)
-        << "Can't Find Nearest Wire for position (" << worldPos[0] << "," << worldPos[1] << ","
-        << worldPos[2] << ")"
+        << "Can't Find Nearest Wire for position (" << worldPos.X() << "," << worldPos.Y() << ","
+        << worldPos.Z() << ")"
         << " in plane " << std::string(planeID) << " approx wire number # " << wireNumber
         << " (capped from " << NearestWireNumber << ")\n";
     }
 
-    return geo::WireID(planeID, (geo::WireID::WireID_t)NearestWireNumber);
+    return WireID(planeID, (WireID::WireID_t)NearestWireNumber);
   }
 
   //----------------------------------------------------------------------------
@@ -248,7 +238,7 @@ namespace geo {
   //           Plane2 { Wire1     | 6
   //                    Wire2     v 7
   //
-  raw::ChannelID_t ChannelMapStandardAlg::PlaneWireToChannel(geo::WireID const& wireID) const
+  raw::ChannelID_t ChannelMapStandardAlg::PlaneWireToChannel(WireID const& wireID) const
   {
     unsigned int const* pBaseLine = GetElementPtr(fPlaneBaselines, wireID);
     // This is the actual lookup part - first make sure coordinates are legal
@@ -281,14 +271,14 @@ namespace geo {
     //need number of planes to know Collection
     unsigned int PlanesThisTPC = fNPlanes[0][tpc];
 
-    SigType_t sigt = geo::kMysteryType;
+    SigType_t sigt = kMysteryType;
     if ((channel >= fFirstChannelInThisPlane[0][tpc][0]) &&
         (channel < fFirstChannelInNextPlane[0][tpc][PlanesThisTPC - 2])) {
-      sigt = geo::kInduction;
+      sigt = kInduction;
     }
     else if ((channel >= fFirstChannelInThisPlane[0][tpc][PlanesThisTPC - 1]) &&
              (channel < fFirstChannelInNextPlane[0][tpc][PlanesThisTPC - 1])) {
-      sigt = geo::kCollection;
+      sigt = kCollection;
     }
     else
       mf::LogWarning("BadChannelSignalType")
@@ -305,40 +295,36 @@ namespace geo {
   {
     // return the same number as the number of TPCs
     return (cryoid.isValid && cryoid.Cryostat < fNTPC.size()) ? fNTPC[cryoid.Cryostat] : 0;
-  } // ChannelMapStandardAlg::NTPCsets()
+  }
 
   //----------------------------------------------------------------------------
-  unsigned int ChannelMapStandardAlg::MaxTPCsets() const
-  {
-    return MaxTPCs();
-  } // ChannelMapStandardAlg::MaxTPCsets()
+  unsigned int ChannelMapStandardAlg::MaxTPCsets() const { return MaxTPCs(); }
 
   //----------------------------------------------------------------------------
   bool ChannelMapStandardAlg::HasTPCset(readout::TPCsetID const& tpcsetid) const
   {
     return tpcsetid.TPCset < NTPCsets(tpcsetid);
-  } // ChannelMapStandardAlg::HasTPCset()
+  }
 
   //----------------------------------------------------------------------------
-  readout::TPCsetID ChannelMapStandardAlg::TPCtoTPCset(geo::TPCID const& tpcid) const
+  readout::TPCsetID ChannelMapStandardAlg::TPCtoTPCset(TPCID const& tpcid) const
   {
     return ConvertTPCtoTPCset(tpcid);
-  } // ChannelMapStandardAlg::TPCtoTPCset()
+  }
 
   //----------------------------------------------------------------------------
-  std::vector<geo::TPCID> ChannelMapStandardAlg::TPCsetToTPCs(
-    readout::TPCsetID const& tpcsetid) const
+  std::vector<TPCID> ChannelMapStandardAlg::TPCsetToTPCs(readout::TPCsetID const& tpcsetid) const
   {
-    std::vector<geo::TPCID> IDs;
+    std::vector<TPCID> IDs;
     if (tpcsetid.isValid) IDs.emplace_back(ConvertTPCsetToTPC(tpcsetid));
     return IDs;
-  } // ChannelMapStandardAlg::TPCsetToTPCs()
+  }
 
   //----------------------------------------------------------------------------
-  geo::TPCID ChannelMapStandardAlg::FirstTPCinTPCset(readout::TPCsetID const& tpcsetid) const
+  TPCID ChannelMapStandardAlg::FirstTPCinTPCset(readout::TPCsetID const& tpcsetid) const
   {
     return ConvertTPCsetToTPC(tpcsetid);
-  } // ChannelMapStandardAlg::FirstTPCinTPCset()
+  }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapStandardAlg::MaxTPCs() const
@@ -347,14 +333,14 @@ namespace geo {
     for (unsigned int nTPCs : fNTPC)
       if (nTPCs > max) max = nTPCs;
     return max;
-  } // ChannelMapStandardAlg::MaxTPCs()
+  }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapStandardAlg::NROPs(readout::TPCsetID const& tpcsetid) const
   {
     if (!HasTPCset(tpcsetid)) return 0;
     return AccessElement(fNPlanes, FirstTPCinTPCset(tpcsetid));
-  } // ChannelMapStandardAlg::NROPs()
+  }
 
   //----------------------------------------------------------------------------
   unsigned int ChannelMapStandardAlg::MaxROPs() const
@@ -364,37 +350,36 @@ namespace geo {
       for (unsigned int nPlanes : cryo_tpc)
         if (nPlanes > max) max = nPlanes;
     return max;
-  } // ChannelMapStandardAlg::MaxROPs()
+  }
 
   //----------------------------------------------------------------------------
   bool ChannelMapStandardAlg::HasROP(readout::ROPID const& ropid) const
   {
     return ropid.ROP < NROPs(ropid);
-  } // ChannelMapStandardAlg::HasROP()
+  }
 
   //----------------------------------------------------------------------------
-  readout::ROPID ChannelMapStandardAlg::WirePlaneToROP(geo::PlaneID const& planeid) const
+  readout::ROPID ChannelMapStandardAlg::WirePlaneToROP(PlaneID const& planeid) const
   {
     return ConvertWirePlaneToROP(planeid);
-  } // ChannelMapStandardAlg::WirePlaneToROP()
+  }
 
   //----------------------------------------------------------------------------
-  std::vector<geo::PlaneID> ChannelMapStandardAlg::ROPtoWirePlanes(
-    readout::ROPID const& ropid) const
+  std::vector<PlaneID> ChannelMapStandardAlg::ROPtoWirePlanes(readout::ROPID const& ropid) const
   {
-    std::vector<geo::PlaneID> IDs;
+    std::vector<PlaneID> IDs;
     if (ropid.isValid) IDs.emplace_back(FirstWirePlaneInROP(ropid));
     return IDs;
-  } // ChannelMapStandardAlg::ROPtoWirePlanes()
+  }
 
   //----------------------------------------------------------------------------
-  std::vector<geo::TPCID> ChannelMapStandardAlg::ROPtoTPCs(readout::ROPID const& ropid) const
+  std::vector<TPCID> ChannelMapStandardAlg::ROPtoTPCs(readout::ROPID const& ropid) const
   {
-    std::vector<geo::TPCID> IDs;
+    std::vector<TPCID> IDs;
     // we take the TPC set of the ROP and convert it straight into a TPC ID
     if (ropid.isValid) IDs.emplace_back(ConvertTPCsetToTPC(ropid.asTPCsetID()));
     return IDs;
-  } // ChannelMapStandardAlg::ROPtoTPCs()
+  }
 
   //----------------------------------------------------------------------------
   readout::ROPID ChannelMapStandardAlg::ChannelToROP(raw::ChannelID_t channel) const
@@ -402,62 +387,59 @@ namespace geo {
     if (!raw::isValidChannelID(channel)) return {}; // invalid ROP returned
 
     // which wires does the channel cover?
-    std::vector<geo::WireID> wires = ChannelToWire(channel);
+    std::vector<WireID> wires = ChannelToWire(channel);
 
     // - none:
     if (wires.empty()) return {}; // invalid ROP returned
 
     // - one: maps its plane ID into a ROP ID
     return WirePlaneToROP(wires[0]);
-  } // ChannelMapStandardAlg::ROPtoTPCs()
+  }
 
   //----------------------------------------------------------------------------
   raw::ChannelID_t ChannelMapStandardAlg::FirstChannelInROP(readout::ROPID const& ropid) const
   {
     if (!ropid.isValid) return raw::InvalidChannelID;
     return (raw::ChannelID_t)AccessElement(fPlaneBaselines, ConvertROPtoWirePlane(ropid));
-  } // ChannelMapStandardAlg::FirstChannelInROP()
+  }
 
   //----------------------------------------------------------------------------
-  geo::PlaneID ChannelMapStandardAlg::FirstWirePlaneInROP(readout::ROPID const& ropid) const
+  PlaneID ChannelMapStandardAlg::FirstWirePlaneInROP(readout::ROPID const& ropid) const
   {
     return ConvertROPtoWirePlane(ropid);
-  } // ChannelMapStandardAlg::FirstWirePlaneInROP()
+  }
 
   //----------------------------------------------------------------------------
-  readout::TPCsetID ChannelMapStandardAlg::ConvertTPCtoTPCset(geo::TPCID const& tpcid)
+  readout::TPCsetID ChannelMapStandardAlg::ConvertTPCtoTPCset(TPCID const& tpcid)
   {
     if (!tpcid.isValid) return {}; // invalid ID, default-constructed
     return {(readout::CryostatID::CryostatID_t)tpcid.Cryostat,
             (readout::TPCsetID::TPCsetID_t)tpcid.TPC};
-  } // ChannelMapStandardAlg::ConvertTPCtoTPCset()
+  }
 
   //----------------------------------------------------------------------------
-  geo::TPCID ChannelMapStandardAlg::ConvertTPCsetToTPC(readout::TPCsetID const& tpcsetid)
+  TPCID ChannelMapStandardAlg::ConvertTPCsetToTPC(readout::TPCsetID const& tpcsetid)
   {
     if (!tpcsetid.isValid) return {};
-    return {(geo::CryostatID::CryostatID_t)tpcsetid.Cryostat, (geo::TPCID::TPCID_t)tpcsetid.TPCset};
-  } // ChannelMapStandardAlg::ConvertTPCsetToTPC()
+    return {(CryostatID::CryostatID_t)tpcsetid.Cryostat, (TPCID::TPCID_t)tpcsetid.TPCset};
+  }
 
   //----------------------------------------------------------------------------
-  readout::ROPID ChannelMapStandardAlg::ConvertWirePlaneToROP(geo::PlaneID const& planeid)
+  readout::ROPID ChannelMapStandardAlg::ConvertWirePlaneToROP(PlaneID const& planeid)
   {
     if (!planeid.isValid) return {}; // invalid ID, default-constructed
     return {(readout::CryostatID::CryostatID_t)planeid.Cryostat,
             (readout::TPCsetID::TPCsetID_t)planeid.TPC,
             (readout::ROPID::ROPID_t)planeid.Plane};
-
-  } // ChannelMapStandardAlg::ConvertWirePlaneToROP()
+  }
 
   //----------------------------------------------------------------------------
-  geo::PlaneID ChannelMapStandardAlg::ConvertROPtoWirePlane(readout::ROPID const& ropid)
+  PlaneID ChannelMapStandardAlg::ConvertROPtoWirePlane(readout::ROPID const& ropid)
   {
     if (!ropid.isValid) return {};
-    return {(geo::CryostatID::CryostatID_t)ropid.Cryostat,
-            (geo::TPCID::TPCID_t)ropid.TPCset,
-            (geo::PlaneID::PlaneID_t)ropid.ROP};
-  } // ChannelMapStandardAlg::ConvertROPtoWirePlane()
-
-  //----------------------------------------------------------------------------
+    return {(CryostatID::CryostatID_t)ropid.Cryostat,
+            (TPCID::TPCID_t)ropid.TPCset,
+            (PlaneID::PlaneID_t)ropid.ROP};
+  }
 
 } // namespace

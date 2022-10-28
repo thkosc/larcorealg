@@ -30,8 +30,8 @@ void test_absDiff()
   A const a = 5;
   B const b = 6;
 
-  auto absDeltaAB = util::absDiff(a, b);
-  auto absDeltaBA = util::absDiff(b, a);
+  auto absDeltaAB = lar::util::absDiff(a, b);
+  auto absDeltaBA = lar::util::absDiff(b, a);
 
   static_assert(std::is_same<decltype(absDeltaAB), decltype(absDeltaBA)>(),
                 "Results of |a-b| and |b-a| have different type!");
@@ -45,8 +45,8 @@ void test_absDiff()
   // (the difference needs to be large)
   B const m = std::numeric_limits<B>::max() - b;
 
-  auto absDeltaAM = util::absDiff(a, m);
-  auto absDeltaMA = util::absDiff(m, a);
+  auto absDeltaAM = lar::util::absDiff(a, m);
+  auto absDeltaMA = lar::util::absDiff(m, a);
 
   BOOST_TEST(absDeltaAM > D(2 * (a + b)));
   BOOST_TEST(absDeltaMA > D(2 * (a + b)));
@@ -64,8 +64,8 @@ void test_constexpr_absDiff()
   constexpr A a = 5;
   constexpr B b = 6;
 
-  constexpr auto absDeltaAB = util::absDiff(a, b);
-  constexpr auto absDeltaBA = util::absDiff(b, a);
+  constexpr auto absDeltaAB = lar::util::absDiff(a, b);
+  constexpr auto absDeltaBA = lar::util::absDiff(b, a);
 
   static_assert(std::is_same<decltype(absDeltaAB), decltype(absDeltaBA)>(),
                 "Results of |a-b| and |b-a| have different type!");

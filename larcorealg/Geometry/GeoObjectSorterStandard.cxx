@@ -59,46 +59,40 @@ namespace geo {
   // Define sort order for cryostats in standard configuration
   static bool sortCryoStandard(const CryostatGeo& c1, const CryostatGeo& c2)
   {
-    double xyz1[3] = {0.}, xyz2[3] = {0.};
-    double local[3] = {0.};
-    c1.LocalToWorld(local, xyz1);
-    c2.LocalToWorld(local, xyz2);
-
-    return xyz1[0] < xyz2[0];
+    CryostatGeo::LocalPoint_t const local{0., 0., 0.};
+    auto const xyz1 = c1.toWorldCoords(local);
+    auto const xyz2 = c2.toWorldCoords(local);
+    return xyz1.X() < xyz2.X();
   }
 
   //----------------------------------------------------------------------------
   // Define sort order for tpcs in standard configuration.
   static bool sortTPCStandard(const TPCGeo& t1, const TPCGeo& t2)
   {
-    double xyz1[3] = {0.};
-    double xyz2[3] = {0.};
-    double local[3] = {0.};
-    t1.LocalToWorld(local, xyz1);
-    t2.LocalToWorld(local, xyz2);
+    TPCGeo::LocalPoint_t const local{0., 0., 0.};
+    auto const xyz1 = t1.toWorldCoords(local);
+    auto const xyz2 = t2.toWorldCoords(local);
 
     // sort TPCs according to x
-    return xyz1[0] < xyz2[0];
+    return xyz1.X() < xyz2.X();
   }
 
   //----------------------------------------------------------------------------
   // Define sort order for planes in standard configuration
   static bool sortPlaneStandard(const PlaneGeo& p1, const PlaneGeo& p2)
   {
-    double xyz1[3] = {0.};
-    double xyz2[3] = {0.};
-    double local[3] = {0.};
-    p1.LocalToWorld(local, xyz1);
-    p2.LocalToWorld(local, xyz2);
+    PlaneGeo::LocalPoint_t const local{0., 0., 0.};
+    auto const xyz1 = p1.toWorldCoords(local);
+    auto const xyz2 = p2.toWorldCoords(local);
 
     // drift direction is negative, plane number increases in drift direction
-    if (std::abs(xyz1[0] - xyz2[0]) > DistanceTol) return xyz1[0] > xyz2[0];
+    if (std::abs(xyz1.X() - xyz2.X()) > DistanceTol) return xyz1.X() > xyz2.X();
 
     //if same drift, sort by z
-    if (std::abs(xyz1[2] - xyz2[2]) > DistanceTol) return xyz1[2] < xyz2[2];
+    if (std::abs(xyz1.Z() - xyz2.Z()) > DistanceTol) return xyz1.Z() < xyz2.Z();
 
     //if same z, sort by y
-    return xyz1[1] < xyz2[1];
+    return xyz1.Y() < xyz2.Y();
   }
 
   //----------------------------------------------------------------------------
@@ -107,13 +101,13 @@ namespace geo {
     auto const [xyz1, xyz2] = std::make_pair(w1.GetCenter(), w2.GetCenter());
 
     //sort by z first
-    if (std::abs(xyz1[2] - xyz2[2]) > DistanceTol) return xyz1[2] < xyz2[2];
+    if (std::abs(xyz1.Z() - xyz2.Z()) > DistanceTol) return xyz1.Z() < xyz2.Z();
 
     //if same z sort by y
-    if (std::abs(xyz1[1] - xyz2[1]) > DistanceTol) return xyz1[1] < xyz2[1];
+    if (std::abs(xyz1.Y() - xyz2.Y()) > DistanceTol) return xyz1.Y() < xyz2.Y();
 
     //if same y sort by x
-    return xyz1[0] < xyz2[0];
+    return xyz1.X() < xyz2.X();
   }
 
   //----------------------------------------------------------------------------

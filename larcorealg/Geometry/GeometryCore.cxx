@@ -10,10 +10,12 @@
 #include "larcorealg/Geometry/GeometryCore.h"
 
 // lar includes
+#include "larcorealg/CoreUtils/NumericUtils.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 #include "larcorealg/Geometry/Decomposer.h" // geo::vect::dot()
 #include "larcorealg/Geometry/GeometryBuilderStandard.h"
+#include "larcorealg/Geometry/Intersections.h"
 #include "larcorealg/Geometry/OpDetGeo.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h"                // geo::vect
 #include "larcorealg/Geometry/geo_vectors_utils_TVector.h"        // geo::vect
@@ -31,7 +33,6 @@
 #include <TGeoMatrix.h>
 #include <TGeoNode.h>
 #include <TGeoVolume.h>
-// #include <Rtypes.h>
 
 // C/C++ includes
 #include <algorithm> // std::for_each(), std::transform()
@@ -47,27 +48,6 @@
 #include <vector>
 
 namespace {
-  constexpr lar::util::RealComparisons<geo::Length_t> coordIs{1e-8};
-
-  //--------------------------------------------------------------------
-  /// Returns whether x and y are within both specified ranges (A and B).
-  bool PointWithinSegments(double A_start_x,
-                           double A_start_y,
-                           double A_end_x,
-                           double A_end_y,
-                           double B_start_x,
-                           double B_start_y,
-                           double B_end_x,
-                           double B_end_y,
-                           double x,
-                           double y)
-  {
-    return coordIs.withinSorted(x, A_start_x, A_end_x) &&
-           coordIs.withinSorted(y, A_start_y, A_end_y) &&
-           coordIs.withinSorted(x, B_start_x, B_end_x) &&
-           coordIs.withinSorted(y, B_start_y, B_end_y);
-  } // PointWithinSegments()
-
   /// Throws an exception ("GeometryCore" category) unless pid1 and pid2
   /// are on different planes of the same TPC (ID validity is not checked)
   void CheckIndependentPlanesOnSameTPC(geo::PlaneID const& pid1,
@@ -83,77 +63,7 @@ namespace {
       throw cet::exception("GeometryCore")
         << caller << " needs two different planes, got " << std::string(pid1) << " twice\n";
     }
-  } // CheckIndependentPlanesOnSameTPC()
-}
-
-namespace unrelated {
-
-  // Functions to allow determination if two wires intersect, and if so where.
-  // This is useful information during 3D reconstruction.
-  //......................................................................
-  bool ValueInRange(double value, double min, double max)
-  {
-    if (min > max) std::swap(min, max); //protect against funny business due to wire angles
-    if (std::abs(value - min) < 1e-6 || std::abs(value - max) < 1e-6) return true;
-    return (value >= min) && (value <= max);
   }
-
-  //......................................................................
-  bool IntersectLines(double A_start_x,
-                      double A_start_y,
-                      double A_end_x,
-                      double A_end_y,
-                      double B_start_x,
-                      double B_start_y,
-                      double B_end_x,
-                      double B_end_y,
-                      double& x,
-                      double& y)
-  {
-    // Equation from http://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-    // T.Yang Nov, 2014
-    // Notation: x => coordinate orthogonal to the drift direction and to the beam direction
-    //           y => direction orthogonal to the previous and to beam direction
-
-    double const denom =
-      (A_start_x - A_end_x) * (B_start_y - B_end_y) - (A_start_y - A_end_y) * (B_start_x - B_end_x);
-
-    if (coordIs.zero(denom)) return false;
-
-    double const A = (A_start_x * A_end_y - A_start_y * A_end_x) / denom;
-    double const B = (B_start_x * B_end_y - B_start_y * B_end_x) / denom;
-
-    x = (B_start_x - B_end_x) * A - (A_start_x - A_end_x) * B;
-    y = (B_start_y - B_end_y) * A - (A_start_y - A_end_y) * B;
-
-    return true;
-
-  } // IntersectLines()
-
-  //......................................................................
-  bool IntersectSegments(double A_start_x,
-                         double A_start_y,
-                         double A_end_x,
-                         double A_end_y,
-                         double B_start_x,
-                         double B_start_y,
-                         double B_end_x,
-                         double B_end_y,
-                         double& x,
-                         double& y)
-  {
-    bool bCross = IntersectLines(
-      A_start_x, A_start_y, A_end_x, A_end_y, B_start_x, B_start_y, B_end_x, B_end_y, x, y);
-
-    if (bCross) {
-      mf::LogWarning("IntersectSegments") << "The segments are parallel!";
-      return false;
-    }
-
-    return PointWithinSegments(
-      A_start_x, A_start_y, A_end_x, A_end_y, B_start_x, B_start_y, B_end_x, B_end_y, x, y);
-
-  } // IntersectSegments()
 }
 
 namespace geo {
@@ -168,24 +78,21 @@ namespace geo {
     , fBuilderParameters(pset.get<fhicl::ParameterSet>("Builder", fhicl::ParameterSet()))
   {
     std::transform(fDetectorName.begin(), fDetectorName.end(), fDetectorName.begin(), ::tolower);
-  } // GeometryCore::GeometryCore()
+  }
 
   //......................................................................
-  GeometryCore::~GeometryCore() { ClearGeometry(); } // GeometryCore::~GeometryCore()
-
-  //......................................................................
-  void GeometryCore::ApplyChannelMap(std::unique_ptr<geo::ChannelMapAlg> pChannelMap)
+  void GeometryCore::ApplyChannelMap(std::unique_ptr<ChannelMapAlg> pChannelMap)
   {
     SortGeometry(pChannelMap->Sorter());
     UpdateAfterSorting(); // after channel mapping has sorted objects, set their IDs
     pChannelMap->Initialize(fGeoData);
     fChannelMapAlg = move(pChannelMap);
-  } // GeometryCore::ApplyChannelMap()
+  }
 
   //......................................................................
   void GeometryCore::LoadGeometryFile(std::string gdmlfile,
                                       std::string rootfile,
-                                      geo::GeometryBuilder& builder,
+                                      GeometryBuilder& builder,
                                       bool bForceReload /* = false*/
   )
   {
@@ -225,8 +132,8 @@ namespace geo {
 
     BuildGeometry(builder);
 
-    fGDMLfile = gdmlfile;
-    fROOTfile = rootfile;
+    fGDMLfile = move(gdmlfile);
+    fROOTfile = move(rootfile);
 
     mf::LogInfo("GeometryCore") << "New detector geometry loaded from "
                                 << "\n\t" << fROOTfile << "\n\t" << fGDMLfile << "\n";
@@ -238,47 +145,45 @@ namespace geo {
                                       bool bForceReload /* = false*/
   )
   {
-    fhicl::Table<geo::GeometryBuilderStandard::Config> const builderConfig(fBuilderParameters,
-                                                                           {"tool_type"});
-
-    // this is a wink to the understanding that we might be using a art-based
+    fhicl::Table<GeometryBuilderStandard::Config> const builderConfig(fBuilderParameters,
+                                                                      {"tool_type"});
+    // this is a wink to the understanding that we might be using an art-based
     // service provider configuration sprinkled with tools.
-    geo::GeometryBuilderStandard builder{builderConfig()};
+    GeometryBuilderStandard builder{builderConfig()};
     LoadGeometryFile(gdmlfile, rootfile, builder, bForceReload);
-  } // GeometryCore::LoadGeometryFile()
+  }
 
   //......................................................................
   void GeometryCore::ClearGeometry() { fGeoData = {}; }
 
   //......................................................................
-  void GeometryCore::SortGeometry(geo::GeoObjectSorter const& sorter)
+  void GeometryCore::SortGeometry(GeoObjectSorter const& sorter)
   {
     mf::LogInfo("GeometryCore") << "Sorting volumes...";
 
     sorter.SortAuxDets(AuxDets());
     sorter.SortCryostats(Cryostats());
 
-    geo::CryostatID::CryostatID_t c = 0;
-    for (geo::CryostatGeo& cryo : Cryostats()) {
+    CryostatID::CryostatID_t c = 0;
+    for (CryostatGeo& cryo : Cryostats()) {
       cryo.SortSubVolumes(sorter);
-      cryo.UpdateAfterSorting(geo::CryostatID(c));
+      cryo.UpdateAfterSorting(CryostatID(c));
       ++c;
-    } // for
-  }   // GeometryCore::SortGeometry()
+    }
+  }
 
   //......................................................................
   void GeometryCore::UpdateAfterSorting()
   {
     for (size_t c = 0; c < Ncryostats(); ++c)
-      Cryostats()[c].UpdateAfterSorting(geo::CryostatID(c));
+      Cryostats()[c].UpdateAfterSorting(CryostatID(c));
 
     allViews.clear();
-    for (auto const& tpc : Iterate<geo::TPCGeo>()) {
+    for (auto const& tpc : Iterate<TPCGeo>()) {
       auto const& TPCviews = tpc.Views();
       allViews.insert(TPCviews.cbegin(), TPCviews.cend());
     }
-
-  } // GeometryCore::UpdateAfterSorting()
+  }
 
   //......................................................................
   TGeoManager* GeometryCore::ROOTGeoManager() const { return gGeoManager; }
@@ -290,10 +195,9 @@ namespace geo {
   unsigned int GeometryCore::Nchannels(readout::ROPID const& ropid) const
   {
     return fChannelMapAlg->Nchannels(ropid);
-  } // GeometryCore::Nchannels(ROPID)
+  }
 
   //......................................................................
-
   std::vector<raw::ChannelID_t> GeometryCore::ChannelsInTPCs() const
   {
     std::vector<raw::ChannelID_t> channels;
@@ -301,7 +205,7 @@ namespace geo {
 
     for (auto const& ts : Iterate<readout::TPCsetID>()) {
       for (auto const t : fChannelMapAlg->TPCsetToTPCs(ts)) {
-        for (auto const& wire : Iterate<geo::WireID>(t)) {
+        for (auto const& wire : Iterate<WireID>(t)) {
           channels.push_back(fChannelMapAlg->PlaneWireToChannel(wire));
         }
       }
@@ -316,8 +220,8 @@ namespace geo {
   unsigned int GeometryCore::NOpDets() const
   {
     int N = 0;
-    for (size_t cstat = 0; cstat != Ncryostats(); cstat++)
-      N += this->Cryostat(cstat).NOpDet();
+    for (size_t cstat = 0; cstat != Ncryostats(); ++cstat)
+      N += this->Cryostat(CryostatID(cstat)).NOpDet();
     return N;
   }
 
@@ -358,7 +262,6 @@ namespace geo {
   }
 
   //......................................................................
-  // Is this a valid OpChannel number?
   bool GeometryCore::IsValidOpChannel(int opChannel) const
   {
     return fChannelMapAlg->IsValidOpChannel(opChannel, this->NOpDets());
@@ -367,10 +270,9 @@ namespace geo {
   //......................................................................
   unsigned int GeometryCore::NAuxDetSensitive(size_t const& aid) const
   {
-    if (aid > NAuxDets() - 1)
-      throw cet::exception("Geometry")
-        << "Requested AuxDet index " << aid << " is out of range: " << NAuxDets();
-    return AuxDets()[aid].NSensitiveVolume();
+    if (aid < NAuxDets()) { return AuxDets()[aid].NSensitiveVolume(); }
+    throw cet::exception("Geometry")
+      << "Requested AuxDet index " << aid << " is out of range: " << NAuxDets();
   }
 
   //......................................................................
@@ -388,13 +290,9 @@ namespace geo {
   //
   CryostatGeo const& GeometryCore::Cryostat(CryostatID const& cryoid) const
   {
-    CryostatGeo const* pCryo = CryostatPtr(cryoid);
-    if (!pCryo) {
-      throw cet::exception("GeometryCore")
-        << "Cryostat #" << cryoid.Cryostat << " does not exist\n";
-    }
-    return *pCryo;
-  } // GeometryCore::Cryostat(CryostatID)
+    if (auto pCryo = CryostatPtr(cryoid)) { return *pCryo; }
+    throw cet::exception("GeometryCore") << "Cryostat #" << cryoid.Cryostat << " does not exist\n";
+  }
 
   //......................................................................
   //
@@ -413,64 +311,61 @@ namespace geo {
   }
 
   //......................................................................
-  geo::TPCID GeometryCore::FindTPCAtPosition(geo::Point_t const& point) const
+  TPCID GeometryCore::FindTPCAtPosition(Point_t const& point) const
   {
     // first find the cryostat
-    geo::CryostatGeo const* cryo = PositionToCryostatPtr(point);
+    CryostatGeo const* cryo = PositionToCryostatPtr(point);
     if (!cryo) return {};
 
     // then ask it about the TPC
-    geo::TPCID tpcid = cryo->PositionToTPCID(point, 1. + fPositionWiggle);
+    TPCID tpcid = cryo->PositionToTPCID(point, 1. + fPositionWiggle);
     if (tpcid) return tpcid;
 
     // return an invalid TPC ID with cryostat information set:
     tpcid.Cryostat = cryo->ID().Cryostat;
     tpcid.markInvalid();
     return tpcid;
-  } // GeometryCore::FindTPCAtPosition()
+  }
 
   //......................................................................
-  geo::CryostatGeo const* GeometryCore::PositionToCryostatPtr(geo::Point_t const& point) const
+  CryostatGeo const* GeometryCore::PositionToCryostatPtr(Point_t const& point) const
   {
     for (auto const& cryostat : Iterate<CryostatGeo>()) {
       if (cryostat.ContainsPosition(point, 1.0 + fPositionWiggle)) return &cryostat;
     }
     return nullptr;
-  } // GeometryCore::PositionToCryostatPtr()
+  }
 
   //......................................................................
-  geo::CryostatID GeometryCore::PositionToCryostatID(geo::Point_t const& point) const
+  CryostatID GeometryCore::PositionToCryostatID(Point_t const& point) const
   {
-    geo::CryostatGeo const* cryo = PositionToCryostatPtr(point);
-    return cryo ? cryo->ID() : geo::CryostatID{};
-  } // GeometryCore::PositionToCryostatID()
+    CryostatGeo const* cryo = PositionToCryostatPtr(point);
+    return cryo ? cryo->ID() : CryostatID{};
+  }
 
   //......................................................................
-  geo::TPCGeo const* GeometryCore::PositionToTPCptr(geo::Point_t const& point) const
+  TPCGeo const* GeometryCore::PositionToTPCptr(Point_t const& point) const
   {
-    geo::CryostatGeo const* cryo = PositionToCryostatPtr(point);
+    CryostatGeo const* cryo = PositionToCryostatPtr(point);
     return cryo ? cryo->PositionToTPCptr(point, 1. + fPositionWiggle) : nullptr;
-  } // GeometryCore::PositionToTPCptr()
+  }
 
   //......................................................................
-  geo::TPCGeo const& GeometryCore::PositionToTPC(geo::Point_t const& point) const
+  TPCGeo const& GeometryCore::PositionToTPC(Point_t const& point) const
   {
-    geo::TPCGeo const* tpc = PositionToTPCptr(point);
-    if (!tpc) {
-      throw cet::exception("GeometryCore") << "Can't find any TPC at position " << point << "\n";
-    }
-    return *tpc;
-  } // GeometryCore::PositionToTPC()
+    if (auto tpc = PositionToTPCptr(point)) { return *tpc; }
+    throw cet::exception("GeometryCore") << "Can't find any TPC at position " << point << "\n";
+  }
 
   //......................................................................
-  geo::TPCID GeometryCore::PositionToTPCID(geo::Point_t const& point) const
+  TPCID GeometryCore::PositionToTPCID(Point_t const& point) const
   {
-    geo::TPCGeo const* tpc = PositionToTPCptr(point);
-    return tpc ? tpc->ID() : geo::TPCID{};
-  } // GeometryCore::PositionToTPCID()
+    TPCGeo const* tpc = PositionToTPCptr(point);
+    return tpc ? tpc->ID() : TPCID{};
+  }
 
   //......................................................................
-  void GeometryCore::GetEndID(geo::TPCID& id) const
+  void GeometryCore::GetEndID(TPCID& id) const
   {
     if (MaxTPCs() == 0) {
       GetBeginID(id);
@@ -478,42 +373,35 @@ namespace geo {
     }
     else {
       GetEndID(id.asCryostatID());
-      id.TPC = 0;
+      id.deepestIndex() = 0;
     }
-  } // GeometryCore::GetEndID(geo::TPCID)
+  }
 
   //......................................................................
-  geo::TPCID GeometryCore::GetEndTPCID(geo::CryostatID const& id) const
+  TPCID GeometryCore::GetEndTPCID(CryostatID const& id) const
   {
-    if (geo::CryostatGeo const* cryo = CryostatPtr(id); cryo && cryo->NTPC() > 0)
+    if (CryostatGeo const* cryo = CryostatPtr(id); cryo && cryo->NTPC() > 0)
       return {id.Cryostat + 1, 0};
-    geo::TPCID tpcid = GetBeginTPCID(id);
+    TPCID tpcid = GetBeginTPCID(id);
     tpcid.markInvalid();
     return tpcid;
-  } // GeometryCore::GetEndTPCID()
+  }
 
   //......................................................................
-  geo::CryostatGeo const& GeometryCore::PositionToCryostat(geo::Point_t const& point) const
+  CryostatGeo const& GeometryCore::PositionToCryostat(Point_t const& point) const
   {
-    geo::CryostatGeo const* cstat = PositionToCryostatPtr(point);
-    if (!cstat) {
-      throw cet::exception("GeometryCore")
-        << "Can't find any cryostat at position " << point << "\n";
-    }
-    return *cstat;
-  } // GeometryCore::PositionToCryostat()
+    if (auto cstat = PositionToCryostatPtr(point)) { return *cstat; }
+    throw cet::exception("GeometryCore") << "Can't find any cryostat at position " << point << "\n";
+  }
 
   //......................................................................
-  unsigned int GeometryCore::FindAuxDetAtPosition(geo::Point_t const& point, double tolerance) const
+  unsigned int GeometryCore::FindAuxDetAtPosition(Point_t const& point, double tolerance) const
   {
-    // BUG the double brace syntax is required to work around clang bug 21629
-    // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-    std::array<double, 3U> worldPos = {{point.X(), point.Y(), point.Z()}};
-    return fChannelMapAlg->NearestAuxDet(worldPos.data(), AuxDets(), tolerance);
-  } // GeometryCore::FindAuxDetAtPosition()
+    return fChannelMapAlg->NearestAuxDet(point, AuxDets(), tolerance);
+  }
 
   //......................................................................
-  const AuxDetGeo& GeometryCore::PositionToAuxDet(geo::Point_t const& point,
+  const AuxDetGeo& GeometryCore::PositionToAuxDet(Point_t const& point,
                                                   unsigned int& ad,
                                                   double tolerance) const
   {
@@ -523,20 +411,17 @@ namespace geo {
   }
 
   //......................................................................
-  void GeometryCore::FindAuxDetSensitiveAtPosition(geo::Point_t const& point,
+  void GeometryCore::FindAuxDetSensitiveAtPosition(Point_t const& point,
                                                    std::size_t& adg,
                                                    std::size_t& sv,
                                                    double tolerance) const
   {
     adg = FindAuxDetAtPosition(point, tolerance);
-    // BUG the double brace syntax is required to work around clang bug 21629
-    // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-    std::array<double, 3U> const worldPos = {{point.X(), point.Y(), point.Z()}};
-    sv = fChannelMapAlg->NearestSensitiveAuxDet(worldPos.data(), AuxDets(), tolerance);
-  } // GeometryCore::FindAuxDetAtPosition()
+    sv = fChannelMapAlg->NearestSensitiveAuxDet(point, AuxDets(), tolerance);
+  }
 
   //......................................................................
-  const AuxDetSensitiveGeo& GeometryCore::PositionToAuxDetSensitive(geo::Point_t const& point,
+  const AuxDetSensitiveGeo& GeometryCore::PositionToAuxDetSensitive(Point_t const& point,
                                                                     size_t& ad,
                                                                     size_t& sv,
                                                                     double tolerance) const
@@ -569,7 +454,7 @@ namespace geo {
   }
 
   //......................................................................
-  SigType_t GeometryCore::SignalType(geo::PlaneID const& pid) const
+  SigType_t GeometryCore::SignalType(PlaneID const& pid) const
   {
     // map wire plane -> readout plane -> first channel,
     // then use SignalType(channel)
@@ -580,26 +465,22 @@ namespace geo {
                                            << std::string(pid) << " to readout plane failed!\n";
     }
     return SignalType(ropid);
-
-  } // GeometryCore::SignalType(PlaneID)
+  }
 
   //......................................................................
   View_t GeometryCore::View(raw::ChannelID_t const channel) const
   {
-    return (channel == raw::InvalidChannelID) ? geo::kUnknown : View(ChannelToROP(channel));
-  } // GeometryCore::View()
+    return (channel == raw::InvalidChannelID) ? kUnknown : View(ChannelToROP(channel));
+  }
 
   //......................................................................
-  View_t GeometryCore::View(geo::PlaneID const& pid) const
-  {
-    return pid ? Plane(pid).View() : geo::kUnknown;
-  }
+  View_t GeometryCore::View(PlaneID const& pid) const { return pid ? Plane(pid).View() : kUnknown; }
 
   //--------------------------------------------------------------------
   bool GeometryCore::HasChannel(raw::ChannelID_t channel) const
   {
     return fChannelMapAlg->HasChannel(channel);
-  } // GeometryCore::HasChannel()
+  }
 
   //......................................................................
   const std::string GeometryCore::GetWorldVolumeName() const
@@ -610,7 +491,7 @@ namespace geo {
   }
 
   //......................................................................
-  geo::BoxBoundedGeo GeometryCore::DetectorEnclosureBox(
+  BoxBoundedGeo GeometryCore::DetectorEnclosureBox(
     std::string const& name /* = "volDetEnclosure" */) const
   {
     auto const& path = FindDetectorEnclosure(name);
@@ -630,15 +511,15 @@ namespace geo {
         << pEncl->GetShape()->IsA()->GetName() << ")\n";
     }
 
-    geo::LocalTransformation<TGeoHMatrix> trans(path, path.size() - 1);
+    LocalTransformation<TGeoHMatrix> trans(path, path.size() - 1);
     // get the half width, height, etc of the cryostat
     const double halfwidth = pBox->GetDX();
     const double halfheight = pBox->GetDY();
     const double halflength = pBox->GetDZ();
 
-    return {trans.LocalToWorld(geo::Point_t{-halfwidth, -halfheight, -halflength}),
-            trans.LocalToWorld(geo::Point_t{+halfwidth, +halfheight, +halflength})};
-  } // geo::GeometryCore::DetectorEnclosureBox()
+    return {trans.LocalToWorld(Point_t{-halfwidth, -halfheight, -halflength}),
+            trans.LocalToWorld(Point_t{+halfwidth, +halfheight, +halflength})};
+  }
 
   //......................................................................
   /** **************************************************************************
@@ -665,8 +546,7 @@ namespace geo {
    */
   class ROOTGeoNodeForwardIterator {
   public:
-    /// Constructor: start from this node
-    ROOTGeoNodeForwardIterator(TGeoNode const* start_node) { init(start_node); }
+    explicit ROOTGeoNodeForwardIterator(TGeoNode const* start_node);
 
     /// Returns the pointer to the current node, or nullptr if none
     TGeoNode const* operator*() const
@@ -680,21 +560,16 @@ namespace geo {
     /// Returns the full path of the current node
     std::vector<TGeoNode const*> get_path() const;
 
-  protected:
-    using Node_t = TGeoNode const*;
+  private:
     struct NodeInfo_t {
-      Node_t self;
+      TGeoNode const* self;
       int sibling;
-      NodeInfo_t(Node_t new_self, int new_sibling) : self(new_self), sibling(new_sibling) {}
-    }; // NodeInfo_t
+    };
 
     /// which node, which sibling?
     std::vector<NodeInfo_t> current_path;
 
     void reach_deepest_descendant();
-
-    void init(TGeoNode const* start_node);
-
   }; // class ROOTGeoNodeForwardIterator
 
   struct NodeNameMatcherClass {
@@ -743,22 +618,24 @@ namespace geo {
     NodeNameMatcherClass matcher;
   }; // CollectPathsByName
 
+  //......................................................................
   std::vector<TGeoNode const*> GeometryCore::FindAllVolumes(
     std::set<std::string> const& vol_names) const
   {
     CollectNodesByName node_collector(vol_names);
 
-    ROOTGeoNodeForwardIterator iNode(ROOTGeoManager()->GetTopNode());
+    ROOTGeoNodeForwardIterator iNode{ROOTGeoManager()->GetTopNode()};
     TGeoNode const* pCurrentNode;
 
     while ((pCurrentNode = *iNode)) {
       node_collector(*pCurrentNode);
       ++iNode;
-    } // while
+    }
 
     return node_collector.nodes;
-  } // GeometryCore::FindAllVolumes()
+  }
 
+  //......................................................................
   std::vector<std::vector<TGeoNode const*>> GeometryCore::FindAllVolumePaths(
     std::set<std::string> const& vol_names) const
   {
@@ -769,61 +646,58 @@ namespace geo {
     while (*iNode) {
       path_collector(iNode);
       ++iNode;
-    } // while
+    }
 
     return path_collector.paths;
-  } // GeometryCore::FindAllVolumePaths()
-
-  //......................................................................
-  std::string GeometryCore::GetLArTPCVolumeName(geo::TPCID const& tpcid) const
-  {
-    return std::string(TPC(tpcid).ActiveVolume()->GetName());
   }
 
   //......................................................................
-  std::string GeometryCore::GetCryostatVolumeName(geo::CryostatID const& cid) const
+  std::string GeometryCore::GetLArTPCVolumeName(TPCID const& tpcid) const
   {
-    return std::string(Cryostat(cid).Volume()->GetName());
+    return TPC(tpcid).ActiveVolume()->GetName();
   }
 
   //......................................................................
-  geo::Length_t GeometryCore::DetHalfWidth(geo::TPCID const& tpcid) const
+  std::string GeometryCore::GetCryostatVolumeName(CryostatID const& cid) const
+  {
+    return Cryostat(cid).Volume()->GetName();
+  }
+
+  //......................................................................
+  Length_t GeometryCore::DetHalfWidth(TPCID const& tpcid) const
   {
     return TPC(tpcid).ActiveHalfWidth();
   }
 
   //......................................................................
-  geo::Length_t GeometryCore::DetHalfHeight(geo::TPCID const& tpcid) const
+  Length_t GeometryCore::DetHalfHeight(TPCID const& tpcid) const
   {
     return TPC(tpcid).ActiveHalfHeight();
   }
 
   //......................................................................
-  geo::Length_t GeometryCore::DetLength(geo::TPCID const& tpcid) const
-  {
-    return TPC(tpcid).ActiveLength();
-  }
+  Length_t GeometryCore::DetLength(TPCID const& tpcid) const { return TPC(tpcid).ActiveLength(); }
 
   //......................................................................
-  geo::Length_t GeometryCore::CryostatHalfWidth(geo::CryostatID const& cid) const
+  Length_t GeometryCore::CryostatHalfWidth(CryostatID const& cid) const
   {
     return Cryostat(cid).HalfWidth();
   }
 
   //......................................................................
-  geo::Length_t GeometryCore::CryostatHalfHeight(geo::CryostatID const& cid) const
+  Length_t GeometryCore::CryostatHalfHeight(CryostatID const& cid) const
   {
     return Cryostat(cid).HalfHeight();
   }
 
   //......................................................................
-  geo::Length_t GeometryCore::CryostatLength(geo::CryostatID const& cid) const
+  Length_t GeometryCore::CryostatLength(CryostatID const& cid) const
   {
     return Cryostat(cid).Length();
   }
 
   //......................................................................
-  void GeometryCore::GetEndID(geo::PlaneID& id) const
+  void GeometryCore::GetEndID(PlaneID& id) const
   {
     if (MaxPlanes() == 0) {
       GetBeginID(id);
@@ -831,52 +705,44 @@ namespace geo {
     }
     else {
       GetEndID(id.asTPCID());
-      id.Plane = 0;
+      id.deepestIndex() = 0;
     }
-  } // GeometryCore::GetEndID(PlaneID)
+  }
 
   //......................................................................
-  geo::PlaneID GeometryCore::GetEndPlaneID(geo::CryostatID const& id) const
+  PlaneID GeometryCore::GetEndPlaneID(CryostatID const& id) const
   {
-    geo::CryostatGeo const* cryo = CryostatPtr(id);
-    return (cryo && cryo->MaxPlanes() > 0) ? geo::PlaneID{GetEndTPCID(id), 0} : GetBeginPlaneID(id);
-  } // GeometryCore::GetEndPlaneID(CryostatID)
+    CryostatGeo const* cryo = CryostatPtr(id);
+    return (cryo && cryo->MaxPlanes() > 0) ? PlaneID{GetEndTPCID(id), 0} : GetBeginPlaneID(id);
+  }
 
   //......................................................................
-  geo::PlaneID GeometryCore::GetEndPlaneID(geo::TPCID const& id) const
+  PlaneID GeometryCore::GetEndPlaneID(TPCID const& id) const
   {
-    if (geo::TPCGeo const* TPC = TPCPtr(id); TPC && TPC->Nplanes() > 0) return {GetNextID(id), 0};
-    geo::PlaneID pid = GetBeginPlaneID(id);
+    if (TPCGeo const* TPC = TPCPtr(id); TPC && TPC->Nplanes() > 0) return {GetNextID(id), 0};
+    PlaneID pid = GetBeginPlaneID(id);
     pid.markInvalid();
     return pid;
-  } // GeometryCore::GetEndPlaneID(TPCID)
+  }
 
   //......................................................................
   // This method returns the distance between the specified planes.
   // p1 < p2
-  double GeometryCore::PlanePitch(geo::TPCID const& tpcid,
-                                  geo::PlaneID::PlaneID_t p1,
-                                  geo::PlaneID::PlaneID_t p2) const
+  double GeometryCore::PlanePitch(TPCID const& tpcid,
+                                  PlaneID::PlaneID_t p1,
+                                  PlaneID::PlaneID_t p2) const
   {
     return TPC(tpcid).PlanePitch(p1, p2);
   }
 
-  double GeometryCore::PlanePitch(geo::PlaneID const& pid1, geo::PlaneID const& pid2) const
+  double GeometryCore::PlanePitch(PlaneID const& pid1, PlaneID const& pid2) const
   {
     return PlanePitch(pid1.asTPCID(), pid1.Plane, pid2.Plane);
   }
 
-  double GeometryCore::PlanePitch(unsigned int p1,
-                                  unsigned int p2,
-                                  unsigned int tpc,
-                                  unsigned int cstat) const
-  {
-    return PlanePitch(geo::TPCID(cstat, tpc), p1, p2);
-  }
-
   //......................................................................
   // This method returns the distance between wires in a plane.
-  geo::Length_t GeometryCore::WirePitch(geo::PlaneID const& planeid) const
+  Length_t GeometryCore::WirePitch(PlaneID const& planeid) const
   {
     return Plane(planeid).WirePitch();
   }
@@ -884,7 +750,7 @@ namespace geo {
   //......................................................................
   // This method returns the distance between wires in the specified view
   // it assumes all planes of a given view have the same pitch
-  geo::Length_t GeometryCore::WirePitch(geo::View_t view) const
+  Length_t GeometryCore::WirePitch(View_t view) const
   {
     // look in cryostat 0, tpc 0 to find the plane with the
     // specified view
@@ -894,30 +760,30 @@ namespace geo {
   //......................................................................
   // This method returns the distance between wires in the specified view
   // it assumes all planes of a given view have the same pitch
-  double GeometryCore::WireAngleToVertical(geo::View_t view, geo::TPCID const& tpcid) const
+  double GeometryCore::WireAngleToVertical(View_t view, TPCID const& tpcid) const
   {
     // loop over the planes in cryostat 0, tpc 0 to find the plane with the
     // specified view
-    geo::TPCGeo const& TPC = this->TPC(tpcid);
+    TPCGeo const& TPC = this->TPC(tpcid);
     for (unsigned int p = 0; p < TPC.Nplanes(); ++p) {
-      geo::PlaneGeo const& plane = TPC.Plane(p);
+      PlaneGeo const& plane = TPC.Plane(p);
       if (plane.View() == view) return plane.ThetaZ();
     } // for
     throw cet::exception("GeometryCore")
-      << "WireAngleToVertical(): no view \"" << geo::PlaneGeo::ViewName(view) << "\" (#"
-      << ((int)view) << ") in " << std::string(tpcid);
-  } // GeometryCore::WireAngleToVertical()
+      << "WireAngleToVertical(): no view \"" << PlaneGeo::ViewName(view) << "\" (#" << ((int)view)
+      << ") in " << std::string(tpcid);
+  }
 
   //......................................................................
   unsigned int GeometryCore::MaxTPCs() const
   {
     unsigned int maxTPCs = 0;
-    for (geo::CryostatGeo const& cryo : Cryostats()) {
+    for (CryostatGeo const& cryo : Cryostats()) {
       unsigned int maxTPCsInCryo = cryo.NTPC();
       if (maxTPCsInCryo > maxTPCs) maxTPCs = maxTPCsInCryo;
-    } // for
+    }
     return maxTPCs;
-  } // GeometryCore::MaxTPCs()
+  }
 
   //......................................................................
   unsigned int GeometryCore::TotalNTPC() const
@@ -925,36 +791,35 @@ namespace geo {
     // it looks like C++11 lambdas have made STL algorithms easier to use,
     // but only so much:
     return std::accumulate(
-      Cryostats().begin(),
-      Cryostats().end(),
-      0U,
-      [](unsigned int sum, geo::CryostatGeo const& cryo) { return sum + cryo.NTPC(); });
-  } // GeometryCore::TotalNTPC()
+      Cryostats().begin(), Cryostats().end(), 0U, [](unsigned int sum, CryostatGeo const& cryo) {
+        return sum + cryo.NTPC();
+      });
+  }
 
   //......................................................................
   unsigned int GeometryCore::MaxPlanes() const
   {
     unsigned int maxPlanes = 0;
-    for (geo::CryostatGeo const& cryo : Cryostats()) {
+    for (CryostatGeo const& cryo : Cryostats()) {
       unsigned int maxPlanesInCryo = cryo.MaxPlanes();
       if (maxPlanesInCryo > maxPlanes) maxPlanes = maxPlanesInCryo;
-    } // for
+    }
     return maxPlanes;
-  } // GeometryCore::MaxPlanes()
+  }
 
   //......................................................................
   unsigned int GeometryCore::MaxWires() const
   {
     unsigned int maxWires = 0;
-    for (geo::CryostatGeo const& cryo : Cryostats()) {
+    for (CryostatGeo const& cryo : Cryostats()) {
       unsigned int maxWiresInCryo = cryo.MaxWires();
       if (maxWiresInCryo > maxWires) maxWires = maxWiresInCryo;
-    } // for
+    }
     return maxWires;
-  } // GeometryCore::MaxWires()
+  }
 
   //......................................................................
-  void GeometryCore::GetEndID(geo::WireID& id) const
+  void GeometryCore::GetEndID(WireID& id) const
   {
     if (MaxWires() == 0) {
       GetBeginID(id);
@@ -962,39 +827,39 @@ namespace geo {
     }
     else {
       GetEndID(id.asPlaneID());
-      id.Wire = 0;
+      id.deepestIndex() = 0;
     }
-  } // GeometryCore::GetEndID(WireID)
+  }
 
   //......................................................................
-  geo::WireID GeometryCore::GetEndWireID(geo::CryostatID const& id) const
+  WireID GeometryCore::GetEndWireID(CryostatID const& id) const
   {
-    geo::CryostatGeo const* cryo = CryostatPtr(id);
+    CryostatGeo const* cryo = CryostatPtr(id);
     if (cryo && cryo->MaxWires() > 0) return {GetEndPlaneID(id), 0};
-    geo::WireID wid = GetBeginWireID(id);
+    WireID wid = GetBeginWireID(id);
     wid.markInvalid();
     return wid;
-  } // GeometryCore::GetEndWireID(CryostatID)
+  }
 
   //......................................................................
-  geo::WireID GeometryCore::GetEndWireID(geo::TPCID const& id) const
+  WireID GeometryCore::GetEndWireID(TPCID const& id) const
   {
-    geo::TPCGeo const* TPC = TPCPtr(id);
+    TPCGeo const* TPC = TPCPtr(id);
     if (TPC && TPC->MaxWires() > 0) return {GetEndPlaneID(id), 0};
-    geo::WireID wid = GetBeginWireID(id);
+    WireID wid = GetBeginWireID(id);
     wid.markInvalid();
     return wid;
-  } // GeometryCore::GetEndWireID(TPCID)
+  }
 
   //......................................................................
-  geo::WireID GeometryCore::GetEndWireID(geo::PlaneID const& id) const
+  WireID GeometryCore::GetEndWireID(PlaneID const& id) const
   {
-    if (geo::PlaneGeo const* plane = PlanePtr(id); plane && plane->Nwires() > 0)
+    if (PlaneGeo const* plane = PlanePtr(id); plane && plane->Nwires() > 0)
       return {GetNextID(id), 0};
-    geo::WireID wid = GetBeginWireID(id);
+    WireID wid = GetBeginWireID(id);
     wid.markInvalid();
     return wid;
-  } // GeometryCore::GetEndWireID(PlaneID)
+  }
 
   //......................................................................
   TGeoVolume const* GeometryCore::WorldVolume() const
@@ -1003,7 +868,7 @@ namespace geo {
   }
 
   //......................................................................
-  geo::BoxBoundedGeo GeometryCore::WorldBox() const
+  BoxBoundedGeo GeometryCore::WorldBox() const
   {
     TGeoVolume const* world = WorldVolume();
     if (!world) {
@@ -1020,9 +885,9 @@ namespace geo {
     s->GetAxisRange(2, y1, y2);
     s->GetAxisRange(3, z1, z2);
 
-    // geo::BoxBoundedGeo constructor will sort the coordinates as needed
-    return geo::BoxBoundedGeo{x1, x2, y1, y2, z1, z2};
-  } // GeometryCore::WorldBox()
+    // BoxBoundedGeo constructor will sort the coordinates as needed
+    return BoxBoundedGeo{x1, x2, y1, y2, z1, z2};
+  }
 
   //......................................................................
   void GeometryCore::WorldBox(double* xlo,
@@ -1032,7 +897,7 @@ namespace geo {
                               double* zlo,
                               double* zhi) const
   {
-    geo::BoxBoundedGeo const box = WorldBox();
+    BoxBoundedGeo const box = WorldBox();
     if (xlo) *xlo = box.MinX();
     if (ylo) *ylo = box.MinY();
     if (zlo) *zlo = box.MinZ();
@@ -1042,7 +907,7 @@ namespace geo {
   }
 
   //......................................................................
-  std::string GeometryCore::VolumeName(geo::Point_t const& point) const
+  std::string GeometryCore::VolumeName(Point_t const& point) const
   {
     // check that the given point is in the World volume at least
     TGeoVolume const* volWorld = WorldVolume();
@@ -1063,7 +928,7 @@ namespace geo {
   }
 
   //......................................................................
-  TGeoMaterial const* GeometryCore::Material(geo::Point_t const& point) const
+  TGeoMaterial const* GeometryCore::Material(Point_t const& point) const
   {
     auto const pNode = gGeoManager->FindNode(point.X(), point.Y(), point.Z());
     if (!pNode) return nullptr;
@@ -1072,10 +937,10 @@ namespace geo {
   }
 
   //......................................................................
-  std::string GeometryCore::MaterialName(geo::Point_t const& point) const
+  std::string GeometryCore::MaterialName(Point_t const& point) const
   {
     // check that the given point is in the World volume at least
-    geo::BoxBoundedGeo worldBox = WorldBox();
+    BoxBoundedGeo worldBox = WorldBox();
     if (!worldBox.ContainsPosition(point)) {
       mf::LogWarning("GeometryCoreBadInputPoint")
         << "point " << point << " is not inside the world volume " << worldBox.Min() << " -- "
@@ -1098,7 +963,7 @@ namespace geo {
     std::vector<TGeoNode const*> path{ROOTGeoManager()->GetTopNode()};
     if (!FindFirstVolume(name, path)) path.clear();
     return path;
-  } // FindDetectorEnclosure()
+  }
 
   //......................................................................
   bool GeometryCore::FindFirstVolume(std::string const& name,
@@ -1118,14 +983,14 @@ namespace geo {
       path.push_back(pCurrentVolume->GetNode(i));
       if (FindFirstVolume(name, path)) return true;
       path.pop_back();
-    } // for
+    }
     return false;
-  } // FindFirstVolume()
+  }
 
   //......................................................................
-  void GeometryCore::BuildGeometry(geo::GeometryBuilder& builder)
+  void GeometryCore::BuildGeometry(GeometryBuilder& builder)
   {
-    geo::GeoNodePath path{gGeoManager->GetTopNode()};
+    GeoNodePath path{gGeoManager->GetTopNode()};
     Cryostats() = builder.extractCryostats(path);
     AuxDets() = builder.extractAuxiliaryDetectors(path);
   }
@@ -1147,7 +1012,7 @@ namespace geo {
   }
 
   //......................................................................
-  double GeometryCore::MassBetweenPoints(geo::Point_t const& p1, geo::Point_t const& p2) const
+  double GeometryCore::MassBetweenPoints(Point_t const& p1, Point_t const& p2) const
   {
     //The purpose of this method is to determine the column density
     //between the two points given.  Do that by starting at p1 and
@@ -1157,7 +1022,7 @@ namespace geo {
     double columnD = 0.;
 
     //first initialize a track - get the direction cosines
-    geo::Vector_t const dir = (p2 - p1).Unit();
+    Vector_t const dir = (p2 - p1).Unit();
 
     double const dxyz[3] = {dir.X(), dir.Y(), dir.Z()};
     double const cp1[3] = {p1.X(), p1.Y(), p1.Z()};
@@ -1179,7 +1044,7 @@ namespace geo {
 
     //now you are in the same volume as the last point, but not at that point.
     //get the distance between the current point and the last one
-    geo::Point_t const last = geo::vect::makePointFromCoords(gGeoManager->GetCurrentPoint());
+    Point_t const last = vect::makePointFromCoords(gGeoManager->GetCurrentPoint());
     double const lastStep = (p2 - last).R();
     columnD += lastStep * node->GetMedium()->GetMaterial()->GetDensity();
 
@@ -1192,10 +1057,10 @@ namespace geo {
     std::ostringstream sstr;
     Print(sstr, indent);
     return sstr.str();
-  } // GeometryCore::Info()
+  }
 
   //......................................................................
-  std::vector<geo::WireID> GeometryCore::ChannelToWire(raw::ChannelID_t channel) const
+  std::vector<WireID> GeometryCore::ChannelToWire(raw::ChannelID_t channel) const
   {
     return fChannelMapAlg->ChannelToWire(channel);
   }
@@ -1204,42 +1069,23 @@ namespace geo {
   readout::ROPID GeometryCore::ChannelToROP(raw::ChannelID_t channel) const
   {
     return fChannelMapAlg->ChannelToROP(channel);
-  } // GeometryCore::ChannelToROP()
+  }
 
   //----------------------------------------------------------------------------
-  geo::Length_t GeometryCore::WireCoordinate(geo::Point_t const& pos,
-                                             geo::PlaneID const& planeid) const
+  Length_t GeometryCore::WireCoordinate(Point_t const& pos, PlaneID const& planeid) const
   {
     return Plane(planeid).WireCoordinate(pos);
   }
 
   //----------------------------------------------------------------------------
-  geo::WireID GeometryCore::NearestWireID(geo::Point_t const& worldPos,
-                                          geo::PlaneID const& planeid) const
+  WireID GeometryCore::NearestWireID(Point_t const& worldPos, PlaneID const& planeid) const
   {
     return Plane(planeid).NearestWireID(worldPos);
   }
 
   //----------------------------------------------------------------------------
-  raw::ChannelID_t GeometryCore::NearestChannel(const double worldPos[3],
-                                                geo::PlaneID const& planeid) const
-  {
-    return NearestChannel(geo::vect::makePointFromCoords(worldPos), planeid);
-  }
-
-  //----------------------------------------------------------------------------
-  raw::ChannelID_t GeometryCore::NearestChannel(std::vector<double> const& worldPos,
-                                                geo::PlaneID const& planeid) const
-  {
-    if (worldPos.size() > 3)
-      throw cet::exception("GeometryCore") << "bad size vector for "
-                                           << "worldPos: " << worldPos.size() << "\n";
-    return NearestChannel(worldPos.data(), planeid);
-  }
-
-  //----------------------------------------------------------------------------
-  raw::ChannelID_t GeometryCore::NearestChannel(geo::Point_t const& worldPos,
-                                                geo::PlaneID const& planeid) const
+  raw::ChannelID_t GeometryCore::NearestChannel(Point_t const& worldPos,
+                                                PlaneID const& planeid) const
   {
     // This method is supposed to return a channel number rather than
     //  a wire number.  Perform the conversion here (although, maybe
@@ -1252,9 +1098,9 @@ namespace geo {
     // The following implementation automatically becomes in fact compliant to
     // the documentation if upstreams becomes compliant to.
     // When that happens, just delete this comment.
-    geo::WireID const wireID = NearestWireID(worldPos, planeid);
+    WireID const wireID = NearestWireID(worldPos, planeid);
     return wireID ? PlaneWireToChannel(wireID) : raw::InvalidChannelID;
-  } // GeometryCore::NearestChannel()
+  }
 
   //--------------------------------------
   raw::ChannelID_t GeometryCore::PlaneWireToChannel(WireID const& wireid) const
@@ -1263,9 +1109,7 @@ namespace geo {
   }
 
   //......................................................................
-  void GeometryCore::WireEndPoints(geo::WireID const& wireid,
-                                   double* xyzStart,
-                                   double* xyzEnd) const
+  void GeometryCore::WireEndPoints(WireID const& wireid, double* xyzStart, double* xyzEnd) const
   {
     Segment_t result = WireEndPoints(wireid);
 
@@ -1288,7 +1132,7 @@ namespace geo {
       std::swap(xyzStart[1], xyzEnd[1]);
       std::swap(xyzStart[2], xyzEnd[2]);
     }
-  } // GeometryCore::WireEndPoints(WireID, 2x double*)
+  }
 
   //Changed to use WireIDsIntersect(). Apr, 2015 T.Yang
   //......................................................................
@@ -1299,13 +1143,13 @@ namespace geo {
   {
     // [GP] these errors should be exceptions, and this function is deprecated
     // because it violates interoperability
-    std::vector<geo::WireID> chan1wires = ChannelToWire(c1);
+    std::vector<WireID> chan1wires = ChannelToWire(c1);
     if (chan1wires.empty()) {
       mf::LogError("ChannelsIntersect")
         << "1st channel " << c1 << " maps to no wire (is it a real one?)";
       return false;
     }
-    std::vector<geo::WireID> chan2wires = ChannelToWire(c2);
+    std::vector<WireID> chan2wires = ChannelToWire(c2);
     if (chan2wires.empty()) {
       mf::LogError("ChannelsIntersect")
         << "2nd channel " << c2 << " maps to no wire (is it a real one?)";
@@ -1323,7 +1167,7 @@ namespace geo {
       return false;
     }
 
-    geo::WireIDIntersection widIntersect;
+    WireIDIntersection widIntersect;
     if (this->WireIDsIntersect(chan1wires[0], chan2wires[0], widIntersect)) {
       y = widIntersect.y;
       z = widIntersect.z;
@@ -1337,9 +1181,9 @@ namespace geo {
   }
 
   //......................................................................
-  bool GeometryCore::WireIDsIntersect(const geo::WireID& wid1,
-                                      const geo::WireID& wid2,
-                                      geo::WireIDIntersection& widIntersect) const
+  bool GeometryCore::WireIDsIntersect(const WireID& wid1,
+                                      const WireID& wid2,
+                                      WireIDIntersection& widIntersect) const
   {
     static_assert(std::numeric_limits<decltype(widIntersect.y)>::has_infinity,
                   "the vector coordinate type can't represent infinity!");
@@ -1347,7 +1191,7 @@ namespace geo {
 
     if (!WireIDIntersectionCheck(wid1, wid2)) {
       widIntersect.y = widIntersect.z = infinity;
-      widIntersect.TPC = geo::TPCID::InvalidID;
+      widIntersect.TPC = TPCID::InvalidID;
       return false;
     }
 
@@ -1357,43 +1201,42 @@ namespace geo {
 
     // TODO extract the coordinates in the right way;
     // is it any worth, since then the result is in (y, z), whatever it means?
-    bool const cross = IntersectLines(w1.start()[1],
-                                      w1.start()[2],
-                                      w1.end()[1],
-                                      w1.end()[2],
-                                      w2.start()[1],
-                                      w2.start()[2],
-                                      w2.end()[1],
-                                      w2.end()[2],
+    bool const cross = IntersectLines(w1.start().Y(),
+                                      w1.start().Z(),
+                                      w1.end().Y(),
+                                      w1.end().Z(),
+                                      w2.start().Y(),
+                                      w2.start().Z(),
+                                      w2.end().Y(),
+                                      w2.end().Z(),
                                       widIntersect.y,
                                       widIntersect.z);
     if (!cross) {
       widIntersect.y = widIntersect.z = infinity;
-      widIntersect.TPC = geo::TPCID::InvalidID;
+      widIntersect.TPC = TPCID::InvalidID;
       return false;
     }
-    bool const within = PointWithinSegments(w1.start()[1],
-                                            w1.start()[2],
-                                            w1.end()[1],
-                                            w1.end()[2],
-                                            w2.start()[1],
-                                            w2.start()[2],
-                                            w2.end()[1],
-                                            w2.end()[2],
-                                            widIntersect.y,
-                                            widIntersect.z);
+    bool const within = lar::util::PointWithinSegments(w1.start().Y(),
+                                                       w1.start().Z(),
+                                                       w1.end().Y(),
+                                                       w1.end().Z(),
+                                                       w2.start().Y(),
+                                                       w2.start().Z(),
+                                                       w2.end().Y(),
+                                                       w2.end().Z(),
+                                                       widIntersect.y,
+                                                       widIntersect.z);
 
-    widIntersect.TPC = (within ? wid1.TPC : geo::TPCID::InvalidID);
+    widIntersect.TPC = (within ? wid1.TPC : TPCID::InvalidID);
 
     // return whether the intersection is within the length of both wires
     return within;
-
-  } // GeometryCore::WireIDsIntersect(WireIDIntersection)
+  }
 
   //......................................................................
-  bool GeometryCore::WireIDsIntersect(const geo::WireID& wid1,
-                                      const geo::WireID& wid2,
-                                      geo::Point_t& intersection) const
+  bool GeometryCore::WireIDsIntersect(const WireID& wid1,
+                                      const WireID& wid2,
+                                      Point_t& intersection) const
   {
     //
     // This is not a real 3D intersection: the wires do not cross, since they
@@ -1412,12 +1255,12 @@ namespace geo {
       return false;
     }
 
-    geo::WireGeo const& wire1 = Wire(wid1);
-    geo::WireGeo const& wire2 = Wire(wid2);
+    WireGeo const& wire1 = Wire(wid1);
+    WireGeo const& wire2 = Wire(wid2);
 
     // distance of the intersection point from the center of the two wires:
-    geo::IntersectionPointAndOffsets<geo::Point_t> intersectionAndOffset =
-      geo::WiresIntersectionAndOffsets(wire1, wire2);
+    IntersectionPointAndOffsets<Point_t> intersectionAndOffset =
+      WiresIntersectionAndOffsets(wire1, wire2);
     intersection = intersectionAndOffset.point;
 
     bool const within = ((std::abs(intersectionAndOffset.offset1) <= wire1.HalfL()) &&
@@ -1425,22 +1268,10 @@ namespace geo {
 
     // return whether the intersection is within the length of both wires
     return within;
-
-  } // GeometryCore::WireIDsIntersect(Point3D_t)
-
-  //......................................................................
-  bool GeometryCore::WireIDsIntersect(const geo::WireID& wid1,
-                                      const geo::WireID& wid2,
-                                      TVector3& intersection) const
-  {
-    geo::Point_t p;
-    bool res = WireIDsIntersect(wid1, wid2, p);
-    intersection = geo::vect::toTVector3(p);
-    return res;
-  } // GeometryCore::WireIDsIntersect(TVector3)
+  }
 
   //----------------------------------------------------------------------------
-  geo::PlaneID GeometryCore::ThirdPlane(geo::PlaneID const& pid1, geo::PlaneID const& pid2) const
+  PlaneID GeometryCore::ThirdPlane(PlaneID const& pid1, PlaneID const& pid2) const
   {
     // how many planes in the TPC pid1 belongs to:
     const unsigned int nPlanes = Nplanes(pid1);
@@ -1449,8 +1280,8 @@ namespace geo {
         << "ThirdPlane() supports only TPCs with 3 planes, and I see " << nPlanes << " instead\n";
     }
 
-    geo::PlaneID::PlaneID_t target_plane = nPlanes;
-    for (geo::PlaneID::PlaneID_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
+    PlaneID::PlaneID_t target_plane = nPlanes;
+    for (PlaneID::PlaneID_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
       if ((iPlane == pid1.Plane) || (iPlane == pid2.Plane)) continue;
       if (target_plane != nPlanes) {
         throw cet::exception("GeometryCore")
@@ -1465,18 +1296,19 @@ namespace geo {
         << std::string(pid2) << "!\n";
     }
 
-    return geo::PlaneID(pid1, target_plane);
-  } // GeometryCore::ThirdPlane()
+    return PlaneID(pid1, target_plane);
+  }
 
-  double GeometryCore::ThirdPlaneSlope(geo::PlaneID const& pid1,
+  //----------------------------------------------------------------------------
+  double GeometryCore::ThirdPlaneSlope(PlaneID const& pid1,
                                        double slope1,
-                                       geo::PlaneID const& pid2,
+                                       PlaneID const& pid2,
                                        double slope2,
-                                       geo::PlaneID const& output_plane) const
+                                       PlaneID const& output_plane) const
   {
     CheckIndependentPlanesOnSameTPC(pid1, pid2, "ThirdPlaneSlope()");
 
-    geo::TPCGeo const& TPC = this->TPC(pid1);
+    TPCGeo const& TPC = this->TPC(pid1);
 
     // We need the "wire coordinate direction" for each plane.
     // This is perpendicular to the wire orientation.
@@ -1486,29 +1318,31 @@ namespace geo {
                                   TPC.Plane(pid2).PhiZ(),
                                   slope2,
                                   TPC.Plane(output_plane).PhiZ());
-  } // ThirdPlaneSlope()
+  }
 
-  double GeometryCore::ThirdPlaneSlope(geo::PlaneID const& pid1,
+  //----------------------------------------------------------------------------
+  double GeometryCore::ThirdPlaneSlope(PlaneID const& pid1,
                                        double slope1,
-                                       geo::PlaneID const& pid2,
+                                       PlaneID const& pid2,
                                        double slope2) const
   {
-    geo::PlaneID target_plane = ThirdPlane(pid1, pid2);
+    PlaneID target_plane = ThirdPlane(pid1, pid2);
     return ThirdPlaneSlope(pid1, slope1, pid2, slope2, target_plane);
-  } // ThirdPlaneSlope()
+  }
 
-  double GeometryCore::ThirdPlane_dTdW(geo::PlaneID const& pid1,
+  //----------------------------------------------------------------------------
+  double GeometryCore::ThirdPlane_dTdW(PlaneID const& pid1,
                                        double slope1,
-                                       geo::PlaneID const& pid2,
+                                       PlaneID const& pid2,
                                        double slope2,
-                                       geo::PlaneID const& output_plane) const
+                                       PlaneID const& output_plane) const
   {
     CheckIndependentPlanesOnSameTPC(pid1, pid2, "ThirdPlane_dTdW()");
 
-    geo::TPCGeo const& TPC = this->TPC(pid1);
+    TPCGeo const& TPC = this->TPC(pid1);
 
     double angle[3], pitch[3];
-    geo::PlaneGeo const* const planes[3] = {
+    PlaneGeo const* const planes[3] = {
       &TPC.Plane(pid1), &TPC.Plane(pid2), &TPC.Plane(output_plane)};
 
     // We need wire pitch and "wire coordinate direction" for each plane.
@@ -1517,22 +1351,23 @@ namespace geo {
     for (size_t i = 0; i < 3; ++i) {
       angle[i] = planes[i]->PhiZ();
       pitch[i] = planes[i]->WirePitch();
-    } // for
+    }
 
     return ComputeThirdPlane_dTdW(
       angle[0], pitch[0], slope1, angle[1], pitch[1], slope2, angle[2], pitch[2]);
+  }
 
-  } // GeometryCore::ThirdPlane_dTdW()
-
-  double GeometryCore::ThirdPlane_dTdW(geo::PlaneID const& pid1,
+  //----------------------------------------------------------------------------
+  double GeometryCore::ThirdPlane_dTdW(PlaneID const& pid1,
                                        double slope1,
-                                       geo::PlaneID const& pid2,
+                                       PlaneID const& pid2,
                                        double slope2) const
   {
-    geo::PlaneID target_plane = ThirdPlane(pid1, pid2);
+    PlaneID target_plane = ThirdPlane(pid1, pid2);
     return ThirdPlane_dTdW(pid1, slope1, pid2, slope2, target_plane);
-  } // ThirdPlane_dTdW()
+  }
 
+  //----------------------------------------------------------------------------
   // Given slopes dTime/dWire in two planes, return with the slope in the 3rd plane.
   // Requires slopes to be in the same metrics,
   // e.g. converted in a distances ratio.
@@ -1565,8 +1400,9 @@ namespace geo {
       slope3 = 999.;
 
     return slope3;
-  } // GeometryCore::ComputeThirdPlaneSlope()
+  }
 
+  //----------------------------------------------------------------------------
   double GeometryCore::ComputeThirdPlane_dTdW(double angle1,
                                               double pitch1,
                                               double dTdW1,
@@ -1583,7 +1419,7 @@ namespace geo {
     // the same.
     return pitch_target *
            ComputeThirdPlaneSlope(angle1, dTdW1 / pitch1, angle2, dTdW2 / pitch2, angle_target);
-  } // GeometryCore::ComputeThirdPlane_dTdW()
+  }
 
   //......................................................................
   // This function is called if it is determined that two wires in a single TPC must overlap.
@@ -1594,12 +1430,12 @@ namespace geo {
   // Mitch - Feb., 2011
   // Changed to use WireIDsIntersect(). It does not check whether the intersection is on both wires (the same as the old behavior). T. Yang - Apr, 2015
   //--------------------------------------------------------------------
-  bool GeometryCore::IntersectionPoint(geo::WireID const& wid1,
-                                       geo::WireID const& wid2,
+  bool GeometryCore::IntersectionPoint(WireID const& wid1,
+                                       WireID const& wid2,
                                        double& y,
                                        double& z) const
   {
-    geo::WireIDIntersection widIntersect;
+    WireIDIntersection widIntersect;
     bool const found = WireIDsIntersect(wid1, wid2, widIntersect);
     y = widIntersect.y;
     z = widIntersect.z;
@@ -1613,37 +1449,34 @@ namespace geo {
   unsigned int GeometryCore::NTPCsets(readout::CryostatID const& cryoid) const
   {
     return fChannelMapAlg->NTPCsets(cryoid);
-  } // GeometryCore::NTPCsets()
+  }
 
   //--------------------------------------------------------------------
-  unsigned int GeometryCore::MaxTPCsets() const
-  {
-    return fChannelMapAlg->MaxTPCsets();
-  } // GeometryCore::MaxTPCsets()
+  unsigned int GeometryCore::MaxTPCsets() const { return fChannelMapAlg->MaxTPCsets(); }
 
   //--------------------------------------------------------------------
   bool GeometryCore::HasTPCset(readout::TPCsetID const& tpcsetid) const
   {
     return fChannelMapAlg->HasTPCset(tpcsetid);
-  } // GeometryCore::HasTPCset()
+  }
 
   //--------------------------------------------------------------------
-  readout::TPCsetID GeometryCore::FindTPCsetAtPosition(double const worldLoc[3]) const
+  readout::TPCsetID GeometryCore::FindTPCsetAtPosition(Point_t const& worldLoc) const
   {
     return TPCtoTPCset(FindTPCAtPosition(worldLoc));
-  } // GeometryCore::FindTPCsetAtPosition()
+  }
 
   //--------------------------------------------------------------------
-  readout::TPCsetID GeometryCore::TPCtoTPCset(geo::TPCID const& tpcid) const
+  readout::TPCsetID GeometryCore::TPCtoTPCset(TPCID const& tpcid) const
   {
     return fChannelMapAlg->TPCtoTPCset(tpcid);
-  } // GeometryCore::TPCtoTPCset()
+  }
 
   //--------------------------------------------------------------------
-  std::vector<geo::TPCID> GeometryCore::TPCsetToTPCs(readout::TPCsetID const& tpcsetid) const
+  std::vector<TPCID> GeometryCore::TPCsetToTPCs(readout::TPCsetID const& tpcsetid) const
   {
     return fChannelMapAlg->TPCsetToTPCs(tpcsetid);
-  } // GeometryCore::TPCsetToTPCs()
+  }
 
   //============================================================================
   //===  Readout plane information
@@ -1652,62 +1485,59 @@ namespace geo {
   unsigned int GeometryCore::NROPs(readout::TPCsetID const& tpcsetid) const
   {
     return fChannelMapAlg->NROPs(tpcsetid);
-  } // GeometryCore::NROPs()
+  }
 
   //--------------------------------------------------------------------
-  unsigned int GeometryCore::MaxROPs() const
-  {
-    return fChannelMapAlg->MaxROPs();
-  } // GeometryCore::MaxROPs()
+  unsigned int GeometryCore::MaxROPs() const { return fChannelMapAlg->MaxROPs(); }
 
   //--------------------------------------------------------------------
   bool GeometryCore::HasROP(readout::ROPID const& ropid) const
   {
     return fChannelMapAlg->HasROP(ropid);
-  } // GeometryCore::HasROP()
+  }
 
   //--------------------------------------------------------------------
-  readout::ROPID GeometryCore::WirePlaneToROP(geo::PlaneID const& planeid) const
+  readout::ROPID GeometryCore::WirePlaneToROP(PlaneID const& planeid) const
   {
     return fChannelMapAlg->WirePlaneToROP(planeid);
-  } // GeometryCore::WirePlaneToROP()
+  }
 
   //--------------------------------------------------------------------
-  std::vector<geo::PlaneID> GeometryCore::ROPtoWirePlanes(readout::ROPID const& ropid) const
+  std::vector<PlaneID> GeometryCore::ROPtoWirePlanes(readout::ROPID const& ropid) const
   {
     return fChannelMapAlg->ROPtoWirePlanes(ropid);
-  } // GeometryCore::ROPtoWirePlanes()
+  }
 
   //--------------------------------------------------------------------
-  std::vector<geo::TPCID> GeometryCore::ROPtoTPCs(readout::ROPID const& ropid) const
+  std::vector<TPCID> GeometryCore::ROPtoTPCs(readout::ROPID const& ropid) const
   {
     return fChannelMapAlg->ROPtoTPCs(ropid);
-  } // GeometryCore::ROPtoTPCs()
+  }
 
   //--------------------------------------------------------------------
   raw::ChannelID_t GeometryCore::FirstChannelInROP(readout::ROPID const& ropid) const
   {
     return fChannelMapAlg->FirstChannelInROP(ropid);
-  } // GeometryCore::FirstChannelInROP()
+  }
 
   //--------------------------------------------------------------------
-  geo::View_t GeometryCore::View(readout::ROPID const& ropid) const
+  View_t GeometryCore::View(readout::ROPID const& ropid) const
   {
     return View(fChannelMapAlg->FirstWirePlaneInROP(ropid));
-  } // GeometryCore::View()
+  }
 
   //--------------------------------------------------------------------
-  geo::SigType_t GeometryCore::SignalType(readout::ROPID const& ropid) const
+  SigType_t GeometryCore::SignalType(readout::ROPID const& ropid) const
   {
     return fChannelMapAlg->SignalTypeForROPID(ropid);
-  } // GeometryCore::SignalType(ROPID)
+  }
 
   //============================================================================
   //--------------------------------------------------------------------
   // Return gdml string which gives sensitive opdet name
-  std::string GeometryCore::OpDetGeoName(unsigned int c) const
+  std::string GeometryCore::OpDetGeoName(CryostatID const& cid) const
   {
-    return Cryostat(c).OpDetGeoName();
+    return Cryostat(cid).OpDetGeoName();
   }
 
   //--------------------------------------------------------------------
@@ -1717,6 +1547,8 @@ namespace geo {
     static bool Loaded = false;
     static std::vector<unsigned int> LowestID;
     static unsigned int NCryo;
+
+    CryostatID const cid{c};
     // If not yet loaded static parameters, do it
     if (Loaded == false) {
 
@@ -1727,20 +1559,14 @@ namespace geo {
       LowestID.resize(NCryo + 1);
       LowestID.at(0) = 0;
       for (size_t cryo = 0; cryo != NCryo; ++cryo) {
-        LowestID.at(cryo + 1) = LowestID.at(cryo) + Cryostat(c).NOpDet();
+        LowestID.at(cryo + 1) = LowestID.at(cryo) + Cryostat(cid).NOpDet();
       }
     }
 
-    if ((c < NCryo) && (o < Cryostat(c).NOpDet())) { return LowestID.at(c) + o; }
-    else {
-      throw cet::exception("OpDetCryoToOpID Error")
-        << "Coordinates c=" << c << ", o=" << o << " out of range. Abort\n";
-    }
+    if ((c < NCryo) && (o < Cryostat(cid).NOpDet())) { return LowestID.at(c) + o; }
 
-    // if all is well, we never get to this point in the method
-    // but still a good idea to be sure to always return something.
-
-    return INT_MAX;
+    throw cet::exception("OpDetCryoToOpID Error")
+      << "Coordinates c=" << c << ", o=" << o << " out of range. Abort\n";
   }
 
   //--------------------------------------------------------------------
@@ -1765,7 +1591,7 @@ namespace geo {
       LowestID.resize(NCryo + 1);
       LowestID[0] = 0;
       for (size_t cryo = 0; cryo != NCryo; ++cryo) {
-        LowestID[cryo + 1] = LowestID[cryo] + Cryostat(cryo).NOpDet();
+        LowestID[cryo + 1] = LowestID[cryo] + Cryostat(CryostatID(cryo)).NOpDet();
       }
     }
 
@@ -1773,7 +1599,7 @@ namespace geo {
       if ((OpDet >= LowestID[i]) && (OpDet < LowestID[i + 1])) {
         int c = i;
         int o = OpDet - LowestID[i];
-        return this->Cryostat(c).OpDet(o);
+        return this->Cryostat(CryostatID(c)).OpDet(o);
       }
     }
     // If we made it here, we didn't find the right combination. abort
@@ -1782,23 +1608,16 @@ namespace geo {
 
   //--------------------------------------------------------------------
   // Find the closest OpChannel to this point, in the appropriate cryostat
-  unsigned int GeometryCore::GetClosestOpDet(geo::Point_t const& point) const
+  unsigned int GeometryCore::GetClosestOpDet(Point_t const& point) const
   {
-    geo::CryostatGeo const* cryo = PositionToCryostatPtr(point);
+    CryostatGeo const* cryo = PositionToCryostatPtr(point);
     if (!cryo) return std::numeric_limits<unsigned int>::max();
     int o = cryo->GetClosestOpDet(point);
     return OpDetFromCryo(o, cryo->ID().Cryostat);
   }
 
   //--------------------------------------------------------------------
-  // Find the closest OpChannel to this point, in the appropriate cryostat
-  unsigned int GeometryCore::GetClosestOpDet(double const* point) const
-  {
-    return GetClosestOpDet(geo::vect::makePointFromCoords(point));
-  }
-
-  //--------------------------------------------------------------------
-  bool GeometryCore::WireIDIntersectionCheck(const geo::WireID& wid1, const geo::WireID& wid2) const
+  bool GeometryCore::WireIDIntersectionCheck(const WireID& wid1, const WireID& wid2) const
   {
     if (wid1.asTPCID() != wid2) {
       mf::LogError("WireIDIntersectionCheck")
@@ -1823,11 +1642,19 @@ namespace geo {
       return false;
     }
     return true;
-  } // GeometryCore::WireIDIntersectionCheck()
+  }
 
   //--------------------------------------------------------------------
   //--- ROOTGeoNodeForwardIterator
   //---
+
+  ROOTGeoNodeForwardIterator::ROOTGeoNodeForwardIterator(TGeoNode const* start_node)
+  {
+    if (start_node) {
+      current_path.push_back({start_node, 0U});
+      reach_deepest_descendant();
+    }
+  }
 
   ROOTGeoNodeForwardIterator& ROOTGeoNodeForwardIterator::operator++()
   {
@@ -1849,7 +1676,7 @@ namespace geo {
     else
       current_path.pop_back(); // no sibling, it's time for mum
     return *this;
-  } // ROOTGeoNodeForwardIterator::operator++
+  }
 
   //--------------------------------------------------------------------
   std::vector<TGeoNode const*> ROOTGeoNodeForwardIterator::get_path() const
@@ -1860,27 +1687,16 @@ namespace geo {
                    node_path.begin(),
                    [](NodeInfo_t const& node_info) { return node_info.self; });
     return node_path;
-  } // ROOTGeoNodeForwardIterator::path()
+  }
 
   //--------------------------------------------------------------------
   void ROOTGeoNodeForwardIterator::reach_deepest_descendant()
   {
-    Node_t descendent = current_path.back().self;
+    TGeoNode const* descendent = current_path.back().self;
     while (descendent->GetNdaughters() > 0) {
       descendent = descendent->GetDaughter(0);
-      current_path.emplace_back(descendent, 0U);
-    } // while
-  }   // ROOTGeoNodeForwardIterator::reach_deepest_descendant()
-
-  //--------------------------------------------------------------------
-  void ROOTGeoNodeForwardIterator::init(TGeoNode const* start_node)
-  {
-    current_path.clear();
-    if (!start_node) return;
-    current_path.emplace_back(start_node, 0U);
-    reach_deepest_descendant();
-  } // ROOTGeoNodeForwardIterator::init()
-
-  //--------------------------------------------------------------------
+      current_path.push_back({descendent, 0U});
+    }
+  }
 
 } // namespace geo

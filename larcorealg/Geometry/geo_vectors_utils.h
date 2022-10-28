@@ -1268,8 +1268,8 @@ namespace geo {
     }
 
     /// Return cross product of two vectors
-    template <typename Vector>
-    constexpr auto dot(Vector const& a, Vector const& b)
+    template <typename Vector, typename OtherVector>
+    constexpr auto dot(Vector const& a, OtherVector const& b)
     {
       return a.Dot(b);
     }

@@ -322,7 +322,7 @@ namespace geo {
     //
     // find the cathode center
     //
-    geo::Point_t cathodeCenter = GetActiveVolumeCenter<geo::Point_t>();
+    geo::Point_t cathodeCenter = GetActiveVolumeCenter();
     switch (DetectDriftDirection()) {
     case -1:
       geo::vect::Xcoord(cathodeCenter) += ActiveHalfWidth();
@@ -435,7 +435,7 @@ namespace geo {
                   toWorldCoords(LocalPoint_t(+HalfWidth(), +HalfHeight(), +HalfLength())));
 
     // the center of the active volume may be elsewhere than the local origin:
-    auto const& activeCenter = GetActiveVolumeCenter<geo::Point_t>();
+    auto const& activeCenter = GetActiveVolumeCenter();
     fActiveBox.SetBoundaries(activeCenter.X() - ActiveHalfWidth(),
                              activeCenter.X() + ActiveHalfWidth(),
                              activeCenter.Y() - ActiveHalfHeight(),
@@ -472,9 +472,9 @@ namespace geo {
      */
     fPlaneLocation.resize(fPlanes.size());
     fPlane0Pitch.resize(Nplanes(), 0.);
-    geo::Point_t refPlaneCenter = fPlanes[0].GetCenter<geo::Point_t>();
+    geo::Point_t refPlaneCenter = fPlanes[0].GetCenter();
     for (size_t p = 0; p < Nplanes(); ++p) {
-      geo::Point_t const& center = fPlanes[p].GetCenter<geo::Point_t>();
+      geo::Point_t const& center = fPlanes[p].GetCenter();
       fPlane0Pitch[p] =
         (p == 0) ? 0.0 : fPlane0Pitch[p - 1] + std::abs(center.X() - refPlaneCenter.X());
       fPlaneLocation[p].resize(3);

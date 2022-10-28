@@ -2,7 +2,7 @@
 #define LARCOREALG_GEOMETRY_DETAILS_GEOMETRY_ITERATORS_H
 
 // LArSoft libraries
-#include "larcorealg/Geometry/details/nSiblings.h"
+#include "larcorealg/Geometry/details/helpers.h"
 #include "larcorealg/Geometry/fwd.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
 #include "larcoreobj/SimpleTypesAndConstants/readout_types.h"
@@ -311,24 +311,24 @@ namespace geo::details {
 
     /// Constructor: points to the same element as the specified ID iterator.
     geometry_element_iterator(GeometryCore const* geo, id_iterator_t const& iter)
-      : geom{geo}, id_iter(iter)
+      : geom{geo}, id_iterator(iter)
     {}
 
     /// Constructor: points to the same element as the specified ID iterator.
     geometry_element_iterator(GeometryCore const* geo, id_iterator_t&& iter)
-      : geom{geo}, id_iter(iter)
+      : geom{geo}, id_iterator(iter)
     {}
 
     /// Constructor: points to the specified geometry element
     geometry_element_iterator(GeometryCore const* geo, GeoID_t const& start_from)
-      : geom{geo}, id_iter(geom, start_from)
+      : geom{geo}, id_iterator(geom, start_from)
     {}
 
     /// Returns true if the two iterators point to the same object
-    bool operator==(iterator const& as) const { return id_iterator() == as.id_iterator(); }
+    bool operator==(iterator const& as) const { return id_iterator == as.id_iterator; }
 
     /// Returns true if the two iterators point to different objects
-    bool operator!=(iterator const& as) const { return id_iterator() != as.id_iterator(); }
+    bool operator!=(iterator const& as) const { return id_iterator != as.id_iterator; }
 
     /**
        * @brief Returns the geometry element the iterator points to
@@ -350,7 +350,7 @@ namespace geo::details {
     /// Prefix increment: returns this iterator pointing to the next element
     iterator& operator++()
     {
-      ++id_iterator();
+      ++id_iterator;
       return *this;
     }
 
@@ -358,28 +358,22 @@ namespace geo::details {
     iterator operator++(int)
     {
       iterator old(*this);
-      ++id_iterator();
+      ++id_iterator;
       return old;
     }
 
     /// Returns whether the iterator is pointing to a valid geometry element
-    operator bool() const;
+    operator bool() const { return validElement(geom, *id_iterator); }
 
     /// Returns a pointer to the geometry element, or nullptr if invalid
-    ElementPtr_t get() const;
+    ElementPtr_t get() const { return getElementPtr(geom, *id_iterator); }
 
     /// Returns the ID of the pointed geometry element
-    LocalID_t const& ID() const { return *(id_iterator()); }
+    LocalID_t const& ID() const { return *id_iterator; }
 
   private:
-    //@{
-    /// Access to the base ID iterator
-    id_iterator_t const& id_iterator() const { return id_iter; }
-    id_iterator_t& id_iterator() { return id_iter; }
-    //@}
-
     geo::GeometryCore const* geom;
-    id_iterator_t id_iter;
+    id_iterator_t id_iterator;
   }; // class geometry_element_iterator<>
 
   // Element here supports types like CryostatGeo, etc.

@@ -16,9 +16,6 @@
 #include "larcorealg/TestUtils/NameSelector.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
 
-// ROOT
-#include "TVector3.h"
-
 // C/C++ standard libraries
 #include <array>
 #include <set>
@@ -222,8 +219,8 @@ namespace geo {
 
     /// Returns dT/dW expected from the specified segment A-to-B
     std::vector<std::pair<geo::PlaneID, double>> ExpectedPlane_dTdW(
-      std::array<double, 3> const& A,
-      std::array<double, 3> const& B,
+      geo::Point_t const& A,
+      geo::Point_t const& B,
       const double driftVelocity = -0.1) const;
 
     /// Performs the third plane slope test with a single configuration

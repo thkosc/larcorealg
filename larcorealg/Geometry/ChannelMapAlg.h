@@ -46,9 +46,7 @@ namespace geo {
    * methods still reminds of this.
    */
   class ChannelMapAlg {
-
   public:
-    /// Virtual destructor
     virtual ~ChannelMapAlg() = default;
 
     //--------------------------------------------------------------------------
@@ -93,7 +91,7 @@ namespace geo {
      * On any type of error (e.g., invalid or unknown channel ID),
      * geo::kMysteryType is returned.
      */
-    geo::SigType_t SignalTypeForChannel(raw::ChannelID_t const channel) const;
+    SigType_t SignalTypeForChannel(raw::ChannelID_t const channel) const;
 
   protected:
     /**
@@ -104,7 +102,7 @@ namespace geo {
      * On any type of error (e.g., invalid or unknown channel ID),
      * geo::kMysteryType is returned.
      */
-    virtual geo::SigType_t SignalTypeForChannelImpl(raw::ChannelID_t const channel) const = 0;
+    virtual SigType_t SignalTypeForChannelImpl(raw::ChannelID_t const channel) const = 0;
 
   public:
     /**
@@ -119,7 +117,7 @@ namespace geo {
      * The default implementation uses readout plane to channel mapping.
      * Other implementation may decide to do the opposite.
      */
-    geo::SigType_t SignalTypeForROPID(readout::ROPID const& ropid) const;
+    SigType_t SignalTypeForROPID(readout::ROPID const& ropid) const;
 
   protected:
     /**
@@ -134,11 +132,11 @@ namespace geo {
      * The default implementation uses readout plane to channel mapping.
      * Other implementation may decide to do the opposite.
      */
-    virtual geo::SigType_t SignalTypeForROPIDImpl(readout::ROPID const& ropid) const;
+    virtual SigType_t SignalTypeForROPIDImpl(readout::ROPID const& ropid) const;
 
   public:
     /// Returns a list of the plane IDs in the whole detector
-    virtual std::set<geo::PlaneID> const& PlaneIDs() const = 0;
+    virtual std::set<PlaneID> const& PlaneIDs() const = 0;
 
     /**
      * @brief Returns the channel ID a wire is connected to
@@ -148,7 +146,7 @@ namespace geo {
      *
      * Behaviour on an invalid or not present wires is undefined.
      */
-    virtual raw::ChannelID_t PlaneWireToChannel(geo::WireID const& wireID) const = 0;
+    virtual raw::ChannelID_t PlaneWireToChannel(WireID const& wireID) const = 0;
 
     /// @}
 
@@ -273,7 +271,7 @@ namespace geo {
      * The plane is required to be valid and exist in the detector. Otherwise,
      * the behaviour is undefined.
      */
-    virtual double WireCoordinate(double YPos, double ZPos, geo::PlaneID const& planeID) const = 0;
+    virtual double WireCoordinate(double YPos, double ZPos, PlaneID const& planeID) const = 0;
 
     /**
      * @brief Returns the ID of the wire nearest to the specified position
@@ -291,8 +289,7 @@ namespace geo {
      * In other words, the result can be trusted only as long as the position
      * is within the specified wire plane.
      */
-    virtual geo::WireID NearestWireID(const TVector3& worldPos,
-                                      geo::PlaneID const& planeID) const = 0;
+    virtual WireID NearestWireID(Point_t const& worldPos, PlaneID const& planeID) const = 0;
 
     /// @}
 
@@ -307,8 +304,8 @@ namespace geo {
      * @param tolerance tolerance for comparison. Default 0.
      * @return index of auxiliary detector within auxDets
      */
-    virtual size_t NearestAuxDet(const double* point,
-                                 std::vector<geo::AuxDetGeo> const& auxDets,
+    virtual size_t NearestAuxDet(Point_t const& point,
+                                 std::vector<AuxDetGeo> const& auxDets,
                                  double tolerance = 0) const;
 
     /**
@@ -318,8 +315,8 @@ namespace geo {
      * @param tolerance tolerance for comparison. Default 0.
      * @return index of sought sensitive auxiliary detector within auxDets
      */
-    virtual size_t NearestSensitiveAuxDet(const double* point,
-                                          std::vector<geo::AuxDetGeo> const& auxDets,
+    virtual size_t NearestSensitiveAuxDet(Point_t const& point,
+                                          std::vector<AuxDetGeo> const& auxDets,
                                           double tolerance = 0) const;
 
     /**
@@ -333,7 +330,7 @@ namespace geo {
      *      in the arguments and instead relies on a cache that is never filled
      *      by this class (derived classes can fill it though).
      */
-    virtual size_t ChannelToAuxDet(std::vector<geo::AuxDetGeo> const& auxDets,
+    virtual size_t ChannelToAuxDet(std::vector<AuxDetGeo> const& auxDets,
                                    std::string const& detName,
                                    uint32_t const& channel) const;
 
@@ -345,7 +342,7 @@ namespace geo {
      * @return index of the sought sensitive auxiliary detector within auxDets
      */
     virtual std::pair<size_t, size_t> ChannelToSensitiveAuxDet(
-      std::vector<geo::AuxDetGeo> const& auxDets,
+      std::vector<AuxDetGeo> const& auxDets,
       std::string const& detName,
       uint32_t const& channel) const;
 
@@ -369,7 +366,7 @@ namespace geo {
     virtual bool HasTPCset(readout::TPCsetID const& tpcsetid) const = 0;
 
     /// Returns the ID of the TPC set tpcid belongs to
-    virtual readout::TPCsetID TPCtoTPCset(geo::TPCID const& tpcid) const = 0;
+    virtual readout::TPCsetID TPCtoTPCset(TPCID const& tpcid) const = 0;
 
     /**
      * @brief Returns a list of ID of TPCs belonging to the specified TPC set
@@ -381,10 +378,10 @@ namespace geo {
      * exists. Check the existence of the TPC set first (HasTPCset()).
      * Behaviour on valid, non-existent TPC set IDs is undefined.
      */
-    virtual std::vector<geo::TPCID> TPCsetToTPCs(readout::TPCsetID const& tpcsetid) const = 0;
+    virtual std::vector<TPCID> TPCsetToTPCs(readout::TPCsetID const& tpcsetid) const = 0;
 
     /// Returns the ID of the first TPC belonging to the specified TPC set
-    virtual geo::TPCID FirstTPCinTPCset(readout::TPCsetID const& tpcsetid) const = 0;
+    virtual TPCID FirstTPCinTPCset(readout::TPCsetID const& tpcsetid) const = 0;
 
     /// @} TPC set mapping
 
@@ -408,13 +405,13 @@ namespace geo {
     virtual bool HasROP(readout::ROPID const& ropid) const = 0;
 
     /// Returns the ID of the ROP planeid belongs to
-    virtual readout::ROPID WirePlaneToROP(geo::PlaneID const& planeid) const = 0;
+    virtual readout::ROPID WirePlaneToROP(PlaneID const& planeid) const = 0;
 
     /// Returns a list of ID of planes belonging to the specified ROP
-    virtual std::vector<geo::PlaneID> ROPtoWirePlanes(readout::ROPID const& ropid) const = 0;
+    virtual std::vector<PlaneID> ROPtoWirePlanes(readout::ROPID const& ropid) const = 0;
 
     /// Returns the ID of the first plane belonging to the specified ROP
-    virtual geo::PlaneID FirstWirePlaneInROP(readout::ROPID const& ropid) const = 0;
+    virtual PlaneID FirstWirePlaneInROP(readout::ROPID const& ropid) const = 0;
 
     /**
      * @brief Returns a list of ID of TPCs the specified ROP spans
@@ -426,7 +423,7 @@ namespace geo {
      * the ID actually exists. Check if the ROP exists with HasROP().
      * The behaviour on non-existing readout planes is undefined.
      */
-    virtual std::vector<geo::TPCID> ROPtoTPCs(readout::ROPID const& ropid) const = 0;
+    virtual std::vector<TPCID> ROPtoTPCs(readout::ROPID const& ropid) const = 0;
 
     /**
      * @brief Returns the ID of the ROP the channel belongs to
@@ -455,20 +452,20 @@ namespace geo {
 
     //--------------------------------------------------------------------------
     /// Returns the object to sort geometry with
-    virtual geo::GeoObjectSorter const& Sorter() const = 0;
+    virtual GeoObjectSorter const& Sorter() const = 0;
 
     //--------------------------------------------------------------------------
     /// @{
     /// @name Testing (not in the interface)
 
     /// Retrieve the private fFirstChannelInNextPlane vector for testing.
-    const std::vector<std::vector<std::vector<raw::ChannelID_t>>> FirstChannelInNextPlane() const
+    std::vector<std::vector<std::vector<raw::ChannelID_t>>> const& FirstChannelInNextPlane() const
     {
       return fFirstChannelInThisPlane;
     }
 
     /// Retrieve the private fFirstChannelInThisPlane vector for testing.
-    const std::vector<std::vector<std::vector<raw::ChannelID_t>>> FirstChannelInThisPlane() const
+    std::vector<std::vector<std::vector<raw::ChannelID_t>>> const& FirstChannelInThisPlane() const
     {
       return fFirstChannelInNextPlane;
     }
@@ -508,14 +505,14 @@ namespace geo {
 
     /// Returns the specified element of the TPC map
     template <typename T>
-    T const& AccessElement(TPCInfoMap_t<T> const& map, geo::TPCID const& id) const
+    T const& AccessElement(TPCInfoMap_t<T> const& map, TPCID const& id) const
     {
       return map[id.Cryostat][id.TPC];
     }
 
     /// Returns the number of elements in the specified cryostat of the TPC map
     template <typename T>
-    size_t AccessElementSize(TPCInfoMap_t<T> const& map, geo::CryostatID const& id) const
+    size_t AccessElementSize(TPCInfoMap_t<T> const& map, CryostatID const& id) const
     {
       return map[id.Cryostat].size();
     }
@@ -523,12 +520,12 @@ namespace geo {
     //@{
     /// Returns whether the ID specifies a valid entry
     template <typename T>
-    bool isValidElement(TPCInfoMap_t<T> const& map, geo::CryostatID const& id) const
+    bool isValidElement(TPCInfoMap_t<T> const& map, CryostatID const& id) const
     {
       return id.Cryostat < map.size();
     }
     template <typename T>
-    bool isValidElement(TPCInfoMap_t<T> const& map, geo::TPCID const& id) const
+    bool isValidElement(TPCInfoMap_t<T> const& map, TPCID const& id) const
     {
       return isValidElement(map, id.asCryostatID()) && (id.TPC < map[id.Cryostat].size());
     }
@@ -536,14 +533,14 @@ namespace geo {
 
     /// Returns the specified element of the plane map
     template <typename T>
-    T const& AccessElement(PlaneInfoMap_t<T> const& map, geo::PlaneID const& id) const
+    T const& AccessElement(PlaneInfoMap_t<T> const& map, PlaneID const& id) const
     {
       return map[id.Cryostat][id.TPC][id.Plane];
     }
 
     /// Returns the number of elements in the specified TPC of the plane map
     template <typename T>
-    size_t AccessElementSize(PlaneInfoMap_t<T> const& map, geo::TPCID const& id) const
+    size_t AccessElementSize(PlaneInfoMap_t<T> const& map, TPCID const& id) const
     {
       return map[id.Cryostat][id.TPC].size();
     }
@@ -551,17 +548,17 @@ namespace geo {
     //@{
     /// Returns whether the ID specifies a valid entry
     template <typename T>
-    bool isValidElement(PlaneInfoMap_t<T> const& map, geo::CryostatID const& id) const
+    bool isValidElement(PlaneInfoMap_t<T> const& map, CryostatID const& id) const
     {
       return id.Cryostat < map.size();
     }
     template <typename T>
-    bool isValidElement(PlaneInfoMap_t<T> const& map, geo::TPCID const& id) const
+    bool isValidElement(PlaneInfoMap_t<T> const& map, TPCID const& id) const
     {
       return isValidElement(map, id.asCryostatID()) && (id.TPC < map[id.Cryostat].size());
     }
     template <typename T>
-    bool isValidElement(PlaneInfoMap_t<T> const& map, geo::PlaneID const& id) const
+    bool isValidElement(PlaneInfoMap_t<T> const& map, PlaneID const& id) const
     {
       return isValidElement(map, id.asTPCID()) && (id.Plane < AccessSize(map, id.asTPCID()));
     }
@@ -569,7 +566,7 @@ namespace geo {
 
     /// Returns a pointer to the specified element, or nullptr if invalid
     template <typename T>
-    T const* GetElementPtr(PlaneInfoMap_t<T> const& map, geo::PlaneID const& id) const
+    T const* GetElementPtr(PlaneInfoMap_t<T> const& map, PlaneID const& id) const
     {
       if (id.Cryostat >= map.size()) return nullptr;
       auto const& cryo_map = map[id.Cryostat];

@@ -64,79 +64,70 @@ namespace geo {
   }
 
   //----------------------------------------------------------------------------
-  size_t ChannelMapAlg::NearestAuxDet(const double* point,
+  size_t ChannelMapAlg::NearestAuxDet(Point_t const& point,
                                       std::vector<geo::AuxDetGeo> const& auxDets,
                                       double tolerance) const
   {
-    double HalfCenterWidth = 0.;
-    double localPoint[3] = {0.};
-
     for (size_t a = 0; a < auxDets.size(); ++a) {
+      auto const localPoint = auxDets[a].toLocalCoords(point);
 
-      auxDets[a].WorldToLocal(point, localPoint);
+      double const HalfCenterWidth = 0.5 * (auxDets[a].HalfWidth1() + auxDets[a].HalfWidth2());
 
-      HalfCenterWidth = 0.5 * (auxDets[a].HalfWidth1() + auxDets[a].HalfWidth2());
-
-      if (localPoint[2] >= -(auxDets[a].Length() / 2 + tolerance) &&
-          localPoint[2] <= (auxDets[a].Length() / 2 + tolerance) &&
-          localPoint[1] >= -auxDets[a].HalfHeight() - tolerance &&
-          localPoint[1] <= auxDets[a].HalfHeight() + tolerance &&
+      if (localPoint.Z() >= -(auxDets[a].Length() / 2 + tolerance) &&
+          localPoint.Z() <= (auxDets[a].Length() / 2 + tolerance) &&
+          localPoint.Y() >= -auxDets[a].HalfHeight() - tolerance &&
+          localPoint.Y() <= auxDets[a].HalfHeight() + tolerance &&
           // if AuxDet a is a box, then HalfSmallWidth = HalfWidth
-          localPoint[0] >= -HalfCenterWidth +
-                             localPoint[2] * (HalfCenterWidth - auxDets[a].HalfWidth2()) /
-                               (0.5 * auxDets[a].Length()) -
-                             tolerance &&
-          localPoint[0] <= HalfCenterWidth -
-                             localPoint[2] * (HalfCenterWidth - auxDets[a].HalfWidth2()) /
-                               (0.5 * auxDets[a].Length()) +
-                             tolerance)
+          localPoint.X() >= -HalfCenterWidth +
+                              localPoint.Z() * (HalfCenterWidth - auxDets[a].HalfWidth2()) /
+                                (0.5 * auxDets[a].Length()) -
+                              tolerance &&
+          localPoint.X() <= HalfCenterWidth -
+                              localPoint.Z() * (HalfCenterWidth - auxDets[a].HalfWidth2()) /
+                                (0.5 * auxDets[a].Length()) +
+                              tolerance)
         return a;
 
     } // for loop over AudDet a
 
     // throw an exception because we couldn't find the sensitive volume
-    throw cet::exception("ChannelMap") << "Can't find AuxDet for position (" << point[0] << ","
-                                       << point[1] << "," << point[2] << ")\n";
+    throw cet::exception("ChannelMap") << "Can't find AuxDet for position (" << point.X() << ","
+                                       << point.Y() << "," << point.Z() << ")\n";
   }
 
   //----------------------------------------------------------------------------
-  size_t ChannelMapAlg::NearestSensitiveAuxDet(const double* point,
+  size_t ChannelMapAlg::NearestSensitiveAuxDet(Point_t const& point,
                                                std::vector<geo::AuxDetGeo> const& auxDets,
                                                double tolerance) const
   {
-    double HalfCenterWidth = 0.;
-    double localPoint[3] = {0.};
-
-    size_t auxDetIdx = this->NearestAuxDet(point, auxDets, tolerance);
-
+    size_t auxDetIdx = NearestAuxDet(point, auxDets, tolerance);
     geo::AuxDetGeo const& adg = auxDets[auxDetIdx];
 
     for (size_t a = 0; a < adg.NSensitiveVolume(); ++a) {
-
       geo::AuxDetSensitiveGeo const& adsg = adg.SensitiveVolume(a);
-      adsg.WorldToLocal(point, localPoint);
+      auto const localPoint = adsg.toLocalCoords(point);
 
-      HalfCenterWidth = 0.5 * (adsg.HalfWidth1() + adsg.HalfWidth2());
+      double const HalfCenterWidth = 0.5 * (adsg.HalfWidth1() + adsg.HalfWidth2());
 
-      if (localPoint[2] >= -(adsg.Length() / 2 + tolerance) &&
-          localPoint[2] <= (adsg.Length() / 2 + tolerance) &&
-          localPoint[1] >= -adsg.HalfHeight() - tolerance &&
-          localPoint[1] <= adsg.HalfHeight() + tolerance &&
+      if (localPoint.Z() >= -(adsg.Length() / 2 + tolerance) &&
+          localPoint.Z() <= (adsg.Length() / 2 + tolerance) &&
+          localPoint.Y() >= -adsg.HalfHeight() - tolerance &&
+          localPoint.Y() <= adsg.HalfHeight() + tolerance &&
           // if AuxDet a is a box, then HalfSmallWidth = HalfWidth
-          localPoint[0] >=
+          localPoint.X() >=
             -HalfCenterWidth +
-              localPoint[2] * (HalfCenterWidth - adsg.HalfWidth2()) / (0.5 * adsg.Length()) -
+              localPoint.Z() * (HalfCenterWidth - adsg.HalfWidth2()) / (0.5 * adsg.Length()) -
               tolerance &&
-          localPoint[0] <=
+          localPoint.X() <=
             HalfCenterWidth -
-              localPoint[2] * (HalfCenterWidth - adsg.HalfWidth2()) / (0.5 * adsg.Length()) +
+              localPoint.Z() * (HalfCenterWidth - adsg.HalfWidth2()) / (0.5 * adsg.Length()) +
               tolerance)
         return a;
     } // for loop over AuxDetSensitive a
 
     // throw an exception because we couldn't find the sensitive volume
-    throw cet::exception("Geometry") << "Can't find AuxDetSensitive for position (" << point[0]
-                                     << "," << point[1] << "," << point[2] << ")\n";
+    throw cet::exception("Geometry") << "Can't find AuxDetSensitive for position (" << point.X()
+                                     << "," << point.Y() << "," << point.Z() << ")\n";
   }
 
   //----------------------------------------------------------------------------

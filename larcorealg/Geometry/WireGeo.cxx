@@ -111,7 +111,7 @@ namespace geo {
     // (if we did, we would do a dot-product with the normal to the plane,
     // and we should get a positive distance if the other wire has larger wire
     // coordinate than this one).
-    return toWire.Cross(Direction()).Mag();
+    return toWire.Cross(Direction()).R();
 
   } // WireGeo::DistanceFrom()
 

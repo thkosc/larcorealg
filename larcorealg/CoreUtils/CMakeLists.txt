@@ -1,6 +1,7 @@
 cet_make_library(SOURCE
   makeValueIndex.h
   DebugUtils.cxx
+  NumericUtils.cxx
   SortByPointers.h
   LIBRARIES PUBLIC
   cetlib_except::cetlib_except

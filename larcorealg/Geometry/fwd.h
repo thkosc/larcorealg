@@ -9,6 +9,7 @@ namespace geo {
   class OpDetGeo;
   class PlaneGeo;
   class TPCGeo;
+  class WireGeo;
 }
 
 #endif // LARCOREALG_GEOMETRY_FWD_H

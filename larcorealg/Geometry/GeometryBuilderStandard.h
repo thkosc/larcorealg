@@ -27,6 +27,7 @@
 #include "TGeoNode.h"
 
 // C++ standard library
+#include <functional>
 #include <limits> // std::numeric_limits<>
 #include <string_view>
 
@@ -348,53 +349,13 @@ namespace geo {
     /// @}
     // --- END Wire information ------------------------------------------------
 
-    // --- BEGIN Note type identification --------------------------------------
-    /**
-     * @name Node type identification
-     *
-     * These are implementation details of `doExtractGeometryObjects()` and its
-     * users. They can be made virtual if the needs arises.
-     */
-    /// @{
-    /// Returns whether the specified node is recognised as auxiliary detector.
-    bool isAuxDetNode(TGeoNode const& node) const;
-
-    /// Returns whether the specified node is recognised as sensitive volume of
-    /// auxiliary detector.
-    bool isAuxDetSensitiveNode(TGeoNode const& node) const;
-
-    /// Returns whether the specified node is recognised as a cryostat.
-    bool isCryostatNode(TGeoNode const& node) const;
-
-    /// Returns whether the specified node is recognised as a optical detector.
-    bool isOpDetNode(TGeoNode const& node) const;
-
-    /// Returns whether the specified node is recognised as a TPC.
-    bool isTPCNode(TGeoNode const& node) const;
-
-    /// Returns whether the specified node is recognised as a wire plane.
-    bool isPlaneNode(TGeoNode const& node) const;
-
-    /// Returns whether the specified node is recognised as a wire.
-    bool isWireNode(TGeoNode const& node) const;
-
-    /// @}
-    // --- END Note type identification ----------------------------------------
-
-    /// Returns whether the start of `s` matches the full `key`.
-    /// @note Remove this when C++20 is adopted (`s.starts_with(key)`).
-    static bool starts_with(std::string_view const& s, std::string_view const& key)
-    {
-      return s.compare(0, key.size(), key) == 0;
-    }
-
   private:
     /**
      * @brief Boilerplate implementation of `doExtractXxxx()` methods.
      * @tparam ObjGeo the geometry object being extracted (e.g. `geo::WireGeo`)
-     * @tparam IsObj function to identify if a node is of the right type
-     * @tparam MakeObj class method creating the target object from a path
      * @param path the path to the node describing the object
+     * @param IsObj function to identify if a node is of the right type
+     * @param MakeObj class method creating the target object from a path
      * @return a fully constructed object of type `ObjGeo`
      *
      * This implementation first evaluates if the current node in the specified
@@ -405,10 +366,11 @@ namespace geo {
      *
      * @note Multithreading note: `path` is allowed to change during processing.
      */
-    template <typename ObjGeo,
-              bool (geo::GeometryBuilderStandard::*IsObj)(TGeoNode const&) const,
-              ObjGeo (geo::GeometryBuilderStandard::*MakeObj)(Path_t&)>
-    GeoColl_t<ObjGeo> doExtractGeometryObjects(Path_t& path);
+    template <typename ObjGeo>
+    GeoColl_t<ObjGeo> doExtractGeometryObjects(
+      Path_t& path,
+      std::function<bool(TGeoNode const&)> IsObj,
+      ObjGeo (geo::GeometryBuilderStandard::*MakeObj)(Path_t&));
 
   }; // class GeometryBuilderStandard
 

@@ -27,20 +27,7 @@ namespace geo {
     : fTrans(std::move(trans))
   {
     fOpDetNode = &node;
-
     fCenter = toWorldCoords(geo::origin<LocalPoint_t>());
-  }
-
-  //......................................................................
-
-  /// Return the center position of an opdet
-  /// \param xyz : 3-D array. The returned location.
-  /// \param localz : Distance along the length of the volume
-  /// (cm). Default is center of wire
-  void OpDetGeo::GetCenter(double* xyz, double localz) const
-  {
-    double xyzLocal[3] = {0., 0., localz};
-    this->LocalToWorld(xyzLocal, xyz);
   }
 
   //......................................................................
@@ -48,12 +35,8 @@ namespace geo {
   double OpDetGeo::RMax() const
   {
     if (TGeoSphere const* sphere = asSphere(); sphere) { return sphere->GetRmax(); }
-    else if (TGeoTube const* tube = asTube(); tube) {
-      return tube->GetRmax();
-    }
-    else {
-      throw std::bad_cast{};
-    }
+    if (TGeoTube const* tube = asTube(); tube) { return tube->GetRmax(); }
+    throw std::bad_cast{};
   }
 
   //......................................................................
@@ -85,12 +68,8 @@ namespace geo {
   double OpDetGeo::RMin() const
   {
     if (TGeoSphere const* sphere = asSphere(); sphere) { return sphere->GetRmin(); }
-    else if (TGeoTube const* tube = asTube(); tube) {
-      return tube->GetRmin();
-    }
-    else {
-      throw std::bad_cast{};
-    }
+    if (TGeoTube const* tube = asTube(); tube) { return tube->GetRmin(); }
+    throw std::bad_cast{};
   }
 
   //......................................................................
@@ -120,10 +99,6 @@ namespace geo {
   {
     return (point - GetCenter()).R();
   }
-  double OpDetGeo::DistanceToPoint(double const* xyz) const
-  {
-    return DistanceToPoint(geo::vect::makeFromCoords<geo::Point_t>(xyz));
-  }
 
   //......................................................................
   std::string OpDetGeo::OpDetInfo(std::string indent /* = "" */,
@@ -132,7 +107,7 @@ namespace geo {
     std::ostringstream sstr;
     PrintOpDetInfo(sstr, indent, verbosity);
     return sstr.str();
-  } // OpDetGeo::OpDetInfo()
+  }
 
   //......................................................................
   double OpDetGeo::CosThetaFromNormal(geo::Point_t const& point) const
@@ -140,20 +115,9 @@ namespace geo {
     auto const& local = toLocalCoords(point);
     return local.Z() / local.R();
   }
-  double OpDetGeo::CosThetaFromNormal(double const* xyz) const
-  {
-    return CosThetaFromNormal(geo::vect::makeFromCoords<geo::Point_t>(xyz));
-  }
 
   //......................................................................
-  void OpDetGeo::UpdateAfterSorting(geo::OpDetID opdetid)
-  {
-
-    fID = opdetid;
-
-  } // OpDetGeo::UpdateAfterSorting()
-
-  //......................................................................
+  void OpDetGeo::UpdateAfterSorting(geo::OpDetID opdetid) { fID = opdetid; }
 
 }
 ////////////////////////////////////////////////////////////////////////

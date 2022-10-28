@@ -69,7 +69,6 @@ namespace geo {
     /// Returns the geometry ID of this optical detector.
     geo::OpDetID const& ID() const { return fID; }
 
-    void GetCenter(double* xyz, double localz = 0.0) const;
     geo::Point_t const& GetCenter() const { return fCenter; }
     double RMin() const;
     double RMax() const;
@@ -88,12 +87,10 @@ namespace geo {
     //@{
     /// Get cos(angle) to normal of this detector - used for solid angle calcs
     double CosThetaFromNormal(geo::Point_t const& point) const;
-    double CosThetaFromNormal(double const* xyz) const;
     //@}
     //@{
     /// Returns the distance of the specified point from detector center [cm]
     double DistanceToPoint(geo::Point_t const& point) const;
-    double DistanceToPoint(double const* xyz) const;
     //@}
 
     /// @{
@@ -106,21 +103,9 @@ namespace geo {
      */
 
     /// Transform point from local optical detector frame to world frame.
-    void LocalToWorld(const double* opdet, double* world) const
-    {
-      fTrans.LocalToWorld(opdet, world);
-    }
-
-    /// Transform point from local optical detector frame to world frame.
     geo::Point_t toWorldCoords(LocalPoint_t const& local) const
     {
       return fTrans.toWorldCoords(local);
-    }
-
-    /// Transform direction vector from local to world.
-    void LocalToWorldVect(const double* opdet, double* world) const
-    {
-      fTrans.LocalToWorldVect(opdet, world);
     }
 
     /// Transform direction vector from local to world.
@@ -130,21 +115,9 @@ namespace geo {
     }
 
     /// Transform point from world frame to local optical detector frame.
-    void WorldToLocal(const double* world, double* opdet) const
-    {
-      fTrans.WorldToLocal(world, opdet);
-    }
-
-    /// Transform point from world frame to local optical detector frame.
     LocalPoint_t toLocalCoords(geo::Point_t const& world) const
     {
       return fTrans.toLocalCoords(world);
-    }
-
-    /// Transform direction vector from world to local.
-    void WorldToLocalVect(const double* world, double* opdet) const
-    {
-      fTrans.WorldToLocalVect(world, opdet);
     }
 
     /// Transform direction vector from world to local.

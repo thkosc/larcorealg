@@ -47,9 +47,6 @@
 // Framework and infrastructure libraries
 #include "fhiclcpp/ParameterSet.h"
 
-// ROOT libraries
-#include "TVector3.h"
-
 // C/C++ standard libraries
 #include <cstddef>  // size_t
 #include <iterator> // std::forward_iterator_tag
@@ -65,80 +62,6 @@ class TGeoManager;
 class TGeoNode;
 class TGeoVolume;
 class TGeoMaterial;
-
-namespace unrelated {
-  // Functions to allow determination if two wires intersect, and if so where.
-  // This is useful information during 3D reconstruction.
-  //......................................................................
-  bool ValueInRange(double value, double min, double max);
-
-  // The following functions are utilized to determine if two wires
-  // in the TPC intersect or not, and if they do then
-  // determine the coordinates of the intersection.
-
-  /**
-     * @brief Computes the intersection between two lines on a plane
-     * @param A_start_x x coordinate of one point of the first segment
-     * @param A_start_y y coordinate of one point of the first segment
-     * @param A_end_x x coordinate of another point of the first segment
-     * @param A_end_y y coordinate of another point of the first segment
-     * @param B_start_x x coordinate of one point of the second segment
-     * @param B_start_y y coordinate of one point of the second segment
-     * @param B_end_x x coordinate of another point of the second segment
-     * @param B_end_y y coordinate of another point of the second segment
-     * @param x _(output)_ variable to store the x coordinate of intersection
-     * @param y _(output)_ variable to store the y coordinate of intersection
-     * @return whether intersection exists
-     *
-     * The order of the ends is not relevant.
-     * The return value is `false` if the two segments are parallel.
-     * In that case, `x` and `y` variables are not changed.
-     * Otherwise, they hold the intersection coordinate, even if the
-     * intersection point is beyond one or both the segments.
-     */
-  bool IntersectLines(double A_start_x,
-                      double A_start_y,
-                      double A_end_x,
-                      double A_end_y,
-                      double B_start_x,
-                      double B_start_y,
-                      double B_end_x,
-                      double B_end_y,
-                      double& x,
-                      double& y);
-
-  /**
-     * @brief Computes the intersection between two segments on a plane
-     * @param A_start_x x coordinate of the start of the first segment
-     * @param A_start_y y coordinate of the start of the first segment
-     * @param A_end_x x coordinate of the end of the first segment
-     * @param A_end_y y coordinate of the end of the first segment
-     * @param B_start_x x coordinate of the start of the second segment
-     * @param B_start_y y coordinate of the start of the second segment
-     * @param B_end_x x coordinate of the end of the second segment
-     * @param B_end_y y coordinate of the end of the second segment
-     * @param x _(output)_ variable to store the x coordinate of intersection
-     * @param y _(output)_ variable to store the y coordinate of intersection
-     * @return whether intersection exists and is on both segments
-     *
-     * The order of the ends is not relevant.
-     * The return value is `false` if the two segments are parallel, or if their
-     * intersection point is not on _both_ the segments.
-     * If the segments are parallel, x and y variables are not changed.
-     * Otherwise, they hold the intersection coordinate, even if the
-     * intersection point is beyond one or both the segments.
-     */
-  bool IntersectSegments(double A_start_x,
-                         double A_start_y,
-                         double A_end_x,
-                         double A_end_y,
-                         double B_start_x,
-                         double B_start_y,
-                         double B_end_x,
-                         double B_end_y,
-                         double& x,
-                         double& y);
-}
 
 /// Namespace collecting geometry-related classes utilities
 namespace geo {
@@ -202,9 +125,6 @@ namespace geo {
    *
    */
   class GeometryCore {
-    using DefaultVector_t = TVector3; ///< Default template argument.
-    using DefaultPoint_t = TVector3;  ///< Default template argument.
-
   public:
     /// Simple class with two points (a pair with aliases).
     template <typename Point>
@@ -221,7 +141,7 @@ namespace geo {
 
     }; // struct Segment_t
 
-    using Segment_t = Segment<DefaultPoint_t>;
+    using Segment_t = Segment<Point_t>;
 
     /// Type of list of cryostats
     using CryostatList_t = GeometryData_t::CryostatList_t;
@@ -239,10 +159,7 @@ namespace geo {
      * This constructor does not load any geometry description.
      * The next step is to do exactly that, by GeometryCore::LoadGeometryFile().
      */
-    GeometryCore(fhicl::ParameterSet const& pset);
-
-    /// Destructor
-    ~GeometryCore();
+    explicit GeometryCore(fhicl::ParameterSet const& pset);
 
     // this object is not copiable nor moveable (see also issue #14384);
     // currently, auxiliary detectors are stored as bare pointers,
@@ -366,7 +283,6 @@ namespace geo {
      * @todo Unify the coordinates type
      */
     std::string VolumeName(Point_t const& point) const;
-    std::string VolumeName(TVector3 const& point) const { return VolumeName(vect::toPoint(point)); }
     //@}
 
     /**
@@ -403,10 +319,6 @@ namespace geo {
      * @brief Name of the deepest material containing the point xyz
      * @return material of the origin by default
      */
-    std::string MaterialName(TVector3 const& point) const
-    {
-      return MaterialName(vect::toPoint(point));
-    }
     std::string MaterialName(Point_t const& point) const;
     //@}
 
@@ -431,7 +343,6 @@ namespace geo {
      * Both points are specified in world coordinates.
      */
     double MassBetweenPoints(Point_t const& p1, Point_t const& p2) const;
-    double MassBetweenPoints(double* p1, double* p2) const;
     //@}
 
     /// Prints geometry information with maximum verbosity.
@@ -557,11 +468,8 @@ namespace geo {
      *
      * @todo Make the cryostat number mandatory (as CryostatID)
      */
-    CryostatGeo const& Cryostat(CryostatID const& cryoid) const;
-    CryostatGeo const& Cryostat(unsigned int const cstat = 0) const
-    {
-      return Cryostat(CryostatID(cstat));
-    }
+    static constexpr CryostatID cryostat_zero{0};
+    CryostatGeo const& Cryostat(CryostatID const& cryoid = cryostat_zero) const;
     CryostatGeo const& GetElement(CryostatID const& cryoid) const { return Cryostat(cryoid); }
     //@}
 
@@ -624,12 +532,11 @@ namespace geo {
     /// @return whether the ID is actually valid (validity flag is also set)
     bool IncrementID(CryostatID& id) const; // inline implementation
 
-    /// Returns an iterator pointing to the first cryostat ID
-
     template <typename BaseID, typename GeoID>
     static constexpr bool is_base_of_strict{std::is_base_of<BaseID, GeoID>{} &&
                                             !std::is_same<BaseID, GeoID>{}};
 
+    // FIXME: Need Doxygen comments
     template <typename T>
     auto begin() const
     {
@@ -686,31 +593,6 @@ namespace geo {
       }
     }
 
-    // template <typename ID, typename BaseID>
-    // details::id_iterator<ID> begin_id(BaseID const& base_id) const
-    // {
-    //   return {this, GetBeginID<ID>(base_id)};
-    // }
-
-    // template <typename ID, typename BaseID>
-    // details::id_iterator<ID> end_id(BaseID const& base_id) const
-    // {
-    //   static_assert(is_base_of_strict<BaseID, ID>);
-    //   return {this, GetEndID<ID>(base_id)};
-    // }
-
-    // template <typename Element, typename BaseID>
-    // details::element_iterator_for<Element> begin(BaseID const& base_id) const
-    // {
-    //   return {this, begin_id<typename Element::ID_t>(base_id)};
-    // }
-
-    // template <typename Element, typename BaseID>
-    // details::element_iterator_for<Element> end(BaseID const& base_id) const
-    // {
-    //   return {this, end_id<typename Element::ID_t>(base_id)};
-    // }
-
     template <typename T>
     auto Iterate() const
     {
@@ -729,29 +611,17 @@ namespace geo {
 
     //@{
     /// Returns the half width of the cryostat (x direction)
-    Length_t CryostatHalfWidth(CryostatID const& cid) const;
-    Length_t CryostatHalfWidth(unsigned int cstat = 0) const
-    {
-      return CryostatHalfWidth(CryostatID(cstat));
-    }
+    Length_t CryostatHalfWidth(CryostatID const& cid = cryostat_zero) const;
     //@}
 
     //@{
     /// Returns the height of the cryostat (y direction)
-    Length_t CryostatHalfHeight(CryostatID const& cid) const;
-    Length_t CryostatHalfHeight(unsigned int cstat = 0) const
-    {
-      return CryostatHalfHeight(CryostatID(cstat));
-    }
+    Length_t CryostatHalfHeight(CryostatID const& cid = cryostat_zero) const;
     //@}
 
     //@{
     /// Returns the length of the cryostat (z direction)
-    Length_t CryostatLength(CryostatID const& cid) const;
-    Length_t CryostatLength(unsigned int cstat = 0) const
-    {
-      return CryostatLength(CryostatID(cstat));
-    }
+    Length_t CryostatLength(CryostatID const& cid = cryostat_zero) const;
     //@}
 
     //
@@ -770,10 +640,6 @@ namespace geo {
      * @todo What if it does not exist?
      */
     std::string GetCryostatVolumeName(CryostatID const& cid) const;
-    std::string GetCryostatVolumeName(unsigned int const cstat = 0) const
-    {
-      return GetCryostatVolumeName(CryostatID(cstat));
-    }
     //@}
 
     /// @} Cryostat access and information
@@ -784,16 +650,6 @@ namespace geo {
     //
     // group features
     //
-
-    /**
-     * @brief Returns the total number of TPCs in the specified cryostat
-     * @param cstat cryostat number
-     *
-     * @todo Make the cryostat number mandatory (as CryostatID)
-     * @todo Change return type to size_t
-     * @todo what happens if it does not exist?
-     */
-    unsigned int NTPC(unsigned int cstat = 0) const { return NTPC(CryostatID(cstat)); }
 
     /// Returns the largest number of TPCs a cryostat in the detector has
     unsigned int MaxTPCs() const;
@@ -871,7 +727,7 @@ namespace geo {
      *
      * @todo Change return type to size_t
      */
-    unsigned int NTPC(CryostatID const& cryoid) const
+    unsigned int NTPC(CryostatID const& cryoid = cryostat_zero) const
     {
       CryostatGeo const* pCryo = GetElementPtr(cryoid);
       return pCryo ? pCryo->NElements() : 0;
@@ -905,14 +761,9 @@ namespace geo {
      *
      * The GetElement() method is overloaded and its return depends on the type
      * of ID.
-     *
-     * @todo remove the version with integers
      */
-    TPCGeo const& TPC(unsigned int const tpc = 0, unsigned int const cstat = 0) const
-    {
-      return TPC(TPCID(cstat, tpc));
-    }
-    TPCGeo const& TPC(TPCID const& tpcid) const { return Cryostat(tpcid).TPC(tpcid); }
+    static constexpr TPCID tpc_zero{cryostat_zero, 0};
+    TPCGeo const& TPC(TPCID const& tpcid = tpc_zero) const { return Cryostat(tpcid).TPC(tpcid); }
     TPCGeo const& GetElement(TPCID const& tpcid) const { return TPC(tpcid); }
     //@}
 
@@ -933,16 +784,6 @@ namespace geo {
     TPCGeo const* GetElementPtr(TPCID const& tpcid) const { return TPCPtr(tpcid); }
     //@}
 
-    /**
-     * @brief Returns the ID of the TPC at specified location.
-     * @param worldLoc 3D coordinates of the point (world reference frame) [cm]
-     * @return the TPC ID, or an invalid one if no TPC is there
-     */
-    TPCID FindTPCAtPosition(double const worldLoc[3]) const
-    {
-      return FindTPCAtPosition(vect::makePointFromCoords(worldLoc));
-    }
-
     //@{
     /**
      * @brief Returns the ID of the TPC at specified location.
@@ -950,10 +791,6 @@ namespace geo {
      * @return the TPC ID, or an invalid one if no TPC is there
      */
     TPCID FindTPCAtPosition(Point_t const& point) const;
-    TPCID FindTPCAtPosition(TVector3 const& point) const
-    {
-      return FindTPCAtPosition(vect::toPoint(point));
-    }
     //@}
 
     /**
@@ -971,10 +808,6 @@ namespace geo {
      * @throws cet::exception ("Geometry" category) if no TPC matches
      */
     TPCGeo const& PositionToTPC(Point_t const& point) const;
-    TPCGeo const& PositionToTPC(double const point[3]) const
-    {
-      return PositionToTPC(vect::makePointFromCoords(point));
-    }
     //@}
 
     /**
@@ -1028,11 +861,7 @@ namespace geo {
      * @todo deprecate this function
      * @todo rename the function
      */
-    Length_t DetHalfWidth(TPCID const& tpcid) const;
-    Length_t DetHalfWidth(unsigned int tpc = 0, unsigned int cstat = 0) const
-    {
-      return DetHalfWidth(TPCID(cstat, tpc));
-    }
+    Length_t DetHalfWidth(TPCID const& tpcid = tpc_zero) const;
     //@}
 
     //@{
@@ -1051,11 +880,7 @@ namespace geo {
      * @todo deprecate this function
      * @todo rename the function
      */
-    Length_t DetHalfHeight(TPCID const& tpcid) const;
-    Length_t DetHalfHeight(unsigned int tpc = 0, unsigned int cstat = 0) const
-    {
-      return DetHalfHeight(TPCID(cstat, tpc));
-    }
+    Length_t DetHalfHeight(TPCID const& tpcid = tpc_zero) const;
     //@}
 
     //@{
@@ -1074,17 +899,12 @@ namespace geo {
      * @todo deprecate this function
      * @todo rename the function
      */
-    Length_t DetLength(TPCID const& tpcid) const;
-    Length_t DetLength(unsigned int tpc = 0, unsigned int cstat = 0) const
-    {
-      return DetLength(TPCID(cstat, tpc));
-    }
+    Length_t DetLength(TPCID const& tpcid = tpc_zero) const;
     //@}
 
     //@{
     /**
      * @brief Returns the center of side of the detector facing the beam.
-     * @tparam Point _(default: `DefaultPoint_t`)_ return this point type
      * @param tpcid ID of the TPC
      * @return position of center of TPC face toward the beam,
      *         in world coordinates [cm]
@@ -1093,37 +913,9 @@ namespace geo {
      * which faces the negative _z_ direction, the first that a beam following
      * the positive _z_ direction crosses.
      */
-    template <typename Point>
-    Point GetTPCFrontFaceCenter(TPCID const& tpcid) const
+    Point_t GetTPCFrontFaceCenter(TPCID const& tpcid) const
     {
-      return TPC(tpcid).GetFrontFaceCenter<Point>();
-    }
-    DefaultPoint_t GetTPCFrontFaceCenter(TPCID const& tpcid) const
-    {
-      return GetTPCFrontFaceCenter<DefaultPoint_t>(tpcid);
-    }
-    //@}
-
-    //@{
-    /**
-     * @brief Returns the center of side of the detector facing the beam.
-     * @tparam Point _(default: `DefaultPoint_t`)_ return this point type
-     * @param tpc _(default: `0`)_ TPC number within the cryostat `cstat`
-     * @param cstat _(default: `0`)_ number of cryostat
-     * @return position of center of TPC face toward the beam,
-     *         in world coordinates [cm]
-     * @see `GetTPCFrontFaceCenter(geo::TPCID const&)`
-     *
-     * @note Please use `GetTPCFrontFaceCenter(geo::TPCID const&)` instead.
-     */
-    template <typename Point>
-    Point GetTPCFrontFaceCenter(unsigned int tpc = 0, unsigned int cstat = 0) const
-    {
-      return GetTPCFrontFaceCenter<Point>(TPCID(cstat, tpc));
-    }
-    DefaultPoint_t GetTPCFrontFaceCenter(unsigned int tpc = 0, unsigned int cstat = 0) const
-    {
-      return GetTPCFrontFaceCenter<DefaultPoint_t>(tpc, cstat);
+      return TPC(tpcid).GetFrontFaceCenter();
     }
     //@}
 
@@ -1141,14 +933,9 @@ namespace geo {
      *
      * This information is used by Geant4 simulation
      *
-     * @todo Use a TPCID instead
      * @todo What if it does not exist?
      */
-    std::string GetLArTPCVolumeName(TPCID const& tpcid) const;
-    std::string GetLArTPCVolumeName(unsigned int const tpc = 0, unsigned int const cstat = 0) const
-    {
-      return GetLArTPCVolumeName(TPCID(cstat, tpc));
-    }
+    std::string GetLArTPCVolumeName(TPCID const& tpcid = tpc_zero) const;
     //@}
 
     /// @} TPC access and information
@@ -1159,20 +946,6 @@ namespace geo {
     //
     // group features
     //
-
-    /**
-     * @brief Returns the total number of wire planes in the specified TPC
-     * @param tpc tpc number within the cryostat
-     * @param cstat cryostat number
-     *
-     * @todo Make all the arguments mandatory (as TPCID)
-     * @todo Change return type to size_t
-     * @todo what happens if TPC does not exist?
-     */
-    unsigned int Nplanes(unsigned int tpc = 0, unsigned int cstat = 0) const
-    {
-      return Nplanes(TPCID(cstat, tpc));
-    }
 
     /// Returns the largest number of planes among all TPCs in this detector
     unsigned int MaxPlanes() const;
@@ -1245,7 +1018,7 @@ namespace geo {
      *
      * @todo Change return type to size_t
      */
-    unsigned int Nplanes(TPCID const& tpcid) const
+    unsigned int Nplanes(TPCID const& tpcid = tpc_zero) const
     {
       TPCGeo const* pTPC = GetElementPtr(tpcid);
       return pTPC ? pTPC->NElements() : 0;
@@ -1301,15 +1074,7 @@ namespace geo {
      *
      * The GetElement() method is overloaded and its return depends on the type
      * of ID.
-     *
-     * @todo remove the version with integers
      */
-    PlaneGeo const& Plane(unsigned int const p,
-                          unsigned int const tpc = 0,
-                          unsigned int const cstat = 0) const
-    {
-      return Plane(PlaneID(cstat, tpc, p));
-    }
     PlaneGeo const& Plane(PlaneID const& planeid) const { return TPC(planeid).Plane(planeid); }
     PlaneGeo const& GetElement(PlaneID const& planeid) const { return Plane(planeid); }
     //@}
@@ -1387,10 +1152,6 @@ namespace geo {
                         PlaneID::PlaneID_t p1 = 0,
                         PlaneID::PlaneID_t p2 = 1) const;
     Length_t PlanePitch(PlaneID const& pid1, PlaneID const& pid2) const;
-    Length_t PlanePitch(unsigned int p1 = 0,
-                        unsigned int p2 = 1,
-                        unsigned int tpc = 0,
-                        unsigned int cstat = 0) const;
     //@}
 
     /**
@@ -1419,21 +1180,6 @@ namespace geo {
     //
     // group features
     //
-
-    /**
-     * @brief Returns the total number of wires in the specified plane
-     * @param p plane number within the TPC
-     * @param tpc tpc number within the cryostat
-     * @param cstat cryostat number
-     *
-     * @todo Make all the arguments mandatory (as PlaneID)
-     * @todo Change return type to size_t
-     * @todo what happens if it does not exist?
-     */
-    unsigned int Nwires(unsigned int p, unsigned int tpc = 0, unsigned int cstat = 0) const
-    {
-      return Nwires(PlaneID(cstat, tpc, p));
-    }
 
     //@{
     /**
@@ -1570,11 +1316,8 @@ namespace geo {
      * @todo document what will happen (in the future methods) with wires on different planes
      *
      */
-    Length_t WirePitch(PlaneID const& planeid) const;
-    Length_t WirePitch(unsigned int plane = 0, unsigned int tpc = 0, unsigned int cstat = 0) const
-    {
-      return WirePitch(PlaneID(cstat, tpc, plane));
-    }
+    static constexpr PlaneID plane_zero{tpc_zero, 0};
+    Length_t WirePitch(PlaneID const& planeid = plane_zero) const;
     //@}
 
     /**
@@ -1609,10 +1352,6 @@ namespace geo {
      * @deprecated This does not feel APA-ready
      */
     double WireAngleToVertical(View_t view, TPCID const& tpcid) const;
-    double WireAngleToVertical(View_t view, int TPC = 0, int Cryo = 0) const
-    {
-      return WireAngleToVertical(view, TPCID(Cryo, TPC));
-    }
     //@}
 
     /// @} Wire access and information
@@ -1647,31 +1386,6 @@ namespace geo {
      */
     void WireEndPoints(WireID const& wireid, double* xyzStart, double* xyzEnd) const;
 
-    /**
-     * @brief Fills two arrays with the coordinates of the wire end points
-     * @param cstat cryostat number
-     * @param tpc tpc number within the cryostat
-     * @param plane plane number within the TPC
-     * @param wire wire number within the plane
-     * @param xyzStart (output) an array with the start coordinate
-     * @param xyzEnd (output) an array with the end coordinate
-     * @throws cet::exception wire not present
-     *
-     * The starting point is the wire end with lower z coordinate.
-     *
-     * @deprecated use the wire ID interface instead (but note that it does not
-     *             sort the ends)
-     */
-    void WireEndPoints(unsigned int cstat,
-                       unsigned int tpc,
-                       unsigned int plane,
-                       unsigned int wire,
-                       double* xyzStart,
-                       double* xyzEnd) const
-    {
-      WireEndPoints(WireID(cstat, tpc, plane, wire), xyzStart, xyzEnd);
-    }
-
     //@{
     /**
      * @brief Returns a segment whose ends are the wire end points
@@ -1685,12 +1399,7 @@ namespace geo {
      * @deprecated use the wire ID interface instead (but note that it does not
      *             sort the ends)
      */
-    template <typename Point>
-    Segment<Point> WireEndPoints(WireID const& wireID) const;
-    Segment<DefaultPoint_t> WireEndPoints(WireID const& wireID) const
-    {
-      return WireEndPoints<DefaultPoint_t>(wireID);
-    }
+    Segment<Point_t> WireEndPoints(WireID const& wireID) const;
 
     //@}
 
@@ -1757,36 +1466,6 @@ namespace geo {
     // wire intersections
     //
 
-    bool IntersectLines(double A_start_x,
-                        double A_start_y,
-                        double A_end_x,
-                        double A_end_y,
-                        double B_start_x,
-                        double B_start_y,
-                        double B_end_x,
-                        double B_end_y,
-                        double& x,
-                        double& y) const
-    {
-      return unrelated::IntersectLines(
-        A_start_x, A_start_y, A_end_x, A_end_y, B_start_x, B_start_y, B_end_x, B_end_y, x, y);
-    }
-
-    bool IntersectSegments(double A_start_x,
-                           double A_start_y,
-                           double A_end_x,
-                           double A_end_y,
-                           double B_start_x,
-                           double B_start_y,
-                           double B_end_x,
-                           double B_end_y,
-                           double& x,
-                           double& y) const
-    {
-      return unrelated::IntersectSegments(
-        A_start_x, A_start_y, A_end_x, A_end_y, B_start_x, B_start_y, B_end_x, B_end_y, x, y);
-    }
-
     //@{
     /**
      * @brief Computes the intersection between two wires.
@@ -1824,7 +1503,6 @@ namespace geo {
      *       also available.
      */
     bool WireIDsIntersect(WireID const& wid1, WireID const& wid2, Point_t& intersection) const;
-    bool WireIDsIntersect(WireID const& wid1, WireID const& wid2, TVector3& intersection) const;
     //@}
 
     //@{
@@ -1873,37 +1551,6 @@ namespace geo {
      *             used. Use `WireIDsIntersect()` returning a vector, instead.
      */
     bool IntersectionPoint(WireID const& wid1, WireID const& wid2, double& y, double& z) const;
-
-    /**
-     * @brief Returns the intersection point of two wires
-     * @param wire1 wire index of the first wire
-     * @param wire2 wire index of the other wire
-     * @param plane1 plane index of the first wire
-     * @param plane2 plane index of the other wire
-     * @param cstat cryostat number
-     * @param tpc tpc number within the cryostat where the planes belong
-     * @param y (output) y coordinate of the intersection point
-     * @param z (output) z coordinate of the intersection point
-     * @return whether an intersection was found
-     *
-     * No check is performed, not any information provided, about the validity
-     * of the result.
-     *
-     * @deprecated This method uses arbitrary assumptions and should not be
-     *             used. Use `WireIDsIntersect()` returning a vector, instead.
-     */
-    bool IntersectionPoint(unsigned int wire1,
-                           unsigned int wire2,
-                           unsigned int plane1,
-                           unsigned int plane2,
-                           unsigned int cstat,
-                           unsigned int tpc,
-                           double& y,
-                           double& z) const
-    {
-      return IntersectionPoint(
-        WireID(cstat, tpc, plane1, wire1), WireID(cstat, tpc, plane2, wire2), y, z);
-    }
 
     /**
      * @brief Returns the plane that is not in the specified arguments
@@ -1987,15 +1634,6 @@ namespace geo {
                            TPCID const& tpcid) const
     {
       return ThirdPlaneSlope(PlaneID(tpcid, plane1), slope1, PlaneID(tpcid, plane2), slope2);
-    }
-    double ThirdPlaneSlope(unsigned int plane1,
-                           double slope1,
-                           unsigned int plane2,
-                           double slope2,
-                           unsigned int tpc,
-                           unsigned int cstat) const
-    {
-      return ThirdPlaneSlope(plane1, slope1, plane2, slope2, TPCID(cstat, tpc));
     }
     //@}
 
@@ -2143,7 +1781,6 @@ namespace geo {
      *
      */
     unsigned int GetClosestOpDet(Point_t const& point) const;
-    unsigned int GetClosestOpDet(double const* point) const;
     //@}
 
     //
@@ -2155,10 +1792,10 @@ namespace geo {
      * @param c ID of the cryostat the detector is in
      *
      * This name is defined in the geometry (GDML) description.
-          *
+     *
      * @todo Change to use CryostatID
      */
-    std::string OpDetGeoName(unsigned int c = 0) const;
+    std::string OpDetGeoName(CryostatID const& cid = cryostat_zero) const;
 
     /// @} Optical detector access and information
 
@@ -2313,16 +1950,8 @@ namespace geo {
      * @return the ID of the channel, or raw::InvalidChannelID if invalid wire
      *
      * @todo Verify the raw::InvalidChannelID part
-     * @todo remove the integers version
      */
     raw::ChannelID_t PlaneWireToChannel(WireID const& wireid) const;
-    raw::ChannelID_t PlaneWireToChannel(unsigned int const plane,
-                                        unsigned int const wire,
-                                        unsigned int const tpc = 0,
-                                        unsigned int const cstat = 0) const
-    {
-      return PlaneWireToChannel(WireID(cstat, tpc, plane, wire));
-    }
     //@}
 
     //
@@ -2374,57 +2003,6 @@ namespace geo {
      */
     raw::ChannelID_t NearestChannel(Point_t const& worldLoc, PlaneID const& planeid) const;
 
-    //@{
-    /**
-     * @brief Returns the ID of the channel nearest to the specified position
-     * @param worldLoc 3D coordinates of the point (world reference frame)
-     * @param PlaneNo the number of plane
-     * @param TPCNo the number of TPC
-     * @param cstat the number of cryostat
-     * @return the ID of the channel, or raw::InvalidChannelID if invalid wire
-     * @bug on invalid wire, a `geo::InvalidWireError` exception is thrown
-     *
-     * The different versions allow different way to provide the position.
-     *
-     * @todo remove the integers version
-     */
-    raw::ChannelID_t NearestChannel(const double worldLoc[3], PlaneID const& planeid) const;
-    raw::ChannelID_t NearestChannel(std::vector<double> const& worldLoc,
-                                    PlaneID const& planeid) const;
-    raw::ChannelID_t NearestChannel(const TVector3& worldLoc, PlaneID const& planeid) const
-    {
-      return NearestChannel(vect::toPoint(worldLoc), planeid);
-    }
-    raw::ChannelID_t NearestChannel(const double worldLoc[3],
-                                    unsigned int const PlaneNo,
-                                    unsigned int const TPCNo = 0,
-                                    unsigned int const cstat = 0) const
-    {
-      return NearestChannel(worldLoc, PlaneID(cstat, TPCNo, PlaneNo));
-    }
-    raw::ChannelID_t NearestChannel(std::vector<double> const& worldLoc,
-                                    unsigned int const PlaneNo,
-                                    unsigned int const TPCNo = 0,
-                                    unsigned int const cstat = 0) const
-    {
-      return NearestChannel(worldLoc, PlaneID(cstat, TPCNo, PlaneNo));
-    }
-    raw::ChannelID_t NearestChannel(const TVector3& worldLoc,
-                                    unsigned int const PlaneNo,
-                                    unsigned int const TPCNo = 0,
-                                    unsigned int const cstat = 0) const
-    {
-      return NearestChannel(worldLoc, PlaneID(cstat, TPCNo, PlaneNo));
-    }
-    raw::ChannelID_t NearestChannel(Point_t const& worldLoc,
-                                    unsigned int const PlaneNo,
-                                    unsigned int const TPCNo = 0,
-                                    unsigned int const cstat = 0) const
-    {
-      return NearestChannel(worldLoc, PlaneID(cstat, TPCNo, PlaneNo));
-    }
-    //@}
-
     /**
      * @brief Returns an intersection point of two channels
      * @param c1 one channel ID
@@ -2458,7 +2036,7 @@ namespace geo {
      * The NSiblingElements() method is overloaded and its
      * return depends on the type of ID.
      */
-    unsigned int NTPCsets(readout::CryostatID const& cryoid) const;
+    unsigned int NTPCsets(geo::CryostatID const& cryoid) const;
     unsigned int NSiblingElements(readout::TPCsetID const& tpcsetid) const
     {
       return NTPCsets(tpcsetid);
@@ -2529,7 +2107,7 @@ namespace geo {
      * @param worldLoc 3D coordinates of the point (world reference frame)
      * @return the TPC set ID, or an invalid one if no TPC set is there
      */
-    readout::TPCsetID FindTPCsetAtPosition(double const worldLoc[3]) const;
+    readout::TPCsetID FindTPCsetAtPosition(Point_t const& worldLoc) const;
 
     //
     // mapping
@@ -2826,24 +2404,6 @@ namespace geo {
     // unsorted methods
     //
 
-    /**
-     * @brief Returns whether a value is within the specified range
-     * @param value the value to be tested
-     * @param min the lower boundary
-     * @param max the upper boundary
-     * @return whether the value is within range
-     *
-     * If min is larger than max, they are swapped.
-     * A tolerance of 10^-6 (absolute) is used.
-     *
-     * @todo Use wiggle instead of 10^-6
-     * @todo resort source code for a bit of speed up
-     */
-    bool ValueInRange(double value, double min, double max) const
-    {
-      return unrelated::ValueInRange(value, min, max);
-    }
-
     /// @name Geometry initialization
     /// @{
 
@@ -2958,22 +2518,6 @@ namespace geo {
   // END Geometry group --------------------------------------------------------
 
 } // namespace geo
-
-template <typename Element, typename GEOIDITER>
-geo::details::geometry_element_iterator<Element, GEOIDITER>::operator bool() const
-{
-  assert(geom);
-  // FIXME: what if id_iter is invalid?
-  return geom && geom->HasElement(*id_iter) && get() != nullptr;
-}
-
-template <typename Element, typename GEOIDITER>
-auto geo::details::geometry_element_iterator<Element, GEOIDITER>::get() const -> ElementPtr_t
-{
-  assert(geom);
-  // FIXME: what if id_iter is invalid?
-  return geom->GetElementPtr(*id_iter);
-}
 
 //******************************************************************************
 //*** inline implementation
@@ -3165,11 +2709,11 @@ namespace geo {
 
 } // namespace geo
 
-template <typename Point>
-geo::GeometryCore::Segment<Point> geo::GeometryCore::WireEndPoints(WireID const& wireid) const
+inline geo::GeometryCore::Segment<geo::Point_t> geo::GeometryCore::WireEndPoints(
+  WireID const& wireid) const
 {
   WireGeo const& wire = Wire(wireid);
-  return {wire.GetStart<Point>(), wire.GetEnd<Point>()};
+  return {wire.GetStart(), wire.GetEnd()};
 }
 
 //------------------------------------------------------------------------------

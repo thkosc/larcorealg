@@ -37,7 +37,6 @@
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
 // ROOT includes
-#include "Math/GenVector/DisplacementVector2D.h"
 #include "Math/GenVector/DisplacementVector3D.h"
 #include "Math/GenVector/PositionVector3D.h"
 #include "RtypesCore.h" // for kTRUE
@@ -50,7 +49,6 @@
 #include "TGeoVolume.h"
 #include "TObjArray.h"
 #include "TStopwatch.h"
-#include "TVector2.h"
 
 // C/C++ standard libraries
 #include <algorithm> // std::copy()
@@ -67,21 +65,6 @@
 #include <stdlib.h> // for abort
 #include <string>
 #include <vector>
-
-//------------------------------------------------------------------------------
-// custom stream insertion operators; they need to be defined in the "right"
-// namespace
-std::ostream& operator<<(std::ostream& out, TVector3 const& v)
-{
-  out << "( " << v.X() << " ; " << v.Y() << " ; " << v.Z() << " )";
-  return out;
-} // operator<< (TVector3)
-
-std::ostream& operator<<(std::ostream& out, TVector2 const& v)
-{
-  out << "( " << v.X() << " ; " << v.Y() << " )";
-  return out;
-} // operator<< (TVector2)
 
 //------------------------------------------------------------------------------
 namespace {
@@ -401,7 +384,8 @@ namespace geo {
     static unsigned int ThreeSegs = 0;
     static unsigned int FourSegs = 0;
     uint32_t channels = geom->Nchannels();
-    if (geom->NTPC() > 1) channels /= geom->NTPC() / 2;
+    auto const ntpc = geom->NTPC(CryostatID{0});
+    if (ntpc > 1) channels /= ntpc / 2;
 
     for (uint32_t c = 0; c < channels; c++) {
 
@@ -424,35 +408,29 @@ namespace geo {
   //......................................................................
   void GeometryTestAlg::printVolBounds()
   {
-    double origin[3] = {0.};
-    double world[3] = {0.};
-    for (unsigned int c = 0; c < geom->Ncryostats(); ++c) {
-      geom->Cryostat(c).LocalToWorld(origin, world);
+    geo::CryostatGeo::LocalPoint_t const cryo_origin{};
+    for (auto const& cryostat : geom->Iterate<geo::CryostatGeo>()) {
+      auto const world = cryostat.toWorldCoords(cryo_origin);
 
-      mf::LogVerbatim("GeometryTest") << "Cryo " << c;
-      mf::LogVerbatim("GeometryTest") << "    -x: " << world[0] - geom->Cryostat(c).HalfWidth();
-      mf::LogVerbatim("GeometryTest") << "    +x: " << world[0] + geom->Cryostat(c).HalfWidth();
-      mf::LogVerbatim("GeometryTest") << "    -y: " << world[1] - geom->Cryostat(c).HalfHeight();
-      mf::LogVerbatim("GeometryTest") << "    +y: " << world[1] + geom->Cryostat(c).HalfHeight();
-      mf::LogVerbatim("GeometryTest") << "    -z: " << world[2] - geom->Cryostat(c).Length() / 2;
-      mf::LogVerbatim("GeometryTest") << "    +z: " << world[2] + geom->Cryostat(c).Length() / 2;
+      mf::LogVerbatim("GeometryTest") << "Cryo " << cryostat.ID();
+      mf::LogVerbatim("GeometryTest") << "    -x: " << world.X() - cryostat.HalfWidth();
+      mf::LogVerbatim("GeometryTest") << "    +x: " << world.X() + cryostat.HalfWidth();
+      mf::LogVerbatim("GeometryTest") << "    -y: " << world.Y() - cryostat.HalfHeight();
+      mf::LogVerbatim("GeometryTest") << "    +y: " << world.Y() + cryostat.HalfHeight();
+      mf::LogVerbatim("GeometryTest") << "    -z: " << world.Z() - cryostat.Length() / 2;
+      mf::LogVerbatim("GeometryTest") << "    +z: " << world.Z() + cryostat.Length() / 2;
 
-      for (unsigned int t = 0; t < geom->NTPC(c); ++t) {
-        geom->Cryostat(c).TPC(t).LocalToWorld(origin, world);
+      geo::TPCGeo::LocalPoint_t const tpc_origin{};
+      for (unsigned int t = 0; t < geom->NTPC(cryostat.ID()); ++t) {
+        auto const world = cryostat.TPC(t).toWorldCoords(tpc_origin);
 
         mf::LogVerbatim("GeometryTest") << "  TPC " << t;
-        mf::LogVerbatim("GeometryTest")
-          << "    -x: " << world[0] - geom->Cryostat(c).TPC(t).HalfWidth();
-        mf::LogVerbatim("GeometryTest")
-          << "    +x: " << world[0] + geom->Cryostat(c).TPC(t).HalfWidth();
-        mf::LogVerbatim("GeometryTest")
-          << "    -y: " << world[1] - geom->Cryostat(c).TPC(t).HalfHeight();
-        mf::LogVerbatim("GeometryTest")
-          << "    +y: " << world[1] + geom->Cryostat(c).TPC(t).HalfHeight();
-        mf::LogVerbatim("GeometryTest")
-          << "    -z: " << world[2] - geom->Cryostat(c).TPC(t).Length() / 2;
-        mf::LogVerbatim("GeometryTest")
-          << "    +z: " << world[2] + geom->Cryostat(c).TPC(t).Length() / 2;
+        mf::LogVerbatim("GeometryTest") << "    -x: " << world.X() - cryostat.TPC(t).HalfWidth();
+        mf::LogVerbatim("GeometryTest") << "    +x: " << world.X() + cryostat.TPC(t).HalfWidth();
+        mf::LogVerbatim("GeometryTest") << "    -y: " << world.Y() - cryostat.TPC(t).HalfHeight();
+        mf::LogVerbatim("GeometryTest") << "    +y: " << world.Y() + cryostat.TPC(t).HalfHeight();
+        mf::LogVerbatim("GeometryTest") << "    -z: " << world.Z() - cryostat.TPC(t).Length() / 2;
+        mf::LogVerbatim("GeometryTest") << "    +z: " << world.Z() + cryostat.TPC(t).Length() / 2;
       }
     }
   }
@@ -461,17 +439,17 @@ namespace geo {
   // great sanity check for geometry, only call in analyze when debugging
   void GeometryTestAlg::printDetDim()
   {
-    for (unsigned int c = 0; c < geom->Ncryostats(); ++c) {
+    for (auto const& cid : geom->Iterate<CryostatID>()) {
+      mf::LogVerbatim("GeometryTest") << "Cryo " << cid;
+      mf::LogVerbatim("GeometryTest") << "    width: " << geom->CryostatHalfWidth(cid);
+      mf::LogVerbatim("GeometryTest") << "    height: " << geom->CryostatHalfHeight(cid);
+      mf::LogVerbatim("GeometryTest") << "    length: " << geom->CryostatLength(cid);
 
-      mf::LogVerbatim("GeometryTest") << "Cryo " << c;
-      mf::LogVerbatim("GeometryTest") << "    width: " << geom->CryostatHalfWidth(c);
-      mf::LogVerbatim("GeometryTest") << "    height: " << geom->CryostatHalfHeight(c);
-      mf::LogVerbatim("GeometryTest") << "    length: " << geom->CryostatLength(c);
-
+      TPCID const tpcid{cid, 0};
       mf::LogVerbatim("GeometryTest") << "  TPC 0";
-      mf::LogVerbatim("GeometryTest") << "    width: " << geom->DetHalfWidth(0, c);
-      mf::LogVerbatim("GeometryTest") << "    height: " << geom->DetHalfHeight(0, c);
-      mf::LogVerbatim("GeometryTest") << "    length: " << geom->DetLength(0, c);
+      mf::LogVerbatim("GeometryTest") << "    width: " << geom->DetHalfWidth(tpcid);
+      mf::LogVerbatim("GeometryTest") << "    height: " << geom->DetHalfHeight(tpcid);
+      mf::LogVerbatim("GeometryTest") << "    length: " << geom->DetLength(tpcid);
     }
   }
 
@@ -479,15 +457,14 @@ namespace geo {
   // great sanity check for volume sorting, only call in analyze when debugging
   void GeometryTestAlg::printWirePos()
   {
-    unsigned int cs = 0;
-
-    for (unsigned int t = 0; t < std::floor(geom->NTPC() / 12) + 1; ++t) {
+    CryostatID const cs{0};
+    for (unsigned int t = 0; t < std::floor(geom->NTPC(cs) / 12) + 1; ++t) {
       for (unsigned int p = 0; p < 3; ++p) {
-        for (unsigned int w = 0; w < geom->Cryostat(0).TPC(t).Plane(p).Nwires(); w++) {
-          auto const xyz = geom->Cryostat(0).TPC(t).Plane(p).Wire(w).GetCenter();
+        auto const& plane = geom->Cryostat(cs).TPC(t).Plane(p);
+        for (unsigned int w = 0; w < plane.Nwires(); w++) {
+          auto const xyz = plane.Wire(w).GetCenter();
           std::cout << "WireID (" << cs << ", " << t << ", " << p << ", " << w
-                    << "):  x = " << xyz[0] << ", y = " << xyz[1] << ", z = " << xyz[2]
-                    << std::endl;
+                    << "):  x = " << xyz.X() << ", y = " << xyz.Y() << ", z = " << xyz.Z() << '\n';
         }
       }
     }
@@ -514,11 +491,8 @@ namespace geo {
         const geo::WireGeo& wire = plane.Wire(w);
         // this additional check is preserved to test alternative transformation
         // code paths; center is expected to match wire.GetCenter()
-        // BUG the double brace syntax is required to work around clang bug 21629
-        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-        std::array<double, 3U> const local = {{0.0, 0.0, 0.0}};
-        std::array<double, 3U> center;
-        wire.LocalToWorld(local.data(), center.data());
+        geo::WireGeo::LocalPoint_t const local{};
+        auto const center = wire.toWorldCoords(local);
 
         // the wire should be aligned on z axis, half on each side of 0,
         // in its local frame
@@ -529,19 +503,18 @@ namespace geo {
           << indent << "         end at " << lar::dump::vector3D(wire.GetEnd());
       } // for wire
     }   // for plane
-  }     // GeometryTestAlg::printWiresInTPC()
+  }
 
   void GeometryTestAlg::printAllGeometry() const
   {
     const unsigned int nCryostats = geom->Ncryostats();
     mf::LogVerbatim("GeometryTest")
       << "Detector " << geom->DetectorName() << " has " << nCryostats << " cryostats:";
-    for (unsigned int c = 0; c < nCryostats; ++c) {
-      const geo::CryostatGeo& cryostat = geom->Cryostat(c);
+    for (auto const& cryostat : geom->Iterate<geo::CryostatGeo>()) {
       const unsigned int nTPCs = cryostat.NTPC();
       mf::LogVerbatim("GeometryTest")
-        << "  cryostat #" << c << " at " << lar::dump::vector3D(cryostat.GetCenter()) << " cm has "
-        << nTPCs << " TPC(s):";
+        << "  cryostat #" << cryostat.ID() << " at " << lar::dump::vector3D(cryostat.GetCenter())
+        << " cm has " << nTPCs << " TPC(s):";
       for (unsigned int t = 0; t < nTPCs; ++t) {
         const geo::TPCGeo& tpc = cryostat.TPC(t);
         printWiresInTPC(tpc, "    ");
@@ -549,12 +522,11 @@ namespace geo {
     }   // for cryostat
     printAuxiliaryDetectors();
     mf::LogVerbatim("GeometryTest") << "End of detector " << geom->DetectorName() << " geometry.";
-  } // GeometryTestAlg::printAllGeometry()
+  }
 
   //......................................................................
   void GeometryTestAlg::printAuxiliaryDetectors() const
   {
-
     mf::LogVerbatim log("GeometryTest");
 
     unsigned int const nAuxDets = geom->NAuxDets();
@@ -563,8 +535,7 @@ namespace geo {
       log << "\n[#" << iDet << "] ";
       printAuxDetGeo(log, geom->AuxDet(iDet), "  ", "");
     } // for
-
-  } // GeometryTestAlg::printAuxiliaryDetectors()
+  }
 
   //......................................................................
   template <typename Stream>
@@ -576,9 +547,8 @@ namespace geo {
 
     lar::util::RealComparisons<double> coordIs(1e-4);
 
-    std::array<double, 3U> center, normal;
-    auxDet.GetCenter(center.data());
-    auxDet.GetNormalVector(normal.data());
+    auto const center = auxDet.GetCenter();
+    auto const normal = auxDet.GetNormalVector();
 
     out << firstIndent << "\"" << auxDet.Name() << "\" centered at " << lar::dump::array<3U>(center)
         << " cm, size ( " << (2.0 * auxDet.HalfWidth1());
@@ -845,12 +815,10 @@ namespace geo {
 
       MF_LOG_DEBUG("GeometryTest") << "\t testing PositionToTPC...";
       // pick a position in the middle of the TPC in the world coordinates
-      double worldLoc[3] = {0.};
-      double localLoc[3] = {0.};
-      tpc.LocalToWorld(localLoc, worldLoc);
+      geo::TPCGeo::LocalPoint_t const localLoc{};
+      auto const worldLoc = tpc.toWorldCoords(localLoc);
 
-      const unsigned int tpcNo =
-        cryo.PositionToTPCID(geo::vect::makePointFromCoords(worldLoc), 1 + 1.e-4).TPC;
+      const unsigned int tpcNo = cryo.PositionToTPCID(worldLoc, 1 + 1.e-4).TPC;
 
       if (tpcNo != t)
         throw cet::exception("BadTPCLookupFromPosition")
@@ -1023,7 +991,7 @@ namespace geo {
             // this should not change the result
             auto const point = basePoint + iQuota * jump * planeNormal;
 
-            double const distance = plane.PlaneCoordinate(point);
+            double const distance = plane.PlaneCoordinate(geo::vect::toPoint(point));
 
             if (std::abs(distance - expected) > 1e-4) {
               mf::LogProblem("GeometryTestAlg")
@@ -1310,7 +1278,7 @@ namespace geo {
       }
 
       geo::WireGeo const& middle_wire = geom->Wire(middle_wire_id);
-      decltype(auto) middle_wire_center = middle_wire.GetCenter<Point_t>();
+      decltype(auto) middle_wire_center = middle_wire.GetCenter();
       MF_LOG_TRACE("GeometryTest")
         << "Center of " << middle_wire_id << " at " << middle_wire_center;
 
@@ -1327,7 +1295,7 @@ namespace geo {
 
       // the check: this coordinate should lie on the next wire
       const double pitch = plane.WirePitch();
-      decltype(auto) wireCoordDir = plane.GetIncreasingWireDirection<Vector_t>();
+      decltype(auto) wireCoordDir = plane.GetIncreasingWireDirection();
 
       MF_LOG_TRACE("GeometryTest")
         << "  pitch: " << pitch << " wire coord dir: cos(phi_z): " << wireCoordDir;
@@ -1471,11 +1439,11 @@ namespace geo {
   //......................................................................
   void GeometryTestAlg::testFindPlaneCenters()
   {
-    double xyz[3] = {0.}, xyzW[3] = {0.};
-    for (size_t i = 0; i < geom->Nplanes(); ++i) {
-      geom->Plane(i).LocalToWorld(xyz, xyzW);
-      mf::LogVerbatim("GeometryTest") << "\n\tplane " << i << " is centered at (x,y,z) = ("
-                                      << xyzW[0] << "," << xyzW[1] << "," << xyzW[2] << ")";
+    geo::PlaneGeo::LocalPoint_t const origin{};
+    for (auto const& plane : geom->Iterate<PlaneGeo>(CryostatID{0})) {
+      auto const xyzW = plane.toWorldCoords(origin);
+      mf::LogVerbatim("GeometryTest") << "\n\tplane " << plane.ID() << " is centered at (x,y,z) = ("
+                                      << xyzW.X() << "," << xyzW.Y() << "," << xyzW.Z() << ")";
     }
   }
 
@@ -1490,7 +1458,7 @@ namespace geo {
     unsigned int nErrors = 0;
     for (auto const& plane : geom->Iterate<geo::PlaneGeo>()) {
 
-      TVector3 reference = plane.ProjectionReferencePoint();
+      auto const reference = plane.ProjectionReferencePoint();
 
       auto decomp = plane.DecomposePoint(reference);
 
@@ -1857,9 +1825,9 @@ namespace geo {
   //......................................................................
   void GeometryTestAlg::testStandardWirePos()
   {
-    for (size_t cs = 0; cs < geom->Ncryostats(); ++cs) {
-      for (size_t t = 0; t < geom->Cryostat(cs).NTPC(); ++t) {
-        const geo::TPCGeo* tpc = &geom->Cryostat(cs).TPC(t);
+    for (auto const& cryostat : geom->Iterate<geo::CryostatGeo>()) {
+      for (size_t t = 0; t < cryostat.NTPC(); ++t) {
+        const geo::TPCGeo* tpc = &cryostat.TPC(t);
 
         for (size_t i = 0; i < tpc->Nplanes(); ++i) {
           const geo::PlaneGeo* plane = &tpc->Plane(i);
@@ -1873,11 +1841,11 @@ namespace geo {
             auto const xyzprev = wireprev.GetCenter();
 
             // wires increase in +z order
-            if (xyz[2] < xyzprev[2])
+            if (xyz.Z() < xyzprev.Z())
               throw cet::exception("WireOrderProblem")
                 << "\n\twires do not increase in +z order in"
-                << "Cryostat " << cs << ", TPC " << t << ", Plane " << i << ";  at wire " << j
-                << "\n";
+                << "Cryostat " << cryostat.ID() << ", TPC " << t << ", Plane " << i << ";  at wire "
+                << j << "\n";
 
           } // end loop over wires
         }   // end loop over planes
@@ -1888,15 +1856,14 @@ namespace geo {
   //......................................................................
   void GeometryTestAlg::testAPAWirePos()
   {
-    double origin[3] = {0.};
-    double tpcworld[3] = {0.};
-    for (size_t cs = 0; cs < geom->Ncryostats(); ++cs) {
-      for (size_t t = 0; t < geom->Cryostat(cs).NTPC(); ++t) {
-        const geo::TPCGeo* tpc = &geom->Cryostat(cs).TPC(t);
-        tpc->LocalToWorld(origin, tpcworld);
+    geo::TPCGeo::LocalPoint_t const origin{};
+    for (auto const& cryostat : geom->Iterate<geo::CryostatGeo>()) {
+      for (size_t t = 0; t < cryostat.NTPC(); ++t) {
+        const geo::TPCGeo& tpc = cryostat.TPC(t);
+        auto const tpcworld = tpc.toWorldCoords(origin);
 
-        for (size_t i = 0; i < tpc->Nplanes(); ++i) {
-          const geo::PlaneGeo* plane = &tpc->Plane(i);
+        for (size_t i = 0; i < tpc.Nplanes(); ++i) {
+          const geo::PlaneGeo* plane = &tpc.Plane(i);
 
           for (size_t j = 1; j < plane->Nwires(); ++j) {
             geo::WireGeo const& wire = plane->Wire(j);
@@ -1906,17 +1873,17 @@ namespace geo {
             auto const xyzprev = wireprev.GetCenter();
 
             // top TPC wires increase in -y
-            if (tpcworld[1] > 0 && xyz[1] > xyzprev[1])
+            if (tpcworld.X() > 0 && xyz.Y() > xyzprev.Y())
               throw cet::exception("WireOrderProblem")
                 << "\n\ttop TPC wires do not increase in -y order in"
-                << "Cryostat " << cs << ", TPC " << t << ", Plane " << i << ";  at wire " << j
-                << "\n";
+                << "Cryostat " << cryostat.ID() << ", TPC " << t << ", Plane " << i << ";  at wire "
+                << j << "\n";
             // bottom TPC wires increase in +y
-            else if (tpcworld[1] < 0 && xyz[1] < xyzprev[1])
+            if (tpcworld.Y() < 0 && xyz.Y() < xyzprev.Y())
               throw cet::exception("WireOrderProblem")
                 << "\n\tbottom TPC wires do not increase in +y order in"
-                << "Cryostat " << cs << ", TPC " << t << ", Plane " << i << ";  at wire " << j
-                << "\n";
+                << "Cryostat " << cryostat.ID() << ", TPC " << t << ", Plane " << i << ";  at wire "
+                << j << "\n";
           } // end loop over wires
         }   // end loop over planes
       }     // end loop over tpcs
@@ -1927,7 +1894,7 @@ namespace geo {
   inline std::array<double, 3> GeometryTestAlg::GetIncreasingWireDirection(
     const geo::PlaneGeo& plane)
   {
-    TVector3 IncreasingWireDir = plane.GetIncreasingWireDirection();
+    auto IncreasingWireDir = plane.GetIncreasingWireDirection();
     // BUG the double brace syntax is required to work around clang bug 21629
     // (https://bugs.llvm.org/show_bug.cgi?id=21629)
     return {{IncreasingWireDir.X(), IncreasingWireDir.Y(), IncreasingWireDir.Z()}};
@@ -1951,7 +1918,7 @@ namespace geo {
       geo::PlaneID const& planeID = plane.ID();
       const unsigned int NWires = plane.Nwires();
 
-      decltype(auto) IncreasingWireDir = plane.GetIncreasingWireDirection<Vector_t>();
+      decltype(auto) IncreasingWireDir = plane.GetIncreasingWireDirection();
 
       MF_LOG_DEBUG("GeoTestWireCoordinate")
         << "The direction of increasing wires for plane " << planeID
@@ -1964,7 +1931,7 @@ namespace geo {
 
         geo::WireID wireID(planeID, w++);
 
-        decltype(auto) wire_center = wire.GetCenter<Point_t>();
+        decltype(auto) wire_center = wire.GetCenter();
 
         uint32_t nearest = 0;
         std::vector<geo::WireID> wireIDs;
@@ -2119,7 +2086,7 @@ namespace geo {
     bool hasThrown = false;
     unsigned int nearest_to_what = 0;
     try {
-      nearest_to_what = geom->NearestChannel(posWorld, 0, 0, 0);
+      nearest_to_what = geom->NearestChannel(geo::vect::toPoint(posWorld), geom->plane_zero);
     }
     catch (const geo::InvalidWireError& e) {
       mf::LogWarning("GeoTestCaughtException")
@@ -2166,10 +2133,10 @@ namespace geo {
     };
 
     // we dislike wires aligned to plane frame:
-    if (isOrthogonalTo(plane.WidthDir<geo::Vector_t>())) return true;
-    if (isOrthogonalTo(plane.DepthDir<geo::Vector_t>())) return true;
+    if (isOrthogonalTo(plane.WidthDir())) return true;
+    if (isOrthogonalTo(plane.DepthDir())) return true;
 
-    if (isOrthogonalTo(plane.GetIncreasingWireDirection<geo::Vector_t>())) return true;
+    if (isOrthogonalTo(plane.GetIncreasingWireDirection())) return true;
 
     return false;
 
@@ -2202,9 +2169,10 @@ namespace geo {
 
         geo::WireID const w1{geo::PlaneID{TPC.ID(), 0}, 0};
         geo::WireGeo const& wire1 = geom->Wire(w1);
-        geo::Vector_t const& wireDir = wire1.Direction<geo::Vector_t>();
+        geo::Vector_t const& wireDir = wire1.Direction();
 
-        geo::CryostatGeo const& otherCryo = geom->Cryostat(TPC.ID().Cryostat + 1);
+        geo::CryostatID const otherCryoID{TPC.ID().Cryostat + 1};
+        geo::CryostatGeo const& otherCryo = geom->Cryostat(otherCryoID);
         geo::PlaneGeo const* otherPlane = nullptr;
         for (auto const& plane : geom->Iterate<geo::PlaneGeo>(otherCryo.ID())) {
           if (isWireAlignedToPlaneDirections(plane, wireDir)) continue;
@@ -2245,7 +2213,7 @@ namespace geo {
         geo::PlaneID const refPlaneID{TPC.ID(), 0};
         geo::WireID const w1{refPlaneID, 0};
         geo::WireGeo const& wire1 = geom->Wire(w1);
-        geo::Vector_t const& wireDir = wire1.Direction<geo::Vector_t>();
+        geo::Vector_t const& wireDir = wire1.Direction();
 
         geo::CryostatGeo const& cryo = geom->Cryostat(TPC.ID());
         geo::PlaneGeo const* otherPlane = nullptr;
@@ -2300,8 +2268,8 @@ namespace geo {
       geo::PlaneGeo const& refPlane = TPC.SmallestPlane();
       constexpr unsigned int SplitW = 19, SplitD = 17;
 
-      auto const driftOffset = -TPC.DriftDistance() / 2.0 * TPC.DriftDir<Vector_t>();
-      auto const refPoint = refPlane.GetCenter<Point_t>() + driftOffset;
+      auto const driftOffset = -TPC.DriftDistance() / 2.0 * TPC.DriftDir();
+      auto const refPoint = refPlane.GetCenter() + driftOffset;
 
       decltype(auto) coverage = refPlane.ActiveArea();
       const double stepW = coverage.width.length() / SplitW;
@@ -2312,11 +2280,11 @@ namespace geo {
       // let's pick a point:
       for (int iW = -stepsW; iW <= +stepsW; ++iW) {
 
-        auto const widthOffset = (iW * stepW) * refPlane.WidthDir<Vector_t>();
+        auto const widthOffset = (iW * stepW) * refPlane.WidthDir();
 
         for (int iD = -stepsD; iD < +stepsD; ++iD) {
 
-          auto const depthOffset = (iD * stepD) * refPlane.DepthDir<Vector_t>();
+          auto const depthOffset = (iD * stepD) * refPlane.DepthDir();
 
           auto const point = refPoint + widthOffset + depthOffset;
 
@@ -2354,13 +2322,11 @@ namespace geo {
 
     const unsigned int NPlanes = TPC.Nplanes();
 
-    bool const bDriftOnX = (TPC.DriftDir<geo::Vector_t>() == geo::Xaxis()) ||
-                           (TPC.DriftDir<geo::Vector_t>() == -geo::Xaxis());
+    bool const bDriftOnX = (TPC.DriftDir() == geo::Xaxis()) || (TPC.DriftDir() == -geo::Xaxis());
 
     // collect information per plane:
     std::vector<double> WirePitch(NPlanes); // for convenience
-    std::vector<decltype(std::declval<geo::PlaneGeo>().GetIncreasingWireDirection())> WireCoordDirs(
-      NPlanes);
+    std::vector<geo::Vector_t> WireCoordDirs(NPlanes);
     std::vector<geo::WireID> WireIDs; // ID of the closest wire
     WireIDs.reserve(NPlanes);
     std::vector<double> WireDistances(NPlanes); // distance from the closest wire
@@ -2455,7 +2421,7 @@ namespace geo {
           std::sqrt((cet::square(d1) + cet::square(d2) - 2.0 * d1 * d2 * cosAlpha) /
                     (1 - cet::square(cosAlpha)));
         // the actual distance we have found:
-        double const d = plane1.VectorProjection(xingPoint - geo::vect::toPoint(point)).R();
+        double const d = plane1.Projection(xingPoint - point).R();
         MF_LOG_DEBUG("GeometryTest")
           << " - wires " << w1 << " and " << w2 << " intersect at " << xingPoint << ", " << d
           << " cm far from starting point (expected: " << expected_d << ")";
@@ -2656,7 +2622,7 @@ namespace geo {
       }   // if not the last cryostat
 
       // sanity: planes on different TPC
-      if (tpcid.TPC < geom->NTPC(tpcid.Cryostat) - 1) {
+      if (tpcid.TPC < geom->NTPC(tpcid.asCryostatID()) - 1) {
         geo::PlaneID p1{tpcid, 0}, p2{tpcid.Cryostat, tpcid.TPC + 1, 1};
         bool bError = false;
         double slope;
@@ -2677,9 +2643,7 @@ namespace geo {
       }   // if not the last TPC in its cryostat
 
       // pick a point in the very middle of the TPC:
-      // BUG the double brace syntax is required to work around clang bug 21629
-      // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-      const std::array<double, 3> A = {{TPC.CenterX(), TPC.CenterY(), TPC.CenterZ()}};
+      const geo::Point_t A{TPC.CenterX(), TPC.CenterY(), TPC.CenterZ()};
       // pick a radius half the way to the closest border
       const double radius = std::min({TPC.HalfWidth(), TPC.HalfHeight(), TPC.Length() / 2.}) / 2.;
 
@@ -2698,10 +2662,8 @@ namespace geo {
 
         // define B as a point "radius" far from A in the angle direction,
         // with some arbitrary and fixed dx offset
-        // BUG the double brace syntax is required to work around clang bug 21629
-        // (https://bugs.llvm.org/show_bug.cgi?id=21629)
-        std::array<double, 3> B = {
-          {A[0] + dX, A[1] + radius * std::sin(angle), A[2] + radius * std::cos(angle)}};
+        geo::Point_t const B{
+          A.X() + dX, A.Y() + radius * std::sin(angle), A.Z() + radius * std::cos(angle)};
 
         // get the expectation; this function assumes a drift velocity of
         // 1 mm per tick by default; for the test, it does not matter
@@ -2731,8 +2693,8 @@ namespace geo {
   } // GeometryTestAlg::testThirdPlane_dTdW()
 
   std::vector<std::pair<geo::PlaneID, double>> GeometryTestAlg::ExpectedPlane_dTdW(
-    std::array<double, 3> const& A,
-    std::array<double, 3> const& B,
+    geo::Point_t const& A,
+    geo::Point_t const& B,
     const double driftVelocity /* = 0.1 */
     ) const
   {
@@ -2741,19 +2703,19 @@ namespace geo {
     // - slope of the projection of AB from the plane, in dt/dw units
 
     // find which TPC we are taking about
-    geo::TPCID tpcid = geom->FindTPCAtPosition(A.data());
+    geo::TPCID tpcid = geom->FindTPCAtPosition(A);
 
     if (!tpcid.isValid) {
       throw cet::exception("GeometryTestAlg")
-        << "ExpectedPlane_dTdW(): can't find any TPC containing point A (" << A[0] << "; " << A[1]
-        << "; " << A[2] << ")";
+        << "ExpectedPlane_dTdW(): can't find any TPC containing point A (" << A.X() << "; " << A.Y()
+        << "; " << A.Z() << ")";
     }
 
-    if (geom->FindTPCAtPosition(B.data()) != tpcid) {
+    if (geom->FindTPCAtPosition(B) != tpcid) {
       throw cet::exception("GeometryTestAlg")
-        << "ExpectedPlane_dTdW(): point A (" << A[0] << "; " << A[1] << "; " << A[2] << ") is in "
-        << std::string(tpcid) << " while point B (" << B[0] << "; " << B[1] << "; " << B[2]
-        << ") is in " << std::string(geom->FindTPCAtPosition(B.data()));
+        << "ExpectedPlane_dTdW(): point A (" << A.X() << "; " << A.Y() << "; " << A.Z()
+        << ") is in " << std::string(tpcid) << " while point B (" << B.X() << "; " << B.Y() << "; "
+        << B.Z() << ") is in " << std::string(geom->FindTPCAtPosition(B));
     }
 
     geo::TPCGeo const& TPC = geom->TPC(tpcid);
@@ -2778,12 +2740,10 @@ namespace geo {
 
     for (geo::PlaneID::PlaneID_t iPlane = 0; iPlane < nPlanes; ++iPlane) {
       geo::PlaneID pid(tpcid, iPlane);
-      //       const double wA = geom->WireCoordinate(A[1], A[2], pid);
-      //       const double wB = geom->WireCoordinate(B[1], B[2], pid);
-      const double wA = geom->WireCoordinate(geo::vect::makeFromCoords<geo::Point_t>(A), pid);
-      const double wB = geom->WireCoordinate(geo::vect::makeFromCoords<geo::Point_t>(B), pid);
+      const double wA = geom->WireCoordinate(A, pid);
+      const double wB = geom->WireCoordinate(B, pid);
 
-      slopes[iPlane] = std::make_pair(pid, ((B[0] - A[0]) * dT_over_dX) / (wB - wA));
+      slopes[iPlane] = std::make_pair(pid, ((B.X() - A.X()) * dT_over_dX) / (wB - wA));
 
     } // for iPlane
 
@@ -2979,7 +2939,7 @@ namespace geo {
     for (auto const& plane : geom->Iterate<geo::PlaneGeo>()) {
 
       double const pitch = plane.WirePitch();
-      auto const normalDir = plane.GetNormalDirection<geo::Vector_t>();
+      auto const normalDir = plane.GetNormalDirection();
 
       for (auto const& testProjBase : testProjections) {
 
@@ -3017,7 +2977,7 @@ namespace geo {
               // test a 3D direction
               //
 
-              auto const baseDir = plane.ComposeVector<geo::Vector_t>(0.0, testProj);
+              auto const baseDir = plane.ComposeVector(0.0, testProj);
 
               for (double const driftOffset : testDriftOffsets) {
                 auto const testDir = baseDir + driftOffset * normalDir;
@@ -3144,17 +3104,22 @@ namespace geo {
     // transport. Rattles photons around inside the scintillator
     // bouncing them off walls.
     //
-    double xyz[3] = {0.};
-    double xyzWire[3] = {0.};
-    double dxyz[3] = {0.};
-    double dxyzWire[3] = {0, sin(0.1), cos(0.1)};
+    geo::WireGeo::LocalPoint_t const xyzWire{};
+    geo::WireGeo::LocalVector_t const dxyzWire{0, sin(0.1), cos(0.1)};
 
-    geom->Plane(1).Wire(0).LocalToWorld(xyzWire, xyz);
-    geom->Plane(1).Wire(0).LocalToWorldVect(dxyzWire, dxyz);
+    geo::PlaneID const planeid{0, 0, 1};
+    auto const xyz_orig = geom->Plane(planeid).Wire(0).toWorldCoords(xyzWire);
+    auto const dxyz_orig = geom->Plane(planeid).Wire(0).toWorldCoords(dxyzWire);
 
-    mf::LogVerbatim("GeometryTest") << "\n\t" << xyz[0] << "\t" << xyz[1] << "\t" << xyz[2];
-    mf::LogVerbatim("GeometryTest") << "\t" << dxyz[0] << "\t" << dxyz[1] << "\t" << dxyz[2];
+    mf::LogVerbatim("GeometryTest")
+      << "\n\t" << xyz_orig.X() << "\t" << xyz_orig.Y() << "\t" << xyz_orig.Z();
+    mf::LogVerbatim("GeometryTest")
+      << "\t" << dxyz_orig.X() << "\t" << dxyz_orig.Y() << "\t" << dxyz_orig.Z();
 
+    double xyz[3];
+    double dxyz[3];
+    xyz_orig.GetCoordinates(xyz);
+    dxyz_orig.GetCoordinates(dxyz);
     gGeoManager->InitTrack(xyz, dxyz);
     for (int i = 0; i < 10; ++i) {
       const double* pos = gGeoManager->GetCurrentPoint();

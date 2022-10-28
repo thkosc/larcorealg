@@ -10,30 +10,79 @@
 #define LARCOREALG_GEOMETRY_WIREGEO_H
 
 // LArSoft
-#include "larcorealg/Geometry/TransformationMatrix.h"
-#include "larcorealg/Geometry/LocalTransformationGeo.h"
 #include "larcorealg/Geometry/LineClosestPoint.h"
+#include "larcorealg/Geometry/LocalTransformationGeo.h"
+#include "larcorealg/Geometry/TransformationMatrix.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h" // geo::vect
 
 // ROOT
-#include "TVector3.h"
 #include "Math/GenVector/Transform3D.h"
+#include "TVector3.h"
 
 // C/C++ libraries
-#include <vector>
+#include <cmath> // std::sin(), ...
 #include <string>
 #include <type_traits> // std::is_nothrow_move_constructible<>
-#include <cmath> // std::sin(), ...
+#include <vector>
 
-
-// forward declarations
 class TGeoNode;
-
 
 namespace geo {
 
-  struct WireID; // forward declaration
+  class WireGeo;
+  struct WireID;
 
+  /**
+   * @brief Returns the point of `wireA` that is closest to `wireB`.
+   * @param wireA the first wire
+   * @param wireB the other wire
+   * @return the point of `wireA` closest to `wireB`
+   * @see WiresIntersectionAndOffsets()
+   *
+   * The point of `wireA` that is closest to `wireB` is returned.
+   *
+   * The two wires are _assumed_ not to be parallel, and when this prerequisite
+   * is not met the behaviour is undefined.
+   *
+   * A separate function, `WiresIntersectionAndOffsets()`,
+   * also returns the offset of the intersection from the two reference points.
+   *
+   */
+  Point_t WiresIntersection(WireGeo const& wireA, WireGeo const& wireB);
+
+  /**
+   * @brief Returns the point of `wireA` that is closest to `wireB`.
+   * @param wireA the first wire
+   * @param wireB the other wire
+   * @return a data structure with three fields:
+   *         `point`: the point of `wireA` closest to `wireB`;
+   *         `offset1`: its offset on `wireA` [cm];
+   *         `offset2`: its offset on `wireB` [cm]
+   * @see WiresIntersection()
+   *
+   * Computes the point of `wireA` that is closest to `wireB`.
+   *
+   * The returned intersection point is the same as for
+   * `geo::WiresIntersection()`. The return value is actually triplet, though,
+   * which is most easily unpacked immediately:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * auto [ point, offsetA, offsetB ] = geo::WiresIntersection(wireA, wireB);
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   *
+   * The two other elements of the triplets are the distances of the
+   * intersection point from the center of this wire (`offset` in the example)
+   * and from the center of the `other` wire (`otherOffset`), in centimeters.
+   * The sign of the offsets are positive if the intersection points lie on the
+   * side pointed by the `Direction()` of the respective wires.
+   *
+   * To reassign the variables after they have been defined, instead:
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
+   * std::tie(point, offsetB, offsetA) = geo::WiresIntersection(wireB, wireA);
+   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   *
+   */
+  IntersectionPointAndOffsets<Point_t> WiresIntersectionAndOffsets(WireGeo const& wireA,
+                                                                   WireGeo const& wireB);
 
   /** **************************************************************************
    * @brief Geometry description of a TPC wire
@@ -63,12 +112,7 @@ namespace geo {
    *
    */
   class WireGeo {
-
-    using DefaultVector_t = TVector3; // ... not for long
-    using DefaultPoint_t = TVector3; // ... not for long
-
   public:
-
     using ID_t = WireID;
     using GeoNodePath_t = std::vector<TGeoNode const*>;
 
@@ -92,10 +136,10 @@ namespace geo {
     struct WireGeoCoordinatesTag {};
 
     /// Type of points in the local GDML wire plane frame.
-    using LocalPoint_t = geo::Point3DBase_t<WireGeoCoordinatesTag>;
+    using LocalPoint_t = Point3DBase_t<WireGeoCoordinatesTag>;
 
     /// Type of displacement vectors in the local GDML wire plane frame.
-    using LocalVector_t = geo::Vector3DBase_t<WireGeoCoordinatesTag>;
+    using LocalVector_t = Vector3DBase_t<WireGeoCoordinatesTag>;
 
     ///@}
     // -- END ---- Types for geometry-local reference vectors ------------------
@@ -112,8 +156,7 @@ namespace geo {
      * A pointer to the node and a copy of the transformation matrix are kept
      * in the `WireGeo` object.
      */
-    WireGeo(TGeoNode const& node, geo::TransformationMatrix&& trans);
-
+    WireGeo(TGeoNode const& node, TransformationMatrix&& trans);
 
     // -- BEGIN -- Size and coordinates ----------------------------------------
     /// @name Size and coordinates
@@ -137,7 +180,6 @@ namespace geo {
     //@{
     /**
      * @brief Returns the position (world coordinate) of a point on the wire
-     * @tparam Point type of vector to be returned (current default: `TVector3`)
      * @param localz distance of the requested point from the middle of the wire
      * @return the position of the requested point (in cm)
      * @see `GetCenter()`, `GetStart()`, `GetEnd()`,
@@ -149,17 +191,15 @@ namespace geo {
      * If the `localz` position would put the point outside the wire, the
      * returned position is the wire end closest to the requested position.
      */
-    template <typename Point>
-    Point GetPositionFromCenter(double localz) const
-      { return GetPositionFromCenterUnbounded<Point>(capLength(localz)); }
-    DefaultPoint_t GetPositionFromCenter(double localz) const
-      { return GetPositionFromCenter<DefaultPoint_t>(localz); }
+    Point_t GetPositionFromCenter(double localz) const
+    {
+      return GetPositionFromCenterUnbounded(capLength(localz));
+    }
     //@}
 
     //@{
     /**
      * @brief Returns the position (world coordinate) of a point on the wire
-     * @tparam Point type of vector to be returned (current default: `TVector3`)
      * @param localz distance of the requested point from the middle of the wire
      * @return the position of the requested point (in cm)
      * @see `GetCenter()`, `GetStart()`, `GetEnd()`, `GetPositionFromCenter()`
@@ -170,36 +210,25 @@ namespace geo {
      * If the `localz` position would put the point outside the wire, the
      * returned position will lie beyond the end of the wire.
      */
-    template <typename Point>
-    Point GetPositionFromCenterUnbounded(double localz) const;
-    DefaultPoint_t GetPositionFromCenterUnbounded(double localz) const
-      { return GetPositionFromCenterUnbounded<DefaultPoint_t>(localz); }
+    Point_t GetPositionFromCenterUnbounded(double localz) const
+    {
+      return toWorldCoords(LocalPoint_t{0.0, 0.0, relLength(localz)});
+    }
     //@}
 
     //@{
     /// Returns the world coordinate of the center of the wire [cm]
-    /// @tparam Point type of the point being returned
-    template <typename Point>
-    Point GetCenter() const { return geo::vect::convertTo<Point>(fCenter); }
-    DefaultPoint_t GetCenter() const { return GetCenter<DefaultPoint_t>(); }
+    Point_t const& GetCenter() const { return fCenter; }
     //@}
 
     //@{
     /// Returns the world coordinate of one end of the wire [cm]
-    /// @tparam Point type of the point being returned
-    template <typename Point>
-    Point GetStart() const
-      { return GetPositionFromCenterUnbounded<Point>(-HalfL()); }
-    DefaultPoint_t GetStart() const { return GetStart<DefaultPoint_t>(); }
+    Point_t GetStart() const { return GetPositionFromCenterUnbounded(-HalfL()); }
     //@}
 
     //@{
     /// Returns the world coordinate of one end of the wire [cm]
-    /// @tparam Point type of the point being returned
-    template <typename Point>
-    Point GetEnd() const
-      { return GetPositionFromCenterUnbounded<Point>(+HalfL()); }
-    DefaultPoint_t GetEnd() const { return GetEnd<DefaultPoint_t>(); }
+    Point_t GetEnd() const { return GetPositionFromCenterUnbounded(+HalfL()); }
     //@}
 
     //@{
@@ -207,10 +236,8 @@ namespace geo {
     double Length() const { return 2. * HalfL(); }
     //@}
 
-
     /// @}
     // -- END ---- Size and coordinates  ---------------------------------------
-
 
     // -- BEGIN -- Orientation and angles --------------------------------------
     /// @name Orientation and angles
@@ -249,24 +276,25 @@ namespace geo {
 
     //@{
     /// Returns if this wire is parallel to another
-    bool isParallelTo(geo::WireGeo const& wire) const
-      {
-        return // parallel if the dot product of the directions is about +/- 1
-          std::abs(std::abs(Direction<geo::Vector_t>().Dot(wire.Direction<geo::Vector_t>())) - 1.) < 1e-5;
-      }
+    bool isParallelTo(WireGeo const& wire) const
+    {
+      return // parallel if the dot product of the directions is about +/- 1
+        std::abs(std::abs(Direction().Dot(wire.Direction())) - 1.) < 1e-5;
+    }
     //@}
 
     //@{
     /// Returns the wire direction as a norm-one vector.
     /// @tparam Vector type of the vector being returned
-    template <typename Vector>
-    Vector Direction() const;
-    DefaultVector_t Direction() const { return Direction<DefaultVector_t>(); }
+    Vector_t Direction() const
+    {
+      // maybe (GetCenter() - GetStart()) / HalfL() would be faster;
+      return (GetEnd() - GetStart()) / Length();
+    }
     //@}
 
     /// @}
     // -- END ---- Orientation and angles --------------------------------------
-
 
     // -- BEGIN -- Printing ----------------------------------------------------
     /// @name Printing
@@ -294,8 +322,7 @@ namespace geo {
      * level.
      */
     template <typename Stream>
-    void PrintWireInfo
-      (Stream&& out, std::string indent = "", unsigned int verbosity = 1) const;
+    void PrintWireInfo(Stream&& out, std::string indent = "", unsigned int verbosity = 1) const;
 
     /**
      * @brief Returns a string with all the information of the wire.
@@ -311,7 +338,6 @@ namespace geo {
     /// @}
     // -- END ---- Printing ----------------------------------------------------
 
-
     // -- BEGIN -- Coordinate transformation -----------------------------------
     /**
      * @name Coordinate transformation
@@ -323,43 +349,21 @@ namespace geo {
     /// @{
 
     /// Transform point from local wire frame to world frame.
-    void LocalToWorld(const double* wire, double* world) const
-      { fTrans.LocalToWorld(wire, world); }
-
-    /// Transform point from local wire frame to world frame.
-    geo::Point_t toWorldCoords(LocalPoint_t const& local) const
-      { return fTrans.toWorldCoords(local); }
+    Point_t toWorldCoords(LocalPoint_t const& local) const { return fTrans.toWorldCoords(local); }
 
     /// Transform direction vector from local to world.
-    void LocalToWorldVect(const double* wire, double* world) const
-      { fTrans.LocalToWorldVect(wire, world); }
-
-    /// Transform direction vector from local to world.
-    geo::Vector_t toWorldCoords(LocalVector_t const& local) const
-      { return fTrans.toWorldCoords(local); }
+    Vector_t toWorldCoords(LocalVector_t const& local) const { return fTrans.toWorldCoords(local); }
 
     /// Transform point from world frame to local wire frame.
-    void WorldToLocal(const double* world, double* wire) const
-      { fTrans.WorldToLocal(world, wire); }
-
-    /// Transform point from world frame to local wire frame.
-    LocalPoint_t toLocalCoords(geo::Point_t const& world) const
-      { return fTrans.toLocalCoords(world); }
+    LocalPoint_t toLocalCoords(Point_t const& world) const { return fTrans.toLocalCoords(world); }
 
     /// Transform direction vector from world to local.
-    void WorldToLocalVect(const double* world, double* wire) const
-      { fTrans.WorldToLocalVect(world, wire); }
-
-    /// Transform direction vector from world to local.
-    LocalVector_t toLocalCoords(geo::Vector_t const& world) const
-      { return fTrans.toLocalCoords(world); }
+    LocalVector_t toLocalCoords(Vector_t const& world) const { return fTrans.toLocalCoords(world); }
 
     /// @}
     // -- END ---- Coordinate transformation -----------------------------------
 
-
-    const TGeoNode*     Node() const { return fWireNode; }
-
+    const TGeoNode* Node() const { return fWireNode; }
 
     // -- BEGIN -- Geometric properties and algorithms -------------------------
     /// @name Geometric properties and algorithms
@@ -367,8 +371,7 @@ namespace geo {
 
     /// Returns the z coordinate, in centimetres, at the point where y = 0.
     /// Assumes the wire orthogonal to x axis and the wire not parallel to z.
-    double ComputeZatY0() const
-      { return fCenter.Z() - fCenter.Y() / TanThetaZ(); }
+    double ComputeZatY0() const { return fCenter.Z() - fCenter.Y() / TanThetaZ(); }
 
     /**
      * @brief Returns 3D distance from the specified wire
@@ -377,11 +380,10 @@ namespace geo {
      * If the specified wire is "ahead" in z respect to this, the distance is
      * returned negative.
      */
-    double DistanceFrom(geo::WireGeo const& wire) const;
+    double DistanceFrom(WireGeo const& wire) const;
 
     /**
      * @brief Returns the point of this wire that is closest to `other` wire.
-     * @tparam Point the type of point returned
      * @param other the other wire
      * @return the point of this wire closest to `other`
      * @see IntersectionAndOffsetsWith()
@@ -395,8 +397,7 @@ namespace geo {
      * Another method, `IntersectionAndOffsetsWith()`, also returns the offset
      * of the intersection from the two wire centers.
      */
-    template <typename Point = DefaultPoint_t>
-    Point IntersectionWith(geo::WireGeo const& other) const;
+    Point_t IntersectionWith(WireGeo const& other) const { return WiresIntersection(*this, other); }
 
     /**
      * @brief Returns the point of this wire that is closest to `other` wire.
@@ -414,7 +415,7 @@ namespace geo {
      * `IntersectionWith(other)`. The return value is actually triplet, though,
      * which is most easily unpacked immediately:
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-     * auto [ point, offset, otherOffset ]
+     * auto [point, offset, otherOffset]
      *   = wire.IntersectionAndOffsetsWith(otherWire);
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      *
@@ -431,148 +432,64 @@ namespace geo {
      * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      *
      */
-    template <typename Point = DefaultPoint_t>
-    geo::IntersectionPointAndOffsets<Point> IntersectionAndOffsetsWith
-      (geo::WireGeo const& other) const;
+    IntersectionPointAndOffsets<Point_t> IntersectionAndOffsetsWith(WireGeo const& other) const
+    {
+      auto const [point, ofsA, ofsB] = WiresIntersectionAndOffsets(*this, other);
+      return {point, ofsA, ofsB};
+    }
 
     /// @}
     // -- END ---- Geometric properties and algorithms -------------------------
 
-
     /// Internal updates after the relative position of the wire is known
     /// (currently no-op)
-    void UpdateAfterSorting(geo::WireID const&, bool flip);
+    void UpdateAfterSorting(WireID const&, bool flip);
 
     /// Returns the pitch (distance on y/z plane) between two wires, in cm
-    static double WirePitch(geo::WireGeo const& w1, geo::WireGeo const& w2)
-      { return std::abs(w2.DistanceFrom(w1)); }
+    static double WirePitch(WireGeo const& w1, WireGeo const& w2)
+    {
+      return std::abs(w2.DistanceFrom(w1));
+    }
 
   private:
-    using LocalTransformation_t = geo::LocalTransformationGeo
-      <ROOT::Math::Transform3D, LocalPoint_t, LocalVector_t>;
+    using LocalTransformation_t =
+      LocalTransformationGeo<ROOT::Math::Transform3D, LocalPoint_t, LocalVector_t>;
 
-    const TGeoNode*    fWireNode;  ///< Pointer to the wire node
-    double             fThetaZ;    ///< angle of the wire with respect to the z direction
-    double             fHalfL;     ///< half length of the wire
-    geo::Point_t       fCenter;    ///< Center of the wire in world coordinates.
-    LocalTransformation_t fTrans;  ///< Wire to world transform.
-    bool               flipped;    ///< whether start and end are reversed
-
-    /// Returns whether ( 0, 0, fHalfL ) identifies end (false) or start (true)
-    /// of the wire.
-    bool isFlipped() const { return flipped; }
+    const TGeoNode* fWireNode;    ///< Pointer to the wire node
+    double fThetaZ;               ///< angle of the wire with respect to the z direction
+    double fHalfL;                ///< half length of the wire
+    Point_t fCenter;              ///< Center of the wire in world coordinates.
+    LocalTransformation_t fTrans; ///< Wire to world transform.
+    bool flipped;                 ///< whether (0, 0, fHalfL) identified end (false) or start (true)
 
     /// Returns the relative length from center to be used when transforming.
-    double relLength(double local) const { return isFlipped()? -local: local; }
+    double relLength(double local) const { return flipped ? -local : local; }
 
     /// Caps the specified local length coordinate to lay on the wire.
-    double capLength(double local) const
-      { return std::min(+HalfL(), std::max(-HalfL(), local)); }
-
-    /// Stacked `capLength()` and `relLength()`.
-    double capRelLength(double local) const
-      { return capLength(relLength(local)); }
+    double capLength(double local) const { return std::min(+HalfL(), std::max(-HalfL(), local)); }
 
     /// Set to swap the start and end wire
     void Flip();
 
-
-    static double gausSum(double a, double b) { return std::sqrt(a*a + b*b); }
-
   }; // class WireGeo
 
-  static_assert(std::is_move_assignable_v<geo::WireGeo>);
-  static_assert(std::is_move_constructible_v<geo::WireGeo>);
-
-
-  /**
-   * @brief Returns the point of `wireA` that is closest to `wireB`.
-   * @param wireA the first wire
-   * @param wireB the other wire
-   * @return the point of `wireA` closest to `wireB`
-   * @see WiresIntersectionAndOffsets()
-   *
-   * The point of `wireA` that is closest to `wireB` is returned.
-   *
-   * The two wires are _assumed_ not to be parallel, and when this prerequisite
-   * is not met the behaviour is undefined.
-   *
-   * A separate function, `WiresIntersectionAndOffsets()`,
-   * also returns the offset of the intersection from the two reference points.
-   *
-   */
-  geo::Point_t WiresIntersection
-    (geo::WireGeo const& wireA, geo::WireGeo const& wireB);
-
-  /**
-   * @brief Returns the point of `wireA` that is closest to `wireB`.
-   * @param wireA the first wire
-   * @param wireB the other wire
-   * @return a data structure with three fields:
-   *         `point`: the point of `wireA` closest to `wireB`;
-   *         `offset1`: its offset on `wireA` [cm];
-   *         `offset2`: its offset on `wireB` [cm]
-   * @see WiresIntersection()
-   *
-   * Computes the point of `wireA` that is closest to `wireB`.
-   *
-   * The returned intersection point is the same as for
-   * `geo::WiresIntersection()`. The return value is actually triplet, though,
-   * which is most easily unpacked immediately:
-   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-   * auto [ point, offsetA, offsetB ] = geo::WiresIntersection(wireA, wireB);
-   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   *
-   * The two other elements of the triplets are the distances of the
-   * intersection point from the center of this wire (`offset` in the example)
-   * and from the center of the `other` wire (`otherOffset`), in centimeters.
-   * The sign of the offsets are positive if the intersection points lie on the
-   * side pointed by the `Direction()` of the respective wires.
-   *
-   * To reassign the variables after they have been defined, instead:
-   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-   * std::tie(point, offsetB, offsetA) = geo::WiresIntersection(wireB, wireA);
-   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   *
-   */
-  geo::IntersectionPointAndOffsets<geo::Point_t> WiresIntersectionAndOffsets
-    (geo::WireGeo const& wireA, geo::WireGeo const& wireB);
-
+  static_assert(std::is_move_assignable_v<WireGeo>);
+  static_assert(std::is_move_constructible_v<WireGeo>);
 
 } // namespace geo
-
 
 //------------------------------------------------------------------------------
 //--- template implementation
 //---
 //------------------------------------------------------------------------------
-template <typename Point>
-Point geo::WireGeo::GetPositionFromCenterUnbounded(double localz) const {
-  return geo::vect::convertTo<Point>
-    (toWorldCoords(LocalPoint_t{ 0.0, 0.0, relLength(localz) }));
-} // geo::WireGeo::GetPositionFromCenterImpl()
-
-
-//------------------------------------------------------------------------------
-template <typename Vector>
-Vector geo::WireGeo::Direction() const {
-  // maybe (GetCenter() - GetStart()) / HalfL() would be faster;
-  // strangely, TVector3 does not implement operator/ (double).
-  return geo::vect::convertTo<Vector>(GetEnd<geo::Point_t>() - GetStart<geo::Point_t>()) * (1.0 / Length());
-} // geo::WireGeo::Direction()
-
-
-//------------------------------------------------------------------------------
 template <typename Stream>
-void geo::WireGeo::PrintWireInfo(
-  Stream&& out,
-  std::string indent /* = "" */,
-  unsigned int verbosity /* = 1 */
-) const {
-
+void geo::WireGeo::PrintWireInfo(Stream&& out,
+                                 std::string indent /* = "" */,
+                                 unsigned int verbosity /* = 1 */
+                                 ) const
+{
   //----------------------------------------------------------------------------
-  out << "wire from " << GetStart<geo::Point_t>()
-    << " to " << GetEnd<geo::Point_t>();
+  out << "wire from " << GetStart() << " to " << GetEnd();
 
   if (verbosity-- <= 0) return; // 0
 
@@ -587,65 +504,32 @@ void geo::WireGeo::PrintWireInfo(
   if (verbosity-- <= 0) return; // 2
 
   //----------------------------------------------------------------------------
-  out << "\n" << indent
-    << "  center at " << GetCenter<geo::Point_t>() << " cm";
+  out << "\n" << indent << "  center at " << GetCenter() << " cm";
 
   if (verbosity-- <= 0) return; // 3
 
   //----------------------------------------------------------------------------
-  out << ", direction: " << Direction<geo::Vector_t>();
+  out << ", direction: " << Direction();
   if (isHorizontal()) out << " (horizontal)";
   if (isVertical()) out << " (vertical)";
-
-//  if (verbosity-- <= 0) return; // 4
-
-  //----------------------------------------------------------------------------
-} // geo::WireGeo::PrintWireInfo()
-
+}
 
 //------------------------------------------------------------------------------
-template <typename Point /* = DefaultPoint_t */>
-Point geo::WireGeo::IntersectionWith(geo::WireGeo const& other) const {
-  return geo::vect::convertTo<Point>(WiresIntersection(*this, other));
-} // geo::WireGeo::IntersectionWith()
-
-
-//------------------------------------------------------------------------------
-template <typename Point /* = DefaultPoint_t */>
-geo::IntersectionPointAndOffsets<Point> geo::WireGeo::IntersectionAndOffsetsWith
-  (geo::WireGeo const& other) const
-{
-  auto const& [ point, ofsA, ofsB ] = WiresIntersectionAndOffsets(*this, other);
-  return { geo::vect::convertTo<Point>(point), ofsA, ofsB };
-} // geo::WireGeo::IntersectionAndOffsetsWith()
-
-
-//------------------------------------------------------------------------------
-inline geo::Point_t geo::WiresIntersection
-  (geo::WireGeo const& wireA, geo::WireGeo const& wireB)
-{
-
-  return LineClosestPointWithUnitVectors(
-    wireA.GetCenter<geo::Point_t>(), wireA.Direction<geo::Vector_t>(),
-    wireB.GetCenter<geo::Point_t>(), wireB.Direction<geo::Vector_t>()
-    );
-
-} // geo::WiresIntersection()
-
-
-//------------------------------------------------------------------------------
-inline geo::IntersectionPointAndOffsets<geo::Point_t>
-geo::WiresIntersectionAndOffsets
-  (geo::WireGeo const& wireA, geo::WireGeo const& wireB)
+inline geo::IntersectionPointAndOffsets<geo::Point_t> geo::WiresIntersectionAndOffsets(
+  WireGeo const& wireA,
+  WireGeo const& wireB)
 {
 
   return LineClosestPointAndOffsetsWithUnitVectors(
-    wireA.GetCenter<geo::Point_t>(), wireA.Direction<geo::Vector_t>(),
-    wireB.GetCenter<geo::Point_t>(), wireB.Direction<geo::Vector_t>()
-    );
+    wireA.GetCenter(), wireA.Direction(), wireB.GetCenter(), wireB.Direction());
+}
 
-} // geo::WiresIntersectionAndOffsets()
-
+//------------------------------------------------------------------------------
+inline geo::Point_t geo::WiresIntersection(WireGeo const& wireA, WireGeo const& wireB)
+{
+  return LineClosestPointWithUnitVectors(
+    wireA.GetCenter(), wireA.Direction(), wireB.GetCenter(), wireB.Direction());
+}
 
 //------------------------------------------------------------------------------
 

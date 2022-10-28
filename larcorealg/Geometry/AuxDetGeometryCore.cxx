@@ -124,46 +124,45 @@ namespace geo {
   }
 
   //......................................................................
-  unsigned int AuxDetGeometryCore::FindAuxDetAtPosition(double const worldPos[3],
+  unsigned int AuxDetGeometryCore::FindAuxDetAtPosition(Point_t const& worldPos,
                                                         double tolerance) const
   {
     return fChannelMapAlg->NearestAuxDet(worldPos, AuxDets(), tolerance);
   }
 
   //......................................................................
-  const AuxDetGeo& AuxDetGeometryCore::PositionToAuxDet(double const worldLoc[3],
+  const AuxDetGeo& AuxDetGeometryCore::PositionToAuxDet(Point_t const& worldLoc,
                                                         unsigned int& ad,
                                                         double tolerance) const
   {
     // locate the desired Auxiliary Detector
-    ad = this->FindAuxDetAtPosition(worldLoc, tolerance);
-
-    return this->AuxDet(ad);
+    ad = FindAuxDetAtPosition(worldLoc, tolerance);
+    return AuxDet(ad);
   }
 
   //......................................................................
-  void AuxDetGeometryCore::FindAuxDetSensitiveAtPosition(double const worldPos[3],
+  void AuxDetGeometryCore::FindAuxDetSensitiveAtPosition(Point_t const& worldPos,
                                                          size_t& adg,
                                                          size_t& sv,
                                                          double tolerance) const
   {
-    adg = this->FindAuxDetAtPosition(worldPos, tolerance);
+    adg = FindAuxDetAtPosition(worldPos, tolerance);
     sv = fChannelMapAlg->NearestSensitiveAuxDet(worldPos, AuxDets(), adg, tolerance);
   }
 
   //......................................................................
-  const AuxDetSensitiveGeo& AuxDetGeometryCore::PositionToAuxDetSensitive(double const worldLoc[3],
+  AuxDetSensitiveGeo const& AuxDetGeometryCore::PositionToAuxDetSensitive(Point_t const& worldLoc,
                                                                           size_t& ad,
                                                                           size_t& sv,
                                                                           double tolerance) const
   {
     // locate the desired Auxiliary Detector
-    this->FindAuxDetSensitiveAtPosition(worldLoc, ad, sv, tolerance);
-    return this->AuxDet(ad).SensitiveVolume(sv);
+    FindAuxDetSensitiveAtPosition(worldLoc, ad, sv, tolerance);
+    return AuxDet(ad).SensitiveVolume(sv);
   }
 
   //......................................................................
-  uint32_t AuxDetGeometryCore::PositionToAuxDetChannel(double const worldLoc[3],
+  uint32_t AuxDetGeometryCore::PositionToAuxDetChannel(Point_t const& worldLoc,
                                                        size_t& ad,
                                                        size_t& sv) const
   {
@@ -171,27 +170,27 @@ namespace geo {
   }
 
   //......................................................................
-  TVector3 AuxDetGeometryCore::AuxDetChannelToPosition(uint32_t const& channel,
-                                                       std::string const& auxDetName) const
+  Point_t AuxDetGeometryCore::AuxDetChannelToPosition(std::string const& auxDetName,
+                                                      uint32_t const channel) const
   {
     return fChannelMapAlg->AuxDetChannelToPosition(channel, auxDetName, AuxDets());
   }
 
   //......................................................................
-  const AuxDetGeo& AuxDetGeometryCore::ChannelToAuxDet(std::string const& auxDetName,
-                                                       uint32_t const& channel) const
+  AuxDetGeo const& AuxDetGeometryCore::ChannelToAuxDet(std::string const& auxDetName,
+                                                       uint32_t const channel) const
   {
     size_t adIdx = fChannelMapAlg->ChannelToAuxDet(AuxDets(), auxDetName, channel);
-    return this->AuxDet(adIdx);
+    return AuxDet(adIdx);
   }
 
   //......................................................................
-  const AuxDetSensitiveGeo& AuxDetGeometryCore::ChannelToAuxDetSensitive(
+  AuxDetSensitiveGeo const& AuxDetGeometryCore::ChannelToAuxDetSensitive(
     std::string const& auxDetName,
-    uint32_t const& channel) const
+    uint32_t const channel) const
   {
     auto idx = fChannelMapAlg->ChannelToSensitiveAuxDet(AuxDets(), auxDetName, channel);
-    return this->AuxDet(idx.first).SensitiveVolume(idx.second);
+    return AuxDet(idx.first).SensitiveVolume(idx.second);
   }
 
   //......................................................................

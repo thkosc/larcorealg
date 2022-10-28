@@ -11,11 +11,11 @@
 // LArSoft includes
 #include "larcorealg/Geometry/CryostatGeo.h"
 #include "larcorealg/Geometry/GeometryCore.h"
-#include "larcorealg/Geometry/IteratorTypes.h"
 #include "larcorealg/Geometry/PlaneGeo.h"
 #include "larcorealg/Geometry/TPCGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
+#include "test/Geometry/IteratorTypes.h"
 
 // Framework includes
 #include "cetlib_except/exception.h"
@@ -122,7 +122,7 @@ namespace geo {
 
     for (unsigned int c = 0; c < nCryo; ++c) {
       const geo::CryostatID expCID(c);
-      const CryostatGeo& cryo(geom->Cryostat(c));
+      const CryostatGeo& cryo(geom->Cryostat(expCID));
       const unsigned int nTPC = cryo.NTPC();
       const unsigned int nTPCsets = geom->NTPCsets(expCID);
 

@@ -122,8 +122,8 @@ auto geo::DriftPartitions::computeCoverage(TPCPartition_t const& TPCpart) const 
     {
       geo::TPCGeo const* TPC = TPCpart.data();
       if (!TPC) return;
-      includePoint(TPC->GetCathodeCenter<Position_t>());
-      includePoint(TPC->LastPlane().GetCenter<Position_t>());
+      includePoint(TPC->GetCathodeCenter());
+      includePoint(TPC->LastPlane().GetCenter());
     }
 
   private:
@@ -1046,7 +1046,7 @@ geo::DriftPartitions geo::buildDriftVolumes(geo::CryostatGeo const& cryo)
   using Direction_t = geo::DriftPartitions::Direction_t;
   geo::TPCGeo const& firstTPC = cryo.TPC(0);
   geo::DriftPartitions::Decomposer_t decomposer(
-    {cryo.Center(), firstTPC.RefWidthDir<Direction_t>(), firstTPC.RefDepthDir<Direction_t>()});
+    {cryo.Center(), firstTPC.RefWidthDir(), firstTPC.RefDepthDir()});
 
   //
   // further group TPCs by plane position in drift direction

@@ -34,7 +34,6 @@ namespace geo {
                        AuxDetSensitiveList_t&& sensitive)
     : fTotalVolume(node.GetVolume()), fTrans(std::move(trans)), fSensitive(std::move(sensitive))
   {
-
     if (!fTotalVolume) throw cet::exception("AuxDetGeo") << "cannot find AuxDet volume\n";
 
     MF_LOG_DEBUG("Geometry") << "detector total  volume is " << fTotalVolume->GetName();
@@ -56,37 +55,11 @@ namespace geo {
   }
 
   //......................................................................
-  void AuxDetGeo::GetCenter(double* xyz, double localz) const
-  {
-    auto const& center = GetCenter(localz);
-    xyz[0] = center.X();
-    xyz[1] = center.Y();
-    xyz[2] = center.Z();
-  } // AuxDetGeo::GetCenter(double*)
-
-  //......................................................................
 
   // Return the unit normal vector (0,0,1) in local coordinates to global coordinates
   geo::Vector_t AuxDetGeo::GetNormalVector() const
   {
     return toWorldCoords(geo::Zaxis<LocalVector_t>());
-  }
-
-  //......................................................................
-
-  // Return the unit normal vector (0,0,1) in local coordinates to global coordinates
-  void AuxDetGeo::GetNormalVector(double* xyzDir) const
-  {
-    auto const& norm = GetNormalVector();
-    xyzDir[0] = norm.X();
-    xyzDir[1] = norm.Y();
-    xyzDir[2] = norm.Z();
-  } // AuxDetGeo::GetNormalVector(double*)
-
-  //......................................................................
-  geo::Length_t AuxDetGeo::DistanceToPoint(double const* point) const
-  {
-    return DistanceToPoint(geo::vect::makePointFromCoords(point));
   }
 
   //......................................................................
@@ -139,7 +112,7 @@ namespace geo {
     std::ostringstream sstr;
     PrintAuxDetInfo(sstr, indent, verbosity);
     return sstr.str();
-  } // AuxDetGeo::AuxDetInfo()
+  }
 
   //......................................................................
   void AuxDetGeo::InitShapeSize()
@@ -166,7 +139,7 @@ namespace geo {
       fLength = 2.0 * ((TGeoBBox*)fTotalVolume->GetShape())->GetDZ();
       fHalfWidth2 = fHalfWidth1;
     }
-  } // AuxDetGeo::InitShapeSize()
+  }
 
   //......................................................................
 

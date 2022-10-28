@@ -10,8 +10,8 @@
 // LArSoft libraries
 #include "GeometryIteratorTestAlg.h"
 #include "larcorealg/Geometry/GeometryCore.h"
-#include "larcorealg/Geometry/IteratorTypes.h"
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
+#include "test/Geometry/IteratorTypes.h"
 
 // Boost libraries
 #include <boost/test/unit_test.hpp>
@@ -332,6 +332,7 @@ void geo::GeometryIteratorTestAlg::CryostatIteratorsTest() const
     BOOST_TEST(!(iCryo_copy != iCryo));
 
     BOOST_TEST(iCryo == iCryo_copy);
+    BOOST_TEST(iCryoID_copy == iCryoID);
   }
 
   //
@@ -672,6 +673,7 @@ void geo::GeometryIteratorTestAlg::TPCIteratorsTest() const
     BOOST_TEST(!(iTPC_copy != iTPC));
 
     BOOST_TEST(iTPC == iTPC_copy);
+    BOOST_TEST(iTPCID_copy == iTPCID);
   }
 
   //
@@ -1027,6 +1029,7 @@ void geo::GeometryIteratorTestAlg::PlaneIteratorsTest() const
     BOOST_TEST(!(iPlane_copy != iPlane));
 
     BOOST_TEST(iPlane == iPlane_copy);
+    BOOST_TEST(iPlaneID_copy == iPlaneID);
   }
 
   //
@@ -1399,6 +1402,7 @@ void geo::GeometryIteratorTestAlg::WireIteratorsTest() const
     BOOST_TEST(!(iWire_copy != iWire));
 
     BOOST_TEST(iWire == iWire_copy);
+    BOOST_TEST(iWireID_copy == iWireID);
   }
 
   //

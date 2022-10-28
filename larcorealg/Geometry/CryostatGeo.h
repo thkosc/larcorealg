@@ -344,18 +344,9 @@ namespace geo {
     /// @name Coordinate transformation
 
     /// Transform point from local cryostat frame to world frame.
-    void LocalToWorld(const double* cryo, double* world) const { fTrans.LocalToWorld(cryo, world); }
-
-    /// Transform point from local cryostat frame to world frame.
     geo::Point_t toWorldCoords(LocalPoint_t const& local) const
     {
       return fTrans.toWorldCoords(local);
-    }
-
-    /// Transform direction vector from local to world.
-    void LocalToWorldVect(const double* cryo, double* world) const
-    {
-      fTrans.LocalToWorldVect(cryo, world);
     }
 
     /// Transform direction vector from local to world.
@@ -365,18 +356,9 @@ namespace geo {
     }
 
     /// Transform point from world frame to local cryostat frame.
-    void WorldToLocal(const double* world, double* cryo) const { fTrans.WorldToLocal(world, cryo); }
-
-    /// Transform point from world frame to local cryostat frame.
     LocalPoint_t toLocalCoords(geo::Point_t const& world) const
     {
       return fTrans.toLocalCoords(world);
-    }
-
-    /// Transform direction vector from world to local.
-    void WorldToLocalVect(const double* world, double* cryo) const
-    {
-      fTrans.WorldToLocalVect(world, cryo);
     }
 
     /// Transform direction vector from world to local.

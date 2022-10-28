@@ -125,6 +125,7 @@ cet_make_library(SOURCE
   GeoObjectSorter.cxx
   GeoObjectSorterStandard.cxx
   GeoVectorLocalTransformation.cxx
+  Intersections.cxx
   LocalTransformation.cxx
   OpDetGeo.cxx
   PlaneGeo.cxx
@@ -133,7 +134,7 @@ cet_make_library(SOURCE
   TPCGeo.cxx
   WireGeo.cxx
   details/extractMaxGeometryElements.h
-  details/nSiblings.cxx
+  details/helpers.cxx
   LIBRARIES
   PUBLIC
   larcorealg::GeometryDataContainers

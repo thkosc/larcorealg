@@ -18,19 +18,37 @@
 #include <algorithm> // std::move()
 #include <string_view>
 
-namespace {
+using namespace std::literals;
 
-  //------------------------------------------------------------------------------
+namespace {
   template <typename Dest, typename Src>
-  Dest& extendCollection(Dest& dest, Src&& src)
+  void extendCollection(Dest& dest, Src&& src)
   {
     std::move(src.begin(), src.end(), std::back_inserter(dest));
-    return dest;
-  } // extend()
+  }
 
-  //------------------------------------------------------------------------------
+  /// Returns whether the start of `s` matches the full `key`.
+  /// @note Remove this when C++20 is adopted (`s.starts_with(key)`).
+  bool starts_with(std::string_view const s, std::string_view const key)
+  {
+    return s.compare(0, key.size(), key) == 0;
+  }
 
-} // local namespace
+  bool isAuxDetNode(TGeoNode const& node) { return starts_with(node.GetName(), "volAuxDet"sv); }
+  bool isAuxDetSensitiveNode(TGeoNode const& node)
+  {
+    return std::string_view(node.GetName()).find("Sensitive") != std::string_view::npos;
+  }
+  bool isCryostatNode(TGeoNode const& node) { return starts_with(node.GetName(), "volCryostat"sv); }
+
+  bool isOpDetNode(TGeoNode const& node, std::string_view const opDetGeoName)
+  {
+    return starts_with(node.GetName(), opDetGeoName);
+  }
+  bool isTPCNode(TGeoNode const& node) { return starts_with(node.GetName(), "volTPC"sv); }
+  bool isPlaneNode(TGeoNode const& node) { return starts_with(node.GetName(), "volTPCPlane"sv); }
+  bool isWireNode(TGeoNode const& node) { return starts_with(node.GetName(), "volTPCWire"sv); }
+}
 
 //------------------------------------------------------------------------------
 geo::GeometryBuilderStandard::GeometryBuilderStandard(Config const& config)
@@ -42,184 +60,114 @@ geo::GeometryBuilderStandard::AuxDets_t geo::GeometryBuilderStandard::doExtractA
   Path_t& path)
 {
 
-  return doExtractGeometryObjects<geo::AuxDetGeo,
-                                  &geo::GeometryBuilderStandard::isAuxDetNode,
-                                  &geo::GeometryBuilderStandard::doMakeAuxDet>(path);
-
-} // geo::GeometryBuilderStandard::doExtractAuxiliaryDetectors()
+  return doExtractGeometryObjects(path, isAuxDetNode, &GeometryBuilderStandard::doMakeAuxDet);
+}
 
 //------------------------------------------------------------------------------
 geo::AuxDetGeo geo::GeometryBuilderStandard::doMakeAuxDet(Path_t& path)
 {
 
-  return geo::AuxDetGeo(path.current(),
-                        path.currentTransformation<geo::TransformationMatrix>(),
-                        extractAuxDetSensitive(path));
-
-} // geo::GeometryBuilderStandard::doMakeAuxDet()
+  return AuxDetGeo(path.current(),
+                   path.currentTransformation<TransformationMatrix>(),
+                   extractAuxDetSensitive(path));
+}
 
 //------------------------------------------------------------------------------
 geo::GeometryBuilderStandard::AuxDetSensitive_t
 geo::GeometryBuilderStandard::doExtractAuxDetSensitive(Path_t& path)
 {
-  return doExtractGeometryObjects<geo::AuxDetSensitiveGeo,
-                                  &geo::GeometryBuilderStandard::isAuxDetSensitiveNode,
-                                  &geo::GeometryBuilderStandard::makeAuxDetSensitive>(path);
-} // geo::GeometryBuilderStandard::doExtractAuxDetSensitive()
+  return doExtractGeometryObjects(
+    path, isAuxDetSensitiveNode, &GeometryBuilderStandard::makeAuxDetSensitive);
+}
 
 //------------------------------------------------------------------------------
 geo::AuxDetSensitiveGeo geo::GeometryBuilderStandard::doMakeAuxDetSensitive(Path_t& path)
 {
-  return geo::AuxDetSensitiveGeo(path.current(),
-                                 path.currentTransformation<geo::TransformationMatrix>());
-} // geo::GeometryBuilderStandard::doMakeAuxDetSensitive()
+  return AuxDetSensitiveGeo(path.current(), path.currentTransformation<TransformationMatrix>());
+}
 
 //------------------------------------------------------------------------------
 geo::GeometryBuilderStandard::Cryostats_t geo::GeometryBuilderStandard::doExtractCryostats(
   Path_t& path)
 {
-
-  return doExtractGeometryObjects<geo::CryostatGeo,
-                                  &geo::GeometryBuilderStandard::isCryostatNode,
-                                  &geo::GeometryBuilderStandard::makeCryostat>(path);
-
-} // geo::GeometryBuilderStandard::doExtractCryostats()
+  return doExtractGeometryObjects(path, isCryostatNode, &GeometryBuilderStandard::makeCryostat);
+}
 
 //------------------------------------------------------------------------------
 geo::CryostatGeo geo::GeometryBuilderStandard::doMakeCryostat(Path_t& path)
 {
-
-  return geo::CryostatGeo(path.current(),
-                          path.currentTransformation<geo::TransformationMatrix>(),
-                          extractTPCs(path),
-                          extractOpDets(path));
-
-} // geo::GeometryBuilderStandard::doMakeCryostat()
+  return CryostatGeo{path.current(),
+                     path.currentTransformation<TransformationMatrix>(),
+                     extractTPCs(path),
+                     extractOpDets(path)};
+}
 
 //------------------------------------------------------------------------------
 geo::GeometryBuilderStandard::OpDets_t geo::GeometryBuilderStandard::doExtractOpDets(Path_t& path)
 {
-  return doExtractGeometryObjects<geo::OpDetGeo,
-                                  &geo::GeometryBuilderStandard::isOpDetNode,
-                                  &geo::GeometryBuilderStandard::makeOpDet>(path);
-} // geo::GeometryBuilderStandard::doExtractOpDets()
+  return doExtractGeometryObjects(
+    path,
+    [this](auto const& node) { return isOpDetNode(node, fOpDetGeoName); },
+    &GeometryBuilderStandard::makeOpDet);
+}
 
 //------------------------------------------------------------------------------
 geo::OpDetGeo geo::GeometryBuilderStandard::doMakeOpDet(Path_t& path)
 {
-  return geo::OpDetGeo(path.current(), path.currentTransformation<geo::TransformationMatrix>());
-} // geo::GeometryBuilderStandard::doMakeOpDet()
+  return OpDetGeo(path.current(), path.currentTransformation<TransformationMatrix>());
+}
 
 //------------------------------------------------------------------------------
 geo::GeometryBuilderStandard::TPCs_t geo::GeometryBuilderStandard::doExtractTPCs(Path_t& path)
 {
-  return doExtractGeometryObjects<geo::TPCGeo,
-                                  &geo::GeometryBuilderStandard::isTPCNode,
-                                  &geo::GeometryBuilderStandard::makeTPC>(path);
-
-} // geo::GeometryBuilderStandard::doExtractTPCs()
+  return doExtractGeometryObjects(path, isTPCNode, &GeometryBuilderStandard::makeTPC);
+}
 
 //------------------------------------------------------------------------------
 geo::TPCGeo geo::GeometryBuilderStandard::doMakeTPC(Path_t& path)
 {
-  return geo::TPCGeo(
-    path.current(), path.currentTransformation<geo::TransformationMatrix>(), extractPlanes(path));
-} // geo::GeometryBuilderStandard::doMakeTPC()
+  return TPCGeo{
+    path.current(), path.currentTransformation<TransformationMatrix>(), extractPlanes(path)};
+}
 
 //------------------------------------------------------------------------------
 geo::GeometryBuilderStandard::Planes_t geo::GeometryBuilderStandard::doExtractPlanes(Path_t& path)
 {
-  return doExtractGeometryObjects<geo::PlaneGeo,
-                                  &geo::GeometryBuilderStandard::isPlaneNode,
-                                  &geo::GeometryBuilderStandard::makePlane>(path);
-
-} // geo::GeometryBuilderStandard::doExtractPlanes()
+  return doExtractGeometryObjects(path, isPlaneNode, &GeometryBuilderStandard::makePlane);
+}
 
 //------------------------------------------------------------------------------
 geo::PlaneGeo geo::GeometryBuilderStandard::doMakePlane(Path_t& path)
 {
-  return geo::PlaneGeo(
-    path.current(), path.currentTransformation<geo::TransformationMatrix>(), extractWires(path));
-} // geo::GeometryBuilderStandard::doMakePlane()
+  return PlaneGeo{
+    path.current(), path.currentTransformation<TransformationMatrix>(), extractWires(path)};
+}
 
 //------------------------------------------------------------------------------
 geo::GeometryBuilderStandard::Wires_t geo::GeometryBuilderStandard::doExtractWires(Path_t& path)
 {
-  return doExtractGeometryObjects<geo::WireGeo,
-                                  &geo::GeometryBuilderStandard::isWireNode,
-                                  &geo::GeometryBuilderStandard::makeWire>(path);
-
-} // geo::GeometryBuilderStandard::doExtractWires()
+  return doExtractGeometryObjects(path, isWireNode, &GeometryBuilderStandard::makeWire);
+}
 
 //------------------------------------------------------------------------------
 geo::WireGeo geo::GeometryBuilderStandard::doMakeWire(Path_t& path)
 {
-
-  return geo::WireGeo(path.current(), path.currentTransformation<geo::TransformationMatrix>());
-
-} // geo::GeometryBuilderStandard::doMakeWire()
+  return WireGeo{path.current(), path.currentTransformation<TransformationMatrix>()};
+}
 
 //------------------------------------------------------------------------------
-bool geo::GeometryBuilderStandard::isAuxDetNode(TGeoNode const& node) const
-{
-  using namespace std::literals;
-  return starts_with(node.GetName(), "volAuxDet"sv);
-} // geo::GeometryBuilderStandard::isAuxDetNode()
-
-//------------------------------------------------------------------------------
-bool geo::GeometryBuilderStandard::isAuxDetSensitiveNode(TGeoNode const& node) const
-{
-  return std::string_view(node.GetName()).find("Sensitive") != std::string_view::npos;
-} // geo::GeometryBuilderStandard::isAuxDetSensitiveNode()
-
-//------------------------------------------------------------------------------
-bool geo::GeometryBuilderStandard::isCryostatNode(TGeoNode const& node) const
-{
-  using namespace std::literals;
-  return starts_with(node.GetName(), "volCryostat"sv);
-} // geo::GeometryBuilderStandard::isCryostatNode()
-
-//------------------------------------------------------------------------------
-bool geo::GeometryBuilderStandard::isOpDetNode(TGeoNode const& node) const
-{
-  return starts_with(node.GetName(), fOpDetGeoName);
-} // geo::GeometryBuilderStandard::isOpDetNode()
-
-//------------------------------------------------------------------------------
-bool geo::GeometryBuilderStandard::isTPCNode(TGeoNode const& node) const
-{
-  using namespace std::literals;
-  return starts_with(node.GetName(), "volTPC"sv);
-} // geo::GeometryBuilderStandard::isTPCNode()
-
-//------------------------------------------------------------------------------
-bool geo::GeometryBuilderStandard::isPlaneNode(TGeoNode const& node) const
-{
-  using namespace std::literals;
-  return starts_with(node.GetName(), "volTPCPlane"sv);
-} // geo::GeometryBuilderStandard::isPlaneNode()
-
-//------------------------------------------------------------------------------
-bool geo::GeometryBuilderStandard::isWireNode(TGeoNode const& node) const
-{
-  using namespace std::literals;
-  return starts_with(node.GetName(), "volTPCWire"sv);
-} // geo::GeometryBuilderStandard::isWireNode()
-
-//------------------------------------------------------------------------------
-template <typename ObjGeo,
-          bool (geo::GeometryBuilderStandard::*IsObj)(TGeoNode const&) const,
-          ObjGeo (geo::GeometryBuilderStandard::*MakeObj)(geo::GeometryBuilder::Path_t&)>
+template <typename ObjGeo>
 geo::GeometryBuilder::GeoColl_t<ObjGeo> geo::GeometryBuilderStandard::doExtractGeometryObjects(
-  Path_t& path)
+  Path_t& path,
+  std::function<bool(TGeoNode const&)> const IsObj,
+  ObjGeo (GeometryBuilderStandard::*MakeObj)(Path_t&))
 {
-
-  geo::GeometryBuilder::GeoColl_t<ObjGeo> objs;
+  GeoColl_t<ObjGeo> objs;
 
   //
   // if this is a wire, we are set
   //
-  if ((this->*IsObj)(path.current())) {
+  if (IsObj(path.current())) {
     objs.push_back((this->*MakeObj)(path));
     return objs;
   }
@@ -229,16 +177,15 @@ geo::GeometryBuilder::GeoColl_t<ObjGeo> geo::GeometryBuilderStandard::doExtractG
   //
   if (path.depth() >= fMaxDepth) return objs; // yep, this is empty
 
-  TGeoVolume const& volume = *(path.current().GetVolume());
-  int const n = volume.GetNdaughters();
+  TGeoVolume const* volume = path.current().GetVolume();
+  int const n = volume->GetNdaughters();
   for (int i = 0; i < n; ++i) {
-    path.append(*(volume.GetNode(i)));
-    extendCollection(objs, doExtractGeometryObjects<ObjGeo, IsObj, MakeObj>(path));
+    path.append(*volume->GetNode(i));
+    extendCollection(objs, doExtractGeometryObjects(path, IsObj, MakeObj));
     path.pop();
   } // for
 
   return objs;
-
-} // geo::GeometryBuilderStandard::doExtractGeometryObjects()
+}
 
 //------------------------------------------------------------------------------
