@@ -389,7 +389,6 @@ void geo::GeometryIteratorTestAlg::CryostatIteratorsTest() const
 
     // check copy assignment
     geo::GeometryCore::cryostat_iterator iCryo_copy(iCryo);
-    geo::GeometryCore::cryostat_id_iterator iCryoID_copy(iCryoID);
 
     // check comparisons too
     BOOST_TEST(iCryo == iCryo_copy);
@@ -764,7 +763,6 @@ void geo::GeometryIteratorTestAlg::TPCIteratorsTest() const
 
     // check copy assignment
     geo::GeometryCore::TPC_iterator iTPC_copy(iTPC);
-    geo::GeometryCore::TPC_id_iterator iTPCID_copy(iTPCID);
 
     // check comparisons too
     BOOST_TEST(iTPC == iTPC_copy);
@@ -1162,7 +1160,6 @@ void geo::GeometryIteratorTestAlg::PlaneIteratorsTest() const
 
     // check copy assignment
     geo::GeometryCore::plane_iterator iPlane_copy(iPlane);
-    geo::GeometryCore::plane_id_iterator iPlaneID_copy(iPlaneID);
 
     // check comparisons too
     BOOST_TEST(iPlane == iPlane_copy);
@@ -1580,7 +1577,6 @@ void geo::GeometryIteratorTestAlg::WireIteratorsTest() const
 
     // check copy assignment
     geo::GeometryCore::wire_iterator iWire_copy(iWire);
-    geo::GeometryCore::wire_id_iterator iWireID_copy(iWireID);
 
     // check comparisons too
     BOOST_TEST(iWire == iWire_copy);
