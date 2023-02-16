@@ -21,7 +21,6 @@
 
 // LArSoft libraries
 #include "larcorealg/CoreUtils/RealComparisons.h"
-#include "larcorealg/CoreUtils/span.h"
 #include "larcorealg/Geometry/AuxDetGeo.h"
 #include "larcorealg/Geometry/AuxDetSensitiveGeo.h"
 #include "larcorealg/Geometry/BoxBoundedGeo.h"
@@ -36,6 +35,7 @@
 #include "larcorealg/Geometry/ReadoutDataContainers.h" // readout::ROPDataContainer
 #include "larcorealg/Geometry/TPCGeo.h"
 #include "larcorealg/Geometry/WireGeo.h"
+#include "larcorealg/Geometry/details/geometry_iterator_maker.h"
 #include "larcorealg/Geometry/details/geometry_iterators.h"
 #include "larcorealg/Geometry/fwd.h"
 #include "larcorealg/Geometry/geo_vectors_utils.h"       // geo::vect namespace
@@ -69,14 +69,6 @@ namespace geo {
   // BEGIN Geometry group ------------------------------------------------------
   /// @ingroup Geometry
   /// @{
-
-  template <typename Iter>
-  struct IteratorBox : util::span<Iter> {
-    using util::span<Iter>::span;
-  };
-
-  template <typename Iter>
-  IteratorBox(Iter, Iter)->IteratorBox<Iter>;
 
   //
   // GeometryCore
@@ -532,77 +524,41 @@ namespace geo {
     /// @return whether the ID is actually valid (validity flag is also set)
     bool IncrementID(CryostatID& id) const; // inline implementation
 
-    template <typename BaseID, typename GeoID>
-    static constexpr bool is_base_of_strict{std::is_base_of<BaseID, GeoID>{} &&
-                                            !std::is_same<BaseID, GeoID>{}};
-
     // FIXME: Need Doxygen comments
     template <typename T>
-    auto begin() const
+    details::begin_type<T> begin() const
     {
-      using namespace details;
-      if constexpr (std::is_base_of<CryostatID, T>{}) {
-        return id_iterator<T>{this, GetBeginID<T>()};
-      }
-      else {
-        using ID_t = typename T::ID_t;
-        return element_iterator_for<T>{this, id_iterator<ID_t>{this, GetBeginID<ID_t>()}};
-      }
+      return details::IteratorMaker<T>::create_begin(this);
     }
 
     template <typename T>
-    auto end() const
+    details::end_type<T> end() const
     {
-      using namespace details;
-      if constexpr (std::is_base_of<CryostatID, T>{}) {
-        return id_iterator<T>{this, GetEndID<T>()};
-      }
-      else {
-        using ID_t = typename T::ID_t;
-        return element_iterator_for<T>{this, id_iterator<ID_t>{this, GetEndID<ID_t>()}};
-      }
-    }
-
-    template <typename T, typename BaseID>
-    auto begin(BaseID const& id) const
-    {
-      using namespace details;
-      if constexpr (std::is_base_of<CryostatID, T>{}) {
-        static_assert(is_base_of_strict<BaseID, T>);
-        return id_iterator<T>{this, GetBeginID<T>(id)};
-      }
-      else {
-        using ID_t = typename T::ID_t;
-        static_assert(is_base_of_strict<BaseID, ID_t>);
-        return element_iterator_for<T>{this, id_iterator<ID_t>{this, GetBeginID<ID_t>(id)}};
-      }
-    }
-
-    template <typename T, typename BaseID>
-    auto end(BaseID const& id) const
-    {
-      using namespace details;
-      if constexpr (std::is_base_of<CryostatID, T>{}) {
-        static_assert(is_base_of_strict<BaseID, T>);
-        return id_iterator<T>{this, GetEndID<T>(id)};
-      }
-      else {
-        using ID_t = typename T::ID_t;
-        static_assert(is_base_of_strict<BaseID, ID_t>);
-        return element_iterator_for<T>{this, id_iterator<ID_t>{this, GetEndID<ID_t>(id)}};
-      }
+      return details::IteratorMaker<T>::create_end(this);
     }
 
     template <typename T>
-    auto Iterate() const
+    details::range_type<T> Iterate() const
     {
-      return IteratorBox{begin<T>(), end<T>()};
+      return details::IteratorMaker<T>::create_range(this);
+    }
+
+    template <typename T, typename BaseID>
+    details::begin_type<T> begin(BaseID const& id) const
+    {
+      return details::IteratorMaker<T>::create_begin(this, id);
+    }
+
+    template <typename T, typename BaseID>
+    details::end_type<T> end(BaseID const& id) const
+    {
+      return details::IteratorMaker<T>::create_end(this, id);
     }
 
     template <typename T, typename ID>
-    auto Iterate(ID const& id) const
+    details::range_type<T> Iterate(ID const& id) const
     {
-      return IteratorBox{begin<T>(id), end<T>(id)};
+      return details::IteratorMaker<T>::create_range(this, id);
     }
 
     //
