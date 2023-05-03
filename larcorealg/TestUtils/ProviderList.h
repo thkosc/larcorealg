@@ -26,6 +26,7 @@
 #include <typeinfo>
 #include <unordered_map>
 #include <utility> // std::forward()
+#include <stdexcept> // std::runtime_error
 
 namespace testing {
 
