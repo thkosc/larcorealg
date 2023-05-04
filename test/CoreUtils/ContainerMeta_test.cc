@@ -179,7 +179,6 @@ void make_collection_reference_test()
   O const* const& cptrcr = cptrc;
   auto refw = std::ref(list);
   auto crefw = std::cref(list);
-  auto const uptr = std::unique_ptr<O>(new O[Size]);
   auto array_uptr = std::unique_ptr<O[Size]>();
   auto garray_uptr = std::unique_ptr<O[]>(new O[Size]);
 
@@ -192,7 +191,6 @@ void make_collection_reference_test()
   static_assert(std::is_same_v<decltype(util::make_collection_reference(cptrcr)), decltype(cptr)>);
   static_assert(std::is_same_v<decltype(util::make_collection_reference(refw)), decltype(refw)>);
   static_assert(std::is_same_v<decltype(util::make_collection_reference(crefw)), decltype(crefw)>);
-  static_assert(std::is_same_v<decltype(util::make_collection_reference(uptr)), decltype(ptr)>);
   static_assert(
     std::is_same_v<decltype(util::make_collection_reference(array_uptr)), decltype(&array)>);
   static_assert(
@@ -206,7 +204,6 @@ void make_collection_reference_test()
   BOOST_TEST(&(util::make_collection_reference(cptrcr)[0]) == cptr);
   BOOST_TEST(&(util::make_collection_reference(refw).get().front()) == &list.front());
   BOOST_TEST(&(util::make_collection_reference(crefw).get().front()) == &list.front());
-  BOOST_TEST(&(util::make_collection_reference(uptr)[0]) == uptr.get());
   BOOST_TEST(&(util::make_collection_reference(array_uptr)[0]) == array_uptr.get());
   BOOST_TEST(&(util::make_collection_reference(garray_uptr)[0]) == garray_uptr.get());
 
@@ -230,7 +227,6 @@ void collection_from_reference_test()
   O* ptr = array;
   O const* cptr = ptr;
 
-  auto const uptr = std::unique_ptr<O>(new O[Size]);
   auto array_uptr = std::unique_ptr<O[Size]>();
   auto const array_uptrc = std::unique_ptr<O[Size]>();
   auto garray_uptr = std::unique_ptr<O[]>(new O[Size]);
@@ -245,7 +241,6 @@ void collection_from_reference_test()
   static_assert(std::is_same_v<util::collection_from_reference_t<decltype(ptr)>, O*>);
   static_assert(std::is_same_v<util::collection_from_reference_t<decltype(cptr)>, O const*>);
 
-  static_assert(std::is_same_v<util::collection_from_reference_t<decltype(uptr)>, O*>);
   static_assert(
     std::is_same_v<util::collection_from_reference_t<decltype(array_uptr)>, O(*)[Size]>);
   static_assert(
@@ -262,7 +257,6 @@ void collection_from_reference_test()
   static_assert(std::is_same_v<decltype(util::collection_from_reference(ptr)), O*>);
   static_assert(std::is_same_v<decltype(util::collection_from_reference(cptr)), O const*>);
 
-  static_assert(std::is_same_v<decltype(util::collection_from_reference(uptr)), O*>);
   static_assert(std::is_same_v<decltype(util::collection_from_reference(array_uptr)), O(*)[Size]>);
   static_assert(std::is_same_v<decltype(util::collection_from_reference(array_uptrc)), O(*)[Size]>);
   static_assert(std::is_same_v<decltype(util::collection_from_reference(garray_uptr)), O*>);
@@ -277,7 +271,6 @@ void collection_from_reference_test()
   BOOST_TEST(util::collection_from_reference(ptr) == ptr);
   BOOST_TEST(util::collection_from_reference(cptr) == cptr);
 
-  BOOST_TEST(util::collection_from_reference(uptr) == uptr.get());
   BOOST_TEST(util::collection_from_reference(array_uptr) == array_uptr.get());
   BOOST_TEST(util::collection_from_reference(array_uptrc) == array_uptrc.get());
   BOOST_TEST(util::collection_from_reference(garray_uptr) == garray_uptr.get());

@@ -437,8 +437,7 @@ namespace geo {
     TGeoBBox const* pShape = dynamic_cast<TGeoBBox const*>(fVolume->GetShape());
     if (!pShape) {
       throw cet::exception("PlaneGeo")
-        << "BoundingBox(): volume " << fVolume->IsA()->GetName() << "['" << fVolume->GetName()
-        << "'] has a shape which is a " << pShape->IsA()->GetName() << ", not a TGeoBBox!";
+        << "BoundingBox(): volume " << fVolume->IsA()->GetName() << " is not a TGeoBBox!";
     }
 
     geo::BoxBoundedGeo box;
@@ -721,10 +720,8 @@ namespace geo {
     //
     TGeoBBox const* pShape = dynamic_cast<TGeoBBox const*>(fVolume->GetShape());
     if (!pShape) {
-      mf::LogError("BoxInfo") << "Volume " << fVolume->IsA()->GetName() << "['"
-                              << fVolume->GetName() << "'] has a shape which is a "
-                              << pShape->IsA()->GetName()
-                              << ", not a TGeoBBox! Dimensions won't be available.";
+      mf::LogError("BoxInfo") << "Volume " << fVolume->IsA()->GetName()
+                              << " is not a TGeoBBox! Dimensions won't be available.";
       // set it invalid
       fDecompFrame.SetOrigin(geo::origin());
       fDecompFrame.SetMainDir({0., 0., 0.});
