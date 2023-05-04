@@ -22,11 +22,11 @@
 #include "larcorealg/TestUtils/ProviderTestHelpers.h"
 
 // C/C++ standard libraries
-#include <memory> // std::unique_ptr()
+#include <memory>    // std::unique_ptr()
+#include <stdexcept> // std::runtime_error
 #include <typeinfo>
 #include <unordered_map>
 #include <utility> // std::forward()
-#include <stdexcept> // std::runtime_error
 
 namespace testing {
 
