@@ -475,8 +475,15 @@ namespace geo {
     geo::Point_t refPlaneCenter = fPlanes[0].GetCenter();
     for (size_t p = 0; p < Nplanes(); ++p) {
       geo::Point_t const& center = fPlanes[p].GetCenter();
+
+      // #tkosc
+      double absdiff = std::abs(center.X() - refPlaneCenter.X());
+      if (std::abs(DetectDriftDirection())==2) absdiff = std::abs(center.Y() - refPlaneCenter.Y());
+      else if (std::abs(DetectDriftDirection())==3) absdiff = std::abs(center.Z() - refPlaneCenter.Z());
+
       fPlane0Pitch[p] =
-        (p == 0) ? 0.0 : fPlane0Pitch[p - 1] + std::abs(center.X() - refPlaneCenter.X());
+        (p == 0) ? 0.0 : fPlane0Pitch[p - 1] + absdiff; // #tkosc
+//        (p == 0) ? 0.0 : fPlane0Pitch[p - 1] + std::abs(center.X() - refPlaneCenter.X());
       fPlaneLocation[p].resize(3);
       geo::vect::fillCoords(fPlaneLocation[p], center);
       refPlaneCenter = center;
